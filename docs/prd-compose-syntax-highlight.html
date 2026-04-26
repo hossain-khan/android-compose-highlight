@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PRD: compose-highlight — Android Syntax Highlighting Library</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: #1d1d1f; background: #fff; line-height: 1.7;
+    max-width: 960px; margin: 0 auto; padding: 48px 24px 80px;
+  }
+  h1 { font-size: 2rem; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 4px; }
+  .subtitle { color: #6e6e73; font-size: 0.95rem; margin-bottom: 12px; }
+  .back-link { font-size: 0.9rem; margin-bottom: 40px; display: block; }
+  a { color: #0066cc; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  h2 { font-size: 1.35rem; font-weight: 600; margin: 48px 0 16px; padding-bottom: 8px; border-bottom: 1px solid #e5e5e7; }
+  h3 { font-size: 1.1rem; font-weight: 600; margin: 32px 0 10px; }
+  h4 { font-size: 0.95rem; font-weight: 600; margin: 24px 0 8px; }
+  p { margin-bottom: 14px; }
+  code {
+    font-family: "SF Mono", "Fira Code", Menlo, Consolas, monospace;
+    font-size: 0.84em; background: #f5f5f7; padding: 2px 6px; border-radius: 4px;
+  }
+  pre {
+    background: #f5f5f7; padding: 16px 20px; border-radius: 8px; overflow-x: auto;
+    font-family: "SF Mono", "Fira Code", Menlo, Consolas, monospace;
+    font-size: 0.78rem; line-height: 1.6; margin: 16px 0 20px;
+  }
+  pre code { background: none; padding: 0; font-size: inherit; }
+  blockquote {
+    border-left: 3px solid #0066cc; padding: 12px 16px; margin: 12px 0 20px;
+    background: #f0f7ff; border-radius: 0 6px 6px 0; font-size: 0.95rem;
+  }
+  table { width: 100%; border-collapse: collapse; margin: 16px 0 24px; font-size: 0.85rem; }
+  th {
+    text-align: left; padding: 10px 12px; border-bottom: 2px solid #e5e5e7;
+    font-weight: 600; font-size: 0.8rem; color: #6e6e73; text-transform: uppercase; letter-spacing: 0.04em;
+  }
+  td { padding: 10px 12px; border-bottom: 1px solid #f0f0f2; vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  tbody tr:hover { background: #fafafa; }
+  ul, ol { margin: 8px 0 16px 24px; }
+  li { margin: 4px 0; }
+  .highlight-box {
+    background: #f9f9fb; border: 1px solid #e5e5e7; border-radius: 10px;
+    padding: 16px 20px; margin: 16px 0 24px;
+  }
+  .badge {
+    display: inline-block; font-size: 0.72rem; font-weight: 600; padding: 2px 8px;
+    border-radius: 10px; text-transform: uppercase; letter-spacing: 0.04em;
+    background: #e0f2f1; color: #00695c; border: 1px solid #b2dfdb;
+  }
+  .checklist { list-style: none; margin-left: 0; }
+  .checklist li { position: relative; padding-left: 28px; margin: 6px 0; }
+  .checklist li::before {
+    content: ""; position: absolute; left: 0; top: 6px;
+    width: 16px; height: 16px; border: 2px solid #c5c5c7; border-radius: 3px;
+  }
+  .section-note {
+    font-size: 0.85rem; color: #6e6e73; font-style: italic; margin-top: -8px; margin-bottom: 16px;
+  }
+  footer { margin-top: 60px; padding-top: 20px; border-top: 1px solid #e5e5e7; color: #86868b; font-size: 0.8rem; }
+</style>
+</head>
+<body>
+
+<h1>PRD: compose-highlight</h1>
+<p class="subtitle">Product Requirements Document &mdash; Android Syntax Highlighting Library &mdash; April 2026</p>
+<a class="back-link" href="index.html">&larr; Home</a>
+
+<blockquote>
+  A Kotlin Multiplatform-ready Android library that provides real syntax highlighting for Jetpack Compose using Highlight.js, the same engine used by Claude, Perplexity, and ChatGPT in production.
+</blockquote>
+
+<p><strong>Machine-readable version:</strong> <a href="prd-compose-syntax-highlight.md">prd-compose-syntax-highlight.md</a> (Markdown, optimized for AI agent consumption)</p>
+
+<!-- ───────────────────────────────────────── -->
+<h2>1. Problem Statement</h2>
+
+<p>Android apps that display source code need syntax highlighting. The current options are all flawed:</p>
+<ul>
+  <li><strong>WebView-only rendering</strong> &mdash; loses native text selection, accessibility, theming integration, and Compose interop</li>
+  <li><strong>Regex-based tokenizers</strong> &mdash; fragile, limited language support, impossible to maintain</li>
+  <li><strong>Custom parsers per language</strong> &mdash; enormous effort, never reaches parity with established libraries</li>
+</ul>
+<p>Production apps (Claude, Perplexity, ChatGPT) have converged on a hidden-WebView pattern: run Highlight.js off-screen for tokenization, then convert the output to native spans. But each app re-implements this from scratch. <strong>compose-highlight</strong> extracts this proven pattern into a reusable library with a single-line Compose API.</p>
+
+<!-- ───────────────────────────────────────── -->
+<h2>2. Background: Production Evidence</h2>
+
+<p>This design is based on reverse-engineering five production Android APKs:</p>
+
+<table>
+  <thead><tr><th>App</th><th>Engine</th><th>Version</th><th>Languages</th><th>Rendering</th></tr></thead>
+  <tbody>
+    <tr><td><strong>ChatGPT</strong></td><td>Highlight.js</td><td>v11.9.0</td><td>41</td><td>WebView</td></tr>
+    <tr><td><strong>Claude</strong></td><td>Highlight.js</td><td>v11.10.0</td><td>192</td><td>Native Compose spans</td></tr>
+    <tr><td><strong>Perplexity</strong></td><td>Highlight.js</td><td>v11.11.1</td><td>192</td><td>Native Compose spans</td></tr>
+    <tr><td><strong>GitHub</strong></td><td>Server-side</td><td>N/A</td><td>All</td><td>Native StyleSpans</td></tr>
+    <tr><td><strong>Gemini</strong></td><td>None (shell)</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+  </tbody>
+</table>
+
+<div class="highlight-box">
+  <strong>Key insights from production:</strong>
+  <ol>
+    <li><strong>Perplexity</strong> produces both light AND dark AnnotatedStrings from a single JS call &mdash; instant theme switching</li>
+    <li><strong>Perplexity</strong> parses CSS theme files at runtime into a <code>LinkedHashMap&lt;String, SpanStyle&gt;</code> &mdash; any hljs theme works</li>
+    <li><strong>Claude</strong> uses Base64 data: URLs; <strong>Perplexity</strong> uses <code>WebViewAssetLoader</code> (cleaner, recommended by Google)</li>
+    <li>Both Claude and Perplexity cache the WebView singleton and reuse it across all calls</li>
+    <li><strong>Perplexity</strong> uses jsoup for HTML parsing and recursively walks spans into Compose <code>AnnotatedString</code></li>
+    <li><strong>Perplexity</strong> wraps failures in <code>MarkdownException$HighlightJsFailed</code> and falls back to unstyled code</li>
+  </ol>
+</div>
+
+<!-- ───────────────────────────────────────── -->
+<h2>3. Architecture</h2>
+
+<pre><code>┌─────────────────────────────────────────────────────────┐
+│                    compose-highlight                     │
+│                                                          │
+│  ┌──────────────┐   ┌──────────────┐   ┌──────────────┐ │
+│  │  Asset Bundle │   │   Engine     │   │  Compose UI  │ │
+│  │              │   │              │   │              │ │
+│  │ highlight.js │   │ WebView mgr  │   │ SyntaxText() │ │
+│  │ bridge.html  │   │ JS bridge    │   │ CodeBlock()  │ │
+│  │ themes/*.css │   │ ThemeParser  │   │ Line numbers │ │
+│  │              │   │ HtmlToSpans  │   │ Copy button  │ │
+│  └──────────────┘   └──────────────┘   └──────────────┘ │
+│                                                          │
+│  Public API:                                             │
+│  SyntaxHighlightedCode(code, language, theme)            │
+│  rememberHighlightEngine()                               │
+│  HighlightEngine.highlight(code, lang) → AnnotatedString │
+└─────────────────────────────────────────────────────────┘</code></pre>
+
+<h3>Data Flow</h3>
+
+<pre><code>Code ("def foo():") + lang ("python")
+        │
+        ▼
+┌─ HighlightEngine ──────────────────────────────┐
+│  1. Ensure WebView ready (create if needed)     │
+│  2. Escape code string (', \n, \r)              │
+│  3. Build JS: highlightCode('escaped','python') │
+│  4. evaluateJavascript() → HTML string          │
+│  5. Unescape response                           │
+└──────────────────┬──────────────────────────────┘
+                   │ HTML: &lt;span class="hljs-keyword"&gt;def&lt;/span&gt;
+                   ▼
+┌─ ThemeParser ───────────────────────────────────┐
+│  CSS file → parse rules → extract colors        │
+│  "hljs-keyword" → SpanStyle(color = #8959a8)   │
+│  Cached via Lazy (parsed once per theme)        │
+└──────────────────┬──────────────────────────────┘
+                   ▼
+┌─ HtmlToAnnotatedString ────────────────────────┐
+│  Jsoup.parse(html) → recursive tree walk       │
+│  &lt;span class="hljs-keyword"&gt;                   │
+│    → pushStyle(map["hljs-keyword"])             │
+│    → recurse children → pop()                   │
+│  TextNode → append(text)                        │
+│  Output: AnnotatedString (light + dark)         │
+└──────────────────┬──────────────────────────────┘
+                   ▼
+┌─ Compose UI ───────────────────────────────────┐
+│  Text(annotatedString, fontFamily = Monospace)  │
+│  + SelectionContainer + line numbers            │
+│  + copy button + language badge                 │
+│  + horizontal scroll                            │
+└─────────────────────────────────────────────────┘</code></pre>
+
+<!-- ───────────────────────────────────────── -->
+<h2>4. Module Specifications</h2>
+
+<h3>4.1 Asset Bundle</h3>
+<p>Files in <code>src/main/assets/compose-highlight/</code>:</p>
+<table>
+  <thead><tr><th>File</th><th>Description</th><th>Size</th></tr></thead>
+  <tbody>
+    <tr><td><code>highlight.min.js</code></td><td>Highlight.js v11.11.1, 192 languages</td><td>~1.04 MB</td></tr>
+    <tr><td><code>bridge.html</code></td><td>HTML page with <code>highlightCode()</code></td><td>~300 B</td></tr>
+    <tr><td><code>themes/tomorrow.css</code></td><td>Base16 Tomorrow (light)</td><td>~3 KB</td></tr>
+    <tr><td><code>themes/tomorrow-night.css</code></td><td>Base16 Tomorrow Night (dark)</td><td>~3 KB</td></tr>
+  </tbody>
+</table>
+
+<h4>bridge.html</h4>
+<pre><code>&lt;!DOCTYPE html&gt;
+&lt;html&gt;&lt;body&gt;
+&lt;pre&gt;&lt;code id="code"&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;script src="highlight.min.js"&gt;&lt;/script&gt;
+&lt;script&gt;
+function highlightCode(code, lang) {
+  const block = document.getElementById("code");
+  block.textContent = code;
+  block.className = lang;
+  delete block.dataset.highlighted;
+  hljs.highlightElement(block);
+  return block.innerHTML;
+}
+&lt;/script&gt;
+&lt;/body&gt;&lt;/html&gt;</code></pre>
+
+<!-- 4.2 -->
+<h3>4.2 HighlightEngine</h3>
+<p class="section-note">Core class managing the hidden WebView and JS execution. Modeled after Perplexity's <code>ra/d</code> and <code>ra/c</code>.</p>
+
+<pre><code>class HighlightEngine internal constructor(context: Context) {
+    suspend fun initialize()
+    suspend fun highlightToHtml(code: String, language: String): Result&lt;String&gt;
+    suspend fun highlight(code: String, language: String, theme: HighlightTheme): Result&lt;AnnotatedString&gt;
+    suspend fun highlightBothThemes(
+        code: String, language: String,
+        lightTheme: HighlightTheme, darkTheme: HighlightTheme,
+    ): Result&lt;ThemedHighlightResult&gt;
+    fun destroy()
+}
+
+data class ThemedHighlightResult(val light: AnnotatedString, val dark: AnnotatedString)</code></pre>
+
+<p><strong>WebView init sequence:</strong></p>
+<ol>
+  <li>Create <code>WebView(context)</code> on Main thread</li>
+  <li>Enable JavaScript: <code>settings.javaScriptEnabled = true</code></li>
+  <li>Create <code>WebViewAssetLoader</code> with <code>AssetsPathHandler</code></li>
+  <li>Set <code>WebViewClient</code> &mdash; <code>onPageFinished()</code> completes <code>readyDeferred</code></li>
+  <li>Load <code>https://appassets.androidplatform.net/assets/compose-highlight/bridge.html</code></li>
+  <li>Cache WebView instance for reuse</li>
+</ol>
+
+<p><strong>JS execution:</strong></p>
+<ol>
+  <li>Escape: <code>'</code> &rarr; <code>\'</code>, <code>\n</code> &rarr; <code>\\n</code>, <code>\r</code> &rarr; <code>\\r</code></li>
+  <li>Build: <code>(function() { return highlightCode('ESCAPED', 'LANG'); })()</code></li>
+  <li><code>evaluateJavascript(js, callback)</code></li>
+  <li>Unescape response: <code><</code> &rarr; <code>&lt;</code>, <code>\"</code> &rarr; <code>"</code>, <code>\\n</code> &rarr; LF</li>
+</ol>
+
+<!-- 4.3 -->
+<h3>4.3 ThemeParser</h3>
+<p class="section-note">Parses hljs CSS themes at runtime. Modeled after Perplexity's <code>gn/d.c()</code>.</p>
+
+<pre><code>object ThemeParser {
+    fun parse(context: Context, cssAssetPath: String): Map&lt;String, SpanStyle&gt;
+    fun parse(cssText: String): Map&lt;String, SpanStyle&gt;
+}</code></pre>
+
+<p>Extracts <code>color</code>, <code>font-weight</code>, <code>font-style</code>, and <code>background</code> from CSS rules. Maps <code>.hljs-*</code> class selectors to Compose <code>SpanStyle</code> instances. Results are cached via <code>Lazy</code>.</p>
+
+<!-- 4.4 -->
+<h3>4.4 HtmlToAnnotatedString</h3>
+<p class="section-note">Recursive HTML span walker. Modeled after Perplexity's <code>gn/d.b()</code>.</p>
+
+<pre><code>object HtmlToAnnotatedString {
+    fun convert(html: String, colorMap: Map&lt;String, SpanStyle&gt;): AnnotatedString
+}</code></pre>
+
+<p>Uses jsoup to parse HTML. Walks the DOM tree recursively: for each <code>&lt;span class="hljs-*"&gt;</code>, pushes a <code>SpanStyle</code> from the color map, recurses into children, then pops. Text nodes are appended verbatim.</p>
+
+<!-- 4.5 -->
+<h3>4.5 HighlightTheme</h3>
+
+<pre><code>class HighlightTheme private constructor(name: String, colorMapProvider: () -&gt; Map&lt;String, SpanStyle&gt;) {
+    val colorMap: Map&lt;String, SpanStyle&gt; by lazy { ... }
+    val backgroundColor: Color by lazy { ... }
+    val defaultTextColor: Color by lazy { ... }
+
+    companion object {
+        fun tomorrow(context: Context): HighlightTheme
+        fun tomorrowNight(context: Context): HighlightTheme
+        fun fromAsset(context: Context, assetPath: String, name: String): HighlightTheme
+        fun fromCss(cssText: String, name: String): HighlightTheme
+    }
+}</code></pre>
+
+<!-- 4.6 -->
+<h3>4.6 Compose UI Components</h3>
+
+<h4>SyntaxHighlightedCode</h4>
+
+<pre><code>@Composable
+fun SyntaxHighlightedCode(
+    code: String,
+    language: String,
+    modifier: Modifier = Modifier,
+    theme: HighlightTheme = LocalHighlightTheme.current,
+    style: CodeBlockStyle = CodeBlockStyle.Default,
+    showLineNumbers: Boolean = false,
+    showLanguageLabel: Boolean = true,
+    showCopyButton: Boolean = true,
+    onCopyClick: ((String) -&gt; Unit)? = null,
+    fontFamily: FontFamily = FontFamily.Monospace,
+    fontSize: TextUnit = 13.sp,
+    lineHeight: TextUnit = 20.sp,
+)</code></pre>
+
+<p><strong>Component layout:</strong></p>
+<pre><code>┌─ Surface (rounded corners, theme background) ───────────────┐
+│ ┌─ Header Row ────────────────────────────────────────────┐ │
+│ │  [language badge]                         [copy button] │ │
+│ └─────────────────────────────────────────────────────────┘ │
+│ ┌─ HorizontalScroll ─────────────────────────────────────┐ │
+│ │  Line# │  Code content                                 │ │
+│ │  1     │  def foo():                                   │ │
+│ │  2     │      return "hello"                           │ │
+│ └────────┴────────────────────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────────┘</code></pre>
+
+<p>Shows unstyled code immediately, then crossfades to highlighted version. Native text selection via <code>SelectionContainer</code>. Copy button copies raw code.</p>
+
+<h4>Theme Provider</h4>
+<pre><code>@Composable
+fun HighlightThemeProvider(
+    darkTheme: Boolean = isSystemInDarkTheme(),
+    lightTheme: HighlightTheme = HighlightTheme.tomorrow(LocalContext.current),
+    darkTheme: HighlightTheme = HighlightTheme.tomorrowNight(LocalContext.current),
+    content: @Composable () -&gt; Unit,
+)</code></pre>
+
+<h4>Remember Helpers</h4>
+<pre><code>@Composable fun rememberHighlightEngine(): HighlightEngine
+@Composable fun rememberHighlightedCode(code: String, language: String, theme: HighlightTheme): State&lt;AnnotatedString?&gt;</code></pre>
+
+<!-- ───────────────────────────────────────── -->
+<h2>5. Public API &mdash; Usage Examples</h2>
+
+<h3>Minimal (1 line)</h3>
+<pre><code>HighlightThemeProvider {
+    SyntaxHighlightedCode(
+        code = "def hello():\n    print('world')",
+        language = "python",
+    )
+}</code></pre>
+
+<h3>Engine-only (custom UI)</h3>
+<pre><code>val engine = rememberHighlightEngine()
+LaunchedEffect(code) {
+    engine.highlight(code, "kotlin", theme).onSuccess { styled -&gt;
+        // Use styled AnnotatedString in your own Text()
+    }
+}</code></pre>
+
+<h3>Custom theme</h3>
+<pre><code>val customTheme = HighlightTheme.fromAsset(context, "my-theme.css", "My Theme")</code></pre>
+
+<!-- ───────────────────────────────────────── -->
+<h2>6. Project Structure</h2>
+
+<pre><code>compose-highlight/
+├── compose-highlight/              # Library module
+│   ├── build.gradle.kts
+│   └── src/
+│       ├── main/
+│       │   ├── assets/compose-highlight/
+│       │   │   ├── bridge.html
+│       │   │   ├── highlight.min.js
+│       │   │   └── themes/ (tomorrow.css, tomorrow-night.css)
+│       │   └── kotlin/dev/composehighlight/
+│       │       ├── engine/ (HighlightEngine, ThemeParser, HtmlToAnnotatedString, HighlightTheme)
+│       │       └── ui/ (SyntaxHighlightedCode, CodeBlockStyle, HighlightThemeProvider)
+│       ├── test/    (ThemeParserTest, HtmlToAnnotatedStringTest)
+│       └── androidTest/ (HighlightEngineTest, SyntaxHighlightedCodeTest)
+├── sample/                         # Demo app
+└── build.gradle.kts</code></pre>
+
+<!-- ───────────────────────────────────────── -->
+<h2>7. Dependencies</h2>
+
+<table>
+  <thead><tr><th>Dependency</th><th>Purpose</th></tr></thead>
+  <tbody>
+    <tr><td><code>androidx.webkit:webkit:1.11.0</code></td><td>WebViewAssetLoader (Perplexity's approach)</td></tr>
+    <tr><td><code>org.jsoup:jsoup:1.18.1</code></td><td>HTML parsing (used by Claude + Perplexity)</td></tr>
+    <tr><td><code>androidx.compose:compose-bom</code></td><td>Compose UI, Foundation, Material3</td></tr>
+    <tr><td><code>kotlinx-coroutines-android</code></td><td>Main-thread dispatching, Mutex</td></tr>
+  </tbody>
+</table>
+<p><strong>Build targets:</strong> compileSdk 35, minSdk 24, targetSdk 35, Kotlin 2.0+, AGP 8.5+</p>
+
+<!-- ───────────────────────────────────────── -->
+<h2>8. Threading Model</h2>
+
+<pre><code>Caller coroutine (any dispatcher)
+    │
+    ├─ mutex.withLock {                    // Serialize calls
+    │      ├─ withContext(Dispatchers.Main) // WebView requires Main
+    │      │      evaluateJavascript(js, callback)
+    │      └─ suspendCancellableCoroutine  // Bridge callback → coroutine
+    │
+    ├─ ThemeParser.parse()                 // Pure computation, any thread
+    ├─ HtmlToAnnotatedString.convert()     // Pure computation, any thread
+    └─ Return AnnotatedString</code></pre>
+
+<p><strong>Critical:</strong> WebView MUST be created and accessed on Main thread. Use <code>Mutex</code> to serialize concurrent <code>evaluateJavascript()</code> calls. Do NOT create multiple WebViews.</p>
+
+<!-- ───────────────────────────────────────── -->
+<h2>9. Error Handling</h2>
+
+<p>Follow Perplexity's pattern: graceful degradation to unstyled code.</p>
+
+<table>
+  <thead><tr><th>Scenario</th><th>Handling</th></tr></thead>
+  <tbody>
+    <tr><td>WebView fails to init</td><td><code>Result.failure(HighlightException.WebViewInitFailed)</code></td></tr>
+    <tr><td>JS execution error</td><td><code>Result.failure(HighlightException.JsExecutionFailed)</code></td></tr>
+    <tr><td>Unknown language</td><td>Returns un-highlighted HTML (no crash)</td></tr>
+    <tr><td>CSS theme not found</td><td><code>Result.failure(HighlightException.ThemeNotFound)</code></td></tr>
+    <tr><td>HTML parse failure</td><td><code>Result.failure(HighlightException.HtmlParseFailed)</code></td></tr>
+    <tr><td>Timeout (&gt;5s)</td><td><code>Result.failure(HighlightException.Timeout)</code></td></tr>
+  </tbody>
+</table>
+
+<pre><code>sealed class HighlightException(message: String, cause: Throwable? = null) : Exception(message, cause) {
+    class WebViewInitFailed(cause: Throwable) : HighlightException(...)
+    class JsExecutionFailed(cause: Throwable) : HighlightException(...)
+    class ThemeNotFound(path: String) : HighlightException(...)
+    class HtmlParseFailed(cause: Throwable) : HighlightException(...)
+    class Timeout : HighlightException(...)
+}</code></pre>
+
+<!-- ───────────────────────────────────────── -->
+<h2>10. Performance &amp; Caching</h2>
+
+<table>
+  <thead><tr><th>What</th><th>Strategy</th><th>Rationale</th></tr></thead>
+  <tbody>
+    <tr><td>WebView instance</td><td>Singleton per engine</td><td>Creation costs ~200ms + ~2-4 MB RAM</td></tr>
+    <tr><td>Theme color maps</td><td><code>Lazy</code> init</td><td>Parsed once (~1-2ms), cached forever</td></tr>
+    <tr><td>JS bridge ready</td><td><code>CompletableDeferred</code></td><td>Await onPageFinished before first call</td></tr>
+    <tr><td>Highlight results</td><td>Caller caches via <code>remember {}</code></td><td>Library doesn't know caching policy</td></tr>
+  </tbody>
+</table>
+
+<p><strong>Expected latency:</strong> First call ~200-400ms (WebView init), subsequent ~10-50ms (JS + parsing). Theme parsing ~1-2ms (one-time).</p>
+
+<!-- ───────────────────────────────────────── -->
+<h2>11. Testing Strategy</h2>
+
+<h3>Unit Tests (JVM)</h3>
+<ul>
+  <li><code>ThemeParserTest</code> &mdash; parses CSS correctly, handles compound selectors, extracts font properties, handles empty input</li>
+  <li><code>HtmlToAnnotatedStringTest</code> &mdash; converts spans to styled text, handles nesting, preserves whitespace, handles empty input</li>
+</ul>
+
+<h3>Instrumented Tests (device/emulator)</h3>
+<ul>
+  <li><code>HighlightEngineTest</code> &mdash; WebView init, Python/Kotlin highlighting, concurrent calls, special characters, destroy</li>
+  <li><code>SyntaxHighlightedCodeTest</code> &mdash; composable renders, copy button works</li>
+</ul>
+
+<h3>Sample App (manual)</h3>
+<ul>
+  <li>Multiple languages, theme toggle, long code blocks, special characters, rapid switching</li>
+</ul>
+
+<!-- ───────────────────────────────────────── -->
+<h2>12. Non-Goals</h2>
+
+<ul>
+  <li><strong>Language auto-detection</strong> &mdash; user must specify language</li>
+  <li><strong>Diff highlighting</strong> &mdash; no added/removed line coloring</li>
+  <li><strong>Code editing</strong> &mdash; read-only display only</li>
+  <li><strong>Custom language grammars</strong> &mdash; use what Highlight.js bundles</li>
+  <li><strong>KMP (initial version)</strong> &mdash; Android-only; pure-Kotlin layers can be extracted later</li>
+  <li><strong>Android View support</strong> &mdash; Compose only; use <code>ComposeView</code> for legacy</li>
+  <li><strong>Font bundling</strong> &mdash; uses system monospace; users pass custom <code>FontFamily</code></li>
+</ul>
+
+<!-- ───────────────────────────────────────── -->
+<h2>13. Reference Evidence</h2>
+
+<p>For detailed evidence with smali bytecode excerpts and architecture diagrams from production apps:</p>
+
+<table>
+  <thead><tr><th>Document</th><th>Relevance</th></tr></thead>
+  <tbody>
+    <tr><td><a href="perplexity-analysis-report.html">Perplexity Analysis Report</a></td><td>Closest to this library's architecture</td></tr>
+    <tr><td><a href="perplexity-technical-reference.html">Perplexity Technical Reference</a></td><td>12 evidence sections covering every pipeline stage</td></tr>
+    <tr><td><a href="syntax-on-3p-app-analysis-report.html">ChatGPT &amp; Claude Report</a></td><td>Two alternative Highlight.js approaches</td></tr>
+    <tr><td><a href="technical-reference.html">ChatGPT &amp; Claude Reference</a></td><td>Evidence for both implementations</td></tr>
+    <tr><td><a href="github-analysis-report.html">GitHub Report</a></td><td>Server-side alternative</td></tr>
+  </tbody>
+</table>
+
+<h3>Key Perplexity classes that informed this design</h3>
+<table>
+  <thead><tr><th>Obfuscated</th><th>Role</th><th>Library Component</th></tr></thead>
+  <tbody>
+    <tr><td><code>ra/d</code></td><td>WebView singleton, lazy init</td><td><code>HighlightEngine</code></td></tr>
+    <tr><td><code>ra/c</code></td><td>JS eval coroutine, escaping</td><td><code>highlightToHtml()</code></td></tr>
+    <tr><td><code>eu0/f</code></td><td>WebViewClient, asset serving</td><td>Internal WebViewClient</td></tr>
+    <tr><td><code>gn/d</code></td><td>CSS parser + HTML walker</td><td><code>ThemeParser</code> + <code>HtmlToAnnotatedString</code></td></tr>
+    <tr><td><code>gn/a</code></td><td>Theme switcher (light/dark)</td><td><code>HighlightTheme</code> factory</td></tr>
+    <tr><td><code>gn/e</code></td><td>Light+dark result pair</td><td><code>ThemedHighlightResult</code></td></tr>
+  </tbody>
+</table>
+
+<!-- ───────────────────────────────────────── -->
+<h2>14. Implementation Order</h2>
+
+<ol>
+  <li><strong>Project setup</strong> &mdash; Gradle project, dependencies, build config</li>
+  <li><strong>Asset bundle</strong> &mdash; Download highlight.min.js, create bridge.html, add theme CSS</li>
+  <li><strong>ThemeParser</strong> &mdash; Implement + unit test (no Android deps)</li>
+  <li><strong>HtmlToAnnotatedString</strong> &mdash; Implement + unit test (jsoup only)</li>
+  <li><strong>HighlightEngine</strong> &mdash; WebView manager + JS bridge + instrumented tests</li>
+  <li><strong>HighlightTheme</strong> &mdash; Wire up lazy theme maps</li>
+  <li><strong>SyntaxHighlightedCode</strong> &mdash; Full composable with all UI features</li>
+  <li><strong>HighlightThemeProvider</strong> &mdash; CompositionLocal + auto dark/light</li>
+  <li><strong>Sample app</strong> &mdash; Demo with multiple languages and themes</li>
+  <li><strong>README</strong> &mdash; Usage docs, API reference</li>
+</ol>
+
+<!-- ───────────────────────────────────────── -->
+<h2>15. Success Criteria</h2>
+
+<ul class="checklist">
+  <li><code>SyntaxHighlightedCode(code, language)</code> renders colored code with a single line</li>
+  <li>All 192 Highlight.js languages produce highlighted output</li>
+  <li>Light/dark themes switch instantly without re-highlighting</li>
+  <li>Code is natively selectable (long-press)</li>
+  <li>Copy button copies raw unstyled code</li>
+  <li>Line numbers display and align correctly</li>
+  <li>Horizontal scroll for long lines</li>
+  <li>Unknown language falls back to unstyled monospace</li>
+  <li>WebView failure falls back to unstyled monospace</li>
+  <li>Custom CSS themes work by dropping a file into assets</li>
+  <li>All unit + instrumented tests pass</li>
+  <li>Sample app demonstrates all features</li>
+  <li>Library size overhead &lt;1.5 MB</li>
+</ul>
+
+<footer>
+  <p>PRD generated from static analysis of production Android APKs (ChatGPT, Claude, Perplexity, GitHub, Gemini). See <a href="index.html">analysis home page</a> for full investigation details. April 2026.</p>
+</footer>
+
+</body>
+</html>
