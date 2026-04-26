@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html><body>
+<pre><code id="code"></code></pre>
+<script src="highlight.min.js"></script>
+<script>
+function highlightCode(code, lang) {
+  const block = document.getElementById("code");
+  block.textContent = code;
+  block.className = lang;
+  delete block.dataset.highlighted;
+  hljs.highlightElement(block);
+  return block.innerHTML;
+}
+</script>
+</body></html>
