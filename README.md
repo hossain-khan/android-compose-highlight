@@ -1,2 +1,148 @@
-# android-compose-highlight
-WIP - Simple library that leverages JS bridge to bring highlighting to Android Jetpack Compose
+# compose-highlight
+
+A Jetpack Compose library for beautiful syntax highlighting — powered by [Highlight.js](https://highlightjs.org/) running in a hidden WebView, converting tokenised HTML output to native Compose `AnnotatedString`. No custom lexers, no bundled grammars to maintain: just drop in the library and highlight any of 190+ languages.
+
+Inspired by the approach used in production apps such as Claude, Perplexity, and ChatGPT on Android.
+
+---
+
+## Quick Start
+
+```kotlin
+// One line — that's it
+SyntaxHighlightedCode(code = myCode, language = "kotlin")
+```
+
+Wrap your UI in `HighlightThemeProvider` to apply light/dark themes automatically:
+
+```kotlin
+HighlightThemeProvider(
+    lightHighlightTheme = HighlightTheme.tomorrow(context),
+    darkHighlightTheme = HighlightTheme.tomorrowNight(context),
+) {
+    SyntaxHighlightedCode(
+        code = myCode,
+        language = "python",
+        showLineNumbers = true,
+    )
+}
+```
+
+---
+
+## Setup
+
+Add the `:compose-highlight` module to your project (local module for now; Maven publishing coming soon):
+
+```kotlin
+// settings.gradle.kts
+include(":compose-highlight")
+project(":compose-highlight").projectDir = file("../compose-highlight")
+
+// app/build.gradle.kts
+dependencies {
+    implementation(project(":compose-highlight"))
+}
+```
+
+The library requires `minSdk = 24`.
+
+---
+
+## Engine-Only Usage
+
+Use `HighlightEngine` directly if you only need an `AnnotatedString` without the full composable:
+
+```kotlin
+val engine = HighlightEngine(context)
+engine.initialize() // warms up the WebView
+
+val result: Result<AnnotatedString> =
+    engine.highlight(code = "val x = 42", language = "kotlin", theme = HighlightTheme.tomorrow(context))
+
+result.onSuccess { annotated ->
+    // use annotated string in your own composable
+}
+
+// clean up when done
+engine.destroy()
+```
+
+Or use `highlightBothThemes()` to highlight once and get both light and dark versions in a single WebView call:
+
+```kotlin
+val themed = engine.highlightBothThemes(
+    code = code,
+    language = language,
+    lightTheme = HighlightTheme.tomorrow(context),
+    darkTheme = HighlightTheme.tomorrowNight(context),
+)
+themed.onSuccess { (light, dark) ->
+    // use light or dark based on system theme
+}
+```
+
+---
+
+## Custom Themes
+
+Any Highlight.js CSS theme works. Load from an asset:
+
+```kotlin
+val theme = HighlightTheme.fromAsset(context, "themes/my-theme.css")
+```
+
+Or pass raw CSS directly:
+
+```kotlin
+val theme = HighlightTheme.fromCss(cssString)
+```
+
+---
+
+## `SyntaxHighlightedCode` API
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `code` | `String` | required | Source code to display |
+| `language` | `String` | required | Highlight.js language ID |
+| `modifier` | `Modifier` | `Modifier` | Outer container modifier |
+| `theme` | `HighlightTheme` | `LocalHighlightTheme` | Theme override |
+| `style` | `CodeBlockStyle` | `CodeBlockStyle.Default` | Visual style (padding, shape, etc.) |
+| `showLineNumbers` | `Boolean` | `false` | Show line-number gutter |
+| `showLanguageLabel` | `Boolean` | `true` | Show language badge in header |
+| `showCopyButton` | `Boolean` | `true` | Show copy-to-clipboard button |
+| `onCopyClick` | `((String) -> Unit)?` | `null` | Custom copy handler |
+| `fontFamily` | `FontFamily` | `Monospace` | Code font |
+| `fontSize` | `TextUnit` | `13.sp` | Code font size |
+| `lineHeight` | `TextUnit` | `20.sp` | Code line height |
+
+---
+
+## Architecture
+
+```
+SyntaxHighlightedCode  (Compose UI)
+    └── rememberHighlightEngine / rememberHighlightedCode
+            └── HighlightEngine          (coroutine pipeline)
+                    ├── WebViewManager   (hidden WebView + JS bridge)
+                    ├── HighlightTheme   (CSS theme model)
+                    ├── ThemeParser      (CSS → Map<selector, SpanStyle>)
+                    └── HtmlToAnnotatedString  (jsoup → AnnotatedString)
+```
+
+The WebView loads `bridge.html` from the library's bundled assets, which in turn loads the full 192-language Highlight.js bundle. All WebView operations run on the Main thread; callers interact through suspend functions backed by a `Mutex`.
+
+For full design details see [`docs/prd-compose-syntax-highlight.md`](docs/prd-compose-syntax-highlight.md).
+
+---
+
+## Requirements
+
+- Android minSdk 24+
+- Kotlin 2.x
+- Jetpack Compose (BOM 2026.03+)
+
+## License
+
+Apache 2.0
