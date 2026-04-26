@@ -1,6 +1,8 @@
 package dev.composehighlight.engine
 
 import android.content.Context
+import android.os.Handler
+import android.os.Looper
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import android.webkit.WebView
@@ -60,9 +62,11 @@ internal class WebViewManager(private val context: Context) {
         }
     }
 
-    /** Destroys the WebView and releases resources. Must be called on Main thread. */
+    /** Destroys the WebView and releases resources. Safe to call from any thread. */
     fun destroy() {
-        webView?.destroy()
+        val wv = webView ?: return
         webView = null
+        // WebView.destroy() must be called on the thread that created it (Main).
+        Handler(Looper.getMainLooper()).post { wv.destroy() }
     }
 }
