@@ -1,10 +1,13 @@
 package dev.composehighlight.engine
 
 import android.content.Context
+import android.util.Log
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+
+private const val TAG = "ComposeHighlight"
 
 /**
  * Parses Highlight.js CSS theme files into a map of hljs class names → [SpanStyle].
@@ -21,8 +24,10 @@ object ThemeParser {
     fun parse(context: Context, cssAssetPath: String): Map<String, SpanStyle> {
         return try {
             val css = context.assets.open(cssAssetPath).bufferedReader().readText()
+            Log.d(TAG, "ThemeParser: loaded CSS from '$cssAssetPath' (${css.length} chars)")
             parse(css)
         } catch (e: Exception) {
+            Log.e(TAG, "ThemeParser: FAILED to open asset '$cssAssetPath': ${e.message}", e)
             emptyMap()
         }
     }
@@ -36,7 +41,7 @@ object ThemeParser {
 
         val result = mutableMapOf<String, SpanStyle>()
         // Match each CSS rule block: selectors { declarations }
-        val rulePattern = Regex("""([^{}]+)\{([^{}]*)}""")
+        val rulePattern = Regex("""([^{}]+)\{([^{}]*)\}""")
 
         rulePattern.findAll(cssText).forEach { matchResult ->
             val selectorsPart = matchResult.groupValues[1]
@@ -60,6 +65,11 @@ object ThemeParser {
                 }
             }
         }
+
+        Log.d(TAG, "ThemeParser: parsed ${result.size} entries. Keys: ${result.keys.take(10)}")
+        result["hljs"]?.let { base ->
+            Log.d(TAG, "ThemeParser: .hljs base → color=${base.color}, background=${base.background}")
+        } ?: Log.w(TAG, "ThemeParser: .hljs base rule NOT found — backgroundColor/defaultTextColor will be Unspecified")
 
         return result
     }
