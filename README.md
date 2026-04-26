@@ -145,4 +145,11 @@ For full design details see [`docs/prd-compose-syntax-highlight.md`](docs/prd-co
 
 ## License
 
-Apache 2.0
+MIT
+
+---
+
+> [!NOTE]
+> This project was developed with the assistance of AI coding agents (GitHub Copilot).
+> Code, architecture, tests, and documentation were generated or refined through
+> AI-assisted pair programming. Review accordingly before using in production.
