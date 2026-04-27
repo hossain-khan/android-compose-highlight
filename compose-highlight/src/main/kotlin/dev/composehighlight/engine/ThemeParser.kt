@@ -43,33 +43,41 @@ object ThemeParser {
         // Match each CSS rule block: selectors { declarations }
         val rulePattern = Regex("""([^{}]+)\{([^{}]*)\}""")
 
+        // Matches a full hljs class selector including multi-hyphen names and dot-joined compound classes.
+        // Examples: .hljs, .hljs-keyword, .hljs-template-tag, .hljs-meta-keyword, .hljs-title.function_
+        // Stops at whitespace (descendant combinator) and at a second .hljs (which would be a new selector token).
+        val selectorPattern = Regex("""\.hljs[-\w]*(?:\.(?!hljs)[\w][-\w.]*)*""")
+
         rulePattern.findAll(cssText).forEach { matchResult ->
             val selectorsPart = matchResult.groupValues[1]
             val declarations = matchResult.groupValues[2]
 
             val spanStyle = parseDeclarations(declarations) ?: return@forEach
 
-            // Extract each individual .hljs-* or .hljs selector from a potentially compound selector list
-            val selectorPattern = Regex("""\.hljs(?:-[\w.]+)?""")
-            selectorPattern.findAll(selectorsPart).forEach { selectorMatch ->
-                // Normalize: strip leading dot, trim compound class notation
-                // e.g. ".hljs-title.function_" → "hljs-title.function_" (keep compound for specificity)
-                // but also store the primary class "hljs-title"
-                val raw = selectorMatch.value.trimStart('.')
-                // Store under the full compound key for exact lookup
-                result[raw] = spanStyle
-                // Also store under the first component if compound (e.g. "hljs-title")
-                val primary = raw.substringBefore('.')
-                if (primary != raw && !result.containsKey(primary)) {
-                    result[primary] = spanStyle
+            // Split into individual selectors (comma-separated) and process each independently.
+            // This prevents descendant selectors like `.hljs-meta .hljs-keyword` from
+            // overwriting the standalone `.hljs-keyword` entry with a context-specific style.
+            selectorsPart.split(",").forEach { individualSelector ->
+                val trimmed = individualSelector.trim()
+                val matches = selectorPattern.findAll(trimmed).toList()
+
+                // Skip context-specific descendant selectors entirely.
+                // If a selector has two separate .hljs-* tokens (separated by whitespace),
+                // it's a descendant rule that only applies in a specific nested context.
+                if (matches.size >= 2) return@forEach
+
+                matches.forEach { selectorMatch ->
+                    val raw = selectorMatch.value.trimStart('.')
+                    result[raw] = spanStyle
+                    // Also store under the primary class for compound selectors
+                    // e.g. "hljs-title.function_" → also store "hljs-title" as fallback
+                    val primary = raw.substringBefore('.')
+                    if (primary != raw && !result.containsKey(primary)) {
+                        result[primary] = spanStyle
+                    }
                 }
             }
         }
-
-        Log.d(TAG, "ThemeParser: parsed ${result.size} entries. Keys: ${result.keys.take(10)}")
-        result["hljs"]?.let { base ->
-            Log.d(TAG, "ThemeParser: .hljs base → color=${base.color}, background=${base.background}")
-        } ?: Log.w(TAG, "ThemeParser: .hljs base rule NOT found — backgroundColor/defaultTextColor will be Unspecified")
 
         return result
     }
