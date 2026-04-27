@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.kotlinter)
+    alias(libs.plugins.dokka)
 }
 
 android {
@@ -68,4 +69,12 @@ dependencies {
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     androidTestImplementation(libs.androidx.benchmark.junit4)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
+}
+
+dokka {
+    moduleName.set("compose-highlight")
+    dokkaPublications.html {
+        // Output to docs/api/ so GitHub Pages can serve from the docs/ folder
+        outputDirectory.set(rootDir.resolve("docs/api"))
+    }
 }

@@ -4,4 +4,5 @@ plugins {
     alias(libs.plugins.android.test) apply false
     alias(libs.plugins.compose.compiler) apply false
     alias(libs.plugins.kotlinter) apply false
+    alias(libs.plugins.dokka) apply false
 }

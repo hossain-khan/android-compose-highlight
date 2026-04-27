@@ -33,3 +33,6 @@ google-services.json
 # Android Profiling
 *.hprof
 .DS_Store
+
+# Generated API documentation (built by Dokka, deployed via GitHub Pages)
+docs/api/
