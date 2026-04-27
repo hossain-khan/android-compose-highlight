@@ -79,6 +79,8 @@ SyntaxHighlightedCode   ← primary public composable
 
 **Asset path convention:** All library assets live under `assets/compose-highlight/` to avoid collisions when the library is consumed. CSS themes go in `assets/compose-highlight/themes/`.
 
+**Keep CHANGELOG.md up to date.** For every PR or commit that adds a feature, fixes a bug, or makes a breaking change, add an entry under the relevant `[Unreleased]` section in `CHANGELOG.md` at the repo root. When cutting a release, rename `[Unreleased]` to the version number with the date.
+
 **KDoc is required on all public API.** Dokka API docs are generated from KDoc and published to GitHub Pages (`.github/workflows/docs.yml`). Every public class, function, and property in `ui/` and the public `engine/` classes must have KDoc. Include at least one usage example (triple-backtick code block) on non-trivial classes and composables. Internal classes do not need KDoc but benefit from it.
 
 **Git tags must not use a `v` prefix.** Use `0.2.0`, not `v0.2.0`. JitPack uses the tag as the dependency version, so the version string consumers write in their `build.gradle.kts` matches the tag exactly.
