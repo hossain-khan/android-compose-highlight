@@ -2,10 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased]
+## [0.3.0] - 2026-04-26
 
 ### Added
 - `HighlightTheme.fromColorMap()` — supply a theme from any `Map<String, SpanStyle>` (e.g. Material 3 dynamic color)
+- Theme picker in sample app — switch between GitHub, Tomorrow, and Atom One theme families
 - Sample app uses GitHub and GitHub Dark themes via `HighlightTheme.fromAsset()`, demonstrating user-provided custom themes
 
 ### Fixed
