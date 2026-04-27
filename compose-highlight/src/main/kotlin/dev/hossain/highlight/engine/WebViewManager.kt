@@ -17,6 +17,30 @@ import kotlinx.coroutines.withContext
  *
  * Mirrors Perplexity's `ra/d` class: a WebView singleton with lazy initialization,
  * loaded via [WebViewAssetLoader] using the `appassets.androidplatform.net` scheme.
+ *
+ * ## Why `https://appassets.androidplatform.net`?
+ *
+ * WebView blocks many features (including `<script>` tag execution) on `file://` URLs due to
+ * the [Same-Origin Policy](https://developer.mozilla.org/en-US/docs/Web/Security/Same-origin_policy).
+ * [WebViewAssetLoader] solves this by serving local app assets over a real `https://` URL.
+ *
+ * `appassets.androidplatform.net` is the default domain reserved by Android specifically for
+ * this purpose — it is safe to use and will never conflict with a real website.
+ * The [WebViewAssetLoader] intercepts requests to this domain inside [WebViewClient.shouldInterceptRequest]
+ * and maps `/assets/` → the app's `assets/` folder, so no real network call is ever made.
+ *
+ * Official docs: https://developer.android.com/reference/androidx/webkit/WebViewAssetLoader
+ *
+ * ## What bridge.html does
+ *
+ * `bridge.html` is a minimal HTML page (loaded once at startup) that:
+ * 1. Loads the bundled `highlight.min.js` library
+ * 2. Defines a single JS function: `highlightCode(code, lang) → HTML string`
+ *
+ * After the page finishes loading, [HighlightEngine] calls `highlightCode()` via
+ * [android.webkit.WebView.evaluateJavascript] for every syntax-highlight request,
+ * getting back HTML with `<span class="hljs-*">` tokens that are then converted to
+ * an [androidx.compose.ui.text.AnnotatedString] by [HtmlToAnnotatedString].
  */
 internal class WebViewManager(
     private val context: Context,
@@ -63,6 +87,8 @@ internal class WebViewManager(
                                 }
                             }
                         }
+                    // Serves local assets over https:// via WebViewAssetLoader — required for
+                    // Same-Origin Policy compliance so that highlight.min.js can execute.
                     loadUrl("https://appassets.androidplatform.net/assets/compose-highlight/bridge.html")
                 }
 
