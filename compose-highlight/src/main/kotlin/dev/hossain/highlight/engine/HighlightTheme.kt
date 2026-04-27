@@ -25,12 +25,15 @@ import androidx.compose.ui.text.SpanStyle
  *
  * ## Custom theme from an asset file
  *
+ * Any Highlight.js CSS theme can be bundled in your app's `assets/` folder and loaded at runtime.
+ * This is the recommended way to ship additional themes with your app.
+ *
  * ```kotlin
- * // Place your .css file in src/main/assets/themes/my-theme.css
+ * // Place your .css file in src/main/assets/themes/github.css
  * val theme = HighlightTheme.fromAsset(
  *     context   = context,
- *     assetPath = "themes/my-theme.css",
- *     name      = "my-theme",
+ *     assetPath = "themes/github.css",
+ *     name      = "github",
  * )
  * ```
  *
@@ -46,7 +49,27 @@ import androidx.compose.ui.text.SpanStyle
  * )
  * ```
  *
- * Any valid Highlight.js CSS theme works. You can find community themes at
+ * ## Custom theme from a precomputed color map
+ *
+ * For maximum control — e.g. deriving colors from Material 3 dynamic color or any other
+ * source — you can supply the color map directly:
+ *
+ * ```kotlin
+ * val colorMap: Map<String, SpanStyle> = mapOf(
+ *     "hljs"          to SpanStyle(color = Color(0xFF24292E), background = Color(0xFFFFFFFF)),
+ *     "hljs-keyword"  to SpanStyle(color = Color(0xFFD73A49), fontWeight = FontWeight.Bold),
+ *     "hljs-string"   to SpanStyle(color = Color(0xFF032F62)),
+ *     // ... add more token types as needed
+ * )
+ * val theme = HighlightTheme.fromColorMap(
+ *     name            = "my-dynamic-theme",
+ *     colorMap        = colorMap,
+ *     backgroundColor = Color(0xFFFFFFFF),
+ *     defaultTextColor = Color(0xFF24292E),
+ * )
+ * ```
+ *
+ * Any valid Highlight.js CSS theme works with `fromAsset` / `fromCss`. Community themes are at
  * [highlightjs/highlight.js/src/styles](https://github.com/highlightjs/highlight.js/tree/main/src/styles).
  */
 class HighlightTheme private constructor(
@@ -95,7 +118,7 @@ class HighlightTheme private constructor(
                 colorMapProvider = { ThemeParser.parse(context, "compose-highlight/themes/atom-one-light.css") },
             )
 
-        /** Custom theme loaded from an asset CSS file path. */
+        /** Custom theme loaded from an asset CSS file path. Throws [HighlightException.ThemeNotFound] if the file is missing or unreadable. */
         fun fromAsset(
             context: Context,
             assetPath: String,
@@ -104,11 +127,9 @@ class HighlightTheme private constructor(
             HighlightTheme(
                 name = name,
                 colorMapProvider = {
-                    try {
-                        ThemeParser.parse(context, assetPath)
-                    } catch (e: Exception) {
-                        throw HighlightException.ThemeNotFound(assetPath)
-                    }
+                    val map = ThemeParser.parseAsset(context, assetPath)
+                    if (map.isEmpty()) throw HighlightException.ThemeNotFound(assetPath)
+                    map
                 },
             )
 
@@ -121,5 +142,45 @@ class HighlightTheme private constructor(
                 name = name,
                 colorMapProvider = { ThemeParser.parse(cssText) },
             )
+
+        /**
+         * Custom theme from a precomputed color map.
+         *
+         * Use this when deriving colors from Material 3 dynamic color, app branding, or any
+         * non-CSS source. The [colorMap] keys are Highlight.js class names without the leading
+         * dot (e.g. `"hljs-keyword"`, `"hljs-string"`, `"hljs"`). The `"hljs"` entry is used
+         * to derive [HighlightTheme.backgroundColor] and [HighlightTheme.defaultTextColor]; you
+         * can also override those explicitly via [backgroundColor] and [defaultTextColor].
+         *
+         * @param name Display name for the theme.
+         * @param colorMap Map of hljs class name → [SpanStyle].
+         * @param backgroundColor Optional explicit background color. If null, derived from `colorMap["hljs"]`.
+         * @param defaultTextColor Optional explicit default text color. If null, derived from `colorMap["hljs"]`.
+         */
+        fun fromColorMap(
+            name: String,
+            colorMap: Map<String, SpanStyle>,
+            backgroundColor: Color? = null,
+            defaultTextColor: Color? = null,
+        ): HighlightTheme {
+            val theme = HighlightTheme(name = name, colorMapProvider = { colorMap })
+            // Override background/text colors if explicitly provided
+            return if (backgroundColor != null || defaultTextColor != null) {
+                HighlightTheme(
+                    name = name,
+                    colorMapProvider = {
+                        val base = colorMap.toMutableMap()
+                        val existing = base["hljs"] ?: SpanStyle()
+                        base["hljs"] = existing.copy(
+                            background = backgroundColor ?: existing.background,
+                            color = defaultTextColor ?: existing.color,
+                        )
+                        base
+                    },
+                )
+            } else {
+                theme
+            }
+        }
     }
 }

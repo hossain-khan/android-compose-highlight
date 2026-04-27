@@ -293,9 +293,14 @@ data class HourlyForecastInfo(val time: Instant, val temperature: Double, val de
 /**
  * Main demo screen that renders a scrollable list of syntax-highlighted code snippets.
  *
- * Uses [HighlightThemeProvider] to supply the active theme (Atom One Light / Dark) to all
- * [SyntaxHighlightedCode] composables in the tree. A toggle button in the top bar switches
- * between light and dark mode without restarting the activity.
+ * Uses [HighlightThemeProvider] to supply the active theme to all [SyntaxHighlightedCode]
+ * composables in the tree. A toggle button in the top bar switches between light and dark mode
+ * without restarting the activity.
+ *
+ * **Custom theme demo**: themes are loaded from the sample app's own assets (`themes/github.css`
+ * and `themes/github-dark.css`) using [HighlightTheme.fromAsset]. This demonstrates that library
+ * users are not limited to built-in themes — any Highlight.js CSS theme bundled in app assets can
+ * be used directly.
  *
  * Each sample in [SAMPLES] is rendered with its own [SectionHeader] and [SyntaxHighlightedCode].
  * Line numbers are enabled for the Python sample as a demonstration of that feature.
@@ -306,9 +311,11 @@ fun SampleScreen() {
     val context = LocalContext.current
     var isDark by remember { mutableStateOf(false) }
 
+    // Custom themes loaded from sample app assets — demonstrates user-provided themes via fromAsset().
+    // Drop any Highlight.js CSS into your app's assets folder to use it as a theme.
     HighlightThemeProvider(
-        lightHighlightTheme = HighlightTheme.atomOneLight(context),
-        darkHighlightTheme = HighlightTheme.atomOneDark(context),
+        lightHighlightTheme = HighlightTheme.fromAsset(context, "themes/github.css", "github"),
+        darkHighlightTheme = HighlightTheme.fromAsset(context, "themes/github-dark.css", "github-dark"),
         darkTheme = isDark,
     ) {
         Scaffold(

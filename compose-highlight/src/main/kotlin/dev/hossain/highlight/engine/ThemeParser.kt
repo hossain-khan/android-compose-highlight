@@ -15,6 +15,9 @@ object ThemeParser {
     /**
      * Parses a CSS theme file from assets into a color map.
      * Results are not cached here — callers should use [lazy] to cache per theme.
+     *
+     * Silently returns an empty map on any error. Use [parseAsset] if you need to
+     * distinguish between a missing file and an empty/unparseable theme.
      */
     fun parse(
         context: Context,
@@ -30,6 +33,25 @@ object ThemeParser {
         } catch (e: Exception) {
             emptyMap()
         }
+
+    /**
+     * Parses a CSS theme file from assets into a color map.
+     * Unlike [parse], this overload **throws** if the file cannot be opened, so callers
+     * can distinguish a missing file from a successfully-parsed (but empty) theme.
+     *
+     * @throws java.io.IOException if the asset file cannot be opened.
+     */
+    fun parseAsset(
+        context: Context,
+        cssAssetPath: String,
+    ): Map<String, SpanStyle> {
+        val css =
+            context.assets
+                .open(cssAssetPath)
+                .bufferedReader()
+                .readText()
+        return parse(css)
+    }
 
     /**
      * Parses CSS text directly into a color map.
