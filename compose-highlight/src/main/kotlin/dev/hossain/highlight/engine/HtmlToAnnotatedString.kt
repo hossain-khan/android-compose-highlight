@@ -1,5 +1,6 @@
 package dev.hossain.highlight.engine
 
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import org.jsoup.Jsoup
@@ -16,6 +17,11 @@ object HtmlToAnnotatedString {
     /**
      * Converts highlighted HTML to [AnnotatedString] using the provided color map.
      *
+     * The `.hljs` base rule's text color (if present in [colorMap]) is applied as an
+     * outer span covering the full string. This means callers can render the result with a
+     * plain `Text()` composable without needing to pass an explicit `color` — uncolored tokens
+     * inherit the theme's default text color rather than `LocalContentColor`.
+     *
      * @param html HTML fragment output from highlight.js (not a full document)
      * @param colorMap Map of hljs class names to [SpanStyle], from [ThemeParser]
      */
@@ -28,11 +34,18 @@ object HtmlToAnnotatedString {
         val doc = Jsoup.parseBodyFragment(html)
         val body = doc.body()
 
+        // Apply the .hljs base text color across the entire string so that plain-text tokens
+        // (identifiers, whitespace, etc.) inherit the theme color rather than LocalContentColor.
+        val baseTextColor = colorMap["hljs"]?.color?.takeIf { it != Color.Unspecified }
+        val baseStyle = baseTextColor?.let { SpanStyle(color = it) }
+
         val result =
             buildAnnotatedString {
+                if (baseStyle != null) pushStyle(baseStyle)
                 body.childNodes().forEach { node ->
                     walkNode(node, colorMap, this)
                 }
+                if (baseStyle != null) pop()
             }
 
         return result
