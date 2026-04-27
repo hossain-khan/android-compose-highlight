@@ -95,7 +95,7 @@ Do not commit if any of these fail.
 
 **Before tagging a release — verify all version references are updated:**
 - `README.md` — dependency snippet must reference the new version
-- `compose-highlight/build.gradle.kts` — `version` in the `MavenPublication` block
+- `compose-highlight/build.gradle.kts` — `version` in the `MavenPublication` block (used for local `publishToMavenLocal`; JitPack overrides this with the git tag, but keep it in sync)
 - `CHANGELOG.md` — rename `[Unreleased]` to the new version with today's date
 
 Only create the git tag after all of the above are committed and pushed.
