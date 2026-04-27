@@ -15,9 +15,6 @@ import kotlin.coroutines.resumeWithException
 /**
  * Core engine that manages the hidden WebView and executes Highlight.js highlighting.
  *
- * Mirrors the combination of Perplexity's `ra/d` (WebView singleton) and
- * `ra/c` (JS execution) classes.
- *
  * Thread safety: WebView is always accessed on the Main thread.
  * Concurrent highlight calls are serialized via [mutex].
  */
@@ -89,9 +86,8 @@ class HighlightEngine(
 
     /**
      * Produces both light and dark [AnnotatedString] from a single JS call.
-     * The HTML is tokenized once, then converted twice with different color maps.
-     *
-     * This is the Perplexity pattern: single JS call, two [HtmlToAnnotatedString] conversions.
+     * The HTML is tokenized once, then converted twice with different color maps,
+     * making theme switching instant without an extra JS round-trip.
      */
     suspend fun highlightBothThemes(
         code: String,

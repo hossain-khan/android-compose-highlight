@@ -15,7 +15,7 @@ import kotlinx.coroutines.withContext
 /**
  * Internal manager responsible for creating and initializing the hidden WebView.
  *
- * Mirrors Perplexity's `ra/d` class: a WebView singleton with lazy initialization,
+ * A WebView singleton with lazy initialization,
  * loaded via [WebViewAssetLoader] using the `appassets.androidplatform.net` scheme.
  *
  * ## Why `https://appassets.androidplatform.net`?
@@ -89,6 +89,7 @@ internal class WebViewManager(
                         }
                     // Serves local assets over https:// via WebViewAssetLoader — required for
                     // Same-Origin Policy compliance so that highlight.min.js can execute.
+                    // https://developer.android.com/reference/androidx/webkit/WebViewAssetLoader
                     loadUrl("https://appassets.androidplatform.net/assets/compose-highlight/bridge.html")
                 }
 

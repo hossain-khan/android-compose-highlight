@@ -11,7 +11,6 @@ import org.jsoup.nodes.TextNode
  *
  * Uses jsoup to parse the HTML fragment and performs a recursive tree walk,
  * pushing/popping [SpanStyle] for each `<span class="hljs-*">` element.
- * This matches Perplexity's production implementation (obfuscated class `gn/d.b()`).
  */
 object HtmlToAnnotatedString {
     /**

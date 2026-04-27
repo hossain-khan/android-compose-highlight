@@ -9,7 +9,6 @@ import androidx.compose.ui.text.font.FontWeight
 /**
  * Parses Highlight.js CSS theme files into a map of hljs class names → [SpanStyle].
  *
- * The parsing logic is modeled on Perplexity's production CSS parser (obfuscated class `gn/d.c()`).
  * hljs theme CSS files follow a strict, predictable format so a regex-based parser is sufficient.
  */
 object ThemeParser {

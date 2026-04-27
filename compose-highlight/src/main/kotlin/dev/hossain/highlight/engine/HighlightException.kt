@@ -2,7 +2,6 @@ package dev.hossain.highlight.engine
 
 /**
  * Exception hierarchy for compose-highlight engine failures.
- * Modeled on Perplexity's `MarkdownException$HighlightJsFailed` pattern.
  */
 sealed class HighlightException(
     message: String,
