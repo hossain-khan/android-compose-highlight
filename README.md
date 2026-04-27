@@ -2,6 +2,12 @@
 
 A Jetpack Compose library for beautiful syntax highlighting — powered by [Highlight.js](https://highlightjs.org/) running in a hidden WebView, converting tokenised HTML output to native Compose `AnnotatedString`. No custom lexers, no bundled grammars to maintain: just drop in the library and highlight any of 190+ languages.
 
+
+> [!NOTE]
+> This project was developed with the assistance of AI coding agents (GitHub Copilot).
+> Code, architecture, tests, and documentation were generated or refined through
+> AI-assisted pair programming. Review accordingly before using in production.
+
 ---
 
 ## Quick Start
@@ -243,9 +249,3 @@ Run on your target device to get accurate numbers. Results are printed in logcat
 
 MIT
 
----
-
-> [!NOTE]
-> This project was developed with the assistance of AI coding agents (GitHub Copilot).
-> Code, architecture, tests, and documentation were generated or refined through
-> AI-assisted pair programming. Review accordingly before using in production.
