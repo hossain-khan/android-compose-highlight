@@ -137,7 +137,33 @@ For full design details see [`docs/prd-compose-syntax-highlight.md`](docs/prd-co
 
 ---
 
-## Requirements
+## Benchmarks
+
+Microbenchmarks are included in `compose-highlight/src/androidTest/` using the [AndroidX Microbenchmark library](https://developer.android.com/topic/performance/benchmarking/microbenchmark-overview). They measure the three core pipeline stages on a real device.
+
+### Run
+
+```bash
+./gradlew :compose-highlight:connectedAndroidTest
+```
+
+Results are printed in logcat under the `BENCHMARK` tag.
+
+### Benchmark coverage
+
+| Benchmark | What is measured |
+|---|---|
+| `ThemeParserBenchmark` | CSS theme parse time (`tomorrow`, `tomorrow-night`) |
+| `HtmlToAnnotatedStringBenchmark` | HTML→AnnotatedString conversion for Python, Kotlin, SQL snippets |
+| `HighlightEngineBenchmark` | Full WebView JS highlight pipeline for Python, Kotlin, SQL |
+
+Run on your target device to get accurate numbers. Results are printed in logcat under the `BENCHMARK` tag and saved as JSON to device storage.
+
+> **Key insight from profiling:** `ThemeParser` and `HtmlToAnnotatedString` are cheap (sub-millisecond to a few ms). The dominant cost is the WebView JS round-trip, which runs off the UI thread and is cached per `rememberHighlightedCode` call.
+
+---
+
+
 
 - Android minSdk 24+
 - Kotlin 2.x
