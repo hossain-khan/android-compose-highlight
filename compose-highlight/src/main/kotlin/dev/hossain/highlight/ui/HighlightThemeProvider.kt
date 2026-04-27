@@ -25,14 +25,39 @@ val LocalHighlightTheme =
  * Provides [HighlightTheme] to all [SyntaxHighlightedCode] composables in [content].
  *
  * Automatically selects between [lightHighlightTheme] and [darkHighlightTheme] based on
- * the system dark mode setting.
+ * the system dark mode setting. Call this once near the root of your composition (e.g. inside
+ * your `setContent {}` block or at the top of your screen composable).
+ *
+ * ## Typical setup
+ *
+ * ```kotlin
+ * // In MainActivity.kt or your root composable:
+ * HighlightThemeProvider(
+ *     lightHighlightTheme = HighlightTheme.tomorrow(LocalContext.current),
+ *     darkHighlightTheme  = HighlightTheme.atomOneDark(LocalContext.current),
+ * ) {
+ *     // All SyntaxHighlightedCode composables inside here will use
+ *     // the correct theme automatically.
+ *     MyAppContent()
+ * }
+ * ```
+ *
+ * ## Manual override
+ *
+ * Pass `darkTheme = true/false` to force a specific mode regardless of system setting:
+ *
+ * ```kotlin
+ * HighlightThemeProvider(
+ *     darkTheme           = userPrefersDark,
+ *     lightHighlightTheme = HighlightTheme.tomorrow(LocalContext.current),
+ *     darkHighlightTheme  = HighlightTheme.tomorrowNight(LocalContext.current),
+ * ) { ... }
+ * ```
  *
  * @param darkTheme Whether to use the dark theme. Defaults to [isSystemInDarkTheme].
  * @param lightHighlightTheme The theme to use in light mode.
  * @param darkHighlightTheme The theme to use in dark mode.
- *
- * PRD fix: renamed `darkTheme: HighlightTheme` param to `darkHighlightTheme` to avoid
- * name collision with the `darkTheme: Boolean` parameter.
+ * @param content The composable content to which the theme is provided.
  */
 @Composable
 fun HighlightThemeProvider(

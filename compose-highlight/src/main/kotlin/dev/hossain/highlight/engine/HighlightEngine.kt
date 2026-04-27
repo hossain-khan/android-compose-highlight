@@ -17,6 +17,57 @@ import kotlin.coroutines.resumeWithException
  *
  * Thread safety: WebView is always accessed on the Main thread.
  * Concurrent highlight calls are serialized via [mutex].
+ *
+ * ## Lifecycle
+ *
+ * The engine holds a hidden WebView resource. Always call [destroy] when the engine is no
+ * longer needed. When used inside a Composable, use `rememberHighlightEngine()` which calls
+ * [destroy] automatically via `DisposableEffect`.
+ *
+ * ## Composable usage (recommended)
+ *
+ * ```kotlin
+ * @Composable
+ * fun MyCodeBlock(code: String) {
+ *     val engine = rememberHighlightEngine()
+ *     val highlighted by rememberHighlightedCode(code, "kotlin", HighlightTheme.tomorrow(LocalContext.current))
+ *     Text(text = highlighted ?: AnnotatedString(code))
+ * }
+ * ```
+ *
+ * ## Manual usage (e.g. ViewModel or background work)
+ *
+ * ```kotlin
+ * val engine = HighlightEngine(context)
+ *
+ * // Optional: call initialize() to warm up the WebView before the first highlight.
+ * // If skipped, the first call to highlight() will initialize it automatically.
+ * engine.initialize()
+ *
+ * val result = engine.highlight(
+ *     code     = "val x = 42",
+ *     language = "kotlin",
+ *     theme    = HighlightTheme.atomOneDark(context),
+ * )
+ * result.onSuccess { annotated -> /* use AnnotatedString */ }
+ *
+ * // Release resources when done
+ * engine.destroy()
+ * ```
+ *
+ * ## Highlight once, render in two themes
+ *
+ * ```kotlin
+ * val themed = engine.highlightBothThemes(
+ *     code       = sourceCode,
+ *     language   = "typescript",
+ *     lightTheme = HighlightTheme.tomorrow(context),
+ *     darkTheme  = HighlightTheme.tomorrowNight(context),
+ * )
+ * themed.onSuccess { result ->
+ *     val display = if (isDark) result.dark else result.light
+ * }
+ * ```
  */
 class HighlightEngine(
     private val context: Context,
@@ -27,9 +78,13 @@ class HighlightEngine(
     private val mutex = Mutex()
 
     /**
-     * Initializes the hidden WebView and loads bridge.html.
+     * Warms up the hidden WebView and loads bridge.html.
+     *
+     * This is an optional optimization — if not called, the first [highlightToHtml] or
+     * [highlight] call will initialize automatically. Call this early (e.g. on screen entry)
+     * to reduce latency on the first highlight request.
+     *
      * Safe to call multiple times — idempotent.
-     * Must be called before [highlightToHtml] or [highlight].
      */
     suspend fun initialize() {
         try {
@@ -113,7 +168,7 @@ class HighlightEngine(
     /**
      * Executes the highlight JS call and returns the resulting HTML.
      *
-     * String escaping order (PRD §4.2 fix):
+     * String escaping order:
      * 1. `\` → `\\` (must be first to avoid double-escaping)
      * 2. `'` → `\'`
      * 3. `\n` → `\\n`

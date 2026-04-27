@@ -2,31 +2,26 @@
 
 A Jetpack Compose library for beautiful syntax highlighting — powered by [Highlight.js](https://highlightjs.org/) running in a hidden WebView, converting tokenised HTML output to native Compose `AnnotatedString`. No custom lexers, no bundled grammars to maintain: just drop in the library and highlight any of 190+ languages.
 
-Inspired by the approach used in production apps such as Claude, Perplexity, and ChatGPT on Android.
-
 ---
 
 ## Quick Start
 
-```kotlin
-// One line — that's it
-SyntaxHighlightedCode(code = myCode, language = "kotlin")
-```
-
-Wrap your UI in `HighlightThemeProvider` to apply light/dark themes automatically:
+Wrap your screen (or root composable) in `HighlightThemeProvider`, then place `SyntaxHighlightedCode` anywhere inside it:
 
 ```kotlin
 HighlightThemeProvider(
     lightHighlightTheme = HighlightTheme.tomorrow(context),
-    darkHighlightTheme = HighlightTheme.tomorrowNight(context),
+    darkHighlightTheme  = HighlightTheme.tomorrowNight(context),
 ) {
     SyntaxHighlightedCode(
-        code = myCode,
-        language = "python",
+        code            = myCode,
+        language        = "python",
         showLineNumbers = true,
     )
 }
 ```
+
+`HighlightThemeProvider` automatically selects the correct theme based on `isSystemInDarkTheme()`.
 
 ---
 
@@ -89,13 +84,13 @@ themed.onSuccess { (light, dark) ->
 Any Highlight.js CSS theme works. Load from an asset:
 
 ```kotlin
-val theme = HighlightTheme.fromAsset(context, "themes/my-theme.css")
+val theme = HighlightTheme.fromAsset(context, "themes/my-theme.css", name = "my-theme")
 ```
 
 Or pass raw CSS directly:
 
 ```kotlin
-val theme = HighlightTheme.fromCss(cssString)
+val theme = HighlightTheme.fromCss(cssString, name = "my-inline-theme")
 ```
 
 ---

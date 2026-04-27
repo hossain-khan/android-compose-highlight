@@ -10,6 +10,44 @@ import androidx.compose.ui.text.SpanStyle
  * The color map is lazily initialized and cached — CSS parsing happens at most once per theme.
  * Background and text colors are derived from the already-parsed [colorMap] (the `.hljs` rule),
  * avoiding double-parsing of the CSS file.
+ *
+ * ## Built-in themes
+ *
+ * ```kotlin
+ * // Light themes
+ * HighlightTheme.tomorrow(context)
+ * HighlightTheme.atomOneLight(context)
+ *
+ * // Dark themes
+ * HighlightTheme.tomorrowNight(context)
+ * HighlightTheme.atomOneDark(context)
+ * ```
+ *
+ * ## Custom theme from an asset file
+ *
+ * ```kotlin
+ * // Place your .css file in src/main/assets/themes/my-theme.css
+ * val theme = HighlightTheme.fromAsset(
+ *     context   = context,
+ *     assetPath = "themes/my-theme.css",
+ *     name      = "my-theme",
+ * )
+ * ```
+ *
+ * Note: `fromAsset()` is lazy — CSS parsing (and any `ThemeNotFound` error) occurs when the
+ * theme is first applied, not at factory-call time.
+ *
+ * ## Custom theme from raw CSS
+ *
+ * ```kotlin
+ * val theme = HighlightTheme.fromCss(
+ *     cssText = rawCssString,
+ *     name    = "my-inline-theme",
+ * )
+ * ```
+ *
+ * Any valid Highlight.js CSS theme works. You can find community themes at
+ * [highlightjs/highlight.js/src/styles](https://github.com/highlightjs/highlight.js/tree/main/src/styles).
  */
 class HighlightTheme private constructor(
     val name: String,

@@ -73,6 +73,10 @@ dependencies {
 
 dokka {
     moduleName.set("compose-highlight")
+    // Include MODULE.md as the module-level documentation page in the generated API docs.
+    dokkaSourceSets.configureEach {
+        includes.from(layout.projectDirectory.file("MODULE.md"))
+    }
     dokkaPublications.html {
         // Output to docs/api/ so GitHub Pages can serve from the docs/ folder
         outputDirectory.set(rootDir.resolve("docs/api"))

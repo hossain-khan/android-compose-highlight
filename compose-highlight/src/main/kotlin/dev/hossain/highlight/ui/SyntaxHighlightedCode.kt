@@ -45,15 +45,59 @@ import kotlinx.coroutines.delay
  * Shows unstyled monospace code immediately while async highlighting runs,
  * then fades in the highlighted version when ready (no visible flicker).
  *
+ * This composable reads the active theme from [LocalHighlightTheme], so a
+ * [HighlightThemeProvider] ancestor **must** exist in the composition tree, or you
+ * must pass an explicit [theme] parameter.
+ *
+ * ## Usage — with HighlightThemeProvider (recommended)
+ *
+ * ```kotlin
+ * HighlightThemeProvider(
+ *     lightHighlightTheme = HighlightTheme.tomorrow(LocalContext.current),
+ *     darkHighlightTheme  = HighlightTheme.atomOneDark(LocalContext.current),
+ * ) {
+ *     SyntaxHighlightedCode(
+ *         code            = """fun greet(name: String) = "Hello, ${'$'}name!"""",
+ *         language        = "kotlin",
+ *         showLineNumbers = true,
+ *     )
+ * }
+ * ```
+ *
+ * ## Usage — with an explicit theme
+ *
+ * ```kotlin
+ * SyntaxHighlightedCode(
+ *     code     = "SELECT * FROM users WHERE active = 1",
+ *     language = "sql",
+ *     theme    = HighlightTheme.tomorrow(LocalContext.current),
+ * )
+ * ```
+ *
+ * ## Custom styling
+ *
+ * ```kotlin
+ * SyntaxHighlightedCode(
+ *     code     = jsonSnippet,
+ *     language = "json",
+ *     style    = CodeBlockStyle(
+ *         shape   = RoundedCornerShape(4.dp),
+ *         padding = PaddingValues(8.dp),
+ *     ),
+ *     showCopyButton = false,
+ * )
+ * ```
+ *
  * @param code The source code to display.
  * @param language Highlight.js language identifier (e.g. `"python"`, `"kotlin"`).
  * @param modifier Modifier for the outer container.
- * @param theme The theme to use. Defaults to [LocalHighlightTheme].
- * @param style Visual style configuration.
- * @param showLineNumbers Whether to show line number gutter.
+ * @param theme The theme to use. Defaults to [LocalHighlightTheme]. Throws if no
+ *   [HighlightThemeProvider] is present and no explicit theme is passed.
+ * @param style Visual style configuration — shape, padding, line-number column, etc.
+ * @param showLineNumbers Whether to show a line-number gutter on the left.
  * @param showLanguageLabel Whether to show the language badge in the header.
  * @param showCopyButton Whether to show the copy-to-clipboard button.
- * @param onCopyClick Optional custom copy handler. If null, uses system clipboard.
+ * @param onCopyClick Optional custom copy handler. If `null`, copies to the system clipboard.
  * @param fontFamily Font family for the code text. Defaults to monospace.
  * @param fontSize Font size for the code text.
  * @param lineHeight Line height for the code text.
