@@ -27,16 +27,25 @@ HighlightThemeProvider(
 
 ## Setup
 
-Add the `:compose-highlight` module to your project (local module for now; Maven publishing coming soon):
+[![](https://jitpack.io/v/hossain-khan/android-compose-highlight.svg)](https://jitpack.io/#hossain-khan/android-compose-highlight)
+
+Add JitPack to your root `settings.gradle.kts`:
 
 ```kotlin
-// settings.gradle.kts
-include(":compose-highlight")
-project(":compose-highlight").projectDir = file("../compose-highlight")
+dependencyResolutionManagement {
+    repositories {
+        google()
+        mavenCentral()
+        maven { url = uri("https://jitpack.io") }
+    }
+}
+```
 
-// app/build.gradle.kts
+Then add the dependency in your module's `build.gradle.kts`:
+
+```kotlin
 dependencies {
-    implementation(project(":compose-highlight"))
+    implementation("com.github.hossain-khan.android-compose-highlight:compose-highlight:0.1.0")
 }
 ```
 

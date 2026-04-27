@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.kotlinter)
     alias(libs.plugins.dokka)
+    `maven-publish`
 }
 
 android {
@@ -36,6 +37,13 @@ android {
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
+        }
+    }
+
+    // Expose the release variant as a Maven component for JitPack / maven-publish.
+    publishing {
+        singleVariant("release") {
+            withSourcesJar()
         }
     }
 }
@@ -80,5 +88,33 @@ dokka {
     dokkaPublications.html {
         // Output to docs/api/ so GitHub Pages can serve from the docs/ folder
         outputDirectory.set(rootDir.resolve("docs/api"))
+    }
+}
+
+// JitPack requires a maven-publish publication named "release" that exposes the Android
+// library component. JitPack overrides groupId and version at build time, so only
+// artifactId needs to be meaningful here.
+afterEvaluate {
+    publishing {
+        publications {
+            create<MavenPublication>("release") {
+                from(components["release"])
+                groupId = "com.github.hossain-khan"
+                artifactId = "compose-highlight"
+                version = "0.1.0"
+
+                pom {
+                    name.set("compose-highlight")
+                    description.set("Jetpack Compose syntax highlighting powered by Highlight.js")
+                    url.set("https://github.com/hossain-khan/android-compose-highlight")
+                    licenses {
+                        license {
+                            name.set("MIT License")
+                            url.set("https://opensource.org/licenses/MIT")
+                        }
+                    }
+                }
+            }
+        }
     }
 }
