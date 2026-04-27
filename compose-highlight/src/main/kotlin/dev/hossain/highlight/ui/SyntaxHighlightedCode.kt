@@ -98,6 +98,8 @@ import kotlinx.coroutines.delay
  * @param showLanguageLabel Whether to show the language badge in the header.
  * @param showCopyButton Whether to show the copy-to-clipboard button.
  * @param onCopyClick Optional custom copy handler. If `null`, copies to the system clipboard.
+ * @param onHighlightComplete Optional callback invoked with the highlight duration in milliseconds
+ *   when highlighting succeeds. Useful for performance metrics.
  * @param fontFamily Font family for the code text. Defaults to monospace.
  * @param fontSize Font size for the code text.
  * @param lineHeight Line height for the code text.
@@ -113,11 +115,12 @@ fun SyntaxHighlightedCode(
     showLanguageLabel: Boolean = true,
     showCopyButton: Boolean = true,
     onCopyClick: ((String) -> Unit)? = null,
+    onHighlightComplete: ((durationMs: Long) -> Unit)? = null,
     fontFamily: FontFamily = FontFamily.Monospace,
     fontSize: TextUnit = 13.sp,
     lineHeight: TextUnit = 20.sp,
 ) {
-    val highlightedState = rememberHighlightedCode(code, language, theme)
+    val highlightedState = rememberHighlightedCode(code, language, theme, onHighlightComplete)
     val clipboardManager: ClipboardManager = LocalClipboardManager.current
     var copyConfirmed by remember { mutableStateOf(false) }
 

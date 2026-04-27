@@ -1,6 +1,7 @@
 package dev.hossain.highlight.engine
 
 import android.content.Context
+import androidx.compose.runtime.Stable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.SpanStyle
 
@@ -71,7 +72,14 @@ import androidx.compose.ui.text.SpanStyle
  *
  * Any valid Highlight.js CSS theme works with `fromAsset` / `fromCss`. Community themes are at
  * [highlightjs/highlight.js/src/styles](https://github.com/highlightjs/highlight.js/tree/main/src/styles).
+ *
+ * ## Theme identity
+ *
+ * `HighlightTheme` uses [name] as its identity for `equals()` and `hashCode()`. This means
+ * Compose APIs (`remember`, `LaunchedEffect`, `key`) correctly detect theme changes by name.
+ * **Names must be unique** — do not create two themes with different content but the same name.
  */
+@Stable
 class HighlightTheme private constructor(
     val name: String,
     private val colorMapProvider: () -> Map<String, SpanStyle>,
@@ -89,33 +97,40 @@ class HighlightTheme private constructor(
         colorMap["hljs"]?.color?.takeIf { it != Color.Unspecified } ?: Color.Unspecified
     }
 
+    /** Two themes are equal when they have the same [name]. Names must be unique per theme. */
+    override fun equals(other: Any?): Boolean = other is HighlightTheme && name == other.name
+
+    override fun hashCode(): Int = name.hashCode()
+
+    override fun toString(): String = "HighlightTheme(name=$name)"
+
     companion object {
         /** Built-in Base16 Tomorrow light theme. */
         fun tomorrow(context: Context): HighlightTheme =
             HighlightTheme(
                 name = "tomorrow",
-                colorMapProvider = { ThemeParser.parse(context, "compose-highlight/themes/tomorrow.css") },
+                colorMapProvider = { ThemeParser.parseAsset(context, "compose-highlight/themes/tomorrow.css") },
             )
 
         /** Built-in Base16 Tomorrow Night dark theme. */
         fun tomorrowNight(context: Context): HighlightTheme =
             HighlightTheme(
                 name = "tomorrow-night",
-                colorMapProvider = { ThemeParser.parse(context, "compose-highlight/themes/tomorrow-night.css") },
+                colorMapProvider = { ThemeParser.parseAsset(context, "compose-highlight/themes/tomorrow-night.css") },
             )
 
         /** Built-in Atom One Dark theme. */
         fun atomOneDark(context: Context): HighlightTheme =
             HighlightTheme(
                 name = "atom-one-dark",
-                colorMapProvider = { ThemeParser.parse(context, "compose-highlight/themes/atom-one-dark.css") },
+                colorMapProvider = { ThemeParser.parseAsset(context, "compose-highlight/themes/atom-one-dark.css") },
             )
 
         /** Built-in Atom One Light theme. */
         fun atomOneLight(context: Context): HighlightTheme =
             HighlightTheme(
                 name = "atom-one-light",
-                colorMapProvider = { ThemeParser.parse(context, "compose-highlight/themes/atom-one-light.css") },
+                colorMapProvider = { ThemeParser.parseAsset(context, "compose-highlight/themes/atom-one-light.css") },
             )
 
         /**
@@ -211,13 +226,13 @@ class HighlightTheme private constructor(
             backgroundColor: Color? = null,
             defaultTextColor: Color? = null,
         ): HighlightTheme {
-            val theme = HighlightTheme(name = name, colorMapProvider = { colorMap })
-            // Override background/text colors if explicitly provided
+            // Defensively copy so later mutations to the caller's map don't affect the theme.
+            val immutableMap = colorMap.toMap()
             return if (backgroundColor != null || defaultTextColor != null) {
                 HighlightTheme(
                     name = name,
                     colorMapProvider = {
-                        val base = colorMap.toMutableMap()
+                        val base = immutableMap.toMutableMap()
                         val existing = base["hljs"] ?: SpanStyle()
                         base["hljs"] =
                             existing.copy(
@@ -228,7 +243,7 @@ class HighlightTheme private constructor(
                     },
                 )
             } else {
-                theme
+                HighlightTheme(name = name, colorMapProvider = { immutableMap })
             }
         }
     }

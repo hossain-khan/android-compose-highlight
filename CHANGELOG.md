@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+### Added
+- `HighlightTheme` now implements `equals()`/`hashCode()` based on `name` — fixes stale highlighting when using `LaunchedEffect(theme)` or `remember(theme)`
+- `HighlightTheme` annotated `@Stable` — enables Compose skipping optimisation for composables that receive a theme parameter
+- `rememberHighlightedCode()` and `SyntaxHighlightedCode` now accept `onHighlightComplete: ((Long) -> Unit)?` callback for performance metrics
+- New `rememberHighlightedCodeBothThemes()` composable — highlights once for both light and dark themes, enabling instant theme switching
+
+### Fixed
+- `HighlightTheme.fromColorMap()` now defensively copies the provided map so later mutations don't affect the theme
+- Built-in theme factories now throw on missing CSS assets instead of silently returning an unstyled theme
+
 ## [0.3.0] - 2026-04-26
 
 ### Added

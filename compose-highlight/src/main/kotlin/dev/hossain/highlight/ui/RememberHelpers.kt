@@ -6,10 +6,12 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.AnnotatedString
 import dev.hossain.highlight.engine.HighlightEngine
 import dev.hossain.highlight.engine.HighlightTheme
+import dev.hossain.highlight.engine.ThemedHighlightResult
 
 /**
  * Creates and remembers a [HighlightEngine] scoped to the composition.
@@ -69,6 +71,8 @@ fun rememberHighlightEngine(): HighlightEngine {
  * @param code The source code to highlight.
  * @param language The Highlight.js language identifier (e.g. `"python"`, `"kotlin"`).
  * @param theme The theme to apply. Defaults to [LocalHighlightTheme].
+ * @param onHighlightComplete Optional callback invoked with the highlight duration in milliseconds
+ *   when highlighting succeeds. Fires after the [State] is updated. Not called on failure.
  * @return A [State] holding the highlighted [AnnotatedString], or `null` while loading / on error.
  */
 @Composable
@@ -76,15 +80,81 @@ fun rememberHighlightedCode(
     code: String,
     language: String,
     theme: HighlightTheme = LocalHighlightTheme.current,
+    onHighlightComplete: ((durationMs: Long) -> Unit)? = null,
 ): State<AnnotatedString?> {
     val engine = rememberHighlightEngine()
     val state = remember(code, language, theme) { mutableStateOf<AnnotatedString?>(null) }
+    val latestCallback = rememberUpdatedState(onHighlightComplete)
 
     LaunchedEffect(code, language, theme) {
         state.value = null
+        val start = System.nanoTime()
         engine
             .highlight(code, language, theme)
-            .onSuccess { state.value = it }
+            .onSuccess {
+                state.value = it
+                latestCallback.value?.invoke((System.nanoTime() - start) / 1_000_000L)
+            }
+        // On failure: leave state.value = null; caller renders plain fallback
+    }
+
+    return state
+}
+
+/**
+ * Pre-highlights [code] for both light and dark themes in a single JS call.
+ *
+ * Unlike calling [rememberHighlightedCode] twice, this runs the JavaScript tokeniser **once**
+ * and applies two colour maps to the same HTML output. Theme switching after the result is
+ * available is instant — no re-highlighting is needed.
+ *
+ * Returns `null` while highlighting is in progress or if it failed.
+ *
+ * ## Usage
+ *
+ * ```kotlin
+ * @Composable
+ * fun CodeSnippet(code: String, isDark: Boolean) {
+ *     val result by rememberHighlightedCodeBothThemes(
+ *         code      = code,
+ *         language  = "kotlin",
+ *         lightTheme = HighlightTheme.tomorrow(LocalContext.current),
+ *         darkTheme  = HighlightTheme.tomorrowNight(LocalContext.current),
+ *     )
+ *     val text = if (isDark) result?.dark else result?.light
+ *     Text(text = text ?: AnnotatedString(code))
+ * }
+ * ```
+ *
+ * @param code The source code to highlight.
+ * @param language The Highlight.js language identifier (e.g. `"python"`, `"kotlin"`).
+ * @param lightTheme Theme to apply for the light variant.
+ * @param darkTheme Theme to apply for the dark variant.
+ * @param onHighlightComplete Optional callback invoked with the highlight duration in milliseconds
+ *   when highlighting succeeds. Not called on failure.
+ * @return A [State] holding a [ThemedHighlightResult] with both variants, or `null` while loading / on error.
+ */
+@Composable
+fun rememberHighlightedCodeBothThemes(
+    code: String,
+    language: String,
+    lightTheme: HighlightTheme,
+    darkTheme: HighlightTheme,
+    onHighlightComplete: ((durationMs: Long) -> Unit)? = null,
+): State<ThemedHighlightResult?> {
+    val engine = rememberHighlightEngine()
+    val state = remember(code, language, lightTheme, darkTheme) { mutableStateOf<ThemedHighlightResult?>(null) }
+    val latestCallback = rememberUpdatedState(onHighlightComplete)
+
+    LaunchedEffect(code, language, lightTheme, darkTheme) {
+        state.value = null
+        val start = System.nanoTime()
+        engine
+            .highlightBothThemes(code, language, lightTheme, darkTheme)
+            .onSuccess {
+                state.value = it
+                latestCallback.value?.invoke((System.nanoTime() - start) / 1_000_000L)
+            }
         // On failure: leave state.value = null; caller renders plain fallback
     }
 
