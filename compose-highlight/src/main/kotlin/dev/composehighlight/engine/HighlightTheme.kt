@@ -42,6 +42,18 @@ class HighlightTheme private constructor(
             colorMapProvider = { ThemeParser.parse(context, "compose-highlight/themes/tomorrow-night.css") },
         )
 
+        /** Built-in Atom One Dark theme. */
+        fun atomOneDark(context: Context): HighlightTheme = HighlightTheme(
+            name = "atom-one-dark",
+            colorMapProvider = { ThemeParser.parse(context, "compose-highlight/themes/atom-one-dark.css") },
+        )
+
+        /** Built-in Atom One Light theme. */
+        fun atomOneLight(context: Context): HighlightTheme = HighlightTheme(
+            name = "atom-one-light",
+            colorMapProvider = { ThemeParser.parse(context, "compose-highlight/themes/atom-one-light.css") },
+        )
+
         /** Custom theme loaded from an asset CSS file path. */
         fun fromAsset(context: Context, assetPath: String, name: String): HighlightTheme = HighlightTheme(
             name = name,

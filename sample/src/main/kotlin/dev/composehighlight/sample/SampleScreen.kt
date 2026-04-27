@@ -132,8 +132,8 @@ fun SampleScreen() {
     var isDark by remember { mutableStateOf(false) }
 
     HighlightThemeProvider(
-        lightHighlightTheme = HighlightTheme.tomorrow(context),
-        darkHighlightTheme = HighlightTheme.tomorrowNight(context),
+        lightHighlightTheme = HighlightTheme.atomOneLight(context),
+        darkHighlightTheme = HighlightTheme.atomOneDark(context),
         darkTheme = isDark,
     ) {
         Scaffold(
