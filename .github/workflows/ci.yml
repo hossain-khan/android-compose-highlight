@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    name: Build & Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6.0.2
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v5.2.0
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v6.1.0
+        with:
+          cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
+
+      - name: Check Kotlin formatting
+        run: ./gradlew lintKotlin
+
+      - name: Run unit tests
+        run: ./gradlew :compose-highlight:test
+
+      - name: Assemble library (debug)
+        run: ./gradlew :compose-highlight:assembleDebug
+
+      - name: Assemble sample app (debug)
+        run: ./gradlew :sample:assembleDebug
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: unit-test-results
+          path: compose-highlight/build/test-results/
