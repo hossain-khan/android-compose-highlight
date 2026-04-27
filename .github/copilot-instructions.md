@@ -83,6 +83,14 @@ SyntaxHighlightedCode   ← primary public composable
 
 **KDoc is required on all public API.** Dokka API docs are generated from KDoc and published to GitHub Pages (`.github/workflows/docs.yml`). Every public class, function, and property in `ui/` and the public `engine/` classes must have KDoc. Include at least one usage example (triple-backtick code block) on non-trivial classes and composables. Internal classes do not need KDoc but benefit from it.
 
+**Before every commit — verify stability.** Run the following three tasks and ensure they all pass:
+```bash
+./gradlew formatKotlin                          # auto-fix formatting
+./gradlew :compose-highlight:assembleDebug :sample:assembleDebug  # both must build
+./gradlew :compose-highlight:test               # all JVM unit tests must pass
+```
+Do not commit if any of these fail.
+
 **Git tags must not use a `v` prefix.** Use `0.2.0`, not `v0.2.0`. JitPack uses the tag as the dependency version, so the version string consumers write in their `build.gradle.kts` matches the tag exactly.
 
 **Dependency coordinates (JitPack):**
