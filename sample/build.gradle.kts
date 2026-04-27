@@ -21,6 +21,12 @@ android {
             isMinifyEnabled = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
+        create("benchmark") {
+            initWith(getByName("release"))
+            signingConfig = getByName("debug").signingConfig
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            matchingFallbacks += listOf("release")
+        }
     }
 
     compileOptions {
@@ -30,6 +36,11 @@ android {
 
     buildFeatures {
         compose = true
+    }
+
+    lint {
+        // ComponentActivity extends Activity, but lint can't resolve it in release builds
+        disable += "Instantiatable"
     }
 
     packaging {

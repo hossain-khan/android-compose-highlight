@@ -9,7 +9,9 @@ android {
 
     defaultConfig {
         minSdk = 24
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner = "androidx.benchmark.junit4.AndroidBenchmarkRunner"
+        testInstrumentationRunnerArguments["androidx.benchmark.suppressErrors"] =
+            "DEBUGGABLE,EMULATOR,LOW-BATTERY,UNLOCKED"
         consumerProguardFiles("consumer-rules.pro")
     }
 
@@ -63,5 +65,6 @@ dependencies {
     androidTestImplementation(libs.androidx.test.runner)
     androidTestImplementation(libs.androidx.test.espresso.core) // force upgrade from 3.5.0 → 3.7.0
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
+    androidTestImplementation(libs.androidx.benchmark.junit4)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
 }

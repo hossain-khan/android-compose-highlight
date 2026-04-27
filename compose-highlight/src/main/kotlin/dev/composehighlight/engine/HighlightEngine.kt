@@ -24,7 +24,7 @@ private const val TAG = "ComposeHighlight"
  * Thread safety: WebView is always accessed on the Main thread.
  * Concurrent highlight calls are serialized via [mutex].
  */
-class HighlightEngine internal constructor(private val context: Context) {
+class HighlightEngine(private val context: Context) {
 
     private val manager = WebViewManager(context)
 
