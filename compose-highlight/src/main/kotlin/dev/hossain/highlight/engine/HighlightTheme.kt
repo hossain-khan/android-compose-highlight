@@ -171,10 +171,11 @@ class HighlightTheme private constructor(
                     colorMapProvider = {
                         val base = colorMap.toMutableMap()
                         val existing = base["hljs"] ?: SpanStyle()
-                        base["hljs"] = existing.copy(
-                            background = backgroundColor ?: existing.background,
-                            color = defaultTextColor ?: existing.color,
-                        )
+                        base["hljs"] =
+                            existing.copy(
+                                background = backgroundColor ?: existing.background,
+                                color = defaultTextColor ?: existing.color,
+                            )
                         base
                     },
                 )

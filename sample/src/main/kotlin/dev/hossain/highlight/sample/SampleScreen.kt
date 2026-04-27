@@ -1,15 +1,19 @@
 package dev.hossain.highlight.sample
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Button
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -290,17 +294,25 @@ data class HourlyForecastInfo(val time: Instant, val temperature: Double, val de
         "plaintext" to "", // empty edge case
     )
 
+/** A named pair of light/dark [HighlightTheme]s for the theme picker. */
+private data class ThemePair(
+    val name: String,
+    val light: HighlightTheme,
+    val dark: HighlightTheme,
+)
+
 /**
  * Main demo screen that renders a scrollable list of syntax-highlighted code snippets.
  *
  * Uses [HighlightThemeProvider] to supply the active theme to all [SyntaxHighlightedCode]
- * composables in the tree. A toggle button in the top bar switches between light and dark mode
- * without restarting the activity.
+ * composables in the tree. The top bar provides two controls:
+ * - **Theme picker** (🎨): cycles between GitHub (custom asset-based), Tomorrow, and Atom One
+ *   theme families, demonstrating both built-in and user-provided themes.
+ * - **Light/Dark toggle**: switches between the light and dark variant of the selected theme.
  *
- * **Custom theme demo**: themes are loaded from the sample app's own assets (`themes/github.css`
- * and `themes/github-dark.css`) using [HighlightTheme.fromAsset]. This demonstrates that library
- * users are not limited to built-in themes — any Highlight.js CSS theme bundled in app assets can
- * be used directly.
+ * The GitHub themes are loaded from the sample app's own assets via [HighlightTheme.fromAsset],
+ * showcasing that library users can bundle any Highlight.js CSS and use it as a theme — they are
+ * not limited to the built-in options.
  *
  * Each sample in [SAMPLES] is rendered with its own [SectionHeader] and [SyntaxHighlightedCode].
  * Line numbers are enabled for the Python sample as a demonstration of that feature.
@@ -310,12 +322,36 @@ data class HourlyForecastInfo(val time: Instant, val temperature: Double, val de
 fun SampleScreen() {
     val context = LocalContext.current
     var isDark by remember { mutableStateOf(false) }
+    var showThemeMenu by remember { mutableStateOf(false) }
 
-    // Custom themes loaded from sample app assets — demonstrates user-provided themes via fromAsset().
-    // Drop any Highlight.js CSS into your app's assets folder to use it as a theme.
+    // All available theme pairs — GitHub uses fromAsset() to demonstrate custom themes.
+    val themePairs =
+        remember(context) {
+            listOf(
+                ThemePair(
+                    name = "GitHub",
+                    light = HighlightTheme.fromAsset(context, "themes/github.css", "github"),
+                    dark = HighlightTheme.fromAsset(context, "themes/github-dark.css", "github-dark"),
+                ),
+                ThemePair(
+                    name = "Tomorrow",
+                    light = HighlightTheme.tomorrow(context),
+                    dark = HighlightTheme.tomorrowNight(context),
+                ),
+                ThemePair(
+                    name = "Atom One",
+                    light = HighlightTheme.atomOneLight(context),
+                    dark = HighlightTheme.atomOneDark(context),
+                ),
+            )
+        }
+
+    var selectedThemeIndex by remember { mutableStateOf(0) }
+    val activePair = themePairs[selectedThemeIndex]
+
     HighlightThemeProvider(
-        lightHighlightTheme = HighlightTheme.fromAsset(context, "themes/github.css", "github"),
-        darkHighlightTheme = HighlightTheme.fromAsset(context, "themes/github-dark.css", "github-dark"),
+        lightHighlightTheme = activePair.light,
+        darkHighlightTheme = activePair.dark,
         darkTheme = isDark,
     ) {
         Scaffold(
@@ -323,6 +359,27 @@ fun SampleScreen() {
                 TopAppBar(
                     title = { Text("compose-highlight demo") },
                     actions = {
+                        // Theme family picker
+                        Box {
+                            TextButton(onClick = { showThemeMenu = true }) {
+                                Text("🎨 ${activePair.name}")
+                            }
+                            DropdownMenu(
+                                expanded = showThemeMenu,
+                                onDismissRequest = { showThemeMenu = false },
+                            ) {
+                                themePairs.forEachIndexed { index, pair ->
+                                    DropdownMenuItem(
+                                        text = { Text(pair.name) },
+                                        onClick = {
+                                            selectedThemeIndex = index
+                                            showThemeMenu = false
+                                        },
+                                    )
+                                }
+                            }
+                        }
+                        // Light/dark variant toggle
                         Button(
                             onClick = { isDark = !isDark },
                             modifier = Modifier.padding(end = 8.dp),
