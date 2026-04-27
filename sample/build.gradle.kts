@@ -5,11 +5,11 @@ plugins {
 }
 
 android {
-    namespace = "dev.composehighlight.sample"
+    namespace = "dev.hossain.highlight.sample"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "dev.composehighlight.sample"
+        applicationId = "dev.hossain.highlight.sample"
         minSdk = 24
         targetSdk = 36
         versionCode = 1

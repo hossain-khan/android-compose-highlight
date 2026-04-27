@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "dev.composehighlight"
+    namespace = "dev.hossain.highlight"
     compileSdk = 36
 
     defaultConfig {
