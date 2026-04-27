@@ -68,6 +68,18 @@ fun rememberHighlightEngine(): HighlightEngine {
  * }
  * ```
  *
+ * ## Theme creation
+ *
+ * Create [HighlightTheme] instances inside `remember` so CSS parsing does not repeat on every
+ * recomposition:
+ *
+ * ```kotlin
+ * val theme = remember(context) { HighlightTheme.tomorrow(context) }
+ * val highlighted by rememberHighlightedCode(code, "kotlin", theme)
+ * ```
+ *
+ * For light/dark toggling without re-highlighting, prefer [rememberHighlightedCodeBothThemes].
+ *
  * @param code The source code to highlight.
  * @param language The Highlight.js language identifier (e.g. `"python"`, `"kotlin"`).
  * @param theme The theme to apply. Defaults to [LocalHighlightTheme].
@@ -128,8 +140,10 @@ fun rememberHighlightedCode(
  *
  * @param code The source code to highlight.
  * @param language The Highlight.js language identifier (e.g. `"python"`, `"kotlin"`).
- * @param lightTheme Theme to apply for the light variant.
- * @param darkTheme Theme to apply for the dark variant.
+ * @param lightTheme Theme to apply for the light variant. Create inside `remember` to avoid
+ *   re-parsing CSS on every recomposition.
+ * @param darkTheme Theme to apply for the dark variant. Create inside `remember` to avoid
+ *   re-parsing CSS on every recomposition.
  * @param onHighlightComplete Optional callback invoked with the highlight duration in milliseconds
  *   when highlighting succeeds. Not called on failure.
  * @return A [State] holding a [ThemedHighlightResult] with both variants, or `null` while loading / on error.

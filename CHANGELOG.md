@@ -4,9 +4,6 @@ All notable changes to this project will be documented in this file.
 
 ## [0.5.0] - 2026-04-27
 
-### Added
-- `INTEGRATION_TIPS.md` — practical integration guide and known gotchas added to the repository
-
 ### Fixed
 - `HtmlToAnnotatedString.convert()` now applies the `.hljs` base text color as a full-range outer span on the resulting `AnnotatedString`. Plain tokens (identifiers, whitespace) now inherit the theme color rather than `LocalContentColor`, so `Text(text = highlighted)` works correctly without requiring a manual `color` override.
 
