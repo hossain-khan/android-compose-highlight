@@ -118,7 +118,27 @@ class HighlightTheme private constructor(
                 colorMapProvider = { ThemeParser.parse(context, "compose-highlight/themes/atom-one-light.css") },
             )
 
-        /** Custom theme loaded from an asset CSS file path. Throws [HighlightException.ThemeNotFound] if the file is missing or unreadable. */
+        /**
+         * Custom theme loaded from a Highlight.js CSS file in the app's `assets/` folder.
+         *
+         * This is the recommended way for app developers to ship additional themes. Download any
+         * `.css` file from the [Highlight.js styles](https://github.com/highlightjs/highlight.js/tree/main/src/styles)
+         * directory, place it in `src/main/assets/`, and reference it here.
+         *
+         * ```kotlin
+         * // src/main/assets/themes/github.css  ← place the CSS here
+         * val theme = HighlightTheme.fromAsset(
+         *     context   = context,
+         *     assetPath = "themes/github.css",
+         *     name      = "github",
+         * )
+         * HighlightThemeProvider(lightHighlightTheme = theme, ...) { ... }
+         * ```
+         *
+         * Note: loading is lazy — the CSS is parsed on first use, not at factory-call time.
+         *
+         * @throws [HighlightException.ThemeNotFound] if the asset file is missing or unreadable.
+         */
         fun fromAsset(
             context: Context,
             assetPath: String,
@@ -133,7 +153,19 @@ class HighlightTheme private constructor(
                 },
             )
 
-        /** Custom theme from raw CSS text. */
+        /**
+         * Custom theme from raw Highlight.js CSS text.
+         *
+         * Use this when you fetch or generate CSS at runtime rather than bundling it as an asset.
+         *
+         * ```kotlin
+         * val css = // ... fetch from network or build programmatically
+         * val theme = HighlightTheme.fromCss(
+         *     cssText = css,
+         *     name    = "my-runtime-theme",
+         * )
+         * ```
+         */
         fun fromCss(
             cssText: String,
             name: String,
@@ -151,6 +183,22 @@ class HighlightTheme private constructor(
          * dot (e.g. `"hljs-keyword"`, `"hljs-string"`, `"hljs"`). The `"hljs"` entry is used
          * to derive [HighlightTheme.backgroundColor] and [HighlightTheme.defaultTextColor]; you
          * can also override those explicitly via [backgroundColor] and [defaultTextColor].
+         *
+         * ```kotlin
+         * val colorMap = mapOf(
+         *     "hljs"         to SpanStyle(color = Color(0xFF24292E), background = Color(0xFFFFFFFF)),
+         *     "hljs-keyword" to SpanStyle(color = Color(0xFFD73A49), fontWeight = FontWeight.Bold),
+         *     "hljs-string"  to SpanStyle(color = Color(0xFF032F62)),
+         *     "hljs-comment" to SpanStyle(color = Color(0xFF6A737D), fontStyle = FontStyle.Italic),
+         *     // ... add more token types as needed
+         * )
+         * val theme = HighlightTheme.fromColorMap(
+         *     name             = "my-dynamic-theme",
+         *     colorMap         = colorMap,
+         *     backgroundColor  = Color(0xFFFFFFFF),
+         *     defaultTextColor = Color(0xFF24292E),
+         * )
+         * ```
          *
          * @param name Display name for the theme.
          * @param colorMap Map of hljs class name → [SpanStyle].
