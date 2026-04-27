@@ -91,7 +91,14 @@ SyntaxHighlightedCode   ← primary public composable
 ```
 Do not commit if any of these fail.
 
-**Git tags must not use a `v` prefix.** Use `0.2.0`, not `v0.2.0`. JitPack uses the tag as the dependency version, so the version string consumers write in their `build.gradle.kts` matches the tag exactly.
+**Git tags must not use a `v` prefix.** Use `0.3.0`, not `v0.3.0`. JitPack uses the tag as the dependency version, so the version string consumers write in their `build.gradle.kts` matches the tag exactly.
+
+**Before tagging a release — verify all version references are updated:**
+- `README.md` — dependency snippet must reference the new version
+- `compose-highlight/build.gradle.kts` — `version` in the `MavenPublication` block
+- `CHANGELOG.md` — rename `[Unreleased]` to the new version with today's date
+
+Only create the git tag after all of the above are committed and pushed.
 
 **Dependency coordinates (JitPack):**
 ```
