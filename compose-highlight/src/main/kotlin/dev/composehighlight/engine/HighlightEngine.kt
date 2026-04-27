@@ -1,7 +1,6 @@
 package dev.composehighlight.engine
 
 import android.content.Context
-import android.util.Log
 import android.webkit.WebView
 import androidx.compose.ui.text.AnnotatedString
 import kotlinx.coroutines.Dispatchers
@@ -12,8 +11,6 @@ import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
-
-private const val TAG = "ComposeHighlight"
 
 /**
  * Core engine that manages the hidden WebView and executes Highlight.js highlighting.
@@ -143,7 +140,6 @@ class HighlightEngine(private val context: Context) {
         return withContext(Dispatchers.Main) {
             suspendCancellableCoroutine { continuation ->
                 webView.evaluateJavascript(js) { rawResult ->
-                    Log.d(TAG, "HighlightEngine: JS rawResult (first 500 chars): ${rawResult?.take(500)}")
                     if (rawResult == null || rawResult == "null") {
                         continuation.resumeWithException(
                             HighlightException.JsExecutionFailed(RuntimeException("JS returned null"))
@@ -152,7 +148,6 @@ class HighlightEngine(private val context: Context) {
                     }
                     // The result is a JSON-encoded string — strip surrounding quotes and unescape
                     val html = unescapeJsString(rawResult)
-                    Log.d(TAG, "HighlightEngine: unescaped HTML (first 500 chars): ${html.take(500)}")
                     continuation.resume(Result.success(html))
                 }
             }
