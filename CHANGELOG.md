@@ -15,7 +15,7 @@ All notable changes to this project will be documented in this file.
 ## [0.2.0] - 2026-04-26
 
 ### Added
-- JitPack publishing support — library available via `com.github.hossain-khan.android-compose-highlight:compose-highlight:0.2.0`
+- JitPack publishing support — library available via `com.github.hossain-khan:android-compose-highlight:0.2.0`
 - Comprehensive KDoc with usage examples on all public API classes
 - `MODULE.md` for Dokka module-level documentation page
 - Dokka API docs published to GitHub Pages via CI

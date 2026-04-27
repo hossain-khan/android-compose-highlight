@@ -100,7 +100,7 @@ afterEvaluate {
             create<MavenPublication>("release") {
                 from(components["release"])
                 groupId = "com.github.hossain-khan"
-                artifactId = "compose-highlight"
+                artifactId = "android-compose-highlight"
                 version = "0.3.0"
 
                 pom {

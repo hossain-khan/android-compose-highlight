@@ -102,5 +102,5 @@ Only create the git tag after all of the above are committed and pushed.
 
 **Dependency coordinates (JitPack):**
 ```
-com.github.hossain-khan.android-compose-highlight:compose-highlight:<version>
+com.github.hossain-khan:android-compose-highlight:<version>
 ```
