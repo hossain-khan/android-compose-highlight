@@ -4,9 +4,9 @@ import android.content.Context
 import android.webkit.WebView
 import androidx.compose.ui.text.AnnotatedString
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import kotlin.coroutines.resume
@@ -21,8 +21,9 @@ import kotlin.coroutines.resumeWithException
  * Thread safety: WebView is always accessed on the Main thread.
  * Concurrent highlight calls are serialized via [mutex].
  */
-class HighlightEngine(private val context: Context) {
-
+class HighlightEngine(
+    private val context: Context,
+) {
     private val manager = WebViewManager(context)
 
     // Serializes concurrent evaluateJavascript() calls — WebView handles one at a time.
@@ -49,8 +50,11 @@ class HighlightEngine(private val context: Context) {
      *
      * JS escaping fix (PRD §4.2): backslash is escaped first to avoid double-escaping.
      */
-    suspend fun highlightToHtml(code: String, language: String): Result<String> {
-        return try {
+    suspend fun highlightToHtml(
+        code: String,
+        language: String,
+    ): Result<String> =
+        try {
             manager.initialize()
             val webView = manager.getReadyWebView()
 
@@ -64,7 +68,6 @@ class HighlightEngine(private val context: Context) {
         } catch (e: Exception) {
             Result.failure(HighlightException.JsExecutionFailed(e))
         }
-    }
 
     /**
      * Full pipeline: highlight → parse theme → convert to [AnnotatedString].
@@ -75,15 +78,14 @@ class HighlightEngine(private val context: Context) {
         code: String,
         language: String,
         theme: HighlightTheme,
-    ): Result<AnnotatedString> {
-        return highlightToHtml(code, language).map { html ->
+    ): Result<AnnotatedString> =
+        highlightToHtml(code, language).map { html ->
             try {
                 HtmlToAnnotatedString.convert(html, theme.colorMap)
             } catch (e: Exception) {
                 throw HighlightException.HtmlParseFailed(e)
             }
         }
-    }
 
     /**
      * Produces both light and dark [AnnotatedString] from a single JS call.
@@ -96,8 +98,8 @@ class HighlightEngine(private val context: Context) {
         language: String,
         lightTheme: HighlightTheme,
         darkTheme: HighlightTheme,
-    ): Result<ThemedHighlightResult> {
-        return highlightToHtml(code, language).map { html ->
+    ): Result<ThemedHighlightResult> =
+        highlightToHtml(code, language).map { html ->
             try {
                 val light = HtmlToAnnotatedString.convert(html, lightTheme.colorMap)
                 val dark = HtmlToAnnotatedString.convert(html, darkTheme.colorMap)
@@ -106,7 +108,6 @@ class HighlightEngine(private val context: Context) {
                 throw HighlightException.HtmlParseFailed(e)
             }
         }
-    }
 
     /** Releases the WebView resources. */
     fun destroy() {
@@ -129,11 +130,12 @@ class HighlightEngine(private val context: Context) {
         code: String,
         language: String,
     ): Result<String> {
-        val escaped = code
-            .replace("\\", "\\\\")  // Must be first
-            .replace("'", "\\'")
-            .replace("\n", "\\n")
-            .replace("\r", "\\r")
+        val escaped =
+            code
+                .replace("\\", "\\\\") // Must be first
+                .replace("'", "\\'")
+                .replace("\n", "\\n")
+                .replace("\r", "\\r")
 
         val js = "(function() { return highlightCode('$escaped', '$language'); })()"
 
@@ -142,7 +144,7 @@ class HighlightEngine(private val context: Context) {
                 webView.evaluateJavascript(js) { rawResult ->
                     if (rawResult == null || rawResult == "null") {
                         continuation.resumeWithException(
-                            HighlightException.JsExecutionFailed(RuntimeException("JS returned null"))
+                            HighlightException.JsExecutionFailed(RuntimeException("JS returned null")),
                         )
                         return@evaluateJavascript
                     }
@@ -160,11 +162,12 @@ class HighlightEngine(private val context: Context) {
      */
     private fun unescapeJsString(jsonString: String): String {
         // Strip surrounding double quotes if present
-        val inner = if (jsonString.startsWith("\"") && jsonString.endsWith("\"")) {
-            jsonString.substring(1, jsonString.length - 1)
-        } else {
-            jsonString
-        }
+        val inner =
+            if (jsonString.startsWith("\"") && jsonString.endsWith("\"")) {
+                jsonString.substring(1, jsonString.length - 1)
+            } else {
+                jsonString
+            }
         return inner
             .replace("\\u003C", "<")
             .replace("\\u003c", "<")

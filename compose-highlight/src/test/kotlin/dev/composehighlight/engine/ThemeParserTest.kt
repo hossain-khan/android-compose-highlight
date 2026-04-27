@@ -11,9 +11,9 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class ThemeParserTest {
-
     // CSS sampled from tomorrow.css (Base16 Tomorrow light theme)
-    private val tomorrowCssSample = """
+    private val tomorrowCssSample =
+        """
         .hljs{color:#4d4d4c;background:#ffffff}
         .hljs-comment{color:#8e908c}
         .hljs-keyword,.hljs-type{color:#8959a8}
@@ -22,7 +22,7 @@ class ThemeParserTest {
         .hljs-title.function_{color:#4271ae}
         .hljs-strong{font-weight:bold;color:#eab700}
         .hljs-emphasis{font-style:italic;color:#8959a8}
-    """.trimIndent()
+        """.trimIndent()
 
     @Test
     fun `parse returns non-empty map for valid CSS`() {

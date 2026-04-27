@@ -13,12 +13,13 @@ import dev.composehighlight.engine.HighlightTheme
  *
  * Throws a descriptive error if accessed without a [HighlightThemeProvider] ancestor.
  */
-val LocalHighlightTheme = staticCompositionLocalOf<HighlightTheme> {
-    error(
-        "No HighlightTheme provided. " +
-            "Wrap your content in HighlightThemeProvider { ... }."
-    )
-}
+val LocalHighlightTheme =
+    staticCompositionLocalOf<HighlightTheme> {
+        error(
+            "No HighlightTheme provided. " +
+                "Wrap your content in HighlightThemeProvider { ... }.",
+        )
+    }
 
 /**
  * Provides [HighlightTheme] to all [SyntaxHighlightedCode] composables in [content].

@@ -21,9 +21,10 @@ data class CodeBlockStyle(
 ) {
     companion object {
         val Default = CodeBlockStyle()
-        val Compact = CodeBlockStyle(
-            padding = PaddingValues(12.dp),
-            headerPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
-        )
+        val Compact =
+            CodeBlockStyle(
+                padding = PaddingValues(12.dp),
+                headerPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
+            )
     }
 }

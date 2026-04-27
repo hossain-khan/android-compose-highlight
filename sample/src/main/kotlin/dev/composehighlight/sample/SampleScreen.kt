@@ -36,8 +36,10 @@ import dev.composehighlight.ui.SyntaxHighlightedCode
  * - A large, real-world Kotlin file (WeatherApp) to stress-test rendering performance
  * - An empty string edge case to verify graceful fallback
  */
-private val SAMPLES = listOf(
-    "python" to """
+private val SAMPLES =
+    listOf(
+        "python" to
+            """
 def fibonacci(n: int) -> int:
     # Returns the nth Fibonacci number
     if n <= 1:
@@ -50,9 +52,9 @@ def fibonacci(n: int) -> int:
 # Edge case: special chars  \t \n ' "
 result = fibonacci(10)
 print(f"Result: {result}")
-    """.trimIndent(),
-
-    "kotlin" to """
+            """.trimIndent(),
+        "kotlin" to
+            """
 data class User(val name: String, val age: Int)
 
 fun List<User>.filter(minAge: Int): List<User> =
@@ -66,9 +68,9 @@ val users = listOf(
 
 val adults = users.filter(18)
 println(adults)
-    """.trimIndent(),
-
-    "javascript" to """
+            """.trimIndent(),
+        "javascript" to
+            """
 async function fetchUser(id) {
     const response = await fetch(`/api/users/${'$'}{id}`);
     if (!response.ok) {
@@ -79,9 +81,9 @@ async function fetchUser(id) {
 
 // Backslash path: C:\Users\test
 const path = 'C:\\Users\\test\\file.txt';
-    """.trimIndent(),
-
-    "java" to """
+            """.trimIndent(),
+        "java" to
+            """
 public class BinarySearch {
     public static int search(int[] arr, int target) {
         int left = 0, right = arr.length - 1;
@@ -94,9 +96,9 @@ public class BinarySearch {
         return -1;
     }
 }
-    """.trimIndent(),
-
-    "sql" to """
+            """.trimIndent(),
+        "sql" to
+            """
 SELECT
     u.id,
     u.name,
@@ -109,9 +111,9 @@ GROUP BY u.id, u.name
 HAVING order_count > 0
 ORDER BY revenue DESC
 LIMIT 10;
-    """.trimIndent(),
-
-    "json" to """
+            """.trimIndent(),
+        "json" to
+            """
 {
     "name": "compose-highlight",
     "version": "0.1.0",
@@ -122,9 +124,9 @@ LIMIT 10;
     "unicode": "héllo 🌍",
     "escapes": "line1\nline2\ttabbed"
 }
-    """.trimIndent(),
-
-    "xml" to """
+            """.trimIndent(),
+        "xml" to
+            """
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Compose Highlight</string>
@@ -132,11 +134,11 @@ LIMIT 10;
         <item name="colorPrimary">@color/purple_500</item>
     </style>
 </resources>
-    """.trimIndent(),
-
-    // Large real-world Kotlin file — WeatherApp from ZacSweers/metro samples.
-    // Source: https://github.com/ZacSweers/metro/blob/main/samples/weather-app/src/commonMain/kotlin/dev/zacsweers/metro/sample/weather/WeatherApp.kt
-    "kotlin (large — WeatherApp)" to """
+            """.trimIndent(),
+        // Large real-world Kotlin file — WeatherApp from ZacSweers/metro samples.
+        // Source: https://github.com/ZacSweers/metro/blob/main/samples/weather-app/src/commonMain/kotlin/dev/zacsweers/metro/sample/weather/WeatherApp.kt
+        "kotlin (large — WeatherApp)" to
+            """
 // Copyright (C) 2025 Zac Sweers
 // SPDX-License-Identifier: Apache-2.0
 package dev.zacsweers.metro.sample.weather
@@ -284,10 +286,9 @@ data class CurrentWeatherInfo(
 )
 
 data class HourlyForecastInfo(val time: Instant, val temperature: Double, val description: String)
-    """.trimIndent(),
-
-    "plaintext" to "",  // empty edge case
-)
+            """.trimIndent(),
+        "plaintext" to "", // empty edge case
+    )
 
 /**
  * Main demo screen that renders a scrollable list of syntax-highlighted code snippets.
@@ -326,10 +327,11 @@ fun SampleScreen() {
             },
         ) { innerPadding ->
             LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)
-                    .padding(16.dp),
+                modifier =
+                    Modifier
+                        .fillMaxSize()
+                        .padding(innerPadding)
+                        .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
                 SAMPLES.forEach { (language, code) ->
@@ -365,9 +367,10 @@ fun SampleScreen() {
 @Composable
 private fun SectionHeader(title: String) {
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(bottom = 4.dp),
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(bottom = 4.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {

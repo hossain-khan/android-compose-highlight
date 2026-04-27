@@ -77,12 +77,15 @@ fun SyntaxHighlightedCode(
     val clipboardManager: ClipboardManager = LocalClipboardManager.current
     var copyConfirmed by remember { mutableStateOf(false) }
 
-    val backgroundColor = theme.backgroundColor.takeIf { it != Color.Unspecified }
-        ?: Color(0xFF1E1E1E)
-    val textColor = theme.defaultTextColor.takeIf { it != Color.Unspecified }
-        ?: Color(0xFFCCCCCC)
-    val lineNumberColor = style.lineNumberColor.takeIf { it != Color.Unspecified }
-        ?: textColor.copy(alpha = 0.4f)
+    val backgroundColor =
+        theme.backgroundColor.takeIf { it != Color.Unspecified }
+            ?: Color(0xFF1E1E1E)
+    val textColor =
+        theme.defaultTextColor.takeIf { it != Color.Unspecified }
+            ?: Color(0xFFCCCCCC)
+    val lineNumberColor =
+        style.lineNumberColor.takeIf { it != Color.Unspecified }
+            ?: textColor.copy(alpha = 0.4f)
 
     Surface(
         modifier = modifier,
@@ -93,19 +96,21 @@ fun SyntaxHighlightedCode(
             // Header: language badge + copy button
             if (showLanguageLabel || showCopyButton) {
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(style.headerPadding),
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(style.headerPadding),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     if (showLanguageLabel && language.isNotBlank()) {
                         Text(
                             text = language,
-                            style = TextStyle(
-                                color = textColor.copy(alpha = 0.6f),
-                                fontSize = 12.sp,
-                                fontFamily = fontFamily,
-                            ),
+                            style =
+                                TextStyle(
+                                    color = textColor.copy(alpha = 0.6f),
+                                    fontSize = 12.sp,
+                                    fontFamily = fontFamily,
+                                ),
                         )
                     }
                     Spacer(modifier = Modifier.weight(1f))
@@ -158,12 +163,13 @@ fun SyntaxHighlightedCode(
                             Text(
                                 text = highlighted ?: AnnotatedString(code),
                                 modifier = Modifier.padding(style.padding),
-                                style = TextStyle(
-                                    color = textColor,
-                                    fontFamily = fontFamily,
-                                    fontSize = fontSize,
-                                    lineHeight = lineHeight,
-                                ),
+                                style =
+                                    TextStyle(
+                                        color = textColor,
+                                        fontFamily = fontFamily,
+                                        fontSize = fontSize,
+                                        lineHeight = lineHeight,
+                                    ),
                             )
                         }
                     }
@@ -185,18 +191,20 @@ private fun LineNumberedCode(
     lineHeight: TextUnit,
 ) {
     val lines = code.lines()
-    val codeStyle = TextStyle(
-        color = textColor,
-        fontFamily = fontFamily,
-        fontSize = fontSize,
-        lineHeight = lineHeight,
-    )
-    val lineNumStyle = TextStyle(
-        color = lineNumberColor,
-        fontFamily = fontFamily,
-        fontSize = fontSize,
-        lineHeight = lineHeight,
-    )
+    val codeStyle =
+        TextStyle(
+            color = textColor,
+            fontFamily = fontFamily,
+            fontSize = fontSize,
+            lineHeight = lineHeight,
+        )
+    val lineNumStyle =
+        TextStyle(
+            color = lineNumberColor,
+            fontFamily = fontFamily,
+            fontSize = fontSize,
+            lineHeight = lineHeight,
+        )
 
     Row(modifier = Modifier.padding(style.padding)) {
         // Line number gutter

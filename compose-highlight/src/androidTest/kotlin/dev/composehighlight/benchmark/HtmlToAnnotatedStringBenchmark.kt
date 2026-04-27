@@ -2,9 +2,9 @@ package dev.composehighlight.benchmark
 
 import androidx.benchmark.junit4.BenchmarkRule
 import androidx.benchmark.junit4.measureRepeated
+import androidx.compose.ui.text.SpanStyle
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
-import androidx.compose.ui.text.SpanStyle
 import dev.composehighlight.engine.HtmlToAnnotatedString
 import dev.composehighlight.engine.ThemeParser
 import org.junit.Before
@@ -25,14 +25,14 @@ import org.junit.runner.RunWith
  */
 @RunWith(AndroidJUnit4::class)
 class HtmlToAnnotatedStringBenchmark {
-
     @get:Rule
     val benchmarkRule = BenchmarkRule()
 
     private lateinit var colorMap: Map<String, SpanStyle>
 
     // Realistic hljs HTML output for a Python function (from actual device log)
-    private val pythonHtml = """
+    private val pythonHtml =
+        """
         <span class="hljs-keyword">def</span> <span class="hljs-title function_">fibonacci</span>(<span class="hljs-params">n: <span class="hljs-built_in">int</span></span>) -&gt; <span class="hljs-built_in">int</span>:
             <span class="hljs-comment"># Returns the nth Fibonacci number</span>
             <span class="hljs-keyword">if</span> n &lt;= <span class="hljs-number">1</span>:
@@ -41,10 +41,11 @@ class HtmlToAnnotatedStringBenchmark {
             <span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(n - <span class="hljs-number">1</span>):
                 a, b = b, a + b
             <span class="hljs-keyword">return</span> b
-    """.trimIndent()
+        """.trimIndent()
 
     // Realistic hljs HTML output for Kotlin code
-    private val kotlinHtml = """
+    private val kotlinHtml =
+        """
         <span class="hljs-keyword">data</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">User</span>(<span class="hljs-keyword">val</span> name: String, <span class="hljs-keyword">val</span> age: <span class="hljs-built_in">Int</span>)
 
         <span class="hljs-function"><span class="hljs-keyword">fun</span> List&lt;User&gt;.<span class="hljs-title">filterAdults</span><span class="hljs-params">(minAge: <span class="hljs-type">Int</span>)</span></span>: List&lt;User&gt; =
@@ -56,10 +57,11 @@ class HtmlToAnnotatedStringBenchmark {
         )
         <span class="hljs-keyword">val</span> adults = users.filterAdults(<span class="hljs-number">18</span>)
         <span class="hljs-built_in">println</span>(adults)
-    """.trimIndent()
+        """.trimIndent()
 
     // Larger code block — SQL with many token classes
-    private val sqlHtml = """
+    private val sqlHtml =
+        """
         <span class="hljs-keyword">SELECT</span>
             u.id,
             u.name,
@@ -72,7 +74,7 @@ class HtmlToAnnotatedStringBenchmark {
         <span class="hljs-keyword">HAVING</span> order_count &gt; <span class="hljs-number">0</span>
         <span class="hljs-keyword">ORDER</span> <span class="hljs-keyword">BY</span> revenue <span class="hljs-keyword">DESC</span>
         <span class="hljs-keyword">LIMIT</span> <span class="hljs-number">10</span>;
-    """.trimIndent()
+        """.trimIndent()
 
     @Before
     fun loadTheme() {
@@ -81,17 +83,20 @@ class HtmlToAnnotatedStringBenchmark {
     }
 
     @Test
-    fun convertPythonHtml() = benchmarkRule.measureRepeated {
-        HtmlToAnnotatedString.convert(pythonHtml, colorMap)
-    }
+    fun convertPythonHtml() =
+        benchmarkRule.measureRepeated {
+            HtmlToAnnotatedString.convert(pythonHtml, colorMap)
+        }
 
     @Test
-    fun convertKotlinHtml() = benchmarkRule.measureRepeated {
-        HtmlToAnnotatedString.convert(kotlinHtml, colorMap)
-    }
+    fun convertKotlinHtml() =
+        benchmarkRule.measureRepeated {
+            HtmlToAnnotatedString.convert(kotlinHtml, colorMap)
+        }
 
     @Test
-    fun convertSqlHtml() = benchmarkRule.measureRepeated {
-        HtmlToAnnotatedString.convert(sqlHtml, colorMap)
-    }
+    fun convertSqlHtml() =
+        benchmarkRule.measureRepeated {
+            HtmlToAnnotatedString.convert(sqlHtml, colorMap)
+        }
 }

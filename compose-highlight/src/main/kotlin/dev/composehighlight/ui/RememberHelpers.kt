@@ -48,9 +48,10 @@ fun rememberHighlightedCode(
 
     LaunchedEffect(code, language, theme) {
         state.value = null
-        engine.highlight(code, language, theme)
+        engine
+            .highlight(code, language, theme)
             .onSuccess { state.value = it }
-            // On failure: leave state.value = null; caller renders plain fallback
+        // On failure: leave state.value = null; caller renders plain fallback
     }
 
     return state

@@ -30,7 +30,6 @@ import org.junit.runner.RunWith
  */
 @RunWith(AndroidJUnit4::class)
 class HighlightEngineBenchmark {
-
     @get:Rule
     val benchmarkRule = BenchmarkRule()
 
@@ -50,42 +49,48 @@ class HighlightEngineBenchmark {
     }
 
     @Test
-    fun highlightPythonToHtml() = benchmarkRule.measureRepeated {
-        runBlocking {
-            engine.highlightToHtml(PYTHON_CODE, "python").getOrThrow()
+    fun highlightPythonToHtml() =
+        benchmarkRule.measureRepeated {
+            runBlocking {
+                engine.highlightToHtml(PYTHON_CODE, "python").getOrThrow()
+            }
         }
-    }
 
     @Test
-    fun highlightKotlinToHtml() = benchmarkRule.measureRepeated {
-        runBlocking {
-            engine.highlightToHtml(KOTLIN_CODE, "kotlin").getOrThrow()
+    fun highlightKotlinToHtml() =
+        benchmarkRule.measureRepeated {
+            runBlocking {
+                engine.highlightToHtml(KOTLIN_CODE, "kotlin").getOrThrow()
+            }
         }
-    }
 
     @Test
-    fun highlightSqlToHtml() = benchmarkRule.measureRepeated {
-        runBlocking {
-            engine.highlightToHtml(SQL_CODE, "sql").getOrThrow()
+    fun highlightSqlToHtml() =
+        benchmarkRule.measureRepeated {
+            runBlocking {
+                engine.highlightToHtml(SQL_CODE, "sql").getOrThrow()
+            }
         }
-    }
 
     @Test
-    fun highlightLargeKotlinWeatherAppToHtml() = benchmarkRule.measureRepeated {
-        runBlocking {
-            engine.highlightToHtml(WEATHER_APP_KOTLIN_CODE, "kotlin").getOrThrow()
+    fun highlightLargeKotlinWeatherAppToHtml() =
+        benchmarkRule.measureRepeated {
+            runBlocking {
+                engine.highlightToHtml(WEATHER_APP_KOTLIN_CODE, "kotlin").getOrThrow()
+            }
         }
-    }
 
     @Test
-    fun highlightLargeTypeScriptZodCoreToHtml() = benchmarkRule.measureRepeated {
-        runBlocking {
-            engine.highlightToHtml(ZOD_CORE_TS_CODE, "typescript").getOrThrow()
+    fun highlightLargeTypeScriptZodCoreToHtml() =
+        benchmarkRule.measureRepeated {
+            runBlocking {
+                engine.highlightToHtml(ZOD_CORE_TS_CODE, "typescript").getOrThrow()
+            }
         }
-    }
 
     companion object {
-        private val PYTHON_CODE = """
+        private val PYTHON_CODE =
+            """
             def fibonacci(n: int) -> int:
                 # Returns the nth Fibonacci number
                 if n <= 1:
@@ -97,9 +102,10 @@ class HighlightEngineBenchmark {
 
             result = fibonacci(10)
             print(f"Result: {result}")
-        """.trimIndent()
+            """.trimIndent()
 
-        private val KOTLIN_CODE = """
+        private val KOTLIN_CODE =
+            """
             data class User(val name: String, val age: Int)
 
             fun List<User>.filterAdults(minAge: Int): List<User> =
@@ -111,9 +117,10 @@ class HighlightEngineBenchmark {
             )
             val adults = users.filterAdults(18)
             println(adults)
-        """.trimIndent()
+            """.trimIndent()
 
-        private val SQL_CODE = """
+        private val SQL_CODE =
+            """
             SELECT
                 u.id,
                 u.name,
@@ -126,12 +133,13 @@ class HighlightEngineBenchmark {
             HAVING order_count > 0
             ORDER BY revenue DESC
             LIMIT 10;
-        """.trimIndent()
+            """.trimIndent()
 
         // Large real-world Kotlin file (~150 lines) from ZacSweers/metro weather sample.
         // Used to benchmark JS highlighting performance on a substantial, realistic input.
         // Source: https://github.com/ZacSweers/metro/blob/main/samples/weather-app/src/commonMain/kotlin/dev/zacsweers/metro/sample/weather/WeatherApp.kt
-        private val WEATHER_APP_KOTLIN_CODE = """
+        private val WEATHER_APP_KOTLIN_CODE =
+            """
             // Copyright (C) 2025 Zac Sweers
             // SPDX-License-Identifier: Apache-2.0
             package dev.zacsweers.metro.sample.weather
@@ -236,13 +244,14 @@ class HighlightEngineBenchmark {
             data class LocationInfo(val name: String, val region: String?, val country: String)
             data class CurrentWeatherInfo(val temperature: Double, val humidity: Double, val windSpeed: Double, val description: String)
             data class HourlyForecastInfo(val time: Instant, val temperature: Double, val description: String)
-        """.trimIndent()
+            """.trimIndent()
 
         // Large real-world TypeScript file (~200 lines) from colinhacks/zod v4 core.
         // Used to benchmark JS highlighting performance on a TypeScript-heavy input with
         // generics, decorators, and complex type expressions.
         // Source: https://github.com/colinhacks/zod/blob/main/packages/zod/src/v4/core/core.ts
-        private val ZOD_CORE_TS_CODE = """
+        private val ZOD_CORE_TS_CODE =
+            """
             import type * as errors from "./errors.js";
             import type * as schemas from "./schemas.js";
             import type { Class } from "./util.js";
@@ -348,6 +357,6 @@ class HighlightEngineBenchmark {
               if (newConfig) Object.assign(globalConfig, newConfig);
               return globalConfig;
             }
-        """.trimIndent()
+            """.trimIndent()
     }
 }

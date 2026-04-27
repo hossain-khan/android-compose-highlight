@@ -13,19 +13,24 @@ import androidx.compose.ui.text.font.FontWeight
  * hljs theme CSS files follow a strict, predictable format so a regex-based parser is sufficient.
  */
 object ThemeParser {
-
     /**
      * Parses a CSS theme file from assets into a color map.
      * Results are not cached here — callers should use [lazy] to cache per theme.
      */
-    fun parse(context: Context, cssAssetPath: String): Map<String, SpanStyle> {
-        return try {
-            val css = context.assets.open(cssAssetPath).bufferedReader().readText()
+    fun parse(
+        context: Context,
+        cssAssetPath: String,
+    ): Map<String, SpanStyle> =
+        try {
+            val css =
+                context.assets
+                    .open(cssAssetPath)
+                    .bufferedReader()
+                    .readText()
             parse(css)
         } catch (e: Exception) {
             emptyMap()
         }
-    }
 
     /**
      * Parses CSS text directly into a color map.
@@ -115,8 +120,8 @@ object ThemeParser {
         }
     }
 
-    private fun parseHexColor(hex: String): Color? {
-        return try {
+    private fun parseHexColor(hex: String): Color? =
+        try {
             val cleaned = hex.trimStart('#')
             when (cleaned.length) {
                 3 -> {
@@ -125,26 +130,34 @@ object ThemeParser {
                     val b = cleaned[2].toString().repeat(2).toInt(16)
                     Color(r, g, b)
                 }
-                6 -> Color(
-                    red = cleaned.substring(0, 2).toInt(16),
-                    green = cleaned.substring(2, 4).toInt(16),
-                    blue = cleaned.substring(4, 6).toInt(16),
-                )
-                8 -> Color(
-                    red = cleaned.substring(2, 4).toInt(16),
-                    green = cleaned.substring(4, 6).toInt(16),
-                    blue = cleaned.substring(6, 8).toInt(16),
-                    alpha = cleaned.substring(0, 2).toInt(16),
-                )
-                else -> null
+
+                6 -> {
+                    Color(
+                        red = cleaned.substring(0, 2).toInt(16),
+                        green = cleaned.substring(2, 4).toInt(16),
+                        blue = cleaned.substring(4, 6).toInt(16),
+                    )
+                }
+
+                8 -> {
+                    Color(
+                        red = cleaned.substring(2, 4).toInt(16),
+                        green = cleaned.substring(4, 6).toInt(16),
+                        blue = cleaned.substring(6, 8).toInt(16),
+                        alpha = cleaned.substring(0, 2).toInt(16),
+                    )
+                }
+
+                else -> {
+                    null
+                }
             }
         } catch (e: Exception) {
             null
         }
-    }
 
-    private fun parseRgbColor(value: String): Color? {
-        return try {
+    private fun parseRgbColor(value: String): Color? =
+        try {
             val nums = Regex("""\d+""").findAll(value).map { it.value.toInt() }.toList()
             when (nums.size) {
                 3 -> Color(nums[0], nums[1], nums[2])
@@ -154,5 +167,4 @@ object ThemeParser {
         } catch (e: Exception) {
             null
         }
-    }
 }

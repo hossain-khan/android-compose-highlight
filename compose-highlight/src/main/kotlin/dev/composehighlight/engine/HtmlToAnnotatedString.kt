@@ -14,24 +14,27 @@ import org.jsoup.nodes.TextNode
  * This matches Perplexity's production implementation (obfuscated class `gn/d.b()`).
  */
 object HtmlToAnnotatedString {
-
     /**
      * Converts highlighted HTML to [AnnotatedString] using the provided color map.
      *
      * @param html HTML fragment output from highlight.js (not a full document)
      * @param colorMap Map of hljs class names to [SpanStyle], from [ThemeParser]
      */
-    fun convert(html: String, colorMap: Map<String, SpanStyle>): AnnotatedString {
+    fun convert(
+        html: String,
+        colorMap: Map<String, SpanStyle>,
+    ): AnnotatedString {
         if (html.isBlank()) return AnnotatedString("")
 
         val doc = Jsoup.parseBodyFragment(html)
         val body = doc.body()
 
-        val result = buildAnnotatedString {
-            body.childNodes().forEach { node ->
-                walkNode(node, colorMap, this)
+        val result =
+            buildAnnotatedString {
+                body.childNodes().forEach { node ->
+                    walkNode(node, colorMap, this)
+                }
             }
-        }
 
         return result
     }
@@ -43,10 +46,13 @@ object HtmlToAnnotatedString {
     ) {
         when (node) {
             is Element -> {
-                val style = if (node.tagName() == "span") {
-                    val cls = node.className()
-                    resolveStyle(cls, colorMap)
-                } else null
+                val style =
+                    if (node.tagName() == "span") {
+                        val cls = node.className()
+                        resolveStyle(cls, colorMap)
+                    } else {
+                        null
+                    }
 
                 if (style != null) builder.pushStyle(style)
 
@@ -94,9 +100,7 @@ object HtmlToAnnotatedString {
 }
 
 // Extension to use buildAnnotatedString pattern without Compose runtime
-private fun buildAnnotatedString(
-    block: AnnotatedString.Builder.() -> Unit,
-): AnnotatedString {
+private fun buildAnnotatedString(block: AnnotatedString.Builder.() -> Unit): AnnotatedString {
     val builder = AnnotatedString.Builder()
     builder.block()
     return builder.toAnnotatedString()

@@ -22,7 +22,6 @@ import org.junit.runner.RunWith
  */
 @RunWith(AndroidJUnit4::class)
 class ThemeParserBenchmark {
-
     @get:Rule
     val benchmarkRule = BenchmarkRule()
 
@@ -32,23 +31,27 @@ class ThemeParserBenchmark {
     @Before
     fun loadCss() {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
-        tomorrowCss = context.assets
-            .open("compose-highlight/themes/tomorrow.css")
-            .bufferedReader()
-            .readText()
-        tomorrowNightCss = context.assets
-            .open("compose-highlight/themes/tomorrow-night.css")
-            .bufferedReader()
-            .readText()
+        tomorrowCss =
+            context.assets
+                .open("compose-highlight/themes/tomorrow.css")
+                .bufferedReader()
+                .readText()
+        tomorrowNightCss =
+            context.assets
+                .open("compose-highlight/themes/tomorrow-night.css")
+                .bufferedReader()
+                .readText()
     }
 
     @Test
-    fun parseTomorrowTheme() = benchmarkRule.measureRepeated {
-        ThemeParser.parse(tomorrowCss)
-    }
+    fun parseTomorrowTheme() =
+        benchmarkRule.measureRepeated {
+            ThemeParser.parse(tomorrowCss)
+        }
 
     @Test
-    fun parseTomorrowNightTheme() = benchmarkRule.measureRepeated {
-        ThemeParser.parse(tomorrowNightCss)
-    }
+    fun parseTomorrowNightTheme() =
+        benchmarkRule.measureRepeated {
+            ThemeParser.parse(tomorrowNightCss)
+        }
 }

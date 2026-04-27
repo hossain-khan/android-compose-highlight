@@ -9,8 +9,8 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.webkit.WebViewAssetLoader
 import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.withContext
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 /**
  * Internal manager responsible for creating and initializing the hidden WebView.
@@ -18,8 +18,9 @@ import kotlinx.coroutines.Dispatchers
  * Mirrors Perplexity's `ra/d` class: a WebView singleton with lazy initialization,
  * loaded via [WebViewAssetLoader] using the `appassets.androidplatform.net` scheme.
  */
-internal class WebViewManager(private val context: Context) {
-
+internal class WebViewManager(
+    private val context: Context,
+) {
     private var webView: WebView? = null
     private val readyDeferred = CompletableDeferred<WebView>()
 
@@ -36,27 +37,34 @@ internal class WebViewManager(private val context: Context) {
         withContext(Dispatchers.Main) {
             if (webView != null) return@withContext
 
-            val assetLoader = WebViewAssetLoader.Builder()
-                .setDomain("appassets.androidplatform.net")
-                .addPathHandler("/assets/", WebViewAssetLoader.AssetsPathHandler(context))
-                .build()
+            val assetLoader =
+                WebViewAssetLoader
+                    .Builder()
+                    .setDomain("appassets.androidplatform.net")
+                    .addPathHandler("/assets/", WebViewAssetLoader.AssetsPathHandler(context))
+                    .build()
 
-            val view = WebView(context).apply {
-                settings.javaScriptEnabled = true
-                webViewClient = object : WebViewClient() {
-                    override fun shouldInterceptRequest(
-                        view: WebView,
-                        request: WebResourceRequest,
-                    ): WebResourceResponse? = assetLoader.shouldInterceptRequest(request.url)
+            val view =
+                WebView(context).apply {
+                    settings.javaScriptEnabled = true
+                    webViewClient =
+                        object : WebViewClient() {
+                            override fun shouldInterceptRequest(
+                                view: WebView,
+                                request: WebResourceRequest,
+                            ): WebResourceResponse? = assetLoader.shouldInterceptRequest(request.url)
 
-                    override fun onPageFinished(view: WebView, url: String) {
-                        if (!readyDeferred.isCompleted) {
-                            readyDeferred.complete(view)
+                            override fun onPageFinished(
+                                view: WebView,
+                                url: String,
+                            ) {
+                                if (!readyDeferred.isCompleted) {
+                                    readyDeferred.complete(view)
+                                }
+                            }
                         }
-                    }
+                    loadUrl("https://appassets.androidplatform.net/assets/compose-highlight/bridge.html")
                 }
-                loadUrl("https://appassets.androidplatform.net/assets/compose-highlight/bridge.html")
-            }
 
             webView = view
         }

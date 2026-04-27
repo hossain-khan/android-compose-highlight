@@ -8,16 +8,16 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class HtmlToAnnotatedStringTest {
-
-    private val colorMap = mapOf(
-        "hljs-keyword" to SpanStyle(color = Color(0xFF8959a8.toInt())),
-        "hljs-string" to SpanStyle(color = Color(0xFF718c00.toInt())),
-        "hljs-number" to SpanStyle(color = Color(0xFFf5871f.toInt())),
-        "hljs-comment" to SpanStyle(color = Color(0xFF8e908c.toInt())),
-        "hljs-strong" to SpanStyle(color = Color(0xFFeab700.toInt()), fontWeight = FontWeight.Bold),
-        // Compound key
-        "hljs-title.function_" to SpanStyle(color = Color(0xFF4271ae.toInt())),
-    )
+    private val colorMap =
+        mapOf(
+            "hljs-keyword" to SpanStyle(color = Color(0xFF8959a8.toInt())),
+            "hljs-string" to SpanStyle(color = Color(0xFF718c00.toInt())),
+            "hljs-number" to SpanStyle(color = Color(0xFFf5871f.toInt())),
+            "hljs-comment" to SpanStyle(color = Color(0xFF8e908c.toInt())),
+            "hljs-strong" to SpanStyle(color = Color(0xFFeab700.toInt()), fontWeight = FontWeight.Bold),
+            // Compound key
+            "hljs-title.function_" to SpanStyle(color = Color(0xFF4271ae.toInt())),
+        )
 
     @Test
     fun `convert simple keyword span produces colored span`() {
