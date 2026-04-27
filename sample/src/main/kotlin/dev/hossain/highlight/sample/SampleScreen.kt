@@ -357,7 +357,7 @@ fun SampleScreen() {
         Scaffold(
             topBar = {
                 TopAppBar(
-                    title = { Text("compose-highlight demo") },
+                    title = { Text("Demo") },
                     actions = {
                         // Theme family picker
                         Box {
