@@ -88,6 +88,38 @@ themed.onSuccess { (light, dark) ->
 
 ---
 
+## Composable Helpers
+
+### `rememberHighlightedCode`
+
+Highlights code and returns a `State<AnnotatedString?>`. Re-runs automatically when `code`, `language`, or `theme` changes.
+
+```kotlin
+val highlighted by rememberHighlightedCode(
+    code     = snippet,
+    language = "kotlin",
+    onHighlightComplete = { ms -> Log.d("Perf", "Highlighted in ${ms}ms") },
+)
+Text(text = highlighted ?: AnnotatedString(snippet))
+```
+
+### `rememberHighlightedCodeBothThemes`
+
+Highlights once for both light and dark themes in a single JS call. Theme switching after the
+initial highlight is instant — no re-highlighting needed.
+
+```kotlin
+val result by rememberHighlightedCodeBothThemes(
+    code       = snippet,
+    language   = "kotlin",
+    lightTheme = remember(context) { HighlightTheme.tomorrow(context) },
+    darkTheme  = remember(context) { HighlightTheme.tomorrowNight(context) },
+)
+Text(text = (if (isDark) result?.dark else result?.light) ?: AnnotatedString(snippet))
+```
+
+---
+
 ## Custom Themes
 
 Any Highlight.js CSS theme works. Load from an asset:
@@ -101,6 +133,23 @@ Or pass raw CSS directly:
 ```kotlin
 val theme = HighlightTheme.fromCss(cssString, name = "my-inline-theme")
 ```
+
+Or build a theme from a precomputed color map (useful for Material 3 dynamic color):
+
+```kotlin
+val theme = HighlightTheme.fromColorMap(
+    name             = "dynamic",
+    colorMap         = mapOf(
+        "hljs"         to SpanStyle(color = onSurface, background = surface),
+        "hljs-keyword" to SpanStyle(color = primary, fontWeight = FontWeight.Bold),
+        "hljs-string"  to SpanStyle(color = tertiary),
+    ),
+    backgroundColor  = surface,
+    defaultTextColor = onSurface,
+)
+```
+
+Community themes are available at [highlightjs/highlight.js/src/styles](https://github.com/highlightjs/highlight.js/tree/main/src/styles).
 
 ---
 
@@ -117,6 +166,7 @@ val theme = HighlightTheme.fromCss(cssString, name = "my-inline-theme")
 | `showLanguageLabel` | `Boolean` | `true` | Show language badge in header |
 | `showCopyButton` | `Boolean` | `true` | Show copy-to-clipboard button |
 | `onCopyClick` | `((String) -> Unit)?` | `null` | Custom copy handler |
+| `onHighlightComplete` | `((Long) -> Unit)?` | `null` | Callback with highlight duration in ms |
 | `fontFamily` | `FontFamily` | `Monospace` | Code font |
 | `fontSize` | `TextUnit` | `13.sp` | Code font size |
 | `lineHeight` | `TextUnit` | `20.sp` | Code line height |
@@ -178,6 +228,8 @@ Run on your target device to get accurate numbers. Results are printed in logcat
 ---
 
 
+
+## Requirements
 
 - Android minSdk 24+
 - Kotlin 2.x
