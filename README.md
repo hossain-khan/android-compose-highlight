@@ -45,7 +45,7 @@ Then add the dependency in your module's `build.gradle.kts`:
 
 ```kotlin
 dependencies {
-    implementation("com.github.hossain-khan.android-compose-highlight:compose-highlight:0.1.0")
+    implementation("com.github.hossain-khan.android-compose-highlight:compose-highlight:0.2.0")
 }
 ```
 
