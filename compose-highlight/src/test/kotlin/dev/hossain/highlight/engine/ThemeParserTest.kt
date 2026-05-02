@@ -132,4 +132,49 @@ class ThemeParserTest {
         assertNotNull(result["hljs"])
         assertNotNull(result["hljs-keyword"])
     }
+
+    @Test
+    fun `parse handles rgb color format`() {
+        val css = ".hljs-comment { color: rgb(142, 144, 140) }"
+        val result = ThemeParser.parse(css)
+        val style = result["hljs-comment"]
+        assertNotNull("hljs-comment with rgb color should be present", style)
+        assertEquals(Color(142, 144, 140), style!!.color)
+    }
+
+    @Test
+    fun `parse handles background-color property`() {
+        val css = ".hljs { background-color: #1e1e1e }"
+        val result = ThemeParser.parse(css)
+        val style = result["hljs"]
+        assertNotNull("hljs with background-color should be present", style)
+        assertEquals(Color(0xFF1e1e1e.toInt()), style!!.background)
+    }
+
+    @Test
+    fun `parse treats font-weight 700 as bold`() {
+        val css = ".hljs-strong { font-weight: 700; color: #eab700 }"
+        val result = ThemeParser.parse(css)
+        val style = result["hljs-strong"]
+        assertNotNull("hljs-strong with font-weight:700 should be present", style)
+        assertEquals(FontWeight.Bold, style!!.fontWeight)
+    }
+
+    @Test
+    fun `parse handles 8-digit hex color`() {
+        // 8-digit hex: first two digits are alpha (AARRGGBB), rest are RGB
+        val css = ".hljs-comment { color: #ff8e908c }"
+        val result = ThemeParser.parse(css)
+        val style = result["hljs-comment"]
+        assertNotNull("hljs-comment with 8-digit hex should be present", style)
+    }
+
+    @Test
+    fun `parse ignores descendant selector with two hljs tokens`() {
+        // ".hljs-meta .hljs-keyword" is a descendant selector and should be skipped
+        val css = ".hljs-meta .hljs-keyword { color: #8959a8 }"
+        val result = ThemeParser.parse(css)
+        // The descendant selector should not create an entry for hljs-keyword
+        assertNull("Descendant selector should not create hljs-keyword entry", result["hljs-keyword"])
+    }
 }
