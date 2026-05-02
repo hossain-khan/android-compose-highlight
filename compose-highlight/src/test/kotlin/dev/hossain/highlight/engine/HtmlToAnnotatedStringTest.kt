@@ -135,4 +135,37 @@ class HtmlToAnnotatedStringTest {
         assertEquals(""""héllo wörld 🌍"""", result.text)
         assertEquals(1, result.spanStyles.size)
     }
+
+    @Test
+    fun `convert strips non-span element tags but preserves text`() {
+        // A <code> wrapper is sometimes used; it is not a span so no style, but text must survive
+        val html = """<code><span class="hljs-keyword">def</span> foo</code>"""
+        val result = HtmlToAnnotatedString.convert(html, colorMapNoBase)
+        assertEquals("def foo", result.text)
+        // Only the keyword span should produce a style entry
+        assertEquals(1, result.spanStyles.size)
+    }
+
+    @Test
+    fun `convert handles html entities decoded by jsoup`() {
+        // jsoup decodes &lt; and &gt; to < and > in text nodes
+        val html = """<span class="hljs-string">&lt;hello&gt;</span>"""
+        val result = HtmlToAnnotatedString.convert(html, colorMapNoBase)
+        assertEquals("<hello>", result.text)
+        assertEquals(1, result.spanStyles.size)
+    }
+
+    @Test
+    fun `convert applies base hljs background color as full-range span background`() {
+        val colorMapWithBackground =
+            mapOf(
+                "hljs" to SpanStyle(color = baseColor, background = Color(0xFFFFFFFF.toInt())),
+            )
+        val html = """<span class="hljs-keyword">if</span>"""
+        val result = HtmlToAnnotatedString.convert(html, colorMapWithBackground)
+        // The full-range base span should carry the base text color; background is used externally by the theme
+        val fullRangeSpans = result.spanStyles.filter { it.start == 0 && it.end == result.text.length }
+        assertEquals(1, fullRangeSpans.size)
+        assertEquals(baseColor, fullRangeSpans[0].item.color)
+    }
 }

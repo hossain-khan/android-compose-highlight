@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+### Added
+- JVM unit tests for `HighlightTheme`: `fromCss`, `fromColorMap`, lazy `colorMap`, `backgroundColor`, `defaultTextColor`, `equals`/`hashCode`/`toString`, and defensive-copy behavior
+- JVM unit tests for all `HighlightException` variants: message content, cause preservation, and the `TIMEOUT_SECONDS` constant
+- Additional `ThemeParser` tests: `rgb()` color format, `background-color` property, `font-weight: 700`, 8-digit hex colors, and descendant-selector skipping
+- Additional `HtmlToAnnotatedString` tests: non-span element wrapping, HTML entity decoding, and base-style application
+
 ## [0.5.0] - 2026-04-27
 
 ### Fixed
