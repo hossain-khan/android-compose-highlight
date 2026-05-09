@@ -36,3 +36,5 @@ google-services.json
 
 # Generated API documentation (built by Dokka, deployed via GitHub Pages)
 docs/api/
+gradle/gradle-daemon-jvm.properties
+*.salive
