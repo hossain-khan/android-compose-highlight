@@ -70,9 +70,10 @@ import kotlin.coroutines.resumeWithException
  * ```
  */
 class HighlightEngine(
-    private val context: Context,
+    context: Context,
 ) {
-    private val manager = WebViewManager(context)
+    // Use applicationContext to avoid retaining an Activity context in the long-lived WebView.
+    private val manager = WebViewManager(context.applicationContext)
 
     // Serializes concurrent evaluateJavascript() calls — WebView handles one at a time.
     private val mutex = Mutex()
@@ -174,7 +175,7 @@ class HighlightEngine(
      * 3. `\n` → `\\n`
      * 4. `\r` → `\\r`
      *
-     * The JS callback returns a JSON-encoded string — unescape it before returning.
+     * The JS callback returns a JSON-encoded string — parsed by [unescapeJsString].
      */
     private suspend fun executeJs(
         webView: WebView,
@@ -209,7 +210,12 @@ class HighlightEngine(
 
     /**
      * Unescapes a JSON-encoded string returned by [WebView.evaluateJavascript].
-     * The WebView wraps the string in double quotes and escapes special chars.
+     *
+     * Uses a single character-by-character pass to correctly handle all escape sequences,
+     * including cases like `\\n` (JSON for a literal backslash followed by 'n') that sequential
+     * [String.replace] calls cannot handle correctly (the `\\` and `\n` replacements interfere).
+     *
+     * Supported escape sequences: `\"`, `\\`, `\/`, `\n`, `\r`, `\t`, `\uXXXX`.
      */
     private fun unescapeJsString(jsonString: String): String {
         // Strip surrounding double quotes if present
@@ -219,16 +225,43 @@ class HighlightEngine(
             } else {
                 jsonString
             }
-        return inner
-            .replace("\\u003C", "<")
-            .replace("\\u003c", "<")
-            .replace("\\u003E", ">")
-            .replace("\\u003e", ">")
-            .replace("\\u0026", "&")
-            .replace("\\\"", "\"")
-            .replace("\\n", "\n")
-            .replace("\\t", "\t")
-            .replace("\\\\", "\\")
+        val sb = StringBuilder(inner.length)
+        var i = 0
+        while (i < inner.length) {
+            val c = inner[i]
+            if (c == '\\' && i + 1 < inner.length) {
+                when (inner[i + 1]) {
+                    '"' -> { sb.append('"'); i += 2 }
+                    '\\' -> { sb.append('\\'); i += 2 }
+                    '/' -> { sb.append('/'); i += 2 }
+                    'n' -> { sb.append('\n'); i += 2 }
+                    'r' -> { sb.append('\r'); i += 2 }
+                    't' -> { sb.append('\t'); i += 2 }
+                    'u' -> {
+                        // \uXXXX — exactly 4 hex digits required
+                        if (i + 5 < inner.length) {
+                            val hex = inner.substring(i + 2, i + 6)
+                            val codePoint = hex.toIntOrNull(16)
+                            if (codePoint != null) {
+                                sb.append(codePoint.toChar())
+                                i += 6
+                            } else {
+                                sb.append(c)
+                                i++
+                            }
+                        } else {
+                            sb.append(c)
+                            i++
+                        }
+                    }
+                    else -> { sb.append(c); i++ }
+                }
+            } else {
+                sb.append(c)
+                i++
+            }
+        }
+        return sb.toString()
     }
 }
 

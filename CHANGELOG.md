@@ -10,6 +10,33 @@ All notable changes to this project will be documented in this file.
 - Additional `ThemeParser` tests: `rgb()` color format, `background-color` property, `font-weight: 700`, 8-digit hex colors, and descendant-selector skipping
 - Additional `HtmlToAnnotatedString` tests: non-span element wrapping, HTML entity decoding, and base-style application
 
+### Fixed
+- **`WebViewManager`: `readyDeferred` lifecycle correctness** — `readyDeferred` is now a `var`
+  so it can be reset before re-initialization after `destroy()`. The WebViewClient closure now
+  captures the deferred as a local variable, preventing it from completing a stale deferred on
+  re-initialization. `destroy()` now cancels a pending (incomplete) deferred so callers awaiting
+  the WebView in `getReadyWebView()` are not left suspended indefinitely.
+- **`HighlightEngine`: Activity context leak** — `HighlightEngine` now always calls
+  `context.applicationContext` before passing the context to `WebViewManager`, ensuring that a
+  long-lived WebView never retains an Activity reference. `HighlightThemeProvider` and
+  `rememberHighlightEngine()` also explicitly pass `applicationContext`.
+- **`HighlightEngine`: incorrect JSON unescape ordering** — replaced the sequential
+  `String.replace()` chain in `unescapeJsString` with a single character-by-character pass.
+  The old approach applied `\\n → newline` before `\\\\ → \\`, which incorrectly converted
+  `\\n` (a literal backslash + 'n' in JSON) to a newline instead of `\n`. The new
+  implementation also adds support for `\\r → CR` and `\\/ → /` escape sequences.
+
+### Changed
+- **`HighlightThemeProvider`: shared engine for the whole subtree** — the provider now creates
+  one `HighlightEngine` (one hidden WebView) for its entire subtree and provides it via an
+  internal `LocalHighlightEngine` CompositionLocal. Previously, every `SyntaxHighlightedCode`
+  and every `rememberHighlightedCode` call created its own engine. On a screen with N code
+  blocks this wasted ~200 ms × N of WebView warm-up time and ~2–4 MB × N of memory.
+- **`rememberHighlightEngine()`: uses shared engine when available** — when called inside
+  `HighlightThemeProvider`, returns the provider's shared engine (no new WebView, no lifecycle
+  management needed). Outside a provider the previous behavior is unchanged: a standalone engine
+  is created and destroyed with the composable.
+
 ## [0.5.0] - 2026-04-27
 
 ### Fixed
