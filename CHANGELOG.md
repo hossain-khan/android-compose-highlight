@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased]
+## [0.6.0] - 2026-05-09
 
 ### Added
 - **Sample app: comprehensive customization demo** — The sample app now has tabbed navigation with
