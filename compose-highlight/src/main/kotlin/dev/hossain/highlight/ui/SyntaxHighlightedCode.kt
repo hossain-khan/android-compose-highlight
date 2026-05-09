@@ -21,12 +21,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -40,7 +36,6 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import dev.hossain.highlight.engine.HighlightTheme
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 /**
@@ -102,6 +97,9 @@ import kotlinx.coroutines.launch
  * @param showLanguageLabel Whether to show the language badge in the header.
  * @param showCopyButton Whether to show the copy-to-clipboard button.
  * @param onCopyClick Optional custom copy handler. If `null`, copies to the system clipboard.
+ *   This callback is your signal that a copy occurred — use it to show your own feedback
+ *   (e.g. a `Snackbar`, `Toast`, or animated indicator). The library does not show any
+ *   built-in "Copied!" confirmation.
  * @param copyButtonIcon Optional composable slot that replaces the default `⧉` copy icon.
  *   Receives the recommended `tint` [Color] derived from the active theme so the icon blends
  *   naturally with the code block background. Only used when [showCopyButton] is `true`.
@@ -145,7 +143,6 @@ fun SyntaxHighlightedCode(
     val highlightedState = rememberHighlightedCode(code, language, theme, onHighlightComplete)
     val clipboard = LocalClipboard.current
     val scope = rememberCoroutineScope()
-    var copyConfirmed by remember { mutableStateOf(false) }
 
     val backgroundColor =
         theme.backgroundColor.takeIf { it != Color.Unspecified }
@@ -186,7 +183,6 @@ fun SyntaxHighlightedCode(
                     Spacer(modifier = Modifier.weight(1f))
                     if (showCopyButton) {
                         CopyButton(
-                            copyConfirmed = copyConfirmed,
                             size = style.copyButtonSize,
                             tint = textColor.copy(alpha = 0.7f),
                             customIcon = copyButtonIcon,
@@ -201,16 +197,8 @@ fun SyntaxHighlightedCode(
                                         )
                                     }
                                 }
-                                copyConfirmed = true
                             },
                         )
-                        // Reset "Copied!" after 2 seconds
-                        if (copyConfirmed) {
-                            LaunchedEffect(copyConfirmed) {
-                                delay(2_000)
-                                copyConfirmed = false
-                            }
-                        }
                     }
                 }
             }
@@ -304,33 +292,23 @@ private fun LineNumberedCode(
 
 @Composable
 private fun CopyButton(
-    copyConfirmed: Boolean,
     size: androidx.compose.ui.unit.Dp,
     tint: Color,
     customIcon: (@Composable (tint: Color) -> Unit)?,
     onClick: () -> Unit,
 ) {
-    if (copyConfirmed) {
-        // TODO - expose this as a composable that user passes for more control over the "Copied!"
-        //  UI (e.g. add an optional checkmark icon, or animate the text)
-        Text(
-            text = "Copied!",
-            style = TextStyle(color = tint, fontSize = 12.sp),
-        )
-    } else {
-        IconButton(
-            onClick = onClick,
-            modifier = Modifier.size(size),
-        ) {
-            if (customIcon != null) {
-                customIcon(tint)
-            } else {
-                // Default: simple text icon — no bundled icon dependency
-                Text(
-                    text = "⧉",
-                    style = TextStyle(color = tint, fontSize = 16.sp),
-                )
-            }
+    IconButton(
+        onClick = onClick,
+        modifier = Modifier.size(size),
+    ) {
+        if (customIcon != null) {
+            customIcon(tint)
+        } else {
+            // Default: simple text icon — no bundled icon dependency
+            Text(
+                text = "⧉",
+                style = TextStyle(color = tint, fontSize = 16.sp),
+            )
         }
     }
 }
