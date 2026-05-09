@@ -153,22 +153,22 @@ fun SampleScreen() {
                 ) {
                     when (activeTab) {
                         0 -> {
-                            SAMPLES.forEach { (language, code) ->
-                                item(key = language) {
-                                    if (code.isEmpty()) {
-                                        SectionHeader("$language (empty edge case)")
+                            SAMPLES.forEach { sample ->
+                                item(key = sample.language) {
+                                    if (sample.code.isEmpty()) {
+                                        SectionHeader("${sample.language} (empty edge case)")
                                         SyntaxHighlightedCode(
                                             code = "",
-                                            language = language,
+                                            language = sample.language,
                                             modifier = Modifier.fillMaxWidth(),
                                         )
                                     } else {
-                                        SectionHeader(language)
+                                        SectionHeader(sample.language)
                                         SyntaxHighlightedCode(
-                                            code = code,
-                                            language = language,
+                                            code = sample.code,
+                                            language = sample.language,
                                             modifier = Modifier.fillMaxWidth(),
-                                            showLineNumbers = language == "python",
+                                            showLineNumbers = sample.language == "python",
                                         )
                                     }
                                 }

@@ -2,13 +2,17 @@ package dev.hossain.highlight.sample
 
 import dev.hossain.highlight.engine.HighlightTheme
 
+/** A single syntax-highlighting demo sample with its highlight.js [language] identifier and [code] string. */
+internal data class CodeSample(
+    val language: String,
+    val code: String,
+)
+
 /**
  * Collection of code samples used to showcase syntax highlighting across multiple languages.
  *
- * Each entry is a [Pair] of language identifier (as recognized by highlight.js) and the
- * corresponding source code string. The language string is passed directly to
- * [dev.hossain.highlight.ui.SyntaxHighlightedCode] and used to select the appropriate
- * highlight.js grammar.
+ * Each [CodeSample] pairs a highlight.js language identifier with the corresponding source code
+ * string, passed directly to [dev.hossain.highlight.ui.SyntaxHighlightedCode].
  *
  * The list intentionally covers a range of use-cases:
  * - Short, focused snippets (Python, Kotlin, JavaScript, Java, SQL, JSON, XML)
@@ -17,8 +21,10 @@ import dev.hossain.highlight.engine.HighlightTheme
  */
 internal val SAMPLES =
     listOf(
-        "python" to
-            """
+        CodeSample(
+            language = "python",
+            code =
+                """
 def fibonacci(n: int) -> int:
     # Returns the nth Fibonacci number
     if n <= 1:
@@ -31,9 +37,12 @@ def fibonacci(n: int) -> int:
 # Edge case: special chars  \t \n ' "
 result = fibonacci(10)
 print(f"Result: {result}")
-            """.trimIndent(),
-        "kotlin" to
-            """
+                """.trimIndent(),
+        ),
+        CodeSample(
+            language = "kotlin",
+            code =
+                """
 data class User(val name: String, val age: Int)
 
 fun List<User>.filter(minAge: Int): List<User> =
@@ -47,9 +56,12 @@ val users = listOf(
 
 val adults = users.filter(18)
 println(adults)
-            """.trimIndent(),
-        "javascript" to
-            """
+                """.trimIndent(),
+        ),
+        CodeSample(
+            language = "javascript",
+            code =
+                """
 async function fetchUser(id) {
     const response = await fetch(`/api/users/${'$'}{id}`);
     if (!response.ok) {
@@ -60,9 +72,12 @@ async function fetchUser(id) {
 
 // Backslash path: C:\Users\test
 const path = 'C:\\Users\\test\\file.txt';
-            """.trimIndent(),
-        "java" to
-            """
+                """.trimIndent(),
+        ),
+        CodeSample(
+            language = "java",
+            code =
+                """
 public class BinarySearch {
     public static int search(int[] arr, int target) {
         int left = 0, right = arr.length - 1;
@@ -75,9 +90,12 @@ public class BinarySearch {
         return -1;
     }
 }
-            """.trimIndent(),
-        "sql" to
-            """
+                """.trimIndent(),
+        ),
+        CodeSample(
+            language = "sql",
+            code =
+                """
 SELECT
     u.id,
     u.name,
@@ -90,9 +108,12 @@ GROUP BY u.id, u.name
 HAVING order_count > 0
 ORDER BY revenue DESC
 LIMIT 10;
-            """.trimIndent(),
-        "json" to
-            """
+                """.trimIndent(),
+        ),
+        CodeSample(
+            language = "json",
+            code =
+                """
 {
     "name": "compose-highlight",
     "version": "0.1.0",
@@ -103,9 +124,12 @@ LIMIT 10;
     "unicode": "héllo 🌍",
     "escapes": "line1\nline2\ttabbed"
 }
-            """.trimIndent(),
-        "xml" to
-            """
+                """.trimIndent(),
+        ),
+        CodeSample(
+            language = "xml",
+            code =
+                """
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Compose Highlight</string>
@@ -113,11 +137,14 @@ LIMIT 10;
         <item name="colorPrimary">@color/purple_500</item>
     </style>
 </resources>
-            """.trimIndent(),
+                """.trimIndent(),
+        ),
         // Large real-world Kotlin file — WeatherApp from ZacSweers/metro samples.
         // Source: https://github.com/ZacSweers/metro/blob/main/samples/weather-app/src/commonMain/kotlin/dev/zacsweers/metro/sample/weather/WeatherApp.kt
-        "kotlin (large — WeatherApp)" to
-            """
+        CodeSample(
+            language = "kotlin (large — WeatherApp)",
+            code =
+                """
 // Copyright (C) 2025 Zac Sweers
 // SPDX-License-Identifier: Apache-2.0
 package dev.zacsweers.metro.sample.weather
@@ -265,8 +292,9 @@ data class CurrentWeatherInfo(
 )
 
 data class HourlyForecastInfo(val time: Instant, val temperature: Double, val description: String)
-            """.trimIndent(),
-        "plaintext" to "", // empty edge case
+                """.trimIndent(),
+        ),
+        CodeSample(language = "plaintext", code = ""), // empty edge case
     )
 
 /** A named pair of light/dark [HighlightTheme]s for the theme picker. */
