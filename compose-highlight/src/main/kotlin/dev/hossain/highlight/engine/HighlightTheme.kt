@@ -152,7 +152,10 @@ class HighlightTheme private constructor(
          *
          * Note: loading is lazy — the CSS is parsed on first use, not at factory-call time.
          *
-         * @throws [HighlightException.ThemeNotFound] if the asset file is missing or unreadable.
+         * @throws [HighlightException.ThemeNotFound] if the asset file is found but contains no
+         *   parseable color rules (e.g. it is empty or uses only unsupported CSS properties).
+         * @throws java.io.IOException if the asset file cannot be opened (missing or unreadable).
+         *   This exception is also thrown lazily, on first use of the theme.
          */
         fun fromAsset(
             context: Context,
