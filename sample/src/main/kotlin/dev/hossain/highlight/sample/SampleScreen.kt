@@ -1,5 +1,6 @@
 package dev.hossain.highlight.sample
 
+import android.content.Intent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -8,15 +9,15 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.PrimaryScrollableTabRow
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -26,9 +27,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import dev.hossain.highlight.engine.HighlightTheme
+import dev.hossain.highlight.sample.R
+import dev.hossain.highlight.sample.perf.PerfActivity
 import dev.hossain.highlight.ui.HighlightThemeProvider
 import dev.hossain.highlight.ui.SyntaxHighlightedCode
 
@@ -58,7 +63,7 @@ import dev.hossain.highlight.ui.SyntaxHighlightedCode
 @Composable
 fun SampleScreen() {
     val context = LocalContext.current
-    var isDark by remember { mutableStateOf(false) }
+    var isDark by remember { mutableStateOf(true) }
     var showThemeMenu by remember { mutableStateOf(false) }
     var activeTab by remember { mutableIntStateOf(0) }
 
@@ -84,7 +89,7 @@ fun SampleScreen() {
             )
         }
 
-    var selectedThemeIndex by remember { mutableIntStateOf(0) }
+    var selectedThemeIndex by remember { mutableIntStateOf(2) } // Atom One
     val activePair = themePairs[selectedThemeIndex]
 
     HighlightThemeProvider(
@@ -95,12 +100,24 @@ fun SampleScreen() {
         Scaffold(
             topBar = {
                 TopAppBar(
-                    title = { Text("Demo") },
+                    title = { Text("Highlight Demo") },
                     actions = {
+                        // Performance benchmark screen
+                        IconButton(onClick = {
+                            context.startActivity(Intent(context, PerfActivity::class.java))
+                        }) {
+                            Icon(
+                                imageVector = ImageVector.vectorResource(R.drawable.speed_24dp),
+                                contentDescription = "Performance benchmark",
+                            )
+                        }
                         // Theme family picker
                         Box {
-                            TextButton(onClick = { showThemeMenu = true }) {
-                                Text("🎨 ${activePair.name}")
+                            IconButton(onClick = { showThemeMenu = true }) {
+                                Icon(
+                                    imageVector = ImageVector.vectorResource(R.drawable.palette_24dp),
+                                    contentDescription = "Select theme: ${activePair.name}",
+                                )
                             }
                             DropdownMenu(
                                 expanded = showThemeMenu,
@@ -118,11 +135,17 @@ fun SampleScreen() {
                             }
                         }
                         // Light/dark variant toggle
-                        Button(
+                        IconButton(
                             onClick = { isDark = !isDark },
                             modifier = Modifier.padding(end = 8.dp),
                         ) {
-                            Text(if (isDark) "☀ Light" else "🌙 Dark")
+                            Icon(
+                                imageVector =
+                                    ImageVector.vectorResource(
+                                        if (isDark) R.drawable.light_mode_24dp else R.drawable.mode_night_24dp,
+                                    ),
+                                contentDescription = if (isDark) "Switch to light mode" else "Switch to dark mode",
+                            )
                         }
                     },
                 )

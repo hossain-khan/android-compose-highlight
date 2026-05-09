@@ -6,6 +6,7 @@
         android:icon="@mipmap/ic_launcher"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:label="@string/app_name"
+        android:theme="@style/Theme.ComposeSample"
         android:supportsRtl="true">
         <activity
             android:name=".MainActivity"
@@ -16,6 +17,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".perf.PerfActivity"
+            android:exported="false" />
     </application>
 
 </manifest>
