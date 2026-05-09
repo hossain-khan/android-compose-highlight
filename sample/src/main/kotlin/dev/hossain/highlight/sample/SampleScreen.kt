@@ -1,5 +1,6 @@
 package dev.hossain.highlight.sample
 
+import android.content.ClipData
 import android.content.Intent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -16,6 +17,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.PrimaryScrollableTabRow
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -24,10 +27,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.ClipEntry
+import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
@@ -36,6 +42,7 @@ import dev.hossain.highlight.sample.R
 import dev.hossain.highlight.sample.perf.PerfActivity
 import dev.hossain.highlight.ui.HighlightThemeProvider
 import dev.hossain.highlight.ui.SyntaxHighlightedCode
+import kotlinx.coroutines.launch
 
 /**
  * Main demo screen that renders a scrollable list of syntax-highlighted code snippets.
@@ -63,9 +70,20 @@ import dev.hossain.highlight.ui.SyntaxHighlightedCode
 @Composable
 fun SampleScreen() {
     val context = LocalContext.current
+    val clipboard = LocalClipboard.current
+    val scope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
     var isDark by remember { mutableStateOf(true) }
     var showThemeMenu by remember { mutableStateOf(false) }
     var activeTab by remember { mutableIntStateOf(0) }
+
+    // Shared copy handler: copies to clipboard and shows a snackbar confirmation.
+    val onCopyClick: (String) -> Unit = { code ->
+        scope.launch {
+            clipboard.setClipEntry(ClipEntry(ClipData.newPlainText("code", code)))
+            snackbarHostState.showSnackbar("Copied ${code.length} chars to clipboard")
+        }
+    }
 
     // All available theme pairs — GitHub uses fromAsset() to demonstrate custom themes.
     val themePairs =
@@ -98,6 +116,7 @@ fun SampleScreen() {
         darkTheme = isDark,
     ) {
         Scaffold(
+            snackbarHost = { SnackbarHost(snackbarHostState) },
             topBar = {
                 TopAppBar(
                     title = { Text("Highlight Demo") },
@@ -184,6 +203,7 @@ fun SampleScreen() {
                                             code = "",
                                             language = sample.language,
                                             modifier = Modifier.fillMaxWidth(),
+                                            onCopyClick = onCopyClick,
                                         )
                                     } else {
                                         SectionHeader(sample.language)
@@ -192,6 +212,7 @@ fun SampleScreen() {
                                             language = sample.language,
                                             modifier = Modifier.fillMaxWidth(),
                                             showLineNumbers = sample.language == "python",
+                                            onCopyClick = onCopyClick,
                                         )
                                     }
                                 }
