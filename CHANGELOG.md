@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Changed
+- Bumped `androidx.webkit` from `1.13.0` to `1.16.0` (stable). Highlights of changes since
+  1.13.0 relevant to this project:
+  - `startUpWebView()` and `WebViewStartUpConfig` APIs graduated to stable.
+  - `NavigationListener` / `WebViewCompat.addNavigationListener()` graduated to stable.
+  - `minSdk` for the webkit library increased to 24 (matches this library's `minSdk`).
+
 ### Added
 - JVM unit tests for `HighlightTheme`: `fromCss`, `fromColorMap`, lazy `colorMap`, `backgroundColor`, `defaultTextColor`, `equals`/`hashCode`/`toString`, and defensive-copy behavior
 - JVM unit tests for all `HighlightException` variants: message content, cause preservation, and the `TIMEOUT_SECONDS` constant

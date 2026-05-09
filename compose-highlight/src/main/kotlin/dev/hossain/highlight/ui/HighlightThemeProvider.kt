@@ -71,6 +71,30 @@ internal val LocalHighlightEngine =
  * ) { ... }
  * ```
  *
+ * ## Optional: WebView pre-warming
+ *
+ * The hidden WebView initializes lazily on the first highlight call. If you want to reduce
+ * that first-call latency further, you can pre-warm the WebView renderer process by calling
+ * `WebViewCompat.startUpWebView()` (androidx.webkit 1.16+) as early as possible — ideally
+ * in `Application.onCreate()` before any Activity is created:
+ *
+ * ```kotlin
+ * class MyApp : Application() {
+ *     override fun onCreate() {
+ *         super.onCreate()
+ *         // Pre-warm the WebView renderer process so it is ready when the first
+ *         // HighlightThemeProvider is composed. Best-effort — safe to ignore failures.
+ *         runCatching {
+ *             WebViewCompat.startUpWebView(
+ *                 applicationContext,
+ *                 WebViewStartUpConfig.Builder(mainExecutor).build(),
+ *                 WebViewOutcomeReceiver { /* no-op */ },
+ *             )
+ *         }
+ *     }
+ * }
+ * ```
+ *
  * @param darkTheme Whether to use the dark theme. Defaults to [isSystemInDarkTheme].
  * @param lightHighlightTheme The theme to use in light mode.
  * @param darkHighlightTheme The theme to use in dark mode.
