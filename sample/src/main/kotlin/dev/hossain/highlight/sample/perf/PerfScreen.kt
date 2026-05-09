@@ -1,5 +1,6 @@
 package dev.hossain.highlight.sample.perf
 
+import android.app.Activity
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -83,6 +84,14 @@ fun PerfScreen() {
             topBar = {
                 TopAppBar(
                     title = { Text("⚡ Perf Benchmark") },
+                    navigationIcon = {
+                        IconButton(onClick = { (context as? Activity)?.finish() }) {
+                            Icon(
+                                imageVector = ImageVector.vectorResource(R.drawable.arrow_back_24dp),
+                                contentDescription = "Navigate back",
+                            )
+                        }
+                    },
                     actions = {
                         // Light/dark toggle — also resets the benchmark since theme affects timing
                         IconButton(onClick = {
