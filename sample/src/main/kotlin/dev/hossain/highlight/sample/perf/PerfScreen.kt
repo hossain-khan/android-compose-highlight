@@ -63,7 +63,8 @@ internal data class HighlightMetrics(
 @Composable
 fun PerfScreen() {
     val context = LocalContext.current
-    val isDark = isSystemInDarkTheme()
+    val systemIsDark = isSystemInDarkTheme()
+    var isDark by remember { mutableStateOf(systemIsDark) }
 
     val metricsMap = remember { mutableStateMapOf<String, HighlightMetrics>() }
     var runId by remember { mutableIntStateOf(0) }
@@ -85,6 +86,22 @@ fun PerfScreen() {
                 TopAppBar(
                     title = { Text("⚡ Perf Benchmark") },
                     actions = {
+                        // Light/dark toggle — also resets the benchmark since theme affects timing
+                        IconButton(onClick = {
+                            isDark = !isDark
+                            metricsMap.clear()
+                            heapSnapshotKb = null
+                            runId++
+                        }) {
+                            Icon(
+                                imageVector =
+                                    ImageVector.vectorResource(
+                                        if (isDark) R.drawable.light_mode_24dp else R.drawable.mode_night_24dp,
+                                    ),
+                                contentDescription = if (isDark) "Switch to light mode" else "Switch to dark mode",
+                            )
+                        }
+                        // Re-run benchmark
                         IconButton(onClick = {
                             metricsMap.clear()
                             heapSnapshotKb = null
