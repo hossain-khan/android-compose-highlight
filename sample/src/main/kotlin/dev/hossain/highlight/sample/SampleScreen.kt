@@ -81,7 +81,7 @@ fun SampleScreen() {
     val onCopyClick: (String) -> Unit = { code ->
         scope.launch {
             clipboard.setClipEntry(ClipEntry(ClipData.newPlainText("code", code)))
-            snackbarHostState.showSnackbar("Copied ${code.length} chars to clipboard")
+            snackbarHostState.showSnackbar("Successfully copied source code to clipboard")
         }
     }
 
