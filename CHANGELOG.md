@@ -21,6 +21,13 @@ All notable changes to this project will be documented in this file.
   `"Successfully copied source code to clipboard"` Snackbar, demonstrating caller-owned
   copy feedback.
 
+### Fixed
+- **Sample app: edge-to-edge insets on `LazyColumn`s** — both `SampleScreen` and `PerfScreen`
+  now pass bottom (and top) system bar insets to the list's `contentPadding` parameter and use
+  `consumeWindowInsets` on the parent container. Previously the inset was applied as
+  `Modifier.padding(innerPadding)` on the container, which clipped the list and prevented the
+  last item from scrolling clear of the navigation bar.
+
 ### Changed
 - **`SyntaxHighlightedCode`: removed internal copy confirmation UI** — the library no longer
   manages a 2-second "Copied!" flash internally. The `onCopyClick` callback is the signal that
