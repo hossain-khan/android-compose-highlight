@@ -274,9 +274,21 @@ private fun PerfMetricCard(metrics: HighlightMetrics?) {
             verticalAlignment = Alignment.CenterVertically,
         ) {
             if (metrics != null) {
-                MetricChip(icon = "⏱", value = "${metrics.highlightMs} ms", label = "highlight")
-                MetricChip(icon = "📄", value = "${metrics.lineCount}", label = "lines")
-                MetricChip(icon = "🔤", value = "${metrics.charCount}", label = "chars")
+                MetricChip(
+                    icon = ImageVector.vectorResource(R.drawable.timer_24dp),
+                    value = "${metrics.highlightMs} ms",
+                    label = "highlight",
+                )
+                MetricChip(
+                    icon = ImageVector.vectorResource(R.drawable.format_line_spacing_24dp),
+                    value = "${metrics.lineCount}",
+                    label = "lines",
+                )
+                MetricChip(
+                    icon = ImageVector.vectorResource(R.drawable.type_specimen_24dp),
+                    value = "${metrics.charCount}",
+                    label = "chars",
+                )
             } else {
                 Text(
                     text = "Highlighting…",
@@ -290,12 +302,23 @@ private fun PerfMetricCard(metrics: HighlightMetrics?) {
 
 @Composable
 private fun MetricChip(
-    icon: String,
+    icon: ImageVector,
     value: String,
     label: String,
 ) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(text = "$icon $value", fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                modifier = Modifier.height(14.dp),
+                tint = MaterialTheme.colorScheme.onSecondaryContainer,
+            )
+            Text(text = value, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+        }
         Text(
             text = label,
             fontSize = 10.sp,
