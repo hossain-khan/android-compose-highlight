@@ -1,8 +1,6 @@
 package dev.hossain.highlight.engine
 
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNotNull
-import org.junit.Assert.assertTrue
+import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 
 class HighlightExceptionTest {
@@ -11,20 +9,20 @@ class HighlightExceptionTest {
     @Test
     fun `WebViewInitFailed is a HighlightException`() {
         val ex = HighlightException.WebViewInitFailed(RuntimeException("init"))
-        assertTrue(ex is HighlightException)
+        assertThat(ex).isInstanceOf(HighlightException::class.java)
     }
 
     @Test
     fun `WebViewInitFailed has correct message`() {
         val ex = HighlightException.WebViewInitFailed(RuntimeException("init"))
-        assertEquals("WebView initialization failed", ex.message)
+        assertThat(ex.message).isEqualTo("WebView initialization failed")
     }
 
     @Test
     fun `WebViewInitFailed preserves cause`() {
         val cause = RuntimeException("root cause")
         val ex = HighlightException.WebViewInitFailed(cause)
-        assertEquals(cause, ex.cause)
+        assertThat(ex.cause).isEqualTo(cause)
     }
 
     // ── JsExecutionFailed ────────────────────────────────────────────────────
@@ -32,20 +30,20 @@ class HighlightExceptionTest {
     @Test
     fun `JsExecutionFailed is a HighlightException`() {
         val ex = HighlightException.JsExecutionFailed(RuntimeException("js"))
-        assertTrue(ex is HighlightException)
+        assertThat(ex).isInstanceOf(HighlightException::class.java)
     }
 
     @Test
     fun `JsExecutionFailed has correct message`() {
         val ex = HighlightException.JsExecutionFailed(RuntimeException("js"))
-        assertEquals("JavaScript execution failed", ex.message)
+        assertThat(ex.message).isEqualTo("JavaScript execution failed")
     }
 
     @Test
     fun `JsExecutionFailed preserves cause`() {
         val cause = RuntimeException("null result")
         val ex = HighlightException.JsExecutionFailed(cause)
-        assertEquals(cause, ex.cause)
+        assertThat(ex.cause).isEqualTo(cause)
     }
 
     // ── ThemeNotFound ─────────────────────────────────────────────────────────
@@ -53,20 +51,20 @@ class HighlightExceptionTest {
     @Test
     fun `ThemeNotFound is a HighlightException`() {
         val ex = HighlightException.ThemeNotFound("themes/test.css")
-        assertTrue(ex is HighlightException)
+        assertThat(ex).isInstanceOf(HighlightException::class.java)
     }
 
     @Test
     fun `ThemeNotFound message contains the path`() {
         val path = "compose-highlight/themes/missing.css"
         val ex = HighlightException.ThemeNotFound(path)
-        assertTrue("Message should contain the path", ex.message?.contains(path) == true)
+        assertThat(ex.message).contains(path)
     }
 
     @Test
     fun `ThemeNotFound has null cause`() {
         val ex = HighlightException.ThemeNotFound("any/path.css")
-        assertEquals(null, ex.cause)
+        assertThat(ex.cause).isNull()
     }
 
     // ── HtmlParseFailed ───────────────────────────────────────────────────────
@@ -74,20 +72,20 @@ class HighlightExceptionTest {
     @Test
     fun `HtmlParseFailed is a HighlightException`() {
         val ex = HighlightException.HtmlParseFailed(RuntimeException("parse"))
-        assertTrue(ex is HighlightException)
+        assertThat(ex).isInstanceOf(HighlightException::class.java)
     }
 
     @Test
     fun `HtmlParseFailed has correct message`() {
         val ex = HighlightException.HtmlParseFailed(RuntimeException("parse"))
-        assertEquals("HTML parsing failed", ex.message)
+        assertThat(ex.message).isEqualTo("HTML parsing failed")
     }
 
     @Test
     fun `HtmlParseFailed preserves cause`() {
         val cause = IllegalStateException("bad html")
         val ex = HighlightException.HtmlParseFailed(cause)
-        assertEquals(cause, ex.cause)
+        assertThat(ex.cause).isEqualTo(cause)
     }
 
     // ── Timeout ───────────────────────────────────────────────────────────────
@@ -95,22 +93,19 @@ class HighlightExceptionTest {
     @Test
     fun `Timeout is a HighlightException`() {
         val ex = HighlightException.Timeout()
-        assertTrue(ex is HighlightException)
+        assertThat(ex).isInstanceOf(HighlightException::class.java)
     }
 
     @Test
     fun `Timeout message mentions the timeout duration`() {
         val ex = HighlightException.Timeout()
-        assertTrue(
-            "Timeout message should contain the timeout seconds",
-            ex.message?.contains(HighlightException.TIMEOUT_SECONDS.toString()) == true,
-        )
+        assertThat(ex.message).contains(HighlightException.TIMEOUT_SECONDS.toString())
     }
 
     @Test
     fun `Timeout has null cause`() {
         val ex = HighlightException.Timeout()
-        assertEquals(null, ex.cause)
+        assertThat(ex.cause).isNull()
     }
 
     // ── Shared contract ───────────────────────────────────────────────────────
@@ -126,13 +121,13 @@ class HighlightExceptionTest {
                 HighlightException.Timeout(),
             )
         all.forEach { ex ->
-            assertTrue("${ex::class.simpleName} should be an Exception", ex is Exception)
-            assertNotNull("${ex::class.simpleName} message should be non-null", ex.message)
+            assertThat(ex).isInstanceOf(Exception::class.java)
+            assertThat(ex.message).isNotNull()
         }
     }
 
     @Test
     fun `TIMEOUT_SECONDS constant is positive`() {
-        assertTrue("TIMEOUT_SECONDS must be positive", HighlightException.TIMEOUT_SECONDS > 0)
+        assertThat(HighlightException.TIMEOUT_SECONDS).isGreaterThan(0)
     }
 }
