@@ -63,7 +63,7 @@ import dev.hossain.highlight.ui.SyntaxHighlightedCode
 @Composable
 fun SampleScreen() {
     val context = LocalContext.current
-    var isDark by remember { mutableStateOf(false) }
+    var isDark by remember { mutableStateOf(true) }
     var showThemeMenu by remember { mutableStateOf(false) }
     var activeTab by remember { mutableIntStateOf(0) }
 
@@ -89,7 +89,7 @@ fun SampleScreen() {
             )
         }
 
-    var selectedThemeIndex by remember { mutableIntStateOf(0) }
+    var selectedThemeIndex by remember { mutableIntStateOf(2) } // Atom One
     val activePair = themePairs[selectedThemeIndex]
 
     HighlightThemeProvider(

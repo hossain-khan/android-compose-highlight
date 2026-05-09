@@ -63,8 +63,7 @@ internal data class HighlightMetrics(
 @Composable
 fun PerfScreen() {
     val context = LocalContext.current
-    val systemIsDark = isSystemInDarkTheme()
-    var isDark by remember { mutableStateOf(systemIsDark) }
+    var isDark by remember { mutableStateOf(true) }
 
     val metricsMap = remember { mutableStateMapOf<String, HighlightMetrics>() }
     var runId by remember { mutableIntStateOf(0) }
@@ -77,8 +76,8 @@ fun PerfScreen() {
     }
 
     HighlightThemeProvider(
-        lightHighlightTheme = HighlightTheme.tomorrow(context),
-        darkHighlightTheme = HighlightTheme.tomorrowNight(context),
+        lightHighlightTheme = HighlightTheme.atomOneLight(context),
+        darkHighlightTheme = HighlightTheme.atomOneDark(context),
         darkTheme = isDark,
     ) {
         Scaffold(
