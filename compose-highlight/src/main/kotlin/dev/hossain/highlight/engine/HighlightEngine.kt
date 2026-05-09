@@ -207,90 +207,90 @@ class HighlightEngine(
             }
         }
     }
+}
 
-    /**
-     * Unescapes a JSON-encoded string returned by [WebView.evaluateJavascript].
-     *
-     * Uses a single character-by-character pass to correctly handle all escape sequences,
-     * including cases like `\\n` (JSON for a literal backslash followed by 'n') that sequential
-     * [String.replace] calls cannot handle correctly (the `\\` and `\n` replacements interfere).
-     *
-     * Supported escape sequences: `\"`, `\\`, `\/`, `\n`, `\r`, `\t`, `\uXXXX`.
-     */
-    private fun unescapeJsString(jsonString: String): String {
-        // Strip surrounding double quotes if present
-        val inner =
-            if (jsonString.startsWith("\"") && jsonString.endsWith("\"")) {
-                jsonString.substring(1, jsonString.length - 1)
-            } else {
-                jsonString
-            }
-        val sb = StringBuilder(inner.length)
-        var i = 0
-        while (i < inner.length) {
-            val c = inner[i]
-            if (c == '\\' && i + 1 < inner.length) {
-                when (inner[i + 1]) {
-                    '"' -> {
-                        sb.append('"')
-                        i += 2
-                    }
+/**
+ * Unescapes a JSON-encoded string returned by [WebView.evaluateJavascript].
+ *
+ * Uses a single character-by-character pass to correctly handle all escape sequences,
+ * including cases like `\\n` (JSON for a literal backslash followed by 'n') that sequential
+ * [String.replace] calls cannot handle correctly (the `\\` and `\n` replacements interfere).
+ *
+ * Supported escape sequences: `\"`, `\\`, `\/`, `\n`, `\r`, `\t`, `\uXXXX`.
+ */
+internal fun unescapeJsString(jsonString: String): String {
+    // Strip surrounding double quotes if present
+    val inner =
+        if (jsonString.startsWith("\"") && jsonString.endsWith("\"")) {
+            jsonString.substring(1, jsonString.length - 1)
+        } else {
+            jsonString
+        }
+    val sb = StringBuilder(inner.length)
+    var i = 0
+    while (i < inner.length) {
+        val c = inner[i]
+        if (c == '\\' && i + 1 < inner.length) {
+            when (inner[i + 1]) {
+                '"' -> {
+                    sb.append('"')
+                    i += 2
+                }
 
-                    '\\' -> {
-                        sb.append('\\')
-                        i += 2
-                    }
+                '\\' -> {
+                    sb.append('\\')
+                    i += 2
+                }
 
-                    '/' -> {
-                        sb.append('/')
-                        i += 2
-                    }
+                '/' -> {
+                    sb.append('/')
+                    i += 2
+                }
 
-                    'n' -> {
-                        sb.append('\n')
-                        i += 2
-                    }
+                'n' -> {
+                    sb.append('\n')
+                    i += 2
+                }
 
-                    'r' -> {
-                        sb.append('\r')
-                        i += 2
-                    }
+                'r' -> {
+                    sb.append('\r')
+                    i += 2
+                }
 
-                    't' -> {
-                        sb.append('\t')
-                        i += 2
-                    }
+                't' -> {
+                    sb.append('\t')
+                    i += 2
+                }
 
-                    'u' -> {
-                        // \uXXXX — exactly 4 hex digits required
-                        if (i + 5 < inner.length) {
-                            val hex = inner.substring(i + 2, i + 6)
-                            val codePoint = hex.toIntOrNull(16)
-                            if (codePoint != null) {
-                                sb.append(codePoint.toChar())
-                                i += 6
-                            } else {
-                                sb.append(c)
-                                i++
-                            }
+                'u' -> {
+                    // \uXXXX — exactly 4 hex digits required
+                    if (i + 5 < inner.length) {
+                        val hex = inner.substring(i + 2, i + 6)
+                        val codePoint = hex.toIntOrNull(16)
+                        if (codePoint != null) {
+                            sb.append(codePoint.toChar())
+                            i += 6
                         } else {
                             sb.append(c)
                             i++
                         }
-                    }
-
-                    else -> {
+                    } else {
                         sb.append(c)
                         i++
                     }
                 }
-            } else {
-                sb.append(c)
-                i++
+
+                else -> {
+                    sb.append(c)
+                    i++
+                }
             }
+        } else {
+            sb.append(c)
+            i++
         }
-        return sb.toString()
     }
+    return sb.toString()
 }
 
 /**
