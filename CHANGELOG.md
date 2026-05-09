@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+- **Sample app: comprehensive customization demo** — The sample app now has tabbed navigation with
+  seven sections showcasing every public API feature:
+  - **Languages**: original multi-language highlight demo (Python, Kotlin, Java, SQL, etc.)
+  - **Styling**: `CodeBlockStyle.Default`, `CodeBlockStyle.Compact`, and a custom style with shape, padding, gutter width, and copy-button size
+  - **Typography**: `fontSize`, `lineHeight`, and `fontFamily` variants
+  - **Toggles**: 2×2 combinations of `showLineNumbers`/`showLanguageLabel` plus `showCopyButton` on/off
+  - **Callbacks**: `onHighlightComplete` (displays millisecond duration) and `onCopyClick` (custom handler with inline feedback)
+  - **Themes**: all `HighlightTheme` factory methods — built-in (tomorrow, atom-one), `fromAsset()` (GitHub CSS), `fromCss()` (inline Material 3 CSS), and `fromColorMap()` (Material 3 color map)
+  - **Advanced**: `rememberHighlightedCodeBothThemes()` — pre-highlights for both light and dark in one JS call for instant theme switching
+
 ### Changed
 - Bumped `androidx.compose:compose-bom` from `2026.03.01` to `2026.05.00`.
 - Bumped `androidx.benchmark` from `1.3.3` to `1.4.1`.

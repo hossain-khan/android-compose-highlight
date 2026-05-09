@@ -2,6 +2,7 @@ package dev.hossain.highlight.sample
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -11,12 +12,15 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.PrimaryScrollableTabRow
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -314,8 +318,14 @@ private data class ThemePair(
  * showcasing that library users can bundle any Highlight.js CSS and use it as a theme — they are
  * not limited to the built-in options.
  *
- * Each sample in [SAMPLES] is rendered with its own [SectionHeader] and [SyntaxHighlightedCode].
- * Line numbers are enabled for the Python sample as a demonstration of that feature.
+ * Sections are organized into tabs:
+ * - **Languages**: highlights SAMPLES across different languages (original demo).
+ * - **Styling**: demonstrates [CodeBlockStyle] variants and custom style parameters.
+ * - **Typography**: shows [SyntaxHighlightedCode] with different fontSize/lineHeight/fontFamily.
+ * - **Toggles**: shows all boolean flag combinations (line numbers, language label, copy button).
+ * - **Callbacks**: demonstrates [SyntaxHighlightedCode.onHighlightComplete] and [SyntaxHighlightedCode.onCopyClick].
+ * - **Themes**: exercises every [HighlightTheme] factory method.
+ * - **Advanced**: shows [rememberHighlightedCodeBothThemes] for instant theme switching.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -323,6 +333,7 @@ fun SampleScreen() {
     val context = LocalContext.current
     var isDark by remember { mutableStateOf(false) }
     var showThemeMenu by remember { mutableStateOf(false) }
+    var activeTab by remember { mutableIntStateOf(0) }
 
     // All available theme pairs — GitHub uses fromAsset() to demonstrate custom themes.
     val themePairs =
@@ -346,7 +357,7 @@ fun SampleScreen() {
             )
         }
 
-    var selectedThemeIndex by remember { mutableStateOf(0) }
+    var selectedThemeIndex by remember { mutableIntStateOf(0) }
     val activePair = themePairs[selectedThemeIndex]
 
     HighlightThemeProvider(
@@ -390,31 +401,75 @@ fun SampleScreen() {
                 )
             },
         ) { innerPadding ->
-            LazyColumn(
+            Column(
                 modifier =
                     Modifier
                         .fillMaxSize()
-                        .padding(innerPadding)
-                        .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
+                        .padding(innerPadding),
             ) {
-                SAMPLES.forEach { (language, code) ->
-                    item(key = language) {
-                        if (code.isEmpty()) {
-                            SectionHeader("$language (empty edge case)")
-                            SyntaxHighlightedCode(
-                                code = "",
-                                language = language,
-                                modifier = Modifier.fillMaxWidth(),
-                            )
-                        } else {
-                            SectionHeader(language)
-                            SyntaxHighlightedCode(
-                                code = code,
-                                language = language,
-                                modifier = Modifier.fillMaxWidth(),
-                                showLineNumbers = language == "python",
-                            )
+                val tabs = listOf("Languages", "Styling", "Typography", "Toggles", "Callbacks", "Themes", "Advanced")
+                PrimaryScrollableTabRow(selectedTabIndex = activeTab) {
+                    tabs.forEachIndexed { index, title ->
+                        Tab(
+                            selected = activeTab == index,
+                            onClick = { activeTab = index },
+                            text = { Text(title) },
+                        )
+                    }
+                }
+                LazyColumn(
+                    modifier =
+                        Modifier
+                            .fillMaxSize()
+                            .padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                ) {
+                    when (activeTab) {
+                        0 -> {
+                            SAMPLES.forEach { (language, code) ->
+                                item(key = language) {
+                                    if (code.isEmpty()) {
+                                        SectionHeader("$language (empty edge case)")
+                                        SyntaxHighlightedCode(
+                                            code = "",
+                                            language = language,
+                                            modifier = Modifier.fillMaxWidth(),
+                                        )
+                                    } else {
+                                        SectionHeader(language)
+                                        SyntaxHighlightedCode(
+                                            code = code,
+                                            language = language,
+                                            modifier = Modifier.fillMaxWidth(),
+                                            showLineNumbers = language == "python",
+                                        )
+                                    }
+                                }
+                            }
+                        }
+
+                        1 -> {
+                            item { StylingSection() }
+                        }
+
+                        2 -> {
+                            item { TypographySection() }
+                        }
+
+                        3 -> {
+                            item { TogglesSection() }
+                        }
+
+                        4 -> {
+                            item { CallbacksSection() }
+                        }
+
+                        5 -> {
+                            item { ThemeCreationSection() }
+                        }
+
+                        6 -> {
+                            item { AdvancedEngineSection(isDark = isDark) }
                         }
                     }
                 }
@@ -429,7 +484,7 @@ fun SampleScreen() {
  * Displays the language [title] in uppercase to visually separate samples in the list.
  */
 @Composable
-private fun SectionHeader(title: String) {
+internal fun SectionHeader(title: String) {
     Row(
         modifier =
             Modifier
