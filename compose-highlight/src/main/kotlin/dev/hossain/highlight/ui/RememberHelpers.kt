@@ -16,7 +16,11 @@ import dev.hossain.highlight.engine.ThemedHighlightResult
 /**
  * Creates and remembers a [HighlightEngine] scoped to the composition.
  *
- * The engine is created once and automatically destroyed (releasing the hidden WebView)
+ * When called inside a [HighlightThemeProvider], returns the **shared** engine that the provider
+ * already manages — no extra WebView is created and no extra lifecycle handling is needed.
+ *
+ * When called **outside** [HighlightThemeProvider] (e.g. standalone usage without a provider),
+ * creates a dedicated engine that is automatically destroyed (releasing the hidden WebView)
  * when the composable leaves the composition via [DisposableEffect].
  *
  * ## Usage
@@ -36,12 +40,21 @@ import dev.hossain.highlight.engine.ThemedHighlightResult
  */
 @Composable
 fun rememberHighlightEngine(): HighlightEngine {
+    val sharedEngine = LocalHighlightEngine.current
     val context = LocalContext.current
-    val engine = remember { HighlightEngine(context) }
-    DisposableEffect(engine) {
-        onDispose { engine.destroy() }
+
+    // Create a standalone engine only when there is no shared engine from HighlightThemeProvider.
+    // Using sharedEngine as the remember key: if the provider is added/removed from the tree,
+    // the standalone engine is (re)created or released accordingly.
+    val standaloneEngine =
+        remember(sharedEngine) {
+            if (sharedEngine == null) HighlightEngine(context.applicationContext) else null
+        }
+    DisposableEffect(standaloneEngine) {
+        onDispose { standaloneEngine?.destroy() }
     }
-    return engine
+
+    return sharedEngine ?: standaloneEngine!!
 }
 
 /**

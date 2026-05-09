@@ -46,7 +46,12 @@ SyntaxHighlightedCode   ← primary public composable
              ├── WebViewManager         ← internal, owns the hidden WebView
              ├── HighlightTheme         ← public, CSS-backed theme model
              ├── ThemeParser            ← internal, CSS → Map<selector, SpanStyle>
-             └── HtmlToAnnotatedString  ← internal, jsoup → AnnotatedString
+             ├── HtmlToAnnotatedString  ← internal, jsoup → AnnotatedString
+             └── unescapeJsString()     ← internal package-level fun, JSON unescape
+
+HighlightThemeProvider  ← creates ONE shared HighlightEngine for its subtree
+ └── LocalHighlightEngine (internal CompositionLocal) ← carries the shared engine
+ └── LocalHighlightTheme  (public CompositionLocal)  ← carries the active theme
 ```
 
 **How highlighting works end-to-end:**
@@ -55,19 +60,23 @@ SyntaxHighlightedCode   ← primary public composable
 3. `ThemeParser` lazily parses a Highlight.js CSS file into a `Map<String, SpanStyle>` (selector → style), cached per `HighlightTheme` instance.
 4. `HtmlToAnnotatedString` uses jsoup to walk the HTML and applies the theme's `SpanStyle` map to produce a Compose `AnnotatedString`.
 
+**Shared engine via `HighlightThemeProvider`:** The provider creates a single `HighlightEngine` (one hidden WebView) for its entire subtree and exposes it via the internal `LocalHighlightEngine` CompositionLocal. `rememberHighlightEngine()` reads it when inside the provider — no extra WebView is created. Outside the provider, `rememberHighlightEngine()` creates a standalone engine that it destroys itself via `DisposableEffect`. This means N code blocks inside a provider share 1 WebView instead of N.
+
 **Why `https://appassets.androidplatform.net`:** `WebViewAssetLoader` intercepts requests to this reserved fake domain and maps `/assets/` to the app's `assets/` folder. This is required because `file://` URLs block `<script>` execution via Same-Origin Policy.
 
 ## Key conventions
 
-**Public vs internal:** Only `ui/` and `engine/{HighlightEngine,HighlightTheme,HighlightException}.kt` are public API. All `engine/` helpers (`WebViewManager`, `ThemeParser`, `HtmlToAnnotatedString`) are `internal`.
+**Public vs internal:** Only `ui/` and `engine/{HighlightEngine,HighlightTheme,HighlightException}.kt` are public API. All `engine/` helpers (`WebViewManager`, `ThemeParser`, `HtmlToAnnotatedString`, `unescapeJsString`) are `internal`. Note that `unescapeJsString` is a package-level `internal fun` (not a member of `HighlightEngine`) so it can be tested directly from JVM unit tests without a real `Context`.
 
 **`android.util.Log` is banned from the library.** Any `Log.*` call in code paths executed by JVM unit tests causes `RuntimeException: Method d in android.util.Log not mocked`. Remove all debug logging before committing.
 
 **All `HighlightEngine` results use `Result<T>`.** Never throw from public engine methods; wrap failures in `Result.failure(HighlightException(...))`. `HighlightException` is a sealed class — add new variants there rather than throwing raw exceptions.
 
+**Always use `applicationContext`.** Never pass an Activity `Context` to `HighlightEngine` or `HighlightTheme` factory functions — both hold the context beyond the Activity's lifecycle (the engine in `WebViewManager`, the theme in its `colorMapProvider` lambda). Always call `context.applicationContext` at the call site.
+
 **WebView must run on the Main thread.** `WebViewManager.initialize()` and `destroy()` dispatch to `Dispatchers.Main` and `Handler(Looper.getMainLooper())` respectively. Never call WebView APIs off the Main thread.
 
-**`rememberHighlightEngine()` for lifecycle management.** In Compose, always use `rememberHighlightEngine()` (not bare `HighlightEngine(context)`) — it calls `engine.destroy()` via `DisposableEffect` when the composable leaves composition.
+**`rememberHighlightEngine()` for lifecycle management.** In Compose, always use `rememberHighlightEngine()` (not bare `HighlightEngine(context)`). When called inside `HighlightThemeProvider`, it returns the provider's shared engine (no extra WebView, no extra lifecycle handling). When called outside a provider, it creates a standalone engine and destroys it via `DisposableEffect` when the composable leaves composition.
 
 **`SyntaxHighlightedCode` requires a theme.** Its `theme` parameter defaults to `LocalHighlightTheme.current`, which throws if no `HighlightThemeProvider` ancestor exists. Always wrap usage in `HighlightThemeProvider { }` or pass an explicit `theme =` argument.
 
@@ -75,7 +84,7 @@ SyntaxHighlightedCode   ← primary public composable
 
 **Formatting:** ktlint via `org.jmailen.kotlinter`. The `.editorconfig` suppresses the function-naming rule for `@Composable`-annotated functions (`ktlint_function_naming_ignore_when_annotated_with = Composable`). Run `./gradlew formatKotlin` before committing.
 
-**JVM unit tests vs instrumented tests:** `src/test/` contains JVM tests (fast, use `ThemeParser.parse(cssString)` overload that takes raw CSS). `src/androidTest/` contains instrumented tests (`HighlightEngineTest`) and microbenchmarks (`benchmark/`) that require a connected device and use `BenchmarkRule`.
+**JVM unit tests vs instrumented tests:** `src/test/` contains JVM tests (fast, no device needed). Use `ThemeParser.parse(cssString)` for theme tests and call `unescapeJsString(...)` directly for unescape tests — both work without Android mocks. Use [Google Truth](https://github.com/google/truth) (`com.google.truth:truth`) for assertions in new tests. `src/androidTest/` contains instrumented tests (`HighlightEngineTest`) and microbenchmarks (`benchmark/`) that require a connected device and use `BenchmarkRule`.
 
 **Asset path convention:** All library assets live under `assets/compose-highlight/` to avoid collisions when the library is consumed. CSS themes go in `assets/compose-highlight/themes/`.
 

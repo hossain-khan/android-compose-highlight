@@ -67,6 +67,7 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.tooling)
 
     testImplementation(libs.junit)
+    testImplementation(libs.truth)
     testImplementation(libs.kotlinx.coroutines.test)
 
     androidTestImplementation(composeBom)

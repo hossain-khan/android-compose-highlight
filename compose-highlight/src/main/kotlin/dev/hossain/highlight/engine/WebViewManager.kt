@@ -46,7 +46,12 @@ internal class WebViewManager(
     private val context: Context,
 ) {
     private var webView: WebView? = null
-    private val readyDeferred = CompletableDeferred<WebView>()
+
+    /**
+     * Mutable so it can be reset when [initialize] is called after [destroy].
+     * Accessed only on the Main thread (inside [initialize]) or awaited from any thread.
+     */
+    private var readyDeferred = CompletableDeferred<WebView>()
 
     /** Returns the ready WebView. Suspends until bridge.html has finished loading. */
     suspend fun getReadyWebView(): WebView = readyDeferred.await()
@@ -54,12 +59,20 @@ internal class WebViewManager(
     /**
      * Creates the WebView on the Main thread and loads bridge.html.
      * Safe to call multiple times — idempotent after first call.
+     * Safe to call after [destroy] — re-creates the WebView and a fresh deferred.
      */
     suspend fun initialize() {
         if (webView != null) return
 
         withContext(Dispatchers.Main) {
             if (webView != null) return@withContext
+
+            // Reset the deferred so re-initialization after destroy works correctly.
+            // Capture as a local so the WebViewClient closure always completes *this* deferred.
+            if (readyDeferred.isCompleted) {
+                readyDeferred = CompletableDeferred()
+            }
+            val deferred = readyDeferred
 
             val assetLoader =
                 WebViewAssetLoader
@@ -82,8 +95,8 @@ internal class WebViewManager(
                                 view: WebView,
                                 url: String,
                             ) {
-                                if (!readyDeferred.isCompleted) {
-                                    readyDeferred.complete(view)
+                                if (!deferred.isCompleted) {
+                                    deferred.complete(view)
                                 }
                             }
                         }
@@ -101,6 +114,12 @@ internal class WebViewManager(
     fun destroy() {
         val wv = webView ?: return
         webView = null
+        // Cancel any pending waiter, then reset to drop the strong reference to the
+        // destroyed WebView and allow it to be GC'd immediately.
+        if (!readyDeferred.isCompleted) {
+            readyDeferred.cancel()
+        }
+        readyDeferred = CompletableDeferred()
         // WebView.destroy() must be called on the thread that created it (Main).
         Handler(Looper.getMainLooper()).post { wv.destroy() }
     }
