@@ -8,7 +8,7 @@ plugins {
 
 android {
     namespace = "dev.hossain.highlight"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         minSdk = 24
