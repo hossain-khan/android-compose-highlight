@@ -115,14 +115,43 @@ LIMIT 10;
             code =
                 """
 {
-    "name": "compose-highlight",
-    "version": "0.1.0",
-    "dependencies": {
-        "highlight.js": "^11.11.1"
+    "string": "Hello, World!",
+    "emptyString": "",
+    "unicodeString": "héllo 🌍 日本語",
+    "escapedString": "line1\nline2\ttabbed \"quoted\" and backslash \\",
+    "integer": 42,
+    "negativeInteger": -7,
+    "float": 3.14159,
+    "negativeFloat": -0.001,
+    "scientificNotation": 1.5e10,
+    "largeNumber": 9007199254740991,
+    "booleanTrue": true,
+    "booleanFalse": false,
+    "nullValue": null,
+    "emptyArray": [],
+    "stringArray": ["android", "compose", "kotlin"],
+    "numberArray": [1, 2, 3, 4, 5],
+    "mixedArray": [1, "two", true, null, 3.0],
+    "nestedArray": [[1, 2], [3, 4], [5, 6]],
+    "emptyObject": {},
+    "nestedObject": {
+        "id": 101,
+        "name": "compose-highlight",
+        "version": "0.3.0",
+        "stable": true,
+        "deprecated": null,
+        "tags": ["library", "ui", "syntax"],
+        "metadata": {
+            "author": "hossain-khan",
+            "license": "Apache-2.0",
+            "stars": 42
+        }
     },
-    "keywords": ["android", "compose", "syntax-highlight"],
-    "unicode": "héllo 🌍",
-    "escapes": "line1\nline2\ttabbed"
+    "arrayOfObjects": [
+        { "lang": "kotlin", "highlight": true },
+        { "lang": "python", "highlight": true },
+        { "lang": "cobol", "highlight": false }
+    ]
 }
                 """.trimIndent(),
         ),
