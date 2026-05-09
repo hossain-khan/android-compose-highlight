@@ -1,11 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Material Design "code" icon (</>), scaled for adaptive icon safe zone -->
+<!-- Material Design "code_xml" icon, scaled for adaptive icon safe zone (~18dp margin each side) -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <path
-        android:fillColor="#CCCCCC"
-        android:pathData="M44.1,67.8L27.3,54l16.8,-13.8L40,35 18,54l22,19 4.1,-5.2zM63.9,67.8L80.7,54 63.9,40.2 68,35l22,19 -22,19 -4.1,-5.2z" />
+    <group
+        android:pivotX="0"
+        android:pivotY="0"
+        android:scaleX="0.0818"
+        android:scaleY="0.0818"
+        android:translateX="14.7"
+        android:translateY="14.7">
+        <path
+            android:fillColor="#CCCCCC"
+            android:pathData="m240,680 l-200,-200 200,-200 56,56 -143,144 143,144zM418,812 L342,788 542,148 618,172zM720,680 L664,624 807,480 664,336 720,280 920,480z" />
+    </group>
 </vector>
