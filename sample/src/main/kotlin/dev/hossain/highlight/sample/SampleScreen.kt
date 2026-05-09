@@ -5,7 +5,9 @@ import android.content.Intent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -174,7 +176,8 @@ fun SampleScreen() {
                 modifier =
                     Modifier
                         .fillMaxSize()
-                        .padding(innerPadding),
+                        .padding(top = innerPadding.calculateTopPadding())
+                        .consumeWindowInsets(innerPadding),
             ) {
                 val tabs = listOf("Languages", "Styling", "Typography", "Toggles", "Callbacks", "Themes", "Advanced")
                 PrimaryScrollableTabRow(selectedTabIndex = activeTab) {
@@ -189,8 +192,14 @@ fun SampleScreen() {
                 LazyColumn(
                     modifier =
                         Modifier
-                            .fillMaxSize()
-                            .padding(16.dp),
+                            .fillMaxSize(),
+                    contentPadding =
+                        PaddingValues(
+                            start = 16.dp,
+                            end = 16.dp,
+                            top = 16.dp,
+                            bottom = innerPadding.calculateBottomPadding() + 16.dp,
+                        ),
                     verticalArrangement = Arrangement.spacedBy(16.dp),
                 ) {
                     when (activeTab) {
