@@ -2,6 +2,40 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+### Added
+- **`SyntaxHighlightedCode`: `copyButtonIcon` composable slot** — optional parameter
+  `copyButtonIcon: (@Composable (tint: Color) -> Unit)?` that replaces the default `⧉` text
+  icon with any composable. Receives the theme-derived `tint` color so custom icons blend
+  naturally with the code block background. Defaults to `null` (original `⧉` behaviour).
+- **Sample app: performance benchmark screen** — new `PerfActivity`/`PerfScreen` that highlights
+  all language samples and displays per-block timing (ms), line count, and character count as
+  metric chips. Includes a dark/light toggle that clears and re-runs all benchmarks so theme
+  changes are reflected in measurements.
+- **Sample app: 8 new language samples** — TypeScript, Rust, Go, Swift, C++, C#, Bash, and CSS
+  added to `SampleData`, each using constructs that stress different highlighter token types
+  (generics, lifetimes, goroutines, template literals, etc.).
+- **Sample app: Snackbar copy confirmation** — the Languages tab now defines a shared
+  `onCopyClick` handler that copies code to the system clipboard and shows a
+  `"Successfully copied source code to clipboard"` Snackbar, demonstrating caller-owned
+  copy feedback.
+
+### Changed
+- **`SyntaxHighlightedCode`: removed internal copy confirmation UI** — the library no longer
+  manages a 2-second "Copied!" flash internally. The `onCopyClick` callback is the signal that
+  a copy occurred; callers own the feedback UX (Snackbar, Toast, animated indicator, etc.).
+  This is a **behavioural change**: apps that relied on the built-in "Copied!" text will need
+  to implement their own confirmation via `onCopyClick`.
+- **Sample app: vector icons throughout** — emoji placeholders in the TopAppBar (theme picker,
+  light/dark toggle, benchmark launcher) and perf screen metric chips replaced with Material
+  Design vector drawables (`palette_24dp`, `light_mode_24dp`, `mode_night_24dp`, `speed_24dp`,
+  `timer_24dp`, `format_line_spacing_24dp`, `type_specimen_24dp`).
+- **Sample app: Atom One dark as default** — both the main screen and the benchmark screen now
+  open in dark mode with the Atom One theme instead of the system default.
+- **Sample app: `copyButtonIcon` used in Languages tab** — all code blocks in the Languages tab
+  now render a `content_copy_24dp` vector icon instead of the default `⧉` character.
+
 ## [0.6.0] - 2026-05-09
 
 ### Added
