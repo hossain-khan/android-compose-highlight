@@ -1,6 +1,5 @@
 package dev.hossain.highlight.sample.perf
 
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -38,8 +37,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import dev.hossain.highlight.engine.HighlightTheme
+import dev.hossain.highlight.sample.CODE_SAMPLES
 import dev.hossain.highlight.sample.R
-import dev.hossain.highlight.sample.SAMPLES
 import dev.hossain.highlight.ui.HighlightThemeProvider
 import dev.hossain.highlight.ui.SyntaxHighlightedCode
 
@@ -52,7 +51,7 @@ internal data class HighlightMetrics(
 )
 
 /**
- * Performance benchmark screen that renders every [SAMPLES] entry in a scrollable list and
+ * Performance benchmark screen that renders every [CODE_SAMPLES] entry in a scrollable list and
  * measures per-block highlighting timing, code size, and overall heap usage.
  *
  * - Each block shows a metric card: highlight time, line count, char count.
@@ -70,7 +69,7 @@ fun PerfScreen() {
 
     // Take a heap snapshot once all blocks have reported their timing.
     var heapSnapshotKb by remember { mutableStateOf<Long?>(null) }
-    if (metricsMap.size == SAMPLES.size && heapSnapshotKb == null) {
+    if (metricsMap.size == CODE_SAMPLES.size && heapSnapshotKb == null) {
         val rt = Runtime.getRuntime()
         heapSnapshotKb = (rt.totalMemory() - rt.freeMemory()) / 1024
     }
@@ -127,12 +126,12 @@ fun PerfScreen() {
                     Spacer(modifier = Modifier.height(4.dp))
                     SummaryHeader(
                         metricsMap = metricsMap,
-                        totalSamples = SAMPLES.size,
+                        totalSamples = CODE_SAMPLES.size,
                         heapSnapshotKb = heapSnapshotKb,
                     )
                 }
 
-                items(SAMPLES, key = { it.language }) { sample ->
+                items(CODE_SAMPLES, key = { it.language }) { sample ->
                     val metrics = metricsMap[sample.language]
                     Column {
                         Text(

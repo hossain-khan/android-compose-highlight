@@ -38,7 +38,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import dev.hossain.highlight.engine.HighlightTheme
-import dev.hossain.highlight.sample.R
 import dev.hossain.highlight.sample.perf.PerfActivity
 import dev.hossain.highlight.ui.HighlightThemeProvider
 import dev.hossain.highlight.ui.SyntaxHighlightedCode
@@ -195,26 +194,16 @@ fun SampleScreen() {
                 ) {
                     when (activeTab) {
                         0 -> {
-                            SAMPLES.forEach { sample ->
+                            CODE_SAMPLES.forEach { sample ->
                                 item(key = sample.language) {
-                                    if (sample.code.isEmpty()) {
-                                        SectionHeader("${sample.language} (empty edge case)")
-                                        SyntaxHighlightedCode(
-                                            code = "",
-                                            language = sample.language,
-                                            modifier = Modifier.fillMaxWidth(),
-                                            onCopyClick = onCopyClick,
-                                        )
-                                    } else {
-                                        SectionHeader(sample.language)
-                                        SyntaxHighlightedCode(
-                                            code = sample.code,
-                                            language = sample.language,
-                                            modifier = Modifier.fillMaxWidth(),
-                                            showLineNumbers = sample.language == "python",
-                                            onCopyClick = onCopyClick,
-                                        )
-                                    }
+                                    SectionHeader(sample.language)
+                                    SyntaxHighlightedCode(
+                                        code = sample.code,
+                                        language = sample.language,
+                                        modifier = Modifier.fillMaxWidth(),
+                                        showLineNumbers = sample.language == "python",
+                                        onCopyClick = onCopyClick,
+                                    )
                                 }
                             }
                         }

@@ -23,7 +23,7 @@ internal data class CodeSample(
  * - A large, real-world Kotlin file (WeatherApp) to stress-test rendering performance
  * - An empty string edge case to verify graceful fallback
  */
-internal val SAMPLES =
+internal val CODE_SAMPLES =
     listOf(
         CodeSample(
             language = "python",
@@ -695,7 +695,7 @@ esac
 }
                 """.trimIndent(),
         ),
-        CodeSample(language = "plaintext", code = ""), // empty edge case
+        CodeSample(language = "plaintext", code = "This is plaintext.\nNothing to highlight."),
     )
 
 /** A named pair of light/dark [HighlightTheme]s for the theme picker. */
