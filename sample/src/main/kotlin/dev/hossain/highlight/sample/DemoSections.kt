@@ -520,11 +520,11 @@ internal fun ThemeCreationSection() {
 @Composable
 internal fun AdvancedEngineSection(isDark: Boolean) {
     val context = LocalContext.current.applicationContext
-    var useDark by remember(isDark) { mutableStateOf(isDark) }
-    var durationMs by remember { mutableLongStateOf(-1L) }
-
     val lightTheme = remember(context) { HighlightTheme.tomorrow(context) }
     val darkTheme = remember(context) { HighlightTheme.tomorrowNight(context) }
+
+    var useDark by remember(isDark) { mutableStateOf(isDark) }
+    var durationMs by remember { mutableLongStateOf(-1L) }
 
     val result by
         rememberHighlightedCodeBothThemes(
