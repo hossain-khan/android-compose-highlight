@@ -35,6 +35,7 @@ import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -245,7 +246,8 @@ private fun LineNumberedCode(
     fontSize: TextUnit,
     lineHeight: TextUnit,
 ) {
-    val lines = code.lines()
+    // Count lines from the text that will actually be rendered so line numbers always align.
+    val lineCount = (highlighted?.text ?: code).lines().size
     val codeStyle =
         TextStyle(
             color = textColor,
@@ -262,15 +264,16 @@ private fun LineNumberedCode(
         )
 
     Row(modifier = Modifier.padding(style.padding)) {
-        // Line number gutter
-        Column(modifier = Modifier.width(style.lineNumberWidth)) {
-            lines.forEachIndexed { index, _ ->
-                Text(
-                    text = "${index + 1}",
-                    style = lineNumStyle,
-                )
-            }
-        }
+        // Line number gutter — rendered as a single Text to share the same line-height
+        // behaviour as the code Text, keeping numbers and code visually aligned.
+        val lineNumbers = (1..lineCount).joinToString("\n")
+        Text(
+            text = lineNumbers,
+            style = lineNumStyle,
+            modifier = Modifier.width(style.lineNumberWidth),
+            textAlign = TextAlign.End,
+        )
+        Spacer(modifier = Modifier.width(8.dp))
         // Code text
         if (highlighted != null) {
             Text(text = highlighted, style = codeStyle)
