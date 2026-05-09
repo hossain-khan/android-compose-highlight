@@ -102,6 +102,23 @@ import kotlinx.coroutines.launch
  * @param showLanguageLabel Whether to show the language badge in the header.
  * @param showCopyButton Whether to show the copy-to-clipboard button.
  * @param onCopyClick Optional custom copy handler. If `null`, copies to the system clipboard.
+ * @param copyButtonIcon Optional composable slot that replaces the default `⧉` copy icon.
+ *   Receives the recommended `tint` [Color] derived from the active theme so the icon blends
+ *   naturally with the code block background. Only used when [showCopyButton] is `true`.
+ *   Example:
+ *   ```kotlin
+ *   SyntaxHighlightedCode(
+ *       code = snippet,
+ *       language = "kotlin",
+ *       copyButtonIcon = { tint ->
+ *           Icon(
+ *               imageVector = ImageVector.vectorResource(R.drawable.content_copy_24dp),
+ *               contentDescription = "Copy",
+ *               tint = tint,
+ *           )
+ *       },
+ *   )
+ *   ```
  * @param onHighlightComplete Optional callback invoked with the highlight duration in milliseconds
  *   when highlighting succeeds. Useful for performance metrics.
  * @param fontFamily Font family for the code text. Defaults to monospace.
@@ -119,6 +136,7 @@ fun SyntaxHighlightedCode(
     showLanguageLabel: Boolean = true,
     showCopyButton: Boolean = true,
     onCopyClick: ((String) -> Unit)? = null,
+    copyButtonIcon: (@Composable (tint: Color) -> Unit)? = null,
     onHighlightComplete: ((durationMs: Long) -> Unit)? = null,
     fontFamily: FontFamily = FontFamily.Monospace,
     fontSize: TextUnit = 13.sp,
@@ -171,6 +189,7 @@ fun SyntaxHighlightedCode(
                             copyConfirmed = copyConfirmed,
                             size = style.copyButtonSize,
                             tint = textColor.copy(alpha = 0.7f),
+                            customIcon = copyButtonIcon,
                             onClick = {
                                 val handler = onCopyClick
                                 if (handler != null) {
@@ -288,6 +307,7 @@ private fun CopyButton(
     copyConfirmed: Boolean,
     size: androidx.compose.ui.unit.Dp,
     tint: Color,
+    customIcon: (@Composable (tint: Color) -> Unit)?,
     onClick: () -> Unit,
 ) {
     if (copyConfirmed) {
@@ -300,11 +320,15 @@ private fun CopyButton(
             onClick = onClick,
             modifier = Modifier.size(size),
         ) {
-            // Use a simple text icon since we don't bundle icons
-            Text(
-                text = "⧉",
-                style = TextStyle(color = tint, fontSize = 16.sp),
-            )
+            if (customIcon != null) {
+                customIcon(tint)
+            } else {
+                // Default: simple text icon — no bundled icon dependency
+                Text(
+                    text = "⧉",
+                    style = TextStyle(color = tint, fontSize = 16.sp),
+                )
+            }
         }
     }
 }
