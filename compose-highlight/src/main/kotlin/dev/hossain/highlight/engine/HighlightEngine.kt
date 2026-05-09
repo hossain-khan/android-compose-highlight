@@ -231,12 +231,36 @@ class HighlightEngine(
             val c = inner[i]
             if (c == '\\' && i + 1 < inner.length) {
                 when (inner[i + 1]) {
-                    '"' -> { sb.append('"'); i += 2 }
-                    '\\' -> { sb.append('\\'); i += 2 }
-                    '/' -> { sb.append('/'); i += 2 }
-                    'n' -> { sb.append('\n'); i += 2 }
-                    'r' -> { sb.append('\r'); i += 2 }
-                    't' -> { sb.append('\t'); i += 2 }
+                    '"' -> {
+                        sb.append('"')
+                        i += 2
+                    }
+
+                    '\\' -> {
+                        sb.append('\\')
+                        i += 2
+                    }
+
+                    '/' -> {
+                        sb.append('/')
+                        i += 2
+                    }
+
+                    'n' -> {
+                        sb.append('\n')
+                        i += 2
+                    }
+
+                    'r' -> {
+                        sb.append('\r')
+                        i += 2
+                    }
+
+                    't' -> {
+                        sb.append('\t')
+                        i += 2
+                    }
+
                     'u' -> {
                         // \uXXXX — exactly 4 hex digits required
                         if (i + 5 < inner.length) {
@@ -254,7 +278,11 @@ class HighlightEngine(
                             i++
                         }
                     }
-                    else -> { sb.append(c); i++ }
+
+                    else -> {
+                        sb.append(c)
+                        i++
+                    }
                 }
             } else {
                 sb.append(c)
