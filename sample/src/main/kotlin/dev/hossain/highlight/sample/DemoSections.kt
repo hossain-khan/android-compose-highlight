@@ -1,5 +1,6 @@
 package dev.hossain.highlight.sample
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -10,6 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -110,9 +112,7 @@ private val MATERIAL3_LIGHT_CSS =
 @Composable
 internal fun StylingSection() {
     Column(
-        verticalArrangement =
-            androidx.compose.foundation.layout.Arrangement
-                .spacedBy(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         // Default preset
         SubSectionHeader("CodeBlockStyle.Default")
@@ -162,9 +162,7 @@ internal fun StylingSection() {
 @Composable
 internal fun TypographySection() {
     Column(
-        verticalArrangement =
-            androidx.compose.foundation.layout.Arrangement
-                .spacedBy(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         // Font size variants
         SubSectionHeader("fontSize = 13.sp (default)")
@@ -247,9 +245,7 @@ internal fun TypographySection() {
 @Composable
 internal fun TogglesSection() {
     Column(
-        verticalArrangement =
-            androidx.compose.foundation.layout.Arrangement
-                .spacedBy(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         SubSectionHeader("showLineNumbers=false, showLanguageLabel=true (defaults)")
         SyntaxHighlightedCode(
@@ -315,9 +311,7 @@ internal fun TogglesSection() {
 @Composable
 internal fun CallbacksSection() {
     Column(
-        verticalArrangement =
-            androidx.compose.foundation.layout.Arrangement
-                .spacedBy(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         // onHighlightComplete demo
         var highlightDurationMs by remember { mutableLongStateOf(-1L) }
@@ -428,9 +422,7 @@ internal fun ThemeCreationSection() {
         }
 
     Column(
-        verticalArrangement =
-            androidx.compose.foundation.layout.Arrangement
-                .spacedBy(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         // ── Built-in themes ────────────────────────────────────────────────
         SubSectionHeader("Built-in: HighlightTheme.tomorrow() — light")
@@ -538,9 +530,7 @@ internal fun AdvancedEngineSection(isDark: Boolean) {
     val displayText = if (useDark) result?.dark else result?.light
 
     Column(
-        verticalArrangement =
-            androidx.compose.foundation.layout.Arrangement
-                .spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         SubSectionHeader("rememberHighlightedCodeBothThemes")
         Text(
@@ -553,9 +543,7 @@ internal fun AdvancedEngineSection(isDark: Boolean) {
         // Toggle row
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement =
-                androidx.compose.foundation.layout.Arrangement
-                    .spacedBy(8.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             Text(text = if (useDark) "🌙 Dark" else "☀ Light", style = TextStyle(fontSize = 13.sp))
             Switch(
@@ -565,7 +553,7 @@ internal fun AdvancedEngineSection(isDark: Boolean) {
         }
 
         // Render the highlighted text manually, using a Surface to show the theme's background.
-        androidx.compose.material3.Surface(
+        Surface(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(8.dp),
             color =
