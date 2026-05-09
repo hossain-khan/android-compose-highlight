@@ -4,11 +4,16 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.platform.LocalContext
+import androidx.webkit.WebViewCompat
+import androidx.webkit.WebViewOutcomeReceiver
+import androidx.webkit.WebViewStartUpConfig
 import dev.hossain.highlight.engine.HighlightEngine
 import dev.hossain.highlight.engine.HighlightTheme
+import java.util.concurrent.Executor
 
 /**
  * CompositionLocal that provides the active [HighlightTheme] to all [SyntaxHighlightedCode]
@@ -44,6 +49,11 @@ internal val LocalHighlightEngine =
  * subtree and destroyed when this composable leaves the composition. This means screens with
  * multiple [SyntaxHighlightedCode] blocks share one WebView instead of creating one per block,
  * saving ~200 ms warm-up time and ~2–4 MB RAM per extra block.
+ *
+ * This composable also calls [WebViewCompat.startUpWebView] as a best-effort optimization to
+ * pre-warm the WebView renderer process before the hidden WebView is created. This can reduce
+ * the latency of the first syntax-highlight call. For the maximum benefit, you may call
+ * [WebViewCompat.startUpWebView] even earlier from your `Application.onCreate()`.
  *
  * ## Typical setup
  *
@@ -84,6 +94,24 @@ fun HighlightThemeProvider(
     content: @Composable () -> Unit,
 ) {
     val context = LocalContext.current
+
+    // Pre-warm the WebView renderer process before the engine creates the hidden WebView.
+    // startUpWebView schedules background startup tasks so the first evaluateJavascript()
+    // call is faster. This is best-effort — failures are non-fatal; the engine falls back
+    // to normal lazy initialization. For maximum benefit, call startUpWebView even earlier
+    // from Application.onCreate().
+    LaunchedEffect(Unit) {
+        runCatching {
+            WebViewCompat.startUpWebView(
+                context.applicationContext,
+                // Executor is used only to invoke the outcome callback; a direct (inline)
+                // executor is sufficient since our callback is a no-op.
+                WebViewStartUpConfig.Builder(Executor { it.run() }).build(),
+                WebViewOutcomeReceiver { /* no-op — result is informational only */ },
+            )
+        }
+    }
+
     // One shared engine for the entire subtree — one WebView, not one per code block.
     val engine = remember { HighlightEngine(context.applicationContext) }
     DisposableEffect(engine) {
