@@ -24,13 +24,21 @@ import kotlin.coroutines.resumeWithException
  * longer needed. When used inside a Composable, use `rememberHighlightEngine()` which calls
  * [destroy] automatically via `DisposableEffect`.
  *
- * ## Composable usage (recommended)
+ * ## Composable usage (lower-level)
+ *
+ * For most cases, prefer `SyntaxHighlightedCode` inside a `HighlightThemeProvider` — it handles
+ * the engine lifecycle automatically. Use [rememberHighlightEngine] directly only when you need
+ * lower-level control, such as calling [highlightBothThemes] or building a custom UI.
  *
  * ```kotlin
  * @Composable
  * fun MyCodeBlock(code: String) {
  *     val engine = rememberHighlightEngine()
- *     val highlighted by rememberHighlightedCode(code, "kotlin", HighlightTheme.tomorrow(LocalContext.current))
+ *     val theme = remember { HighlightTheme.tomorrow(LocalContext.current.applicationContext) }
+ *     var highlighted by remember(code) { mutableStateOf<AnnotatedString?>(null) }
+ *     LaunchedEffect(code) {
+ *         engine.highlight(code, "kotlin", theme).onSuccess { highlighted = it }
+ *     }
  *     Text(text = highlighted ?: AnnotatedString(code))
  * }
  * ```

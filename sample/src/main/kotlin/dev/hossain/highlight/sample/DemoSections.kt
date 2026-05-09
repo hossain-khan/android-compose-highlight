@@ -160,9 +160,9 @@ internal fun StylingSection() {
 
 /**
  * Demonstrates [SyntaxHighlightedCode] typography parameters:
- * - [SyntaxHighlightedCode.fontSize] variants
- * - [SyntaxHighlightedCode.lineHeight] variants
- * - [SyntaxHighlightedCode.fontFamily] variants
+ * - `fontSize` variants
+ * - `lineHeight` variants
+ * - `fontFamily` variants
  */
 @Composable
 internal fun TypographySection() {
@@ -244,8 +244,8 @@ internal fun TypographySection() {
 
 /**
  * Demonstrates every [SyntaxHighlightedCode] boolean flag combination:
- * - [SyntaxHighlightedCode.showLineNumbers] × [SyntaxHighlightedCode.showLanguageLabel] (2×2)
- * - [SyntaxHighlightedCode.showCopyButton] on/off
+ * - `showLineNumbers` × `showLanguageLabel` (2×2)
+ * - `showCopyButton` on/off
  */
 @Composable
 internal fun TogglesSection() {
@@ -310,8 +310,8 @@ internal fun TogglesSection() {
 
 /**
  * Demonstrates [SyntaxHighlightedCode] event callbacks:
- * - [SyntaxHighlightedCode.onHighlightComplete] — shows highlight duration in milliseconds.
- * - [SyntaxHighlightedCode.onCopyClick] — custom copy handler with inline feedback.
+ * - `onHighlightComplete` — shows highlight duration in milliseconds.
+ * - `onCopyClick` — custom copy handler with inline feedback.
  */
 @Composable
 internal fun CallbacksSection() {
