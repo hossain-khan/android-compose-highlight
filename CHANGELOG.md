@@ -5,6 +5,9 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Changed
+- Bumped `androidx.compose:compose-bom` from `2026.03.01` to `2026.05.00`.
+- Bumped `androidx.benchmark` from `1.3.3` to `1.4.1`.
+- Bumped `org.jsoup:jsoup` from `1.18.3` to `1.22.2`.
 - Bumped `androidx.webkit` from `1.13.0` to `1.16.0` (stable). Highlights of changes since
   1.13.0 relevant to this project:
   - `startUpWebView()` and `WebViewStartUpConfig` APIs graduated to stable.
