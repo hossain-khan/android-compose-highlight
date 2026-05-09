@@ -101,7 +101,8 @@ fun SampleScreen() {
             topBar = {
                 TopAppBar(
                     title = { Text("Demo") },
-                    navigationIcon = {
+                    actions = {
+                        // Performance benchmark screen
                         IconButton(onClick = {
                             context.startActivity(Intent(context, PerfActivity::class.java))
                         }) {
@@ -110,8 +111,6 @@ fun SampleScreen() {
                                 contentDescription = "Performance benchmark",
                             )
                         }
-                    },
-                    actions = {
                         // Theme family picker
                         Box {
                             IconButton(onClick = { showThemeMenu = true }) {
