@@ -79,8 +79,8 @@ internal val LocalHighlightEngine =
 @Composable
 fun HighlightThemeProvider(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    lightHighlightTheme: HighlightTheme = HighlightTheme.tomorrow(LocalContext.current),
-    darkHighlightTheme: HighlightTheme = HighlightTheme.tomorrowNight(LocalContext.current),
+    lightHighlightTheme: HighlightTheme = HighlightTheme.tomorrow(LocalContext.current.applicationContext),
+    darkHighlightTheme: HighlightTheme = HighlightTheme.tomorrowNight(LocalContext.current.applicationContext),
     content: @Composable () -> Unit,
 ) {
     val context = LocalContext.current

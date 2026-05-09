@@ -114,10 +114,12 @@ internal class WebViewManager(
     fun destroy() {
         val wv = webView ?: return
         webView = null
-        // Cancel any coroutine waiting for initialization to complete.
+        // Cancel any pending waiter, then reset to drop the strong reference to the
+        // destroyed WebView and allow it to be GC'd immediately.
         if (!readyDeferred.isCompleted) {
             readyDeferred.cancel()
         }
+        readyDeferred = CompletableDeferred()
         // WebView.destroy() must be called on the thread that created it (Main).
         Handler(Looper.getMainLooper()).post { wv.destroy() }
     }
