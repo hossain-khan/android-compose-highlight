@@ -100,7 +100,7 @@ fun SampleScreen() {
         Scaffold(
             topBar = {
                 TopAppBar(
-                    title = { Text("Demo") },
+                    title = { Text("Highlight Demo") },
                     actions = {
                         // Performance benchmark screen
                         IconButton(onClick = {
