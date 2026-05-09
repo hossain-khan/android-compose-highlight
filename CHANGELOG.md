@@ -4,13 +4,6 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
-### Added
-- **`HighlightThemeProvider`: WebView pre-warming** — `HighlightThemeProvider` now calls
-  `WebViewCompat.startUpWebView()` (androidx.webkit 1.16.0) as a best-effort optimization.
-  This pre-warms the WebView renderer process before the hidden WebView is created, reducing
-  latency on the first syntax-highlight call. For maximum benefit, you may also call
-  `WebViewCompat.startUpWebView()` from your `Application.onCreate()`.
-
 ### Changed
 - Bumped `androidx.webkit` from `1.13.0` to `1.16.0` (stable). Highlights of changes since
   1.13.0 relevant to this project:
