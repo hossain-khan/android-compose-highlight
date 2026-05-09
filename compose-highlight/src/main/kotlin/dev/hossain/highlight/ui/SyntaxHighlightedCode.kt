@@ -311,6 +311,8 @@ private fun CopyButton(
     onClick: () -> Unit,
 ) {
     if (copyConfirmed) {
+        // TODO - expose this as a composable that user passes for more control over the "Copied!"
+        //  UI (e.g. add an optional checkmark icon, or animate the text)
         Text(
             text = "Copied!",
             style = TextStyle(color = tint, fontSize = 12.sp),
