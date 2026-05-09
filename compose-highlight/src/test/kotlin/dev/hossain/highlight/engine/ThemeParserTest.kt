@@ -4,10 +4,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNotNull
-import org.junit.Assert.assertNull
-import org.junit.Assert.assertTrue
+import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 
 class ThemeParserTest {
@@ -27,56 +24,56 @@ class ThemeParserTest {
     @Test
     fun `parse returns non-empty map for valid CSS`() {
         val result = ThemeParser.parse(tomorrowCssSample)
-        assertTrue("Expected non-empty map", result.isNotEmpty())
+        assertThat(result).isNotEmpty()
     }
 
     @Test
     fun `parse extracts color for hljs-comment`() {
         val result = ThemeParser.parse(tomorrowCssSample)
         val style = result["hljs-comment"]
-        assertNotNull("hljs-comment should be present", style)
-        assertEquals(Color(0xFF8e908c.toInt()), style!!.color)
+        assertThat(style).isNotNull()
+        assertThat(style!!.color).isEqualTo(Color(0xFF8e908c.toInt()))
     }
 
     @Test
     fun `parse extracts color for hljs-keyword from compound selector`() {
         val result = ThemeParser.parse(tomorrowCssSample)
         val style = result["hljs-keyword"]
-        assertNotNull("hljs-keyword should be present from compound selector", style)
-        assertEquals(Color(0xFF8959a8.toInt()), style!!.color)
+        assertThat(style).isNotNull()
+        assertThat(style!!.color).isEqualTo(Color(0xFF8959a8.toInt()))
     }
 
     @Test
     fun `parse extracts color for hljs-string`() {
         val result = ThemeParser.parse(tomorrowCssSample)
         val style = result["hljs-string"]
-        assertNotNull("hljs-string should be present", style)
-        assertEquals(Color(0xFF718c00.toInt()), style!!.color)
+        assertThat(style).isNotNull()
+        assertThat(style!!.color).isEqualTo(Color(0xFF718c00.toInt()))
     }
 
     @Test
     fun `parse extracts hljs background color`() {
         val result = ThemeParser.parse(tomorrowCssSample)
         val style = result["hljs"]
-        assertNotNull("hljs base rule should be present", style)
-        assertEquals(Color(0xFFffffff.toInt()), style!!.background)
+        assertThat(style).isNotNull()
+        assertThat(style!!.background).isEqualTo(Color(0xFFffffff.toInt()))
     }
 
     @Test
     fun `parse extracts font-weight bold`() {
         val result = ThemeParser.parse(tomorrowCssSample)
         val style = result["hljs-strong"]
-        assertNotNull("hljs-strong should be present", style)
-        assertEquals(FontWeight.Bold, style!!.fontWeight)
-        assertEquals(Color(0xFFeab700.toInt()), style.color)
+        assertThat(style).isNotNull()
+        assertThat(style!!.fontWeight).isEqualTo(FontWeight.Bold)
+        assertThat(style.color).isEqualTo(Color(0xFFeab700.toInt()))
     }
 
     @Test
     fun `parse extracts font-style italic`() {
         val result = ThemeParser.parse(tomorrowCssSample)
         val style = result["hljs-emphasis"]
-        assertNotNull("hljs-emphasis should be present", style)
-        assertEquals(FontStyle.Italic, style!!.fontStyle)
+        assertThat(style).isNotNull()
+        assertThat(style!!.fontStyle).isEqualTo(FontStyle.Italic)
     }
 
     @Test
@@ -84,27 +81,27 @@ class ThemeParserTest {
         val result = ThemeParser.parse(tomorrowCssSample)
         // ".hljs-title.function_" should produce "hljs-title.function_" key
         val style = result["hljs-title.function_"]
-        assertNotNull("Compound selector key hljs-title.function_ should be present", style)
-        assertEquals(Color(0xFF4271ae.toInt()), style!!.color)
+        assertThat(style).isNotNull()
+        assertThat(style!!.color).isEqualTo(Color(0xFF4271ae.toInt()))
     }
 
     @Test
     fun `parse returns empty map for empty CSS`() {
         val result = ThemeParser.parse("")
-        assertTrue("Empty CSS should produce empty map", result.isEmpty())
+        assertThat(result).isEmpty()
     }
 
     @Test
     fun `parse returns empty map for blank CSS`() {
         val result = ThemeParser.parse("   \n  \t  ")
-        assertTrue("Blank CSS should produce empty map", result.isEmpty())
+        assertThat(result).isEmpty()
     }
 
     @Test
     fun `parse returns empty map for CSS with no hljs selectors`() {
         val css = "body { color: red; } .foo { background: blue; }"
         val result = ThemeParser.parse(css)
-        assertTrue("CSS without .hljs selectors should produce empty map", result.isEmpty())
+        assertThat(result).isEmpty()
     }
 
     @Test
@@ -112,7 +109,7 @@ class ThemeParserTest {
         val css = ".hljs-operator { opacity: 0.7 }"
         val result = ThemeParser.parse(css)
         // opacity is not a supported property, so no entry should be created
-        assertNull(result["hljs-operator"])
+        assertThat(result["hljs-operator"]).isNull()
     }
 
     @Test
@@ -120,17 +117,17 @@ class ThemeParserTest {
         val css = ".hljs-comment { color: #abc }"
         val result = ThemeParser.parse(css)
         val style = result["hljs-comment"]
-        assertNotNull(style)
+        assertThat(style).isNotNull()
         // #abc expands to #aabbcc
-        assertEquals(Color(0xFFaabbcc.toInt()), style!!.color)
+        assertThat(style!!.color).isEqualTo(Color(0xFFaabbcc.toInt()))
     }
 
     @Test
     fun `parse handles minified CSS without whitespace`() {
         val minified = ".hljs{color:#4d4d4c;background:#fff}.hljs-keyword{color:#8959a8}"
         val result = ThemeParser.parse(minified)
-        assertNotNull(result["hljs"])
-        assertNotNull(result["hljs-keyword"])
+        assertThat(result["hljs"]).isNotNull()
+        assertThat(result["hljs-keyword"]).isNotNull()
     }
 
     @Test
@@ -138,8 +135,8 @@ class ThemeParserTest {
         val css = ".hljs-comment { color: rgb(142, 144, 140) }"
         val result = ThemeParser.parse(css)
         val style = result["hljs-comment"]
-        assertNotNull("hljs-comment with rgb color should be present", style)
-        assertEquals(Color(142, 144, 140), style!!.color)
+        assertThat(style).isNotNull()
+        assertThat(style!!.color).isEqualTo(Color(142, 144, 140))
     }
 
     @Test
@@ -147,8 +144,8 @@ class ThemeParserTest {
         val css = ".hljs { background-color: #1e1e1e }"
         val result = ThemeParser.parse(css)
         val style = result["hljs"]
-        assertNotNull("hljs with background-color should be present", style)
-        assertEquals(Color(0xFF1e1e1e.toInt()), style!!.background)
+        assertThat(style).isNotNull()
+        assertThat(style!!.background).isEqualTo(Color(0xFF1e1e1e.toInt()))
     }
 
     @Test
@@ -156,8 +153,8 @@ class ThemeParserTest {
         val css = ".hljs-strong { font-weight: 700; color: #eab700 }"
         val result = ThemeParser.parse(css)
         val style = result["hljs-strong"]
-        assertNotNull("hljs-strong with font-weight:700 should be present", style)
-        assertEquals(FontWeight.Bold, style!!.fontWeight)
+        assertThat(style).isNotNull()
+        assertThat(style!!.fontWeight).isEqualTo(FontWeight.Bold)
     }
 
     @Test
@@ -166,7 +163,7 @@ class ThemeParserTest {
         val css = ".hljs-comment { color: #ff8e908c }"
         val result = ThemeParser.parse(css)
         val style = result["hljs-comment"]
-        assertNotNull("hljs-comment with 8-digit hex should be present", style)
+        assertThat(style).isNotNull()
     }
 
     @Test
@@ -175,6 +172,6 @@ class ThemeParserTest {
         val css = ".hljs-meta .hljs-keyword { color: #8959a8 }"
         val result = ThemeParser.parse(css)
         // The descendant selector should not create an entry for hljs-keyword
-        assertNull("Descendant selector should not create hljs-keyword entry", result["hljs-keyword"])
+        assertThat(result["hljs-keyword"]).isNull()
     }
 }

@@ -3,12 +3,7 @@ package dev.hossain.highlight.engine
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.font.FontWeight
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNotEquals
-import org.junit.Assert.assertNotNull
-import org.junit.Assert.assertNull
-import org.junit.Assert.assertSame
-import org.junit.Assert.assertTrue
+import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 
 class HighlightThemeTest {
@@ -25,33 +20,33 @@ class HighlightThemeTest {
     @Test
     fun `fromCss produces non-empty colorMap for valid CSS`() {
         val theme = HighlightTheme.fromCss(sampleCss, "test")
-        assertTrue("Expected non-empty color map", theme.colorMap.isNotEmpty())
+        assertThat(theme.colorMap).isNotEmpty()
     }
 
     @Test
     fun `fromCss extracts keyword color correctly`() {
         val theme = HighlightTheme.fromCss(sampleCss, "test")
         val style = theme.colorMap["hljs-keyword"]
-        assertNotNull("hljs-keyword should be present", style)
-        assertEquals(Color(0xFF8959a8.toInt()), style!!.color)
+        assertThat(style).isNotNull()
+        assertThat(style!!.color).isEqualTo(Color(0xFF8959a8.toInt()))
     }
 
     @Test
     fun `fromCss extracts base hljs rule`() {
         val theme = HighlightTheme.fromCss(sampleCss, "test")
-        assertNotNull("hljs base rule should be present", theme.colorMap["hljs"])
+        assertThat(theme.colorMap["hljs"]).isNotNull()
     }
 
     @Test
     fun `fromCss produces empty colorMap for blank CSS`() {
         val theme = HighlightTheme.fromCss("", "empty")
-        assertTrue("Empty CSS should produce empty colorMap", theme.colorMap.isEmpty())
+        assertThat(theme.colorMap).isEmpty()
     }
 
     @Test
     fun `fromCss produces empty colorMap for CSS with no hljs selectors`() {
         val theme = HighlightTheme.fromCss("body { color: red; }", "no-hljs")
-        assertTrue("CSS without hljs selectors should produce empty colorMap", theme.colorMap.isEmpty())
+        assertThat(theme.colorMap).isEmpty()
     }
 
     // ── fromColorMap ──────────────────────────────────────────────────────────
@@ -65,8 +60,8 @@ class HighlightThemeTest {
                 "hljs-string" to SpanStyle(color = Color.Green),
             )
         val theme = HighlightTheme.fromColorMap(name = "custom", colorMap = map)
-        assertEquals(3, theme.colorMap.size)
-        assertEquals(Color.Blue, theme.colorMap["hljs-keyword"]!!.color)
+        assertThat(theme.colorMap).hasSize(3)
+        assertThat(theme.colorMap["hljs-keyword"]!!.color).isEqualTo(Color.Blue)
     }
 
     @Test
@@ -78,7 +73,7 @@ class HighlightThemeTest {
                 colorMap = map,
                 backgroundColor = Color.Red,
             )
-        assertEquals(Color.Red, theme.backgroundColor)
+        assertThat(theme.backgroundColor).isEqualTo(Color.Red)
     }
 
     @Test
@@ -90,7 +85,7 @@ class HighlightThemeTest {
                 colorMap = map,
                 defaultTextColor = Color.Green,
             )
-        assertEquals(Color.Green, theme.defaultTextColor)
+        assertThat(theme.defaultTextColor).isEqualTo(Color.Green)
     }
 
     @Test
@@ -100,13 +95,13 @@ class HighlightThemeTest {
         // Mutate the original map after theme creation
         mutable["hljs-keyword"] = SpanStyle(color = Color.Red)
         // Theme should still have the original color
-        assertEquals(Color.Blue, theme.colorMap["hljs-keyword"]?.color)
+        assertThat(theme.colorMap["hljs-keyword"]?.color).isEqualTo(Color.Blue)
     }
 
     @Test
     fun `fromColorMap with empty map has empty colorMap`() {
         val theme = HighlightTheme.fromColorMap("empty", emptyMap())
-        assertTrue(theme.colorMap.isEmpty())
+        assertThat(theme.colorMap).isEmpty()
     }
 
     // ── backgroundColor / defaultTextColor ───────────────────────────────────
@@ -114,25 +109,25 @@ class HighlightThemeTest {
     @Test
     fun `backgroundColor is derived from hljs base rule`() {
         val theme = HighlightTheme.fromCss(sampleCss, "test")
-        assertEquals(Color(0xFFffffff.toInt()), theme.backgroundColor)
+        assertThat(theme.backgroundColor).isEqualTo(Color(0xFFffffff.toInt()))
     }
 
     @Test
     fun `defaultTextColor is derived from hljs base rule`() {
         val theme = HighlightTheme.fromCss(sampleCss, "test")
-        assertEquals(Color(0xFF4d4d4c.toInt()), theme.defaultTextColor)
+        assertThat(theme.defaultTextColor).isEqualTo(Color(0xFF4d4d4c.toInt()))
     }
 
     @Test
     fun `backgroundColor is Unspecified when hljs rule has no background`() {
         val theme = HighlightTheme.fromCss(".hljs-keyword{color:#8959a8}", "no-bg")
-        assertEquals(Color.Unspecified, theme.backgroundColor)
+        assertThat(theme.backgroundColor).isEqualTo(Color.Unspecified)
     }
 
     @Test
     fun `defaultTextColor is Unspecified when hljs rule has no color`() {
         val theme = HighlightTheme.fromCss(".hljs{background:#ffffff}", "no-text")
-        assertEquals(Color.Unspecified, theme.defaultTextColor)
+        assertThat(theme.defaultTextColor).isEqualTo(Color.Unspecified)
     }
 
     @Test
@@ -142,7 +137,7 @@ class HighlightThemeTest {
                 name = "no-hljs",
                 colorMap = mapOf("hljs-keyword" to SpanStyle(color = Color.Blue)),
             )
-        assertEquals(Color.Unspecified, theme.backgroundColor)
+        assertThat(theme.backgroundColor).isEqualTo(Color.Unspecified)
     }
 
     // ── colorMap lazy initialization ──────────────────────────────────────────
@@ -152,7 +147,7 @@ class HighlightThemeTest {
         val theme = HighlightTheme.fromCss(sampleCss, "lazy-test")
         val first = theme.colorMap
         val second = theme.colorMap
-        assertSame("colorMap should be the same cached instance", first, second)
+        assertThat(first).isSameInstanceAs(second)
     }
 
     // ── equals / hashCode / toString ─────────────────────────────────────────
@@ -161,27 +156,27 @@ class HighlightThemeTest {
     fun `themes with same name are equal`() {
         val a = HighlightTheme.fromCss(sampleCss, "same")
         val b = HighlightTheme.fromColorMap("same", emptyMap())
-        assertEquals(a, b)
+        assertThat(a).isEqualTo(b)
     }
 
     @Test
     fun `themes with different names are not equal`() {
         val a = HighlightTheme.fromCss(sampleCss, "alpha")
         val b = HighlightTheme.fromCss(sampleCss, "beta")
-        assertNotEquals(a, b)
+        assertThat(a).isNotEqualTo(b)
     }
 
     @Test
     fun `themes with same name have same hashCode`() {
         val a = HighlightTheme.fromCss(sampleCss, "same")
         val b = HighlightTheme.fromColorMap("same", emptyMap())
-        assertEquals(a.hashCode(), b.hashCode())
+        assertThat(a.hashCode()).isEqualTo(b.hashCode())
     }
 
     @Test
     fun `toString contains the theme name`() {
         val theme = HighlightTheme.fromCss(sampleCss, "my-theme")
-        assertTrue("toString should include the name", theme.toString().contains("my-theme"))
+        assertThat(theme.toString()).contains("my-theme")
     }
 
     // ── name property ─────────────────────────────────────────────────────────
@@ -189,7 +184,7 @@ class HighlightThemeTest {
     @Test
     fun `name property returns the value passed to factory`() {
         val theme = HighlightTheme.fromCss(sampleCss, "expected-name")
-        assertEquals("expected-name", theme.name)
+        assertThat(theme.name).isEqualTo("expected-name")
     }
 
     // ── fromColorMap with bold FontWeight entry ───────────────────────────────
@@ -198,7 +193,7 @@ class HighlightThemeTest {
     fun `fromColorMap preserves FontWeight in SpanStyle`() {
         val map = mapOf("hljs-strong" to SpanStyle(fontWeight = FontWeight.Bold, color = Color.Yellow))
         val theme = HighlightTheme.fromColorMap("bold-test", map)
-        assertEquals(FontWeight.Bold, theme.colorMap["hljs-strong"]?.fontWeight)
+        assertThat(theme.colorMap["hljs-strong"]?.fontWeight).isEqualTo(FontWeight.Bold)
     }
 
     // ── theme not equal to non-HighlightTheme ─────────────────────────────────
@@ -206,8 +201,8 @@ class HighlightThemeTest {
     @Test
     fun `theme is not equal to non-HighlightTheme object`() {
         val theme = HighlightTheme.fromCss(sampleCss, "test")
-        assertNotEquals(theme, "test")
-        assertNotEquals(theme, null)
+        assertThat(theme).isNotEqualTo("test")
+        assertThat(theme).isNotEqualTo(null)
     }
 
     // ── fromCss colorMap entries match ThemeParser directly ──────────────────
@@ -216,7 +211,7 @@ class HighlightThemeTest {
     fun `fromCss colorMap matches direct ThemeParser output`() {
         val expected = ThemeParser.parse(sampleCss)
         val theme = HighlightTheme.fromCss(sampleCss, "match-test")
-        assertEquals(expected, theme.colorMap)
+        assertThat(theme.colorMap).isEqualTo(expected)
     }
 
     // ── hljs keyword absent gives null entry ─────────────────────────────────
@@ -224,6 +219,6 @@ class HighlightThemeTest {
     @Test
     fun `colorMap returns null for unknown class`() {
         val theme = HighlightTheme.fromCss(sampleCss, "unknown")
-        assertNull(theme.colorMap["hljs-does-not-exist"])
+        assertThat(theme.colorMap["hljs-does-not-exist"]).isNull()
     }
 }
