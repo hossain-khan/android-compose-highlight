@@ -375,9 +375,7 @@ fun SyntaxHighlightedCode(
     showLanguageLabel: Boolean = true,
     showCopyButton: Boolean = true,
     onCopyClick: ((String) -> Unit)? = null,  // null = use default clipboard
-    fontFamily: FontFamily = FontFamily.Monospace,
-    fontSize: TextUnit = 13.sp,
-    lineHeight: TextUnit = 20.sp,
+    style: CodeBlockStyle = CodeBlockStyle.Default,  // includes textStyle for typography
 )
 ```
 

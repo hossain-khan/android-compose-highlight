@@ -62,7 +62,7 @@ import kotlinx.coroutines.launch
  * Sections are organized into tabs:
  * - **Languages**: highlights SAMPLES across different languages (original demo).
  * - **Styling**: demonstrates [CodeBlockStyle] variants and custom style parameters.
- * - **Typography**: shows [SyntaxHighlightedCode] with different fontSize/lineHeight/fontFamily.
+ * - **Typography**: shows [SyntaxHighlightedCode] typography customization via [CodeBlockStyle.textStyle].
  * - **Toggles**: shows all boolean flag combinations (line numbers, language label, copy button).
  * - **Callbacks**: demonstrates `onHighlightComplete` and `onCopyClick` callbacks of [SyntaxHighlightedCode].
  * - **Themes**: exercises every [HighlightTheme] factory method.

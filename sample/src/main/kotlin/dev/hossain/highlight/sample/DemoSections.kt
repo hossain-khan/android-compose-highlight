@@ -161,9 +161,9 @@ internal fun StylingSection() {
 
 /**
  * Demonstrates [SyntaxHighlightedCode] typography customization via [CodeBlockStyle.textStyle]:
- * - `fontSize` variants
- * - `lineHeight` variants
- * - `fontFamily` variants
+ * - `textStyle.copy(fontSize = ...)` variants
+ * - `textStyle.copy(lineHeight = ...)` variants
+ * - `textStyle.copy(fontFamily = ...)` variants
  */
 @Composable
 internal fun TypographySection() {
