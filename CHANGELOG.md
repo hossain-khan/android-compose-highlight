@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+## [0.8.0] - 2026-05-10
+
+### Changed
+- **Updated target SDK from 37 to 36** — Android 17 (API 37) is in late beta; using stable API 36 (Android 12) for production compatibility while maintaining minSdk 24.
+
 ## [0.7.0] - 2026-05-09
 
 ### Added
