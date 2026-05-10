@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased]
+## [0.9.0] - 2026-05-10
 
 ### Added
 - **`SyntaxHighlightedCodeDefaults` object** — new top-level object that exposes all default
