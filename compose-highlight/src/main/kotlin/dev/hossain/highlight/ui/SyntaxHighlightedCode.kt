@@ -148,8 +148,8 @@ fun SyntaxHighlightedCode(
             ?: textColor.copy(alpha = 0.4f)
 
     // Apply the theme's foreground color on top of the caller-supplied text style.
-    val codeTextStyle = style.textStyle.copy(color = textColor)
-    val lineNumTextStyle = style.textStyle.copy(color = lineNumberColor)
+    val themedCodeStyle = style.textStyle.copy(color = textColor)
+    val themedLineNumStyle = style.textStyle.copy(color = lineNumberColor)
 
     Surface(
         modifier = modifier,
@@ -211,15 +211,15 @@ fun SyntaxHighlightedCode(
                             LineNumberedCode(
                                 code = code,
                                 highlighted = highlighted,
-                                codeTextStyle = codeTextStyle,
-                                lineNumTextStyle = lineNumTextStyle,
+                                codeTextStyle = themedCodeStyle,
+                                lineNumTextStyle = themedLineNumStyle,
                                 style = style,
                             )
                         } else {
                             Text(
                                 text = highlighted ?: AnnotatedString(code),
                                 modifier = Modifier.padding(style.padding),
-                                style = codeTextStyle,
+                                style = themedCodeStyle,
                             )
                         }
                     }

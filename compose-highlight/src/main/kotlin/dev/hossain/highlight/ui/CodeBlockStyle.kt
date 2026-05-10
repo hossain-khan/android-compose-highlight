@@ -6,6 +6,7 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import dev.hossain.highlight.engine.HighlightTheme
 
 /**
  * Visual style configuration for [SyntaxHighlightedCode].
@@ -65,7 +66,7 @@ data class CodeBlockStyle(
      *
      * Defaults to [SyntaxHighlightedCodeDefaults.codeTextStyle] — monospace font, 13 sp, 20 sp
      * line height. The theme's foreground color is applied on top of this style at render time,
-     * so [TextStyle.color] set here is overridden by the active [dev.hossain.highlight.engine.HighlightTheme].
+     * so [TextStyle.color] set here is overridden by the active [HighlightTheme].
      */
     val textStyle: TextStyle = SyntaxHighlightedCodeDefaults.codeTextStyle,
 ) {
