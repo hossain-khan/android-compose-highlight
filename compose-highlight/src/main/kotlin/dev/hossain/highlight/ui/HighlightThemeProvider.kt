@@ -50,8 +50,8 @@ internal val LocalHighlightEngine =
  * ```kotlin
  * // In MainActivity.kt or your root composable:
  * HighlightThemeProvider(
- *     lightHighlightTheme = HighlightTheme.tomorrow(LocalContext.current),
- *     darkHighlightTheme  = HighlightTheme.atomOneDark(LocalContext.current),
+ *     lightHighlightTheme = HighlightTheme.tomorrow(LocalContext.current.applicationContext),
+ *     darkHighlightTheme  = HighlightTheme.atomOneDark(LocalContext.current.applicationContext),
  * ) {
  *     // All SyntaxHighlightedCode composables inside here will use
  *     // the correct theme automatically.
@@ -66,8 +66,8 @@ internal val LocalHighlightEngine =
  * ```kotlin
  * HighlightThemeProvider(
  *     darkTheme           = userPrefersDark,
- *     lightHighlightTheme = HighlightTheme.tomorrow(LocalContext.current),
- *     darkHighlightTheme  = HighlightTheme.tomorrowNight(LocalContext.current),
+ *     lightHighlightTheme = HighlightTheme.tomorrow(LocalContext.current.applicationContext),
+ *     darkHighlightTheme  = HighlightTheme.tomorrowNight(LocalContext.current.applicationContext),
  * ) { ... }
  * ```
  *

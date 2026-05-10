@@ -87,7 +87,7 @@ fun rememberHighlightEngine(): HighlightEngine {
  * recomposition:
  *
  * ```kotlin
- * val theme = remember(context) { HighlightTheme.tomorrow(context) }
+ * val theme = remember(context) { HighlightTheme.tomorrow(context.applicationContext) }
  * val highlighted by rememberHighlightedCode(code, "kotlin", theme)
  * ```
  *
@@ -143,8 +143,8 @@ fun rememberHighlightedCode(
  *     val result by rememberHighlightedCodeBothThemes(
  *         code      = code,
  *         language  = "kotlin",
- *         lightTheme = HighlightTheme.tomorrow(LocalContext.current),
- *         darkTheme  = HighlightTheme.tomorrowNight(LocalContext.current),
+ *         lightTheme = remember { HighlightTheme.tomorrow(LocalContext.current.applicationContext) },
+ *         darkTheme  = remember { HighlightTheme.tomorrowNight(LocalContext.current.applicationContext) },
  *     )
  *     val text = if (isDark) result?.dark else result?.light
  *     Text(text = text ?: AnnotatedString(code))
