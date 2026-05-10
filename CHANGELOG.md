@@ -4,6 +4,44 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+- **`SyntaxHighlightedCodeDefaults` object** — new top-level object that exposes all default
+  values used by `SyntaxHighlightedCode` and `CodeBlockStyle` (`codeTextStyle`, `shape`,
+  `padding`, `headerPadding`, `lineNumberWidth`, `copyButtonSize`). Callers can now discover
+  and override individual defaults without hard-coding magic numbers:
+  ```kotlin
+  CodeBlockStyle(
+      textStyle = SyntaxHighlightedCodeDefaults.codeTextStyle.copy(fontSize = 15.sp),
+  )
+  ```
+
+### Changed
+- **`CodeBlockStyle` gains a `textStyle: TextStyle` property** — font family, font size, and line
+  height are now configured via `CodeBlockStyle.textStyle` (defaulting to
+  `SyntaxHighlightedCodeDefaults.codeTextStyle`: monospace, 13 sp, 20 sp line height).
+- **`SyntaxHighlightedCode`: removed `fontFamily`, `fontSize`, `lineHeight` parameters** —
+  these three top-level parameters are replaced by `CodeBlockStyle.textStyle`. Consolidating
+  typography into `CodeBlockStyle` follows established Compose library patterns (e.g. Material 3,
+  Haze) where all visual style is expressed through a single style object.
+
+  **Migration:** replace individual parameters with `style = CodeBlockStyle(textStyle = ...)`:
+  ```kotlin
+  // Before
+  SyntaxHighlightedCode(code = snippet, language = "kotlin", fontSize = 15.sp, lineHeight = 24.sp)
+
+  // After
+  SyntaxHighlightedCode(
+      code     = snippet,
+      language = "kotlin",
+      style    = CodeBlockStyle(
+          textStyle = SyntaxHighlightedCodeDefaults.codeTextStyle.copy(
+              fontSize   = 15.sp,
+              lineHeight = 24.sp,
+          ),
+      ),
+  )
+  ```
+
 ## [0.8.0] - 2026-05-10
 
 ### Changed

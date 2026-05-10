@@ -40,6 +40,7 @@ import dev.hossain.highlight.engine.HighlightTheme
 import dev.hossain.highlight.sample.R
 import dev.hossain.highlight.ui.CodeBlockStyle
 import dev.hossain.highlight.ui.SyntaxHighlightedCode
+import dev.hossain.highlight.ui.SyntaxHighlightedCodeDefaults
 import dev.hossain.highlight.ui.rememberHighlightedCodeBothThemes
 
 // ── Short snippets reused across all demo sections ──────────────────────────
@@ -159,7 +160,7 @@ internal fun StylingSection() {
 }
 
 /**
- * Demonstrates [SyntaxHighlightedCode] typography parameters:
+ * Demonstrates [SyntaxHighlightedCode] typography customization via [CodeBlockStyle.textStyle]:
  * - `fontSize` variants
  * - `lineHeight` variants
  * - `fontFamily` variants
@@ -170,74 +171,86 @@ internal fun TypographySection() {
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         // Font size variants
-        SubSectionHeader("fontSize = 13.sp (default)")
+        SubSectionHeader("textStyle — fontSize = 13.sp (default)")
         SyntaxHighlightedCode(
             code = PYTHON_SNIPPET,
             language = "python",
             modifier = Modifier.fillMaxWidth(),
-            fontSize = 13.sp,
         )
 
-        SubSectionHeader("fontSize = 15.sp")
+        SubSectionHeader("textStyle — fontSize = 15.sp")
         SyntaxHighlightedCode(
             code = PYTHON_SNIPPET,
             language = "python",
             modifier = Modifier.fillMaxWidth(),
-            fontSize = 15.sp,
+            style =
+                CodeBlockStyle(
+                    textStyle = SyntaxHighlightedCodeDefaults.codeTextStyle.copy(fontSize = 15.sp),
+                ),
         )
 
-        SubSectionHeader("fontSize = 18.sp")
+        SubSectionHeader("textStyle — fontSize = 18.sp")
         SyntaxHighlightedCode(
             code = PYTHON_SNIPPET,
             language = "python",
             modifier = Modifier.fillMaxWidth(),
-            fontSize = 18.sp,
+            style =
+                CodeBlockStyle(
+                    textStyle = SyntaxHighlightedCodeDefaults.codeTextStyle.copy(fontSize = 18.sp),
+                ),
         )
 
         HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
 
         // Line height variants
-        SubSectionHeader("lineHeight = 20.sp (default)")
+        SubSectionHeader("textStyle — lineHeight = 20.sp (default)")
         SyntaxHighlightedCode(
             code = KOTLIN_SNIPPET,
             language = "kotlin",
             modifier = Modifier.fillMaxWidth(),
-            lineHeight = 20.sp,
         )
 
-        SubSectionHeader("lineHeight = 28.sp (spacious)")
+        SubSectionHeader("textStyle — lineHeight = 28.sp (spacious)")
         SyntaxHighlightedCode(
             code = KOTLIN_SNIPPET,
             language = "kotlin",
             modifier = Modifier.fillMaxWidth(),
-            lineHeight = 28.sp,
+            style =
+                CodeBlockStyle(
+                    textStyle = SyntaxHighlightedCodeDefaults.codeTextStyle.copy(lineHeight = 28.sp),
+                ),
         )
 
         HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
 
         // Font family variants
-        SubSectionHeader("fontFamily = FontFamily.Monospace (default)")
+        SubSectionHeader("textStyle — fontFamily = FontFamily.Monospace (default)")
         SyntaxHighlightedCode(
             code = KOTLIN_SNIPPET,
             language = "kotlin",
             modifier = Modifier.fillMaxWidth(),
-            fontFamily = FontFamily.Monospace,
         )
 
-        SubSectionHeader("fontFamily = FontFamily.Serif")
+        SubSectionHeader("textStyle — fontFamily = FontFamily.Serif")
         SyntaxHighlightedCode(
             code = KOTLIN_SNIPPET,
             language = "kotlin",
             modifier = Modifier.fillMaxWidth(),
-            fontFamily = FontFamily.Serif,
+            style =
+                CodeBlockStyle(
+                    textStyle = SyntaxHighlightedCodeDefaults.codeTextStyle.copy(fontFamily = FontFamily.Serif),
+                ),
         )
 
-        SubSectionHeader("fontFamily = FontFamily.SansSerif")
+        SubSectionHeader("textStyle — fontFamily = FontFamily.SansSerif")
         SyntaxHighlightedCode(
             code = KOTLIN_SNIPPET,
             language = "kotlin",
             modifier = Modifier.fillMaxWidth(),
-            fontFamily = FontFamily.SansSerif,
+            style =
+                CodeBlockStyle(
+                    textStyle = SyntaxHighlightedCodeDefaults.codeTextStyle.copy(fontFamily = FontFamily.SansSerif),
+                ),
         )
     }
 }
