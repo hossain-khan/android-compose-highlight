@@ -31,7 +31,7 @@ HighlightThemeProvider(
 
 ### Demo 🎥
 
-https://github.com/user-attachments/assets/7e3e0635-e8f9-46b8-a760-3022a465a65d
+https://github.com/user-attachments/assets/10617b72-9b7c-413b-92b5-a939a34ad6af
 
 ---
 
