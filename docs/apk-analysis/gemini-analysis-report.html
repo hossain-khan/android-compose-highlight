@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>APK Analysis — Gemini Android Syntax Highlighting</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: #1d1d1f; background: #fff; line-height: 1.7;
+    max-width: 960px; margin: 0 auto; padding: 48px 24px 80px;
+  }
+  h1 { font-size: 2rem; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 4px; }
+  .subtitle { color: #6e6e73; font-size: 0.95rem; margin-bottom: 12px; }
+  .back-link { font-size: 0.9rem; margin-bottom: 40px; display: block; }
+  h2 { font-size: 1.35rem; font-weight: 600; margin: 48px 0 16px; padding-bottom: 8px; border-bottom: 1px solid #e5e5e7; }
+  h3 { font-size: 1.05rem; font-weight: 600; margin: 28px 0 10px; }
+  p { margin-bottom: 14px; }
+  a { color: #0066cc; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code {
+    font-family: "SF Mono", "Fira Code", Menlo, Consolas, monospace;
+    font-size: 0.85em; background: #f5f5f7; padding: 2px 6px; border-radius: 4px;
+  }
+  pre {
+    background: #f5f5f7; padding: 16px 20px; border-radius: 8px; overflow-x: auto;
+    font-family: "SF Mono", "Fira Code", Menlo, Consolas, monospace;
+    font-size: 0.82rem; line-height: 1.6; margin: 16px 0 20px;
+  }
+  pre code { background: none; padding: 0; }
+  .summary-box {
+    background: #f9f9fb; border: 1px solid #e5e5e7; border-radius: 10px;
+    padding: 20px 24px; margin: 24px 0 32px;
+  }
+  .summary-box p { margin-bottom: 0; }
+  .badge {
+    display: inline-block; font-size: 0.75rem; font-weight: 600; padding: 3px 10px;
+    border-radius: 12px; vertical-align: middle; margin-left: 8px;
+  }
+  .badge-shell { background: #e8f5e9; color: #2e7d32; }
+  .badge-server { background: #f3e5f5; color: #6a1b9a; }
+  table {
+    width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 0.9rem;
+  }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid #e5e5e7; }
+  th { font-weight: 600; background: #fafafa; }
+  tr:last-child td { border-bottom: none; }
+  .arch {
+    background: #fafafa; border: 1px solid #e0e0e0; border-radius: 8px;
+    padding: 20px; margin: 16px 0 20px; overflow-x: auto;
+  }
+  .arch pre { background: none; padding: 0; margin: 0; font-size: 0.78rem; line-height: 1.55; }
+  .evidence { margin: 12px 0 12px 0; }
+  .evidence summary {
+    cursor: pointer; font-weight: 500; font-size: 0.9rem; color: #0066cc; padding: 4px 0;
+  }
+  .evidence summary:hover { text-decoration: underline; }
+  .evidence-table { margin-top: 8px; }
+  .evidence-table td:first-child { font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 0.8rem; white-space: nowrap; }
+  .section-gemini { border-left: 3px solid #4285f4; padding-left: 20px; }
+  .metric-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px; margin: 20px 0;
+  }
+  .metric {
+    background: #f9f9fb; border: 1px solid #e5e5e7; border-radius: 8px;
+    padding: 16px; text-align: center;
+  }
+  .metric .value { font-size: 1.5rem; font-weight: 700; color: #1d1d1f; }
+  .metric .label { font-size: 0.8rem; color: #6e6e73; margin-top: 4px; }
+  footer { margin-top: 60px; padding-top: 20px; border-top: 1px solid #e5e5e7; color: #86868b; font-size: 0.8rem; }
+</style>
+</head>
+<body>
+
+<h1>APK Syntax Highlighting Analysis</h1>
+<p class="subtitle">Gemini / Google Bard (com.google.android.apps.bard) &mdash; April 26, 2026</p>
+<a class="back-link" href="index.html">&larr; Home</a>
+
+<div class="summary-box">
+  <p><strong>Summary:</strong> Gemini takes the most extreme approach of all four analyzed apps &mdash; it is a <strong>~5 MB thin shell/trampoline</strong> that contains <em>zero</em> local UI rendering logic for conversations, code, or syntax highlighting. The APK's sole purpose is to launch the real Gemini experience hosted inside the Google App (AGSA / <code>com.google.android.googlequicksearchbox</code>). The <code>BardEntryPointActivity</code> creates an intent to AGSA, calls <code>startActivity()</code>, then immediately <code>finish()</code>es itself. There are no bundled JS, CSS, HTML, syntax highlighting libraries, code-related color resources, or monospace fonts. All rendering &mdash; including any syntax highlighting of code blocks &mdash; happens inside AGSA or is driven entirely by the server.</p>
+</div>
+
+<!-- ============================================================ -->
+<h2>Gemini <span class="badge badge-shell">Thin Shell / Trampoline</span></h2>
+<!-- ============================================================ -->
+
+<div class="section-gemini">
+
+<h3>APK at a Glance</h3>
+<div class="metric-grid">
+  <div class="metric">
+    <div class="value">4.8 MB</div>
+    <div class="label">Base APK size</div>
+  </div>
+  <div class="metric">
+    <div class="value">5,317</div>
+    <div class="label">Smali classes</div>
+  </div>
+  <div class="metric">
+    <div class="value">0</div>
+    <div class="label">JS / CSS / HTML files</div>
+  </div>
+  <div class="metric">
+    <div class="value">0</div>
+    <div class="label">Syntax highlighting refs</div>
+  </div>
+</div>
+
+<p>For comparison: ChatGPT's base APK is 49 MB with 60K+ smali classes and bundled markdown/syntax libraries. Claude's is 26 MB with Highlight.js and a custom token bridge. GitHub's is 42 MB with Primer CSS themes and jsoup HTML parsing. Gemini's 4.8 MB APK is an order of magnitude smaller because it ships almost no application logic.</p>
+
+<h3>Approach: Trampoline to Google App (AGSA)</h3>
+<p>The Gemini APK is not a standalone app &mdash; it is a <strong>trampoline</strong>. When the user taps the Gemini icon, <code>BardEntryPointActivity</code> runs through a series of checks (is AGSA installed? Is the version high enough?) and then launches an intent into the Google App:</p>
+
+<pre><code>// Reconstructed from BardEntryPointActivity.smali onCreate()
+Intent intent = new Intent("android.intent.action.VIEW");
+intent.setData(Uri.parse("https://bard.google.com/android?source=bardshell"));
+intent.setPackage("com.google.android.googlequicksearchbox");
+intent.putExtra("shell_app_version", versionCode.toString());
+intent.putExtra("shell_app_on_create", elapsedRealtime);
+startActivity(intent);
+finish();  // Shell immediately exits</code></pre>
+
+<p>The manifest confirms this architecture: <code>BardEntryPointActivity</code> uses <code>android:relinquishTaskIdentity="true"</code> (hands the task stack to the launched activity) and <code>android:theme="@android:style/Theme.Translucent"</code> (invisible to the user during the trampoline).</p>
+
+<h3>What the APK Contains</h3>
+<table>
+  <tr><th>Layer</th><th>Contents</th><th>Syntax Highlighting?</th></tr>
+  <tr><td>Assets</td><td><code>dexopt/</code>, <code>phenotype/</code>, <code>empty_asset_generated_by_bazel~</code></td><td>None</td></tr>
+  <tr><td>JavaScript</td><td>&mdash;</td><td>None (no .js files)</td></tr>
+  <tr><td>CSS</td><td>&mdash;</td><td>None (no .css files)</td></tr>
+  <tr><td>HTML</td><td>&mdash;</td><td>None (no .html files)</td></tr>
+  <tr><td>Fonts</td><td>Google Sans Text (downloadable via GMS)</td><td>No monospace font</td></tr>
+  <tr><td>Colors</td><td>Basic theme colors only</td><td>No code/syntax/token colors</td></tr>
+  <tr><td>Strings</td><td>Application name, widget label, license title</td><td>0 matches for code/syntax/highlight/markdown</td></tr>
+  <tr><td>Smali</td><td>Shell app, widget, Phenotype config, Play Core, WorkManager</td><td>No highlighting libraries</td></tr>
+  <tr><td>Libraries</td><td>AndroidX, Play Core, GMS Phenotype, TikTok (Google experiment framework)</td><td>No syntax/markdown libs</td></tr>
+</table>
+
+<h3>AGSA Version Gating</h3>
+<p>The smali reveals a sophisticated version-checking system before the trampoline fires. The shell app checks if AGSA is installed and whether its version meets minimum thresholds:</p>
+<ul>
+  <li><strong>Pixel 9 path</strong> &mdash; <code>isAgsaAboveMinVersionForPixel9</code>: checks AGSA version against a Pixel 9-specific minimum</li>
+  <li><strong>Android 9+ path</strong> &mdash; <code>isAgsaAboveMinVersionForAndroid9Devices</code>: checks against a general minimum</li>
+  <li><strong>General shell path</strong> &mdash; <code>isAgsaAboveMinVersionSupportingShellApp</code>: fallback version check</li>
+</ul>
+<p>If AGSA is missing or too old, the shell reports <code>AGSA_DISABLED</code>, <code>UPDATE_AGSA</code>, or <code>FAILURE_AGSA_VERSION_TOO_LOW</code> and shows an error or redirect instead of launching the experience.</p>
+
+<h3>Architecture</h3>
+<div class="arch"><pre>
+ User taps Gemini icon
+         │
+         ▼
+ ┌─────────────────────────────────────────────────────────────┐
+ │           Gemini APK (~5 MB thin shell)                     │
+ │           com.google.android.apps.bard                      │
+ │                                                             │
+ │  BardEntryPointActivity (Theme.Translucent)                 │
+ │  ├── Check: Is AGSA installed?                              │
+ │  ├── Check: Is AGSA version >= minimum?                     │
+ │  │   ├── Pixel 9 minimum version                            │
+ │  │   ├── Android 9+ minimum version                         │
+ │  │   └── General shell minimum version                      │
+ │  ├── Handle share intents (image/text/files)                │
+ │  │   └── Forward as extras to AGSA intent                   │
+ │  │                                                          │
+ │  │  On success:                                             │
+ │  │  ├── Intent(VIEW, "https://bard.google.com/android       │
+ │  │  │         ?source=bardshell")                            │
+ │  │  ├── setPackage("com.google.android.                     │
+ │  │  │         googlequicksearchbox")                         │
+ │  │  ├── putExtra("shell_app_version", ...)                  │
+ │  │  ├── startActivity(intent)                               │
+ │  │  └── finish()  ← shell exits immediately                 │
+ │  │                                                          │
+ │  │  On failure:                                             │
+ │  │  ├── AGSA_DISABLED → error intent                        │
+ │  │  ├── UPDATE_AGSA → error intent                          │
+ │  │  └── FAILURE_AGSA_VERSION_TOO_LOW → error intent         │
+ │  │                                                          │
+ │  ErrorActivity (shown when AGSA unavailable)                │
+ │  InAppReviewActivity                                        │
+ │  RobinToolBarAppWidgetReceiver (home screen widget)         │
+ └─────────────────────────────────────────────────────────────┘
+         │
+         │  Intent → AGSA
+         ▼
+ ┌─────────────────────────────────────────────────────────────┐
+ │   Google App (AGSA) — com.google.android.googlequicksearchbox│
+ │                                                             │
+ │   Contains the actual Gemini UI, conversation rendering,    │
+ │   code block display, and any syntax highlighting logic.    │
+ │                                                             │
+ │   All rendering (including code/syntax) happens here or     │
+ │   is driven by the Gemini server API.                       │
+ └─────────────────────────────────────────────────────────────┘</pre></div>
+
+<h3>Widget</h3>
+<p>The only non-trampoline UI component is a home screen widget (<code>RobinToolBarAppWidgetReceiver</code>) that uses Glance (Jetpack's widget framework). This widget provides quick access buttons but does not render conversation content or code.</p>
+
+<h3>Implications for Syntax Highlighting</h3>
+<p>Since the Gemini shell APK contains <em>zero</em> rendering logic, syntax highlighting for code blocks must happen in one of two places:</p>
+<ol>
+  <li style="margin-bottom: 8px;"><strong>Inside AGSA</strong> &mdash; The Google App likely contains a WebView or native rendering path for Gemini conversations, including code blocks. This could use server-side highlighting (similar to GitHub) or a client-side library bundled within AGSA's much larger APK.</li>
+  <li><strong>Server-side</strong> &mdash; Google's backend could return pre-highlighted HTML/markdown that AGSA simply renders, similar to how GitHub's API returns <code>.pl-*</code> tagged HTML.</li>
+</ol>
+<p>Without decompiling the Google App itself (which is significantly larger and more complex), we cannot determine the exact mechanism. However, the Gemini shell APK definitively does <strong>not</strong> participate in syntax highlighting in any way.</p>
+
+</div>
+
+<!-- ============================================================ -->
+<h2>Comparison: All Four Apps</h2>
+<!-- ============================================================ -->
+
+<table>
+  <tr><th>Aspect</th><th>ChatGPT</th><th>Claude</th><th>GitHub</th><th>Gemini</th></tr>
+  <tr>
+    <td><strong>APK size (base)</strong></td>
+    <td>49 MB</td>
+    <td>26 MB</td>
+    <td>42 MB</td>
+    <td>4.8 MB</td>
+  </tr>
+  <tr>
+    <td><strong>Architecture</strong></td>
+    <td>Standalone app</td>
+    <td>Standalone app</td>
+    <td>Standalone app</td>
+    <td>Thin shell / trampoline</td>
+  </tr>
+  <tr>
+    <td><strong>Where highlighting happens</strong></td>
+    <td>Client-side (native)</td>
+    <td>Client-side (Highlight.js)</td>
+    <td>Server-side (API)</td>
+    <td>Inside AGSA or server</td>
+  </tr>
+  <tr>
+    <td><strong>Syntax engine</strong></td>
+    <td>Custom native Spans</td>
+    <td>Highlight.js v11.10.0</td>
+    <td>Linguist + TreeSitter (server)</td>
+    <td>N/A (not in this APK)</td>
+  </tr>
+  <tr>
+    <td><strong>Rendering surface</strong></td>
+    <td>Jetpack Compose only</td>
+    <td>Native Spans + WebView</td>
+    <td>WebView + native Spans</td>
+    <td>N/A (delegated to AGSA)</td>
+  </tr>
+  <tr>
+    <td><strong>Bundled JS/CSS</strong></td>
+    <td>None</td>
+    <td>highlight.min.js + CSS</td>
+    <td>Primer CSS + markdown.js</td>
+    <td>None</td>
+  </tr>
+  <tr>
+    <td><strong>Markdown parser</strong></td>
+    <td>CommonMark + Markwon</td>
+    <td>Separate code path</td>
+    <td>IntelliJ Markdown + UIToolkit</td>
+    <td>N/A</td>
+  </tr>
+  <tr>
+    <td><strong>Code font</strong></td>
+    <td>System monospace</td>
+    <td>System monospace</td>
+    <td>Roboto Mono (bundled)</td>
+    <td>N/A (no monospace)</td>
+  </tr>
+  <tr>
+    <td><strong>Offline code highlighting</strong></td>
+    <td>Yes</td>
+    <td>Inline: yes / Full-screen: partial</td>
+    <td>No (requires API)</td>
+    <td>No (requires AGSA + server)</td>
+  </tr>
+  <tr>
+    <td><strong>Self-contained</strong></td>
+    <td>Yes</td>
+    <td>Yes</td>
+    <td>Yes</td>
+    <td>No (depends on AGSA)</td>
+  </tr>
+</table>
+
+<!-- ============================================================ -->
+<h2>Conclusions</h2>
+<!-- ============================================================ -->
+
+<p><strong>Gemini</strong> represents the most radical architecture among the four apps: it doesn't even attempt to render its own UI. The ~5 MB APK is a pure launcher shell that trampolines into the Google App, where the actual Gemini experience lives. This is a deliberate Google strategy &mdash; by embedding Gemini inside AGSA, Google can update the conversational AI experience through Google App updates without requiring a separate Gemini app update, and can share infrastructure (authentication, settings, search integration) with the broader Google ecosystem.</p>
+
+<p>The tradeoff is a hard dependency on the Google App &mdash; without AGSA installed at a sufficient version, the Gemini shell shows an error. The version-gating logic (with separate thresholds for Pixel 9, Android 9+ devices, and a general minimum) reveals that AGSA's Gemini support has evolved through multiple releases with device-specific rollouts.</p>
+
+<p>For the specific question of syntax highlighting: <strong>the Gemini shell APK provides no evidence whatsoever about how code is highlighted</strong>. That logic lives entirely within AGSA or is server-driven. Analyzing AGSA itself would require a separate investigation of a much larger and more complex APK.</p>
+
+<footer>
+  <p>Analysis performed on APK extracted via ADB from an emulator. Decoded using apktool 3.0.2. All findings based on static analysis of smali bytecode, bundled assets, and resource files.</p>
+  <p>Companion document: <a href="gemini-technical-reference.html">Technical Reference</a> | Previous analyses: <a href="syntax-on-3p-app-analysis-report.html">ChatGPT vs Claude</a> | <a href="github-analysis-report.html">GitHub</a></p>
+</footer>
+
+</body>
+</html>

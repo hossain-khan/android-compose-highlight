@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Android APK Syntax Highlighting Analysis</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: #1d1d1f; background: #fff; line-height: 1.7;
+    max-width: 960px; margin: 0 auto; padding: 48px 24px 80px;
+  }
+  h1 { font-size: 2rem; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 4px; }
+  .subtitle { color: #6e6e73; font-size: 0.95rem; margin-bottom: 40px; }
+  h2 { font-size: 1.4rem; font-weight: 700; margin: 48px 0 16px; }
+  p { margin-bottom: 14px; }
+  a { color: #0066cc; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  .summary-box {
+    background: #f9f9fb; border: 1px solid #e5e5e7; border-radius: 12px;
+    padding: 20px 24px; margin-bottom: 40px;
+  }
+  .summary-box p { margin-bottom: 10px; }
+  .summary-box p:last-child { margin-bottom: 0; }
+
+  .app-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 24px; }
+  @media (max-width: 640px) { .app-grid { grid-template-columns: 1fr; } }
+
+  .app-card {
+    border: 1px solid #e5e5e7; border-radius: 12px; padding: 24px;
+    transition: box-shadow 0.15s ease, border-color 0.15s ease;
+  }
+  .app-card:hover { border-color: #c5c5c7; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+
+  .app-name {
+    font-size: 1.15rem; font-weight: 700; margin-bottom: 2px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .app-pkg { font-size: 0.78rem; color: #86868b; font-family: "SF Mono", Menlo, monospace; margin-bottom: 10px; }
+  .app-desc { font-size: 0.9rem; color: #515154; margin-bottom: 14px; line-height: 1.55; }
+  .app-links { display: flex; gap: 16px; flex-wrap: wrap; }
+  .app-links a {
+    font-size: 0.85rem; font-weight: 500; display: inline-flex; align-items: center; gap: 4px;
+  }
+  .app-links a::before { content: ""; display: inline-block; width: 4px; height: 4px; border-radius: 50%; }
+  .link-report::before { background: #0066cc; }
+  .link-reference::before { background: #86868b; }
+
+  .badge {
+    display: inline-block; font-size: 0.7rem; font-weight: 600; padding: 2px 8px;
+    border-radius: 10px; text-transform: uppercase; letter-spacing: 0.04em;
+  }
+  .badge-hljs { background: #e8f5e9; color: #2e7d32; }
+  .badge-server { background: #e3f2fd; color: #1565c0; }
+  .badge-none { background: #fafafa; color: #86868b; border: 1px solid #e5e5e7; }
+
+  .comparison-table { width: 100%; border-collapse: collapse; margin: 24px 0; font-size: 0.85rem; }
+  .comparison-table th {
+    text-align: left; padding: 10px 12px; border-bottom: 2px solid #e5e5e7;
+    font-weight: 600; font-size: 0.8rem; color: #6e6e73; text-transform: uppercase; letter-spacing: 0.04em;
+  }
+  .comparison-table td { padding: 10px 12px; border-bottom: 1px solid #f0f0f2; vertical-align: top; }
+  .comparison-table tr:last-child td { border-bottom: none; }
+  .comparison-table tbody tr:hover { background: #fafafa; }
+  .col-app { width: 18%; font-weight: 600; }
+
+  .swatch {
+    display: inline-block; width: 10px; height: 10px; border-radius: 2px;
+    vertical-align: middle; margin-right: 3px; border: 1px solid rgba(0,0,0,0.1);
+  }
+
+  .method-tag {
+    display: inline-block; font-size: 0.72rem; padding: 1px 6px; border-radius: 4px;
+    font-weight: 500;
+  }
+  .method-client { background: #e8f5e9; color: #2e7d32; }
+  .method-server { background: #e3f2fd; color: #1565c0; }
+  .method-none { background: #f5f5f7; color: #86868b; }
+
+  footer { margin-top: 60px; padding-top: 20px; border-top: 1px solid #e5e5e7; color: #86868b; font-size: 0.8rem; }
+</style>
+</head>
+<body>
+
+<h1>Android Syntax Highlighting Analysis</h1>
+<p class="subtitle">How top AI &amp; developer Android apps implement in-app code syntax highlighting &mdash; April 2026</p>
+
+<div class="summary-box">
+  <p>This project investigates how five major Android apps render syntax-highlighted source code in chat responses. Each APK was extracted from a device via ADB, decoded with apktool, and analyzed through static inspection of smali bytecode, bundled assets, and resource files.</p>
+  <p>Three of five apps use <strong>Highlight.js</strong> running in a hidden WebView for tokenization, but differ significantly in how they render the result: Claude and Perplexity parse the HTML output into native Compose spans, while ChatGPT renders entirely in a WebView. GitHub takes a completely different approach with server-side highlighting. Gemini delegates everything to the Google App (AGSA) and has no local highlighting capability.</p>
+</div>
+
+<h2>At a Glance</h2>
+
+<table class="comparison-table">
+  <thead>
+    <tr>
+      <th class="col-app">App</th>
+      <th>Method</th>
+      <th>Engine</th>
+      <th>Theme</th>
+      <th>Languages</th>
+      <th>Rendering</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="col-app">ChatGPT</td>
+      <td><span class="method-tag method-client">Client</span></td>
+      <td>Highlight.js v11.9.0</td>
+      <td>Custom (ChatGPT branded)</td>
+      <td>41</td>
+      <td>WebView</td>
+    </tr>
+    <tr>
+      <td class="col-app">Claude</td>
+      <td><span class="method-tag method-client">Client</span></td>
+      <td>Highlight.js v11.10.0</td>
+      <td>Base16 Tomorrow / Night</td>
+      <td>192</td>
+      <td>Native (Compose spans)</td>
+    </tr>
+    <tr>
+      <td class="col-app">GitHub</td>
+      <td><span class="method-tag method-server">Server</span></td>
+      <td>Server-side (Linguist)</td>
+      <td>Primer Light / Dark</td>
+      <td>All (server)</td>
+      <td>Native (custom spans)</td>
+    </tr>
+    <tr>
+      <td class="col-app">Gemini</td>
+      <td><span class="method-tag method-none">None</span></td>
+      <td>N/A (thin shell to AGSA)</td>
+      <td>N/A</td>
+      <td>N/A</td>
+      <td>N/A</td>
+    </tr>
+    <tr>
+      <td class="col-app">Perplexity</td>
+      <td><span class="method-tag method-client">Client</span></td>
+      <td>Highlight.js v11.11.1</td>
+      <td>Base16 Tomorrow / Night</td>
+      <td>192</td>
+      <td>Native (Compose spans)</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>App Investigations</h2>
+
+<div class="app-grid">
+
+  <div class="app-card">
+    <div class="app-name">ChatGPT <span class="badge badge-hljs">Highlight.js</span></div>
+    <div class="app-pkg">com.openai.chatgpt</div>
+    <div class="app-desc">
+      Bundles Highlight.js v11.9.0 with 41 curated languages. Renders code entirely inside a WebView using custom ChatGPT-branded CSS themes. The simplest implementation &mdash; no native span conversion.
+    </div>
+    <div class="app-links">
+      <a class="link-report" href="syntax-on-3p-app-analysis-report.html">Analysis Report</a>
+      <a class="link-reference" href="technical-reference.html">Technical Reference</a>
+    </div>
+  </div>
+
+  <div class="app-card">
+    <div class="app-name">Claude <span class="badge badge-hljs">Highlight.js</span></div>
+    <div class="app-pkg">com.anthropic.claude</div>
+    <div class="app-desc">
+      Uses Highlight.js v11.10.0 with all 192 languages. Hidden WebView tokenizes code, then HTML is parsed into native Jetpack Compose <code>AnnotatedString</code> spans via jsoup. Base64 data: URL approach for loading assets.
+    </div>
+    <div class="app-links">
+      <a class="link-report" href="syntax-on-3p-app-analysis-report.html">Analysis Report</a>
+      <a class="link-reference" href="technical-reference.html">Technical Reference</a>
+    </div>
+  </div>
+
+  <div class="app-card">
+    <div class="app-name">GitHub <span class="badge badge-server">Server-side</span></div>
+    <div class="app-pkg">com.github.android</div>
+    <div class="app-desc">
+      No client-side highlighting engine. Code arrives pre-highlighted from GitHub's servers with Primer syntax CSS classes. The app maps <code>pl-*</code> classes to colors and renders via custom <code>StyleSpan</code> subclasses.
+    </div>
+    <div class="app-links">
+      <a class="link-report" href="github-analysis-report.html">Analysis Report</a>
+      <a class="link-reference" href="github-technical-reference.html">Technical Reference</a>
+    </div>
+  </div>
+
+  <div class="app-card">
+    <div class="app-name">Gemini <span class="badge badge-none">None</span></div>
+    <div class="app-pkg">com.google.android.apps.bard</div>
+    <div class="app-desc">
+      A ~5 MB thin shell that immediately launches the Google App (AGSA) via intent with a Bard deep link, then calls <code>finish()</code>. Contains zero highlighting assets, libraries, or rendering code. All functionality lives in AGSA.
+    </div>
+    <div class="app-links">
+      <a class="link-report" href="gemini-analysis-report.html">Analysis Report</a>
+      <a class="link-reference" href="gemini-technical-reference.html">Technical Reference</a>
+    </div>
+  </div>
+
+  <div class="app-card">
+    <div class="app-name">Perplexity <span class="badge badge-hljs">Highlight.js</span></div>
+    <div class="app-pkg">ai.perplexity.app.android</div>
+    <div class="app-desc">
+      Highlight.js v11.11.1 (newest) with 192 languages. Uses <code>WebViewAssetLoader</code> for the hidden WebView, parses CSS themes at runtime into a <code>LinkedHashMap</code>, and produces both light and dark Compose spans in a single pass. Ships Berkeley Mono and a proprietary Perplexity Mono font.
+    </div>
+    <div class="app-links">
+      <a class="link-report" href="perplexity-analysis-report.html">Analysis Report</a>
+      <a class="link-reference" href="perplexity-technical-reference.html">Technical Reference</a>
+    </div>
+  </div>
+
+</div>
+
+<h2>Key Findings</h2>
+
+<div class="summary-box">
+  <p><strong>Highlight.js dominates.</strong> Three of the four apps that implement highlighting use Highlight.js, but each at a different version (v11.9.0, v11.10.0, v11.11.1). None use alternatives like Prism.js or Shiki.</p>
+  <p><strong>Hidden WebView is the standard pattern.</strong> All three Highlight.js apps run the library in an off-screen WebView, but differ in how they load it: ChatGPT uses file:// URLs, Claude uses Base64 data: URLs, and Perplexity uses WebViewAssetLoader with the appassets.androidplatform.net scheme.</p>
+  <p><strong>Native rendering is the trend.</strong> Claude and Perplexity both convert Highlight.js HTML output into native Jetpack Compose spans (AnnotatedString), giving them native text selection, accessibility, and performance. ChatGPT keeps everything in the WebView. GitHub uses native spans too, but from server-provided HTML.</p>
+  <p><strong>Perplexity is the most sophisticated.</strong> It produces both light and dark AnnotatedStrings from a single JS call, uses runtime CSS parsing instead of hardcoded color maps, ships commercial monospace fonts, and is on the newest Highlight.js version.</p>
+  <p><strong>Gemini is a shell.</strong> The 5 MB APK contains zero functionality &mdash; it exists only to launch the Google App where the real Gemini experience (and any highlighting) lives.</p>
+</div>
+
+<footer>
+  <p>Analysis performed via static APK inspection &mdash; ADB extraction, apktool 3.0.2 decoding, smali bytecode analysis. No runtime instrumentation or decompilation tools were used. April 2026.</p>
+</footer>
+
+</body>
+</html>

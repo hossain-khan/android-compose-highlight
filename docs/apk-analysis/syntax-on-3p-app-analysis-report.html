@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>APK Syntax Highlighting Analysis — ChatGPT vs Claude</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: #1d1d1f; background: #fff; line-height: 1.7;
+    max-width: 960px; margin: 0 auto; padding: 48px 24px 80px;
+  }
+  h1 { font-size: 2rem; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 4px; }
+  .subtitle { color: #6e6e73; font-size: 0.95rem; margin-bottom: 12px; }
+  .back-link { font-size: 0.9rem; margin-bottom: 40px; display: block; }
+  h2 { font-size: 1.35rem; font-weight: 600; margin: 48px 0 16px; padding-bottom: 8px; border-bottom: 1px solid #e5e5e7; }
+  h3 { font-size: 1.05rem; font-weight: 600; margin: 28px 0 10px; }
+  p { margin-bottom: 14px; }
+  a { color: #0066cc; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code {
+    font-family: "SF Mono", "Fira Code", "Fira Mono", Menlo, Consolas, monospace;
+    font-size: 0.85em; background: #f5f5f7; padding: 2px 6px; border-radius: 4px;
+  }
+  pre {
+    background: #f5f5f7; padding: 16px 20px; border-radius: 8px; overflow-x: auto;
+    font-family: "SF Mono", "Fira Code", "Fira Mono", Menlo, Consolas, monospace;
+    font-size: 0.82rem; line-height: 1.6; margin: 16px 0 20px;
+  }
+  pre code { background: none; padding: 0; }
+  .summary-box {
+    background: #f9f9fb; border: 1px solid #e5e5e7; border-radius: 10px;
+    padding: 20px 24px; margin: 24px 0 32px;
+  }
+  .summary-box p { margin-bottom: 0; }
+  .badge {
+    display: inline-block; font-size: 0.75rem; font-weight: 600; padding: 3px 10px;
+    border-radius: 12px; vertical-align: middle; margin-left: 8px;
+  }
+  .badge-native { background: #e8f5e9; color: #2e7d32; }
+  .badge-hybrid { background: #e3f2fd; color: #1565c0; }
+  table {
+    width: 100%; border-collapse: collapse; margin: 20px 0;
+    font-size: 0.9rem;
+  }
+  th, td {
+    text-align: left; padding: 10px 14px;
+    border-bottom: 1px solid #e5e5e7;
+  }
+  th { font-weight: 600; background: #fafafa; }
+  tr:last-child td { border-bottom: none; }
+  .arch {
+    background: #fafafa; border: 1px solid #e0e0e0; border-radius: 8px;
+    padding: 20px; margin: 16px 0 20px; overflow-x: auto;
+  }
+  .arch pre { background: none; padding: 0; margin: 0; font-size: 0.78rem; line-height: 1.55; }
+  .evidence { margin: 12px 0 12px 0; }
+  .evidence summary {
+    cursor: pointer; font-weight: 500; font-size: 0.9rem;
+    color: #0066cc; padding: 4px 0;
+  }
+  .evidence summary:hover { text-decoration: underline; }
+  .evidence-table { margin-top: 8px; }
+  .evidence-table td:first-child { font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 0.8rem; white-space: nowrap; }
+  .section-chatgpt { border-left: 3px solid #10a37f; padding-left: 20px; }
+  .section-claude { border-left: 3px solid #d97706; padding-left: 20px; }
+  .flow-step {
+    display: flex; align-items: flex-start; gap: 12px; margin: 8px 0;
+  }
+  .flow-num {
+    flex-shrink: 0; width: 24px; height: 24px; border-radius: 50%;
+    background: #e5e5e7; font-size: 0.75rem; font-weight: 700;
+    display: flex; align-items: center; justify-content: center; margin-top: 2px;
+  }
+  .flow-text { flex: 1; }
+  footer { margin-top: 60px; padding-top: 20px; border-top: 1px solid #e5e5e7; color: #86868b; font-size: 0.8rem; }
+</style>
+</head>
+<body>
+
+<h1>APK Syntax Highlighting Analysis</h1>
+<p class="subtitle">ChatGPT vs Claude Android Apps &mdash; April 21, 2026</p>
+<a class="back-link" href="index.html">&larr; Home</a>
+
+<div class="summary-box">
+  <p><strong>Summary:</strong> ChatGPT uses a fully native Android rendering pipeline &mdash; CommonMark parsing fed through a custom Jetpack Compose rich-text library with Android Span-based coloring. Claude takes a hybrid approach, bundling <strong>Highlight.js v11.10.0</strong> locally and running it through a custom token bridge that feeds native <code>ForegroundColorSpan</code> for inline chat, while using a WebView with full Highlight.js rendering for expanded code views.</p>
+</div>
+
+<!-- ============================================================ -->
+<h2>ChatGPT <span class="badge badge-native">Fully Native</span></h2>
+<!-- ============================================================ -->
+
+<div class="section-chatgpt">
+
+<h3>Approach</h3>
+<p>ChatGPT renders syntax-highlighted code entirely through native Android APIs. Markdown is parsed into an AST by CommonMark, then rendered via OpenAI's custom fork of the <a href="https://github.com/halilozercan/compose-richtext">compose-richtext</a> library into Jetpack Compose components. Syntax coloring is applied using Android's <code>SpannableStringBuilder</code> with <code>ForegroundColorSpan</code>, <code>StyleSpan</code>, and <code>TypefaceSpan</code>.</p>
+
+<h3>Libraries Identified</h3>
+<table>
+  <tr><th>Library</th><th>Version</th><th>Role</th></tr>
+  <tr><td><code>org.commonmark:commonmark</code></td><td>0.26.0</td><td>Markdown &rarr; AST parsing</td></tr>
+  <tr><td><code>org.commonmark:commonmark-ext-gfm-tables</code></td><td>&mdash;</td><td>GFM table support</td></tr>
+  <tr><td><code>org.commonmark:commonmark-ext-gfm-strikethrough</code></td><td>&mdash;</td><td>GFM strikethrough</td></tr>
+  <tr><td><code>org.commonmark:commonmark-ext-autolink</code></td><td>&mdash;</td><td>Auto-linking URLs</td></tr>
+  <tr><td><code>io.noties.markwon:core</code></td><td>4.6.2</td><td>Markdown &rarr; Spans rendering</td></tr>
+  <tr><td><code>com.github.openai.compose-richtext:richtext-commonmark</code></td><td>custom commit</td><td>CommonMark &rarr; Compose bridge (OpenAI fork)</td></tr>
+  <tr><td><code>com.github.openai.compose-richtext:richtext-ui-material3</code></td><td>custom commit</td><td>Material 3 rich-text components</td></tr>
+</table>
+
+<h3>Architecture</h3>
+<div class="arch"><pre>
+ Markdown text from API response
+            │
+            ▼
+ ┌──────────────────────────────────┐
+ │  CommonMark Parser (v0.26.0)    │
+ │  Parses fenced code blocks,     │
+ │  detects language identifiers   │
+ └──────────┬───────────────────────┘
+            │ AST
+            ▼
+ ┌──────────────────────────────────┐
+ │  Markwon (v4.6.2)               │
+ │  Converts AST → Android Spans   │
+ └──────────┬───────────────────────┘
+            │
+            ▼
+ ┌──────────────────────────────────┐
+ │  OpenAI compose-richtext fork   │
+ │  richtext-commonmark            │
+ │  richtext-ui-material3          │
+ │  Bridges Spans → Compose UI     │
+ └──────────┬───────────────────────┘
+            │
+            ▼
+ ┌──────────────────────────────────┐
+ │  Android SpannableStringBuilder │
+ │  • ForegroundColorSpan (colors) │
+ │  • StyleSpan (bold / italic)    │
+ │  • TypefaceSpan ("monospace")   │
+ │  • AbsoluteSizeSpan (sizing)    │
+ └──────────┬───────────────────────┘
+            │
+            ▼
+ ┌──────────────────────────────────┐
+ │  Jetpack Compose + Material 3   │
+ │  Code block container with      │
+ │  copy / share controls          │
+ └──────────────────────────────────┘</pre></div>
+
+<h3>Feature Flags</h3>
+<p>Syntax highlighting is gated behind server-side feature flags, allowing A/B testing and gradual rollout:</p>
+<ul>
+  <li><code>android_syntax_highlighting</code> &mdash; primary highlighting toggle</li>
+  <li><code>chatgpt_code_blocks</code> &mdash; code block UI container</li>
+  <li><code>android_message_markdown</code> &mdash; markdown rendering in messages</li>
+</ul>
+
+<details class="evidence">
+  <summary>Key evidence files</summary>
+  <table class="evidence-table">
+    <tr><td>smali/w28.smali</td><td>Feature flag definitions</td></tr>
+    <tr><td>smali_classes2/gr7.smali</td><td>CommonMark parse options</td></tr>
+    <tr><td>smali_classes2/zp10.smali</td><td>Code block UI theming (container colors, borders, shadows)</td></tr>
+    <tr><td>smali_classes2/tw6.smali</td><td>SpannableStringBuilder styling</td></tr>
+    <tr><td>smali_classes2/y020.smali</td><td>ForegroundColorSpan / TypefaceSpan application</td></tr>
+    <tr><td>smali_classes2/tw10.smali</td><td>Span extraction and rendering</td></tr>
+    <tr><td>smali_classes2/s6p.smali</td><td>18+ regex patterns for markdown parsing</td></tr>
+    <tr><td>res/raw/aboutlibraries.json</td><td>Library dependency declarations</td></tr>
+    <tr><td>res/values/strings.xml</td><td>"Copy code", "Share code block" UI strings</td></tr>
+  </table>
+</details>
+
+</div>
+
+<!-- ============================================================ -->
+<h2>Claude <span class="badge badge-hybrid">Highlight.js Hybrid</span></h2>
+<!-- ============================================================ -->
+
+<div class="section-claude">
+
+<h3>Approach</h3>
+<p>Claude bundles <strong>Highlight.js v11.10.0</strong> locally in the APK assets, along with a custom <code>token-highlight.js</code> wrapper that extracts token positions and types as JSON triplets (<code>[start, end, typeId]</code>). The app uses two rendering paths: inline chat code blocks are colored via native <code>ForegroundColorSpan</code> on <code>SpannableString</code>, while full-screen code views use a WebView with Highlight.js and Atom One Dark/Light CSS themes from CDN.</p>
+
+<h3>Libraries &amp; Assets</h3>
+<table>
+  <tr><th>Asset / Library</th><th>Version</th><th>Role</th></tr>
+  <tr><td><code>assets/highlight.min.js</code></td><td>11.10.0</td><td>Core syntax parser &amp; tokenizer (bundled)</td></tr>
+  <tr><td><code>assets/token-highlight.js</code></td><td>custom</td><td>Token extraction wrapper &mdash; maps hljs tokens → numeric IDs</td></tr>
+  <tr><td>Atom One Dark CSS</td><td>11.10.0</td><td>Dark theme (loaded from CDN for WebView)</td></tr>
+  <tr><td>Atom One Light CSS</td><td>11.10.0</td><td>Light theme (loaded from CDN for WebView)</td></tr>
+</table>
+
+<h3>Token Type Mapping</h3>
+<p>The custom <code>token-highlight.js</code> maps Highlight.js CSS classes to 21+ numeric IDs for efficient native processing:</p>
+<pre><code>keyword(1)  string(2)  comment(3)  number(4)  literal(5)
+built_in(6)  type(7)  function(8)  title(9)  params(10)
+variable(11)  attr(12)  attribute(13)  meta(14)  operator(15)
+punctuation(16)  regexp(17)  symbol(18)  class(19)  property(20)
+doctag(21)  ...</code></pre>
+
+<h3>Supported Languages (22)</h3>
+<pre><code>bash  csharp  css  go  graphql  html  java  javascript  json
+kotlin  less  perl  php  python  r  ruby  rust  scala  scss
+swift  sql  typescript</code></pre>
+<p>Falls back to <code>hljs.highlightAuto()</code> for unrecognized language hints.</p>
+
+<h3>Architecture — Dual Rendering Path</h3>
+<div class="arch"><pre>
+ Code block detected in message
+            │
+            ├─────────────────────────────────────┐
+            │                                     │
+    INLINE CHAT PATH                    FULL-SCREEN PATH
+            │                                     │
+            ▼                                     ▼
+ ┌────────────────────────┐        ┌─────────────────────────────┐
+ │  token-highlight.js    │        │  Generate HTML template     │
+ │  (runs in JS engine)   │        │  with highlight.min.js      │
+ │  Returns JSON array:   │        │  + Atom One theme CSS       │
+ │  [start, end, type]    │        │  Code is Base64-encoded     │
+ └──────────┬─────────────┘        └──────────┬──────────────────┘
+            │                                  │
+            ▼                                  ▼
+ ┌────────────────────────┐        ┌─────────────────────────────┐
+ │  Token → Color enum    │        │  WebView renders HTML       │
+ │  (Leue.smali, 41 vals) │        │  hljs.highlight() executes  │
+ │  Maps typeId → color   │        │  Produces styled &lt;span&gt;s    │
+ └──────────┬─────────────┘        └─────────────────────────────┘
+            │
+            ▼
+ ┌────────────────────────┐
+ │  SpannableString       │
+ │  ForegroundColorSpan   │
+ │  per token range       │
+ └──────────┬─────────────┘
+            │
+            ▼
+ ┌────────────────────────┐
+ │  Native TextView       │
+ │  Compose UI            │
+ └────────────────────────┘</pre></div>
+
+<h3>Security Measures</h3>
+<ul>
+  <li><strong>Base64 encoding:</strong> Source code is Base64-encoded before passing to JavaScript, preventing injection</li>
+  <li><strong>URL whitelisting:</strong> WebViewClient restricts resource loading to <code>cdnjs.cloudflare.com</code> only</li>
+  <li><strong>WebView isolation:</strong> Custom <code>shouldInterceptRequest()</code> blocks all other external requests</li>
+</ul>
+
+<details class="evidence">
+  <summary>Key evidence files</summary>
+  <table class="evidence-table">
+    <tr><td>assets/highlight.min.js</td><td>Highlight.js v11.10.0 (~125 KB)</td></tr>
+    <tr><td>assets/token-highlight.js</td><td>Custom token extraction wrapper (~4 KB)</td></tr>
+    <tr><td>smali_classes2/ox2.smali</td><td>Language list + HTML template generator</td></tr>
+    <tr><td>smali_classes2/sz6.smali</td><td>Token-to-SpannableString converter</td></tr>
+    <tr><td>smali_classes2/mz6.smali</td><td>Asset file loader</td></tr>
+    <tr><td>smali_classes2/eue.smali</td><td>41-value token type → color enum</td></tr>
+    <tr><td>smali_classes2/nx2.smali</td><td>WebViewClient with URL whitelist</td></tr>
+    <tr><td>res/values/colors.xml</td><td>Theme color palette</td></tr>
+    <tr><td>res/values-night/colors.xml</td><td>Dark mode colors</td></tr>
+  </table>
+</details>
+
+</div>
+
+<!-- ============================================================ -->
+<h2>Side-by-Side Comparison</h2>
+<!-- ============================================================ -->
+
+<table>
+  <tr><th>Aspect</th><th>ChatGPT</th><th>Claude</th></tr>
+  <tr>
+    <td><strong>Highlighting engine</strong></td>
+    <td>Custom native (Android Spans)</td>
+    <td>Highlight.js v11.10.0</td>
+  </tr>
+  <tr>
+    <td><strong>Rendering surface</strong></td>
+    <td>Jetpack Compose only</td>
+    <td>Native Spans (inline) + WebView (full-screen)</td>
+  </tr>
+  <tr>
+    <td><strong>Markdown parser</strong></td>
+    <td>CommonMark 0.26.0 + Markwon 4.6.2</td>
+    <td>Separate code path (not markdown-driven)</td>
+  </tr>
+  <tr>
+    <td><strong>Theme</strong></td>
+    <td>Material 3 custom colors</td>
+    <td>Atom One Dark / Light</td>
+  </tr>
+  <tr>
+    <td><strong>Language support</strong></td>
+    <td>Implicit via parser heuristics</td>
+    <td>22 explicit + auto-detect fallback</td>
+  </tr>
+  <tr>
+    <td><strong>Bundled JavaScript</strong></td>
+    <td>None</td>
+    <td>highlight.min.js + token-highlight.js</td>
+  </tr>
+  <tr>
+    <td><strong>CDN dependency</strong></td>
+    <td>None</td>
+    <td>Theme CSS for full-screen view</td>
+  </tr>
+  <tr>
+    <td><strong>Code font</strong></td>
+    <td>System monospace (TypefaceSpan)</td>
+    <td>System monospace</td>
+  </tr>
+  <tr>
+    <td><strong>Feature flags</strong></td>
+    <td>3 server-side flags</td>
+    <td>Not observed</td>
+  </tr>
+  <tr>
+    <td><strong>Security</strong></td>
+    <td>N/A (no WebView)</td>
+    <td>Base64 encoding + URL whitelist</td>
+  </tr>
+  <tr>
+    <td><strong>APK size impact</strong></td>
+    <td>Minimal (native libs only)</td>
+    <td>~130 KB (bundled JS assets)</td>
+  </tr>
+  <tr>
+    <td><strong>Offline capable</strong></td>
+    <td>Yes (fully native)</td>
+    <td>Inline: yes / Full-screen: needs CDN for theme CSS</td>
+  </tr>
+</table>
+
+<!-- ============================================================ -->
+<h2>Conclusions</h2>
+<!-- ============================================================ -->
+
+<p><strong>ChatGPT</strong> went fully native: a CommonMark-based parsing pipeline that converts markdown ASTs into Android Spans rendered through Jetpack Compose. This avoids WebView overhead entirely and keeps the code rendering path consistent with the rest of the UI. The tradeoff is complexity &mdash; OpenAI maintains a custom fork of compose-richtext and implements their own token-to-color mapping.</p>
+
+<p><strong>Claude</strong> leveraged the well-established <strong>Highlight.js</strong> ecosystem, gaining 190+ language grammars and battle-tested tokenization for free. The clever <code>token-highlight.js</code> bridge extracts structured token data that gets mapped to native Android Spans for inline rendering, avoiding the performance penalty of a WebView in the chat scroll. The WebView path is reserved for full-screen views where richer HTML rendering is appropriate. The tradeoff is a CDN dependency for theme CSS in the full-screen path and the overhead of bridging between JavaScript and native code.</p>
+
+<p>Both approaches are well-engineered solutions to the same problem, optimized for their respective priorities: ChatGPT for UI consistency and native performance, Claude for leveraging proven open-source tooling with minimal custom code.</p>
+
+<footer>
+  Analysis performed on APKs extracted via ADB from a physical device. Decoded using apktool 3.0.2. All findings based on static analysis of smali bytecode, bundled assets, and resource files.
+</footer>
+
+</body>
+</html>

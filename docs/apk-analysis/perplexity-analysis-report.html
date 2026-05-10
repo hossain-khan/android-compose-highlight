@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>APK Analysis — Perplexity Android Syntax Highlighting</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: #1d1d1f; background: #fff; line-height: 1.7;
+    max-width: 960px; margin: 0 auto; padding: 48px 24px 80px;
+  }
+  h1 { font-size: 2rem; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 4px; }
+  .subtitle { color: #6e6e73; font-size: 0.95rem; margin-bottom: 12px; }
+  .back-link { font-size: 0.9rem; margin-bottom: 40px; display: block; }
+  h2 { font-size: 1.35rem; font-weight: 600; margin: 48px 0 16px; padding-bottom: 8px; border-bottom: 1px solid #e5e5e7; }
+  h3 { font-size: 1.05rem; font-weight: 600; margin: 28px 0 10px; }
+  p { margin-bottom: 14px; }
+  a { color: #0066cc; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code {
+    font-family: "SF Mono", "Fira Code", Menlo, Consolas, monospace;
+    font-size: 0.85em; background: #f5f5f7; padding: 2px 6px; border-radius: 4px;
+  }
+  pre {
+    background: #f5f5f7; padding: 16px 20px; border-radius: 8px; overflow-x: auto;
+    font-family: "SF Mono", "Fira Code", Menlo, Consolas, monospace;
+    font-size: 0.82rem; line-height: 1.6; margin: 16px 0 20px;
+  }
+  pre code { background: none; padding: 0; }
+  .summary-box {
+    background: #f9f9fb; border: 1px solid #e5e5e7; border-radius: 10px;
+    padding: 20px 24px; margin: 24px 0 32px;
+  }
+  .summary-box p { margin-bottom: 0; }
+  .badge {
+    display: inline-block; font-size: 0.75rem; font-weight: 600; padding: 3px 10px;
+    border-radius: 12px; vertical-align: middle; margin-left: 8px;
+  }
+  .badge-client { background: #e3f2fd; color: #1565c0; }
+  table {
+    width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 0.9rem;
+  }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid #e5e5e7; }
+  th { font-weight: 600; background: #fafafa; }
+  tr:last-child td { border-bottom: none; }
+  .arch {
+    background: #fafafa; border: 1px solid #e0e0e0; border-radius: 8px;
+    padding: 20px; margin: 16px 0 20px; overflow-x: auto;
+  }
+  .arch pre { background: none; padding: 0; margin: 0; font-size: 0.78rem; line-height: 1.55; }
+  .evidence { margin: 12px 0 12px 0; }
+  .evidence summary {
+    cursor: pointer; font-weight: 500; font-size: 0.9rem; color: #0066cc; padding: 4px 0;
+  }
+  .evidence summary:hover { text-decoration: underline; }
+  .evidence-table { margin-top: 8px; }
+  .evidence-table td:first-child { font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 0.8rem; white-space: nowrap; }
+  .section-perplexity { border-left: 3px solid #20b2aa; padding-left: 20px; }
+  .color-swatch {
+    display: inline-block; width: 14px; height: 14px; border-radius: 3px;
+    vertical-align: middle; margin-right: 6px; border: 1px solid #ddd;
+  }
+  .metric-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px; margin: 20px 0;
+  }
+  .metric {
+    background: #f9f9fb; border: 1px solid #e5e5e7; border-radius: 8px;
+    padding: 16px; text-align: center;
+  }
+  .metric .value { font-size: 1.5rem; font-weight: 700; color: #1d1d1f; }
+  .metric .label { font-size: 0.8rem; color: #6e6e73; margin-top: 4px; }
+  footer { margin-top: 60px; padding-top: 20px; border-top: 1px solid #e5e5e7; color: #86868b; font-size: 0.8rem; }
+</style>
+</head>
+<body>
+
+<h1>APK Syntax Highlighting Analysis</h1>
+<p class="subtitle">Perplexity (ai.perplexity.app.android) &mdash; April 26, 2026</p>
+<a class="back-link" href="index.html">&larr; Home</a>
+
+<div class="summary-box">
+  <p><strong>Summary:</strong> Perplexity uses <strong>Highlight.js v11.11.1</strong> for client-side syntax highlighting &mdash; the same library that Claude uses, but a newer version (11.11.1 vs 11.10.0) with significantly more bundled languages (192 vs 22). The highlighting runs inside a hidden WebView: Perplexity loads a local <code>highlight.html</code> page via <code>WebViewAssetLoader</code>, calls <code>highlightCode(code, lang)</code> via <code>evaluateJavascript()</code>, then parses the returned HTML spans and maps them to Compose <code>AnnotatedString</code> colors using a CSS parser that reads <strong>Tomorrow / Tomorrow Night</strong> theme files. Perplexity also bundles custom monospace fonts: <strong>Berkeley Mono</strong> and a proprietary <strong>Perplexity Mono</strong>.</p>
+</div>
+
+<!-- ============================================================ -->
+<h2>Perplexity <span class="badge badge-client">Client-Side Highlight.js</span></h2>
+<!-- ============================================================ -->
+
+<div class="section-perplexity">
+
+<h3>APK at a Glance</h3>
+<div class="metric-grid">
+  <div class="metric">
+    <div class="value">89 MB</div>
+    <div class="label">Base APK size</div>
+  </div>
+  <div class="metric">
+    <div class="value">36,078</div>
+    <div class="label">Smali classes</div>
+  </div>
+  <div class="metric">
+    <div class="value">192</div>
+    <div class="label">Supported languages</div>
+  </div>
+  <div class="metric">
+    <div class="value">1.0 MB</div>
+    <div class="label">highlight.min.local.js</div>
+  </div>
+</div>
+
+<h3>Approach</h3>
+<p>Perplexity's architecture is strikingly similar to Claude's, with some key differences in execution:</p>
+<ol>
+  <li style="margin-bottom: 8px;"><strong>Hidden WebView</strong> &mdash; A WebView is created and loads <code>highlight.html</code> via Android's <code>WebViewAssetLoader</code> (URL: <code>https://appassets.androidplatform.net/assets/highlight.html</code>). This WebView is invisible to the user.</li>
+  <li style="margin-bottom: 8px;"><strong>JavaScript bridge</strong> &mdash; Code and language are passed into the WebView by calling <code>evaluateJavascript()</code> with the function <code>highlightCode(code, lang)</code>. Highlight.js processes the code and returns the highlighted HTML.</li>
+  <li style="margin-bottom: 8px;"><strong>HTML parsing</strong> &mdash; The returned HTML (containing <code>&lt;span class="hljs-*"&gt;</code> tags) is parsed. The class <code>gn/d</code> ("jsHighlighter") reads the CSS theme files, builds a <code>LinkedHashMap</code> of class-to-color mappings, and walks the HTML DOM tree looking for <code>&lt;span&gt;</code> elements.</li>
+  <li><strong>Native rendering</strong> &mdash; The parsed colors are applied as Compose <code>SpanStyle</code> annotations, rendering in native Jetpack Compose UI with custom monospace fonts.</li>
+</ol>
+
+<h3>Key Components</h3>
+<table>
+  <tr><th>Component</th><th>Role</th></tr>
+  <tr><td><code>assets/highlight.min.local.js</code></td><td>Highlight.js v11.11.1 &mdash; 1.0 MB, 192 language grammars</td></tr>
+  <tr><td><code>assets/highlight.html</code></td><td>HTML shell with <code>highlightCode(code, lang)</code> bridge function</td></tr>
+  <tr><td><code>assets/highlight-light.css</code></td><td>Tomorrow theme (Base16) &mdash; light mode, 16 token colors</td></tr>
+  <tr><td><code>assets/highlight-dark.css</code></td><td>Tomorrow Night theme (Base16) &mdash; dark mode, 16 token colors</td></tr>
+  <tr><td><code>smali/ra/d.smali</code></td><td>WebView initializer: creates WebView, loads highlight.html, sets WebViewClient</td></tr>
+  <tr><td><code>smali_classes2/ra/c.smali</code></td><td>Coroutine: builds JS call string, calls <code>evaluateJavascript()</code>, returns HTML</td></tr>
+  <tr><td><code>smali_classes4/eu0/f.smali</code></td><td>WebViewClient: handles <code>onPageFinished</code> for highlight.html</td></tr>
+  <tr><td><code>smali/gn/d.smali</code></td><td>"jsHighlighter" &mdash; CSS parser, builds class-to-color map, walks HTML spans</td></tr>
+  <tr><td><code>smali/gn/a.smali</code></td><td>Theme switcher: loads highlight-dark.css or highlight-light.css</td></tr>
+  <tr><td><code>MarkdownException$HighlightJsFailed</code></td><td>Error handling for Highlight.js failures</td></tr>
+  <tr><td><code>res/font/berkeleymono_regular.otf</code></td><td>Berkeley Mono &mdash; bundled monospace font for code</td></tr>
+  <tr><td><code>res/font/pplx_mono_beta_v0_vf.ttf</code></td><td>Perplexity Mono &mdash; proprietary variable monospace font</td></tr>
+</table>
+
+<h3>Architecture</h3>
+<div class="arch"><pre>
+ AI Response (streaming markdown with code blocks)
+            │
+            ▼
+ ┌──────────────────────────────────────────────────────────┐
+ │                  Perplexity Android App                  │
+ │                                                         │
+ │  Markdown Parser (ai.perplexity.shared.markdown)        │
+ │  ├── Extracts code blocks with language hints            │
+ │  ├── Handles tables, citations, LaTeX (jlatexmath)       │
+ │  └── Routes code to syntax highlighter                   │
+ │           │                                             │
+ │           ▼                                             │
+ │  ┌─────────────────────────────────────────────────┐    │
+ │  │         HIDDEN WEBVIEW HIGHLIGHTER              │    │
+ │  │                                                 │    │
+ │  │  highlight.html                                 │    │
+ │  │  + highlight.min.local.js (v11.11.1, 192 langs) │    │
+ │  │                                                 │    │
+ │  │  evaluateJavascript(                            │    │
+ │  │    "highlightCode('escaped_code', 'python')"    │    │
+ │  │  )                                              │    │
+ │  │       │                                         │    │
+ │  │       ▼                                         │    │
+ │  │  Returns: &lt;span class="hljs-keyword"&gt;def&lt;/span&gt; │    │
+ │  │          &lt;span class="hljs-title"&gt;foo&lt;/span&gt;   │    │
+ │  └─────────────────────────────────────────────────┘    │
+ │           │                                             │
+ │           ▼                                             │
+ │  ┌─────────────────────────────────────────────────┐    │
+ │  │         CSS → COLOR MAPPING                     │    │
+ │  │                                                 │    │
+ │  │  gn/d.smali ("jsHighlighter")                   │    │
+ │  │  ├── Reads highlight-dark.css or                │    │
+ │  │  │   highlight-light.css from assets            │    │
+ │  │  ├── Parses CSS → LinkedHashMap&lt;class, color&gt;   │    │
+ │  │  └── Walks HTML span tree → applies colors      │    │
+ │  │                                                 │    │
+ │  │  gn/a.smali (theme switcher)                    │    │
+ │  │  ├── packed-switch 0: highlight-light.css       │    │
+ │  │  └── default:        highlight-dark.css         │    │
+ │  └─────────────────────────────────────────────────┘    │
+ │           │                                             │
+ │           ▼                                             │
+ │  Jetpack Compose AnnotatedString                        │
+ │  + Berkeley Mono / Perplexity Mono font                 │
+ │  → Native UI rendering                                  │
+ └──────────────────────────────────────────────────────────┘</pre></div>
+
+<h3>Syntax Token Palette</h3>
+<p>Perplexity uses the Base16 Tomorrow / Tomorrow Night themes. Key colors:</p>
+<table>
+  <tr><th>Token Type</th><th>CSS Class</th><th>Light</th><th>Dark</th></tr>
+  <tr><td>Comments</td><td><code>.hljs-comment</code></td><td><span class="color-swatch" style="background:#8e908c"></span>#8e908c</td><td><span class="color-swatch" style="background:#999999"></span>#999999</td></tr>
+  <tr><td>Keywords</td><td><code>.hljs-keyword</code></td><td><span class="color-swatch" style="background:#8959a8"></span>#8959a8</td><td><span class="color-swatch" style="background:#cc99cc"></span>#cc99cc</td></tr>
+  <tr><td>Strings</td><td><code>.hljs-string</code></td><td><span class="color-swatch" style="background:#718c00"></span>#718c00</td><td><span class="color-swatch" style="background:#99cc99"></span>#99cc99</td></tr>
+  <tr><td>Functions</td><td><code>.hljs-title.function_</code></td><td><span class="color-swatch" style="background:#4271ae"></span>#4271ae</td><td><span class="color-swatch" style="background:#6699cc"></span>#6699cc</td></tr>
+  <tr><td>Variables / Tags</td><td><code>.hljs-variable</code></td><td><span class="color-swatch" style="background:#c82829"></span>#c82829</td><td><span class="color-swatch" style="background:#f2777a"></span>#f2777a</td></tr>
+  <tr><td>Numbers / Constants</td><td><code>.hljs-number</code></td><td><span class="color-swatch" style="background:#f5871f"></span>#f5871f</td><td><span class="color-swatch" style="background:#f99157"></span>#f99157</td></tr>
+  <tr><td>Classes</td><td><code>.hljs-title.class_</code></td><td><span class="color-swatch" style="background:#eab700"></span>#eab700</td><td><span class="color-swatch" style="background:#ffcc66"></span>#ffcc66</td></tr>
+  <tr><td>Built-ins / Regex</td><td><code>.hljs-built_in</code></td><td><span class="color-swatch" style="background:#3e999f"></span>#3e999f</td><td><span class="color-swatch" style="background:#66cccc"></span>#66cccc</td></tr>
+  <tr><td>Background</td><td><code>.hljs</code></td><td><span class="color-swatch" style="background:#ffffff"></span>#ffffff</td><td><span class="color-swatch" style="background:#2d2d2d"></span>#2d2d2d</td></tr>
+</table>
+
+<h3>Code Fonts</h3>
+<p>Perplexity is the only analyzed app that bundles premium monospace fonts:</p>
+<ul>
+  <li><strong>Berkeley Mono</strong> (Regular + Bold) &mdash; a well-known programming font by Neil Panchal</li>
+  <li><strong>Perplexity Mono</strong> (Variable, beta) &mdash; a proprietary monospace font (<code>pplx_mono_beta_v0_vf.ttf</code>)</li>
+</ul>
+<p>For comparison, ChatGPT and Claude use system monospace, and GitHub bundles Roboto Mono.</p>
+
+<h3>Additional Features</h3>
+<ul>
+  <li><strong>LaTeX rendering</strong> &mdash; jlatexmath library with bundled TeX fonts for mathematical formula display</li>
+  <li><strong>Voice activation</strong> &mdash; On-device "Hey Perplexity" wake word detection (ONNX models)</li>
+  <li><strong>Language detection</strong> &mdash; TFLite language identification model (<code>tflite_langid</code>)</li>
+  <li><strong>Maps integration</strong> &mdash; Mapbox SDK for location-based answers</li>
+  <li><strong>Custom markdown parser</strong> &mdash; <code>ai.perplexity.shared.markdown</code> with rich error handling for tables, citations, streaming text, and more</li>
+</ul>
+
+</div>
+
+<!-- ============================================================ -->
+<h2>Comparison: Perplexity vs Claude (Highlight.js Users)</h2>
+<!-- ============================================================ -->
+
+<p>Both Perplexity and Claude use Highlight.js, making them the most architecturally similar pair among all five analyzed apps. However, they differ in key details:</p>
+
+<table>
+  <tr><th>Aspect</th><th>Perplexity</th><th>Claude</th></tr>
+  <tr>
+    <td><strong>Highlight.js version</strong></td>
+    <td>v11.11.1 (2025)</td>
+    <td>v11.10.0 (2024)</td>
+  </tr>
+  <tr>
+    <td><strong>Bundled languages</strong></td>
+    <td>192 (full bundle)</td>
+    <td>22 explicit + auto-detect</td>
+  </tr>
+  <tr>
+    <td><strong>JS file size</strong></td>
+    <td>1.0 MB (highlight.min.local.js)</td>
+    <td>~1.0 MB (highlight.min.js)</td>
+  </tr>
+  <tr>
+    <td><strong>CSS theme</strong></td>
+    <td>Tomorrow / Tomorrow Night (Base16)</td>
+    <td>Atom One Dark / Atom One Light</td>
+  </tr>
+  <tr>
+    <td><strong>Theme source</strong></td>
+    <td>Bundled locally (assets/)</td>
+    <td>CDN (cdnjs.cloudflare.com) for full-screen; inline for chat</td>
+  </tr>
+  <tr>
+    <td><strong>HTML → native bridge</strong></td>
+    <td>CSS parser → <code>LinkedHashMap</code> → Compose <code>SpanStyle</code></td>
+    <td>Custom token-highlight.js → JSON tokens → <code>ForegroundColorSpan</code></td>
+  </tr>
+  <tr>
+    <td><strong>WebView loading</strong></td>
+    <td><code>WebViewAssetLoader</code> (<code>appassets.androidplatform.net</code>)</td>
+    <td>Base64-encoded <code>data:</code> URL</td>
+  </tr>
+  <tr>
+    <td><strong>Code font</strong></td>
+    <td>Berkeley Mono + Perplexity Mono (bundled)</td>
+    <td>System monospace</td>
+  </tr>
+  <tr>
+    <td><strong>Error handling</strong></td>
+    <td>Dedicated <code>HighlightJsFailed</code> exception class</td>
+    <td>Fallback rendering (no highlights)</td>
+  </tr>
+  <tr>
+    <td><strong>Offline highlighting</strong></td>
+    <td>Yes (all assets local)</td>
+    <td>Chat: yes / Full-screen: partial (CDN theme)</td>
+  </tr>
+</table>
+
+<!-- ============================================================ -->
+<h2>All Five Apps Compared</h2>
+<!-- ============================================================ -->
+
+<table>
+  <tr><th>Aspect</th><th>ChatGPT</th><th>Claude</th><th>GitHub</th><th>Gemini</th><th>Perplexity</th></tr>
+  <tr>
+    <td><strong>APK size</strong></td>
+    <td>49 MB</td>
+    <td>26 MB</td>
+    <td>42 MB</td>
+    <td>4.8 MB</td>
+    <td>89 MB</td>
+  </tr>
+  <tr>
+    <td><strong>Highlighting</strong></td>
+    <td>Client (native)</td>
+    <td>Client (Highlight.js)</td>
+    <td>Server (API)</td>
+    <td>N/A (shell)</td>
+    <td>Client (Highlight.js)</td>
+  </tr>
+  <tr>
+    <td><strong>Engine</strong></td>
+    <td>Custom Spans</td>
+    <td>Highlight.js 11.10.0</td>
+    <td>Linguist + TreeSitter</td>
+    <td>N/A</td>
+    <td>Highlight.js 11.11.1</td>
+  </tr>
+  <tr>
+    <td><strong>Languages</strong></td>
+    <td>Implicit</td>
+    <td>22 explicit</td>
+    <td>600+ (server)</td>
+    <td>N/A</td>
+    <td>192 (full bundle)</td>
+  </tr>
+  <tr>
+    <td><strong>Theme</strong></td>
+    <td>Material 3 custom</td>
+    <td>Atom One</td>
+    <td>GitHub Primer</td>
+    <td>N/A</td>
+    <td>Tomorrow (Base16)</td>
+  </tr>
+  <tr>
+    <td><strong>Code font</strong></td>
+    <td>System mono</td>
+    <td>System mono</td>
+    <td>Roboto Mono</td>
+    <td>N/A</td>
+    <td>Berkeley Mono + PPLX Mono</td>
+  </tr>
+  <tr>
+    <td><strong>Offline</strong></td>
+    <td>Yes</td>
+    <td>Partial</td>
+    <td>No</td>
+    <td>No</td>
+    <td>Yes</td>
+  </tr>
+  <tr>
+    <td><strong>LaTeX</strong></td>
+    <td>No</td>
+    <td>No</td>
+    <td>No</td>
+    <td>N/A</td>
+    <td>Yes (jlatexmath)</td>
+  </tr>
+</table>
+
+<!-- ============================================================ -->
+<h2>Conclusions</h2>
+<!-- ============================================================ -->
+
+<p><strong>Perplexity</strong> takes the most full-featured approach to syntax highlighting of all five apps. By bundling the complete Highlight.js library with 192 language grammars (vs. Claude's curated 22), it can highlight virtually any programming language a user might encounter. The Tomorrow/Tomorrow Night Base16 theme provides a clean, well-established color palette with strong contrast in both light and dark modes.</p>
+
+<p>The WebView-based highlighting pipeline (hidden WebView → JavaScript execution → HTML parsing → native Compose rendering) is architecturally similar to Claude's approach, but Perplexity adds sophistication with a proper CSS parser that reads theme files at runtime (allowing potential future theme changes without code updates) and dedicated error handling via <code>MarkdownException$HighlightJsFailed</code>.</p>
+
+<p>Beyond syntax highlighting, Perplexity differentiates itself by bundling premium typography (Berkeley Mono, a proprietary Perplexity Mono), LaTeX formula rendering (jlatexmath), and on-device ML models for voice activation and language detection &mdash; making it the most feature-rich APK of the five at 89 MB.</p>
+
+<footer>
+  <p>Analysis performed on APK extracted via ADB from an emulator. Decoded using apktool 3.0.2. All findings based on static analysis of smali bytecode, bundled assets, and resource files.</p>
+  <p>Companion document: <a href="perplexity-technical-reference.html">Technical Reference</a> | Previous analyses: <a href="syntax-on-3p-app-analysis-report.html">ChatGPT vs Claude</a> | <a href="github-analysis-report.html">GitHub</a> | <a href="gemini-analysis-report.html">Gemini</a></p>
+</footer>
+
+</body>
+</html>

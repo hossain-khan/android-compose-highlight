@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gemini APK — Technical Reference</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: #1d1d1f; background: #fff; line-height: 1.7;
+    max-width: 960px; margin: 0 auto; padding: 48px 24px 80px;
+  }
+  h1 { font-size: 2rem; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 4px; }
+  .subtitle { color: #6e6e73; font-size: 0.95rem; margin-bottom: 12px; }
+  .back-link { font-size: 0.9rem; margin-bottom: 40px; display: block; }
+  h2 { font-size: 1.35rem; font-weight: 600; margin: 48px 0 16px; padding-bottom: 8px; border-bottom: 1px solid #e5e5e7; }
+  h3 { font-size: 1.05rem; font-weight: 600; margin: 28px 0 10px; }
+  p { margin-bottom: 14px; }
+  a { color: #0066cc; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code {
+    font-family: "SF Mono", "Fira Code", Menlo, Consolas, monospace;
+    font-size: 0.85em; background: #f5f5f7; padding: 2px 6px; border-radius: 4px;
+  }
+  pre {
+    background: #f5f5f7; padding: 16px 20px; border-radius: 8px; overflow-x: auto;
+    font-family: "SF Mono", "Fira Code", Menlo, Consolas, monospace;
+    font-size: 0.82rem; line-height: 1.6; margin: 16px 0 20px;
+  }
+  pre code { background: none; padding: 0; }
+  .file-ref {
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    font-size: 0.8rem; color: #6e6e73; margin-bottom: 6px;
+  }
+  .claim {
+    background: #e8f5e9; border-left: 3px solid #4caf50; padding: 12px 16px;
+    border-radius: 0 8px 8px 0; margin: 16px 0 12px; font-weight: 500;
+  }
+  .negative-claim {
+    background: #fff3e0; border-left: 3px solid #ff9800; padding: 12px 16px;
+    border-radius: 0 8px 8px 0; margin: 16px 0 12px; font-weight: 500;
+  }
+  table {
+    width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 0.9rem;
+  }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid #e5e5e7; }
+  th { font-weight: 600; background: #fafafa; }
+  tr:last-child td { border-bottom: none; }
+  .comment { color: #6a737d; }
+  .keyword { color: #d73a49; }
+  .string { color: #032f62; }
+  footer { margin-top: 60px; padding-top: 20px; border-top: 1px solid #e5e5e7; color: #86868b; font-size: 0.8rem; }
+</style>
+</head>
+<body>
+
+<h1>Gemini APK &mdash; Technical Reference</h1>
+<p class="subtitle">Evidence supporting the analysis report &mdash; April 26, 2026</p>
+<a class="back-link" href="index.html">&larr; Home</a>
+<a class="back-link" href="gemini-analysis-report.html">&larr; Back to Analysis Report</a>
+
+<p>This document contains code snippets, file excerpts, and search results from the decoded Gemini APK (<code>com.google.android.apps.bard</code>) that support the claims made in the <a href="gemini-analysis-report.html">analysis report</a>. Each section pairs a claim with its primary evidence.</p>
+
+<!-- ============================================================ -->
+<h2>1. APK Size and Split Structure</h2>
+<!-- ============================================================ -->
+
+<div class="claim">Claim: Gemini is a ~5 MB thin shell, dramatically smaller than other AI apps.</div>
+
+<p class="file-ref">Source: APK files extracted via ADB</p>
+<pre><code>$ du -sh gemini-apk/*.apk
+4.8M    base.apk
+ 44K    split_config.arm64_v8a.apk
+ 36K    split_config.en.apk
+ 60K    split_config.xxhdpi.apk
+
+# For comparison:
+# ChatGPT base.apk:  49 MB
+# Claude base.apk:   26 MB
+# GitHub base.apk:   42 MB</code></pre>
+
+<!-- ============================================================ -->
+<h2>2. AndroidManifest.xml &mdash; Shell Architecture</h2>
+<!-- ============================================================ -->
+
+<div class="claim">Claim: BardEntryPointActivity is a transparent trampoline that relinquishes its task identity.</div>
+
+<p class="file-ref">Source: gemini-decoded/AndroidManifest.xml (line 41)</p>
+<pre><code>&lt;activity
+    android:exported="true"
+    android:icon="@mipmap/ic_bard"
+    android:label="@string/application_name"
+    android:name="com.google.android.apps.bard.shellapp.BardEntryPointActivity"
+    <span class="keyword">android:relinquishTaskIdentity="true"</span>
+    <span class="keyword">android:theme="@android:style/Theme.Translucent"</span>&gt;
+    &lt;intent-filter&gt;
+        &lt;action android:name="android.intent.action.MAIN"/&gt;
+        &lt;category android:name="android.intent.category.LAUNCHER"/&gt;
+    &lt;/intent-filter&gt;
+    &lt;!-- Also handles SEND and SEND_MULTIPLE intents for
+         image/*, video/*, text/plain, text/csv, PDF, etc. --&gt;
+&lt;/activity&gt;</code></pre>
+
+<p><code>relinquishTaskIdentity="true"</code> means when this activity launches AGSA, the task in the Recent Apps switcher shows AGSA's icon/label, not Gemini's. Combined with <code>Theme.Translucent</code>, the user never sees the shell &mdash; it's invisible.</p>
+
+<!-- ============================================================ -->
+<h2>3. Shell App Package Structure</h2>
+<!-- ============================================================ -->
+
+<div class="claim">Claim: The shellapp package contains only 3 activities and an Application class.</div>
+
+<p class="file-ref">Source: gemini-decoded/smali*/com/google/android/apps/bard/</p>
+<pre><code>$ ls gemini-decoded/smali*/com/google/android/apps/bard/
+Bard_Application.smali
+shellapp/
+widget/
+
+$ ls gemini-decoded/smali*/com/google/android/apps/bard/shellapp/
+BardEntryPointActivity.smali   <span class="comment"># Main launcher/trampoline</span>
+ErrorActivity.smali             <span class="comment"># Shown when AGSA unavailable</span>
+InAppReviewActivity.smali       <span class="comment"># For Play Store review prompts</span></code></pre>
+
+<!-- ============================================================ -->
+<h2>4. BardEntryPointActivity.smali &mdash; AGSA Intent Launch</h2>
+<!-- ============================================================ -->
+
+<div class="claim">Claim: onCreate() creates an intent targeting the Google App and immediately finishes.</div>
+
+<p class="file-ref">Source: gemini-decoded/smali_classes2/com/google/android/apps/bard/shellapp/BardEntryPointActivity.smali, onCreate() method</p>
+
+<h3>4a. AGSA Deep Link URI</h3>
+<pre><code><span class="comment"># Line ~1484: The target URI for AGSA</span>
+const-string v14, <span class="string">"googleapp://deeplink/?data=Ck0BDb3mGzBG..."</span>
+invoke-static {v14}, Landroid/net/Uri;->parse(...)
+invoke-virtual {v9, v14}, Landroid/content/Intent;->setData(...)
+invoke-virtual {v9, v4}, Landroid/content/Intent;->setPackage(...)
+<span class="comment"># v4 = "com.google.android.googlequicksearchbox" (AGSA)</span></code></pre>
+
+<h3>4b. Bard Web Fallback URL</h3>
+<pre><code><span class="comment"># Line ~2099: Fallback URL when signed deep link is used</span>
+const-string v2, <span class="string">"https://bard.google.com/android?source=bardshell"</span>
+invoke-static {v2}, Landroid/net/Uri;->parse(...)
+invoke-virtual {v1, v2}, Landroid/content/Intent;->setData(...)
+invoke-virtual {v1, v4}, Landroid/content/Intent;->setPackage(...)
+
+<span class="comment"># Line ~2122-2131: Passes shell version to AGSA</span>
+const-string v2, <span class="string">"shell_app_version"</span>
+invoke-virtual {v0}, Ljava/lang/Integer;->toString()Ljava/lang/String;
+invoke-virtual {v1, v2, v0}, Landroid/content/Intent;->putExtra(...)</code></pre>
+
+<h3>4c. startActivity + finish</h3>
+<pre><code><span class="comment"># Line ~3119-3124: Launch AGSA and exit</span>
+invoke-virtual {v14, v1}, Lcom/google/android/apps/bard/shellapp/
+    BardEntryPointActivity;->startActivity(Landroid/content/Intent;)V
+
+invoke-virtual {v14}, Lcom/google/android/apps/bard/shellapp/
+    BardEntryPointActivity;->finish()V</code></pre>
+
+<!-- ============================================================ -->
+<h2>5. AGSA Version Checking</h2>
+<!-- ============================================================ -->
+
+<div class="claim">Claim: The shell checks AGSA installation and version with device-specific thresholds.</div>
+
+<p class="file-ref">Source: BardEntryPointActivity.smali, onCreate()</p>
+
+<h3>5a. AGSA Package Check</h3>
+<pre><code><span class="comment"># Line ~847-849: String constant for AGSA package</span>
+const-string v4, <span class="string">"com.google.android.googlequicksearchbox"</span>
+
+<span class="comment"># Line ~997-1001: Check if AGSA is installed</span>
+invoke-virtual {v14, v15, v13},
+    Landroid/content/pm/PackageManager;->getPackageInfo(...)
+<span class="comment"># Catches NameNotFoundException if not installed</span></code></pre>
+
+<h3>5b. Pixel 9 Version Gate</h3>
+<pre><code><span class="comment"># Line ~1700-1703: Pixel 9-specific log message</span>
+const-string v9, <span class="string">"#isAgsaAboveMinVersionForPixel9: %b - Installed agsa version: %d, required agsa version for Pixel 9: %d"</span></code></pre>
+
+<h3>5c. Android 9+ Version Gate</h3>
+<pre><code><span class="comment"># Line ~1788: Method name string</span>
+const-string v9, <span class="string">"isAgsaAboveMinVersionForAndroid9Devices"</span></code></pre>
+
+<h3>5d. General Shell Version Gate</h3>
+<pre><code><span class="comment"># Line ~1891: Method name string</span>
+const-string v10, <span class="string">"isAgsaAboveMinVersionSupportingShellApp"</span></code></pre>
+
+<h3>5e. Failure Codes</h3>
+<pre><code><span class="comment"># Various failure states logged by the shell:</span>
+const-string v22, <span class="string">"AGSA_DISABLED"</span>        <span class="comment"># AGSA not responding</span>
+const-string v22, <span class="string">"UPDATE_AGSA"</span>         <span class="comment"># AGSA too old</span>
+const-string v0,  <span class="string">"FAILURE_AGSA_VERSION_TOO_LOW"</span>
+const-string v0,  <span class="string">"FAILURE_UNSUPPORTED_FORMAT"</span>
+const-string v0,  <span class="string">"FAILURE_FEATURE_DISABLED"</span>
+const-string v0,  <span class="string">"SUCCESS"</span>             <span class="comment"># Trampoline succeeded</span>
+
+<span class="comment"># AGSA not installed message:</span>
+const-string v9, <span class="string">"AGSA not installed on device."</span></code></pre>
+
+<!-- ============================================================ -->
+<h2>6. Zero Assets for Rendering</h2>
+<!-- ============================================================ -->
+
+<div class="negative-claim">Negative evidence: No JS, CSS, HTML, or rendering assets found.</div>
+
+<p class="file-ref">Source: gemini-decoded/assets/</p>
+<pre><code>$ ls gemini-decoded/assets/
+dexopt/
+empty_asset_generated_by_bazel~
+phenotype/
+
+$ find gemini-decoded/ -name "*.html" -o -name "*.js" -o -name "*.css"
+<span class="comment"># (no output — zero results)</span>
+
+<span class="comment"># For comparison:</span>
+<span class="comment"># ChatGPT: no web assets (native rendering)</span>
+<span class="comment"># Claude:  highlight.min.js, token-highlight.js</span>
+<span class="comment"># GitHub:  syntax.css, syntax_dark.css, markdown.js, template.html, etc.</span></code></pre>
+
+<!-- ============================================================ -->
+<h2>7. No Syntax Highlighting References in Smali</h2>
+<!-- ============================================================ -->
+
+<div class="negative-claim">Negative evidence: Searching 5,317 smali classes finds no syntax highlighting references.</div>
+
+<p class="file-ref">Source: recursive grep across all smali directories</p>
+<pre><code>$ grep -ri "highlight\|syntax\|prism\|treesitter\|hljs\|code.block\|\
+monospace\|roboto.mono\|fira.code\|source.code.pro" \
+    gemini-decoded/smali*/ -l
+
+gemini-decoded/smali_classes2/gg.smali
+gemini-decoded/smali_classes3/j$/desugar/sun/nio/fs/i.smali
+gemini-decoded/smali_classes3/j$/desugar/sun/nio/fs/o.smali
+
+<span class="comment"># gg.smali — false positive (not syntax-related)</span>
+<span class="comment"># j$/desugar/... — Java NIO file system desugar classes (false positive)</span>
+
+$ grep -n "highlight\|syntax" gemini-decoded/smali_classes2/gg.smali
+<span class="comment"># (no output — the file matched on a different term)</span></code></pre>
+
+<!-- ============================================================ -->
+<h2>8. No Code-Related Strings or Colors</h2>
+<!-- ============================================================ -->
+
+<div class="negative-claim">Negative evidence: Zero matches for code/syntax/highlight/markdown in strings and colors.</div>
+
+<p class="file-ref">Source: gemini-decoded/res/values/strings.xml, colors.xml</p>
+<pre><code>$ grep -i -c "code\|syntax\|highlight\|monospace\|token\|markdown" \
+    gemini-decoded/res/values/strings.xml
+0
+
+$ grep -i -c "code\|syntax\|highlight\|token" \
+    gemini-decoded/res/values/colors.xml
+0
+
+<span class="comment"># For comparison:</span>
+<span class="comment"># ChatGPT strings.xml: "android_syntax_highlighting" feature flag</span>
+<span class="comment"># Claude smali: 22 language strings, 42 token type enums</span>
+<span class="comment"># GitHub: 30+ Primer CSS class mappings</span></code></pre>
+
+<!-- ============================================================ -->
+<h2>9. Font Resources &mdash; No Monospace</h2>
+<!-- ============================================================ -->
+
+<div class="negative-claim">Negative evidence: Only Google Sans Text (proportional font), no monospace font bundled.</div>
+
+<p class="file-ref">Source: gemini-decoded/res/font/google_sans_text.xml</p>
+<pre><code>&lt;font-family
+    app:fontProviderAuthority="com.google.android.gms.fonts"
+    app:fontProviderCerts="@array/com_google_android_gms_fonts_certs"
+    app:fontProviderPackage="com.google.android.gms"
+    <span class="keyword">app:fontProviderQuery="Google Sans Text"</span>
+    app:fontProviderSystemFontFamily="google-sans-text" /&gt;
+
+<span class="comment">&lt;!-- This is a downloadable font from GMS — proportional, not monospace.
+     No Roboto Mono, Fira Code, JetBrains Mono, or any monospace font
+     is present anywhere in the APK. --&gt;</span></code></pre>
+
+<!-- ============================================================ -->
+<h2>10. Third-Party Licenses &mdash; No Highlighting Libraries</h2>
+<!-- ============================================================ -->
+
+<div class="negative-claim">Negative evidence: No syntax highlighting, markdown, or code rendering libraries in license file.</div>
+
+<p class="file-ref">Source: gemini-decoded/res/raw/third_party_licenses</p>
+<pre><code>$ strings gemini-decoded/res/raw/third_party_licenses | \
+    grep -i "highlight\|syntax\|prism\|hljs\|treesitter\|markwon\|\
+commonmark\|codemirror"
+<span class="comment"># (no output — zero matches)</span>
+
+$ strings gemini-decoded/res/raw/third_party_licenses | head -5
+Android SDK Platforms:
+ANDROID SOFTWARE DEVELOPMENT KIT
+Terms and Conditions
+This is the Android Software Development Kit License Agreement.
+1. Introduction
+
+<span class="comment"># Only Android SDK and basic Google library licenses present.</span>
+<span class="comment"># No third-party syntax, markdown, or code rendering libraries.</span></code></pre>
+
+<!-- ============================================================ -->
+<h2>11. Manifest Components &mdash; Minimal Activity Set</h2>
+<!-- ============================================================ -->
+
+<div class="claim">Claim: The APK declares very few user-facing activities, none related to content rendering.</div>
+
+<p class="file-ref">Source: gemini-decoded/AndroidManifest.xml</p>
+<table>
+  <tr><th>Activity</th><th>Purpose</th></tr>
+  <tr><td><code>BardEntryPointActivity</code></td><td>Main launcher &mdash; trampoline to AGSA</td></tr>
+  <tr><td><code>ErrorActivity</code></td><td>Shown when AGSA unavailable (exported=false)</td></tr>
+  <tr><td><code>InAppReviewActivity</code></td><td>Play Store review prompt (exported=true)</td></tr>
+  <tr><td><code>RobinWidgetEntryPointActivity</code></td><td>Widget trampoline (Theme.Translucent)</td></tr>
+  <tr><td><code>LicenseMenuActivity</code></td><td>Open source license display</td></tr>
+  <tr><td><code>LicenseActivity</code></td><td>Individual license detail view</td></tr>
+  <tr><td><code>PlayCoreDialogWrapperActivity</code></td><td>Play Core update dialogs</td></tr>
+  <tr><td><code>GoogleApiActivity</code></td><td>GMS authentication flow</td></tr>
+  <tr><td><code>InvisibleActionTrampolineActivity</code></td><td>Glance widget action handler</td></tr>
+  <tr><td><code>ActionTrampolineActivity</code></td><td>Glance widget action handler</td></tr>
+</table>
+<p>No WebView activity, no conversation activity, no code viewer activity. Every user-facing activity is either a trampoline, an error page, or a utility (licenses, review, GMS auth).</p>
+
+<!-- ============================================================ -->
+<h2>12. Play Core / Dynamic Delivery</h2>
+<!-- ============================================================ -->
+
+<div class="claim">Claim: Play Core is present but only for update dialogs, not dynamic feature modules.</div>
+
+<p class="file-ref">Source: gemini-decoded/AndroidManifest.xml (line 95)</p>
+<pre><code>&lt;activity
+    android:exported="false"
+    android:name="com.google.android.play.core.common.PlayCoreDialogWrapperActivity"
+    android:stateNotNeeded="true"
+    android:theme="@style/Theme.PlayCore.Transparent"/&gt;
+
+<span class="comment">&lt;!-- Play Core is present, but only the dialog wrapper.
+     No SplitInstallService, no DynamicModule declarations,
+     no on-demand feature modules. The shell does not download
+     additional code at runtime — it simply delegates to AGSA. --&gt;</span></code></pre>
+
+<!-- ============================================================ -->
+<h2>13. Phenotype / Feature Flags</h2>
+<!-- ============================================================ -->
+
+<div class="claim">Claim: The APK uses Google's Phenotype system for experiment/configuration management, including TikTok (Google's internal experiment framework).</div>
+
+<p class="file-ref">Source: gemini-decoded/AndroidManifest.xml (lines 17-40)</p>
+<pre><code>&lt;service android:name="...PhenotypeMetadataHolderService"&gt;
+    &lt;meta-data android:name="...heterodyne_info.binarypb:
+        com.google.android.apps.bard.device" .../&gt;
+    &lt;meta-data android:name="...heterodyne_info.binarypb:
+        com.google.android.gms.clearcut_client" .../&gt;
+    &lt;meta-data android:name="...heterodyne_info.binarypb:
+        com.google.android.libraries.consentverifier" .../&gt;
+    &lt;meta-data android:name="...heterodyne_info.binarypb:
+        com.google.android.libraries.performance.primes" .../&gt;
+    <span class="keyword">&lt;meta-data android:name="...heterodyne_info.binarypb:
+        tiktok.device" .../&gt;</span>
+    <span class="keyword">&lt;meta-data android:name="...heterodyne_info.binarypb:
+        tiktok.directboot" .../&gt;</span>
+&lt;/service&gt;
+
+<span class="comment">&lt;!-- "TikTok" here is Google's internal experiment framework,
+     NOT the social media app. These are Phenotype experiment
+     configurations for the shell app. --&gt;</span></code></pre>
+
+<!-- ============================================================ -->
+<h2>14. SpannableString Usage &mdash; Not for Syntax</h2>
+<!-- ============================================================ -->
+
+<div class="negative-claim">Negative evidence: The few Span usages in the APK are for generic UI, not code highlighting.</div>
+
+<p class="file-ref">Source: grep results across smali</p>
+<pre><code>$ grep -ri "SpannableString\|ForegroundColorSpan" \
+    gemini-decoded/smali*/ -l
+gemini-decoded/smali_classes2/alg.smali
+gemini-decoded/smali_classes2/avy.smali
+gemini-decoded/smali_classes2/anf.smali
+gemini-decoded/smali_classes2/ano.smali
+
+<span class="comment"># Only 4 files reference Span classes (vs. dozens in ChatGPT/Claude/GitHub).
+# These are generic AndroidX/text utilities, not syntax highlighting code.
+# The alg.smali SpannableString usage is at lines 3167-3409:
+# it creates a SpannableString, gets its length, and sets a single span —
+# typical of a simple styled text label, not multi-token syntax highlighting.</span></code></pre>
+
+<!-- ============================================================ -->
+<h2>15. Queries Declaration &mdash; AGSA Dependency</h2>
+<!-- ============================================================ -->
+
+<div class="claim">Claim: The manifest explicitly declares a dependency on the Google App via package queries.</div>
+
+<p class="file-ref">Source: gemini-decoded/AndroidManifest.xml (lines 7-12)</p>
+<pre><code>&lt;queries&gt;
+    <span class="keyword">&lt;package android:name="com.google.android.googlequicksearchbox"/&gt;</span>
+    &lt;intent&gt;
+        &lt;action android:name="androidx.window.extensions.layout.EngagementModeService"/&gt;
+    &lt;/intent&gt;
+&lt;/queries&gt;
+
+<span class="comment">&lt;!-- Android 11+ requires explicit package visibility declarations.
+     This tells the system the Gemini shell needs to see/launch AGSA.
+     The EngagementModeService query is for foldable device support. --&gt;</span></code></pre>
+
+<footer>
+  <p>Analysis performed on APK extracted via ADB from an emulator. Decoded using apktool 3.0.2. All findings based on static analysis of smali bytecode, bundled assets, and resource files.</p>
+  <p>Analysis report: <a href="gemini-analysis-report.html">Gemini Analysis Report</a> | Previous analyses: <a href="syntax-on-3p-app-analysis-report.html">ChatGPT vs Claude</a> | <a href="github-analysis-report.html">GitHub</a></p>
+</footer>
+
+</body>
+</html>

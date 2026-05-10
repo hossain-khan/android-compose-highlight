@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Technical Reference — Perplexity Android Syntax Highlighting Evidence</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: #1d1d1f; background: #fff; line-height: 1.7;
+    max-width: 960px; margin: 0 auto; padding: 48px 24px 80px;
+  }
+  h1 { font-size: 2rem; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 4px; }
+  .subtitle { color: #6e6e73; font-size: 0.95rem; margin-bottom: 12px; }
+  .back-link { font-size: 0.9rem; margin-bottom: 40px; display: block; }
+  a { color: #0066cc; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  h2 { font-size: 1.4rem; font-weight: 700; margin: 52px 0 8px; }
+  h3 { font-size: 1.1rem; font-weight: 600; margin: 36px 0 12px; color: #1d1d1f; }
+  p { margin-bottom: 14px; }
+  code {
+    font-family: "SF Mono", "Fira Code", Menlo, Consolas, monospace;
+    font-size: 0.84em; background: #f5f5f7; padding: 2px 6px; border-radius: 4px;
+  }
+  .evidence-block {
+    margin: 16px 0 28px; border: 1px solid #e5e5e7; border-radius: 8px; overflow: hidden;
+  }
+  .evidence-header {
+    background: #fafafa; padding: 10px 16px; border-bottom: 1px solid #e5e5e7;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .evidence-file {
+    font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 0.8rem; color: #6e6e73;
+  }
+  .evidence-label {
+    font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;
+    padding: 2px 8px; border-radius: 4px;
+  }
+  .label-smali { background: #fce4ec; color: #c62828; }
+  .label-css { background: #e3f2fd; color: #1565c0; }
+  .label-html { background: #e8f5e9; color: #2e7d32; }
+  .label-js { background: #fff3e0; color: #e65100; }
+  .label-xml { background: #f3e5f5; color: #6a1b9a; }
+  .label-font { background: #e0f2f1; color: #00695c; }
+  .evidence-body { padding: 0; overflow-x: auto; }
+  .evidence-body pre {
+    margin: 0; padding: 16px 20px; background: #fdfdfd;
+    font-family: "SF Mono", "Fira Code", Menlo, Consolas, monospace;
+    font-size: 0.78rem; line-height: 1.6; white-space: pre; tab-size: 4;
+  }
+  .evidence-note {
+    padding: 10px 16px; background: #f9f9fb; border-top: 1px solid #e5e5e7;
+    font-size: 0.85rem; color: #515154;
+  }
+  .claim-box {
+    background: #f0f7ff; border-left: 3px solid #0066cc; padding: 12px 16px; margin: 12px 0 20px;
+    font-size: 0.9rem; border-radius: 0 6px 6px 0;
+  }
+  .claim-box strong { color: #0066cc; }
+  .toc { margin: 24px 0 40px; padding: 20px 24px; background: #f9f9fb; border: 1px solid #e5e5e7; border-radius: 10px; }
+  .toc-title { font-weight: 600; font-size: 0.95rem; margin-bottom: 10px; }
+  .toc ul { list-style: none; padding: 0; columns: 2; column-gap: 32px; }
+  .toc li { margin: 4px 0; font-size: 0.88rem; break-inside: avoid; }
+  .section-divider { border: none; border-top: 2px solid #e5e5e7; margin: 56px 0 0; }
+  .app-badge {
+    display: inline-block; font-size: 0.8rem; font-weight: 600; padding: 4px 12px;
+    border-radius: 14px; margin-right: 8px; vertical-align: middle;
+    background: #e0f2f1; color: #00695c; border: 1px solid #b2dfdb;
+  }
+  .swatch {
+    display: inline-block; width: 14px; height: 14px; border-radius: 3px;
+    vertical-align: middle; margin-right: 4px; border: 1px solid #e5e5e7;
+  }
+  footer { margin-top: 60px; padding-top: 20px; border-top: 1px solid #e5e5e7; color: #86868b; font-size: 0.8rem; }
+</style>
+</head>
+<body>
+
+<h1>Technical Reference</h1>
+<p class="subtitle">Supporting Evidence for Perplexity Android Syntax Highlighting Analysis &mdash; April 26, 2026</p>
+<a class="back-link" href="index.html">&larr; Home</a>
+<a class="back-link" href="perplexity-analysis-report.html">&larr; Back to Analysis Report</a>
+
+<nav class="toc">
+  <div class="toc-title">Table of Contents</div>
+  <ul>
+    <li><a href="#highlight-html">1. Highlight.js HTML Bridge</a></li>
+    <li><a href="#highlight-js">2. Highlight.js Engine (v11.11.1)</a></li>
+    <li><a href="#light-css">3. Tomorrow Light CSS Theme</a></li>
+    <li><a href="#dark-css">4. Tomorrow Night Dark CSS Theme</a></li>
+    <li><a href="#webview-init">5. WebView Initializer (ra/d)</a></li>
+    <li><a href="#js-eval">6. JS Evaluation Coroutine (ra/c)</a></li>
+    <li><a href="#webview-client">7. WebViewClient (eu0/f)</a></li>
+    <li><a href="#css-parser">8. CSS-to-Color Parser (gn/d)</a></li>
+    <li><a href="#theme-switch">9. Theme Switcher (gn/a)</a></li>
+    <li><a href="#highlighter-main">10. jsHighlighter Entry Point</a></li>
+    <li><a href="#exception">11. MarkdownException$HighlightJsFailed</a></li>
+    <li><a href="#fonts">12. Bundled Monospace Fonts</a></li>
+  </ul>
+</nav>
+
+<hr class="section-divider">
+<h2><span class="app-badge">Perplexity</span> Evidence</h2>
+
+<!-- 1 -->
+<h3 id="highlight-html">1. Highlight.js HTML Bridge</h3>
+
+<div class="claim-box">
+  <strong>Claim:</strong> Perplexity loads a local HTML page into a hidden WebView that provides a <code>highlightCode(code, lang)</code> JavaScript function used by native code to perform syntax highlighting.
+</div>
+
+<div class="evidence-block">
+  <div class="evidence-header">
+    <span class="evidence-file">assets/highlight.html</span>
+    <span class="evidence-label label-html">HTML</span>
+  </div>
+  <div class="evidence-body">
+<pre>&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+    &lt;meta charset="UTF-8"&gt;
+    &lt;title&gt;Highlight.js Tool&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+
+&lt;pre&gt;
+    &lt;code id="code" class=""&gt;&lt;/code&gt;
+&lt;/pre&gt;
+
+&lt;!--local script file:--&gt;
+&lt;script src="highlight.min.local.js"&gt;&lt;/script&gt;
+
+&lt;script&gt;
+    function highlightCode(code, lang) {
+      const block = document.getElementById("code");
+      block.textContent = code;
+      block.className = lang;
+
+      delete block.dataset.highlighted;
+      hljs.highlightElement(block);
+
+      return block.innerHTML;
+    }
+&lt;/script&gt;
+
+&lt;/body&gt;
+&lt;/html&gt;</pre>
+  </div>
+  <div class="evidence-note">
+    The HTML page is purely a bridge &mdash; it is never rendered on screen. The <code>highlightCode()</code> function takes raw code text and a language identifier, runs Highlight.js on a DOM element, and returns the resulting HTML with <code>&lt;span class="hljs-*"&gt;</code> tokens. The native side calls this via <code>WebView.evaluateJavascript()</code>.
+  </div>
+</div>
+
+<!-- 2 -->
+<h3 id="highlight-js">2. Highlight.js Engine (v11.11.1)</h3>
+
+<div class="claim-box">
+  <strong>Claim:</strong> Perplexity bundles Highlight.js v11.11.1 with 192 languages in a single 1.04 MB file &mdash; the latest version at time of analysis and a newer version than Claude's v11.10.0.
+</div>
+
+<div class="evidence-block">
+  <div class="evidence-header">
+    <span class="evidence-file">assets/highlight.min.local.js (header)</span>
+    <span class="evidence-label label-js">JS</span>
+  </div>
+  <div class="evidence-body">
+<pre>/*!
+  Highlight.js v11.11.1 (git: 08cb242e7d)
+  (c) 2006-2025 Josh Goebel &lt;hello@joshgoebel.com&gt; and other contributors
+  License: BSD-3-Clause
+ */</pre>
+  </div>
+  <div class="evidence-note">
+    File size: 1,090,421 bytes (~1.04 MB). Contains 192 language grammars compiled into a single minified bundle. Claude bundles v11.10.0 at ~1.06 MB &mdash; Perplexity ships a slightly newer version.
+  </div>
+</div>
+
+<!-- 3 -->
+<h3 id="light-css">3. Tomorrow Light CSS Theme</h3>
+
+<div class="claim-box">
+  <strong>Claim:</strong> The light theme uses the Base16 "Tomorrow" palette by Chris Kempson, the same theme family used by Claude but loaded as a separate CSS asset file rather than embedded in JavaScript.
+</div>
+
+<div class="evidence-block">
+  <div class="evidence-header">
+    <span class="evidence-file">assets/highlight-light.css</span>
+    <span class="evidence-label label-css">CSS</span>
+  </div>
+  <div class="evidence-body">
+<pre>/*!
+  Theme: Tomorrow
+  Author: Chris Kempson (http://chriskempson.com)
+  License: ~ MIT (or more permissive) [via base16-schemes-source]
+  Maintainer: @highlightjs/core-team
+  Version: 2021.09.0
+*/
+
+/*
+base00  #ffffff  Default Background
+base01  #e0e0e0  Lighter Background
+base02  #d6d6d6  Selection Background
+base03  #8e908c  Comments, Invisibles, Line Highlighting
+base04  #969896  Dark Foreground
+base05  #4d4d4c  Default Foreground, Caret, Delimiters, Operators
+base06  #282a2e  Light Foreground
+base07  #1d1f21  Light Background
+base08  #c82829  Variables, XML Tags, Markup Link Text
+base09  #f5871f  Integers, Boolean, Constants
+base0A  #eab700  Classes, Markup Bold
+base0B  #718c00  Strings, Inherited Class
+base0C  #3e999f  Support, Regular Expressions
+base0D  #4271ae  Functions, Methods
+base0E  #8959a8  Keywords, Storage, Selector
+base0F  #a3685a  Deprecated
+*/
+
+.hljs {
+  color: #4d4d4c;
+  background: #ffffff;
+}
+
+.hljs-comment { color: #8e908c; }
+
+.hljs-keyword { color: #8959a8; }
+
+.hljs-string { color: #718c00; }
+
+.hljs-title.function_ { color: #4271ae; }
+
+.hljs-variable { color: #c82829; }
+
+.hljs-number, .hljs-literal { color: #f5871f; }
+
+.hljs-built_in, .hljs-regexp { color: #3e999f; }
+
+.hljs-title.class_ { color: #eab700; }</pre>
+  </div>
+  <div class="evidence-note">
+    Key token colors: <span class="swatch" style="background:#8959a8"></span>keywords <code>#8959a8</code>, <span class="swatch" style="background:#718c00"></span>strings <code>#718c00</code>, <span class="swatch" style="background:#4271ae"></span>functions <code>#4271ae</code>, <span class="swatch" style="background:#c82829"></span>variables <code>#c82829</code>, <span class="swatch" style="background:#8e908c"></span>comments <code>#8e908c</code>. Full file is 177 lines. The CSS is read by the native <code>gn/d.c()</code> method and parsed into a <code>LinkedHashMap&lt;String, Color&gt;</code>.
+  </div>
+</div>
+
+<!-- 4 -->
+<h3 id="dark-css">4. Tomorrow Night Dark CSS Theme</h3>
+
+<div class="claim-box">
+  <strong>Claim:</strong> The dark theme uses the Base16 "Tomorrow Night" palette, a companion to the light theme with colors adjusted for dark backgrounds.
+</div>
+
+<div class="evidence-block">
+  <div class="evidence-header">
+    <span class="evidence-file">assets/highlight-dark.css</span>
+    <span class="evidence-label label-css">CSS</span>
+  </div>
+  <div class="evidence-body">
+<pre>/*!
+  Theme: Tomorrow Night
+  Author: Chris Kempson (http://chriskempson.com)
+  License: ~ MIT (or more permissive) [via base16-schemes-source]
+  Maintainer: @highlightjs/core-team
+  Version: 2021.09.0
+*/
+
+/*
+base00  #2d2d2d  Default Background
+base01  #393939  Lighter Background
+base02  #515151  Selection Background
+base03  #999999  Comments, Invisibles
+base04  #b4b7b4  Dark Foreground
+base05  #cccccc  Default Foreground
+base06  #e0e0e0  Light Foreground
+base07  #ffffff  Light Background
+base08  #f2777a  Variables, XML Tags
+base09  #f99157  Integers, Boolean, Constants
+base0A  #ffcc66  Classes, Markup Bold
+base0B  #99cc99  Strings, Inherited Class
+base0C  #66cccc  Support, Regular Expressions
+base0D  #6699cc  Functions, Methods
+base0E  #cc99cc  Keywords, Storage
+base0F  #a3685a  Deprecated
+*/
+
+.hljs {
+  color: #cccccc;
+  background: #2d2d2d;
+}
+
+.hljs-comment { color: #999999; }
+
+.hljs-keyword { color: #cc99cc; }
+
+.hljs-string { color: #99cc99; }
+
+.hljs-title.function_ { color: #6699cc; }
+
+.hljs-variable { color: #f2777a; }
+
+.hljs-number, .hljs-literal { color: #f99157; }
+
+.hljs-built_in, .hljs-regexp { color: #66cccc; }
+
+.hljs-title.class_ { color: #ffcc66; }</pre>
+  </div>
+  <div class="evidence-note">
+    Key token colors: <span class="swatch" style="background:#cc99cc"></span>keywords <code>#cc99cc</code>, <span class="swatch" style="background:#99cc99"></span>strings <code>#99cc99</code>, <span class="swatch" style="background:#6699cc"></span>functions <code>#6699cc</code>, <span class="swatch" style="background:#f2777a"></span>variables <code>#f2777a</code>, <span class="swatch" style="background:#999999"></span>comments <code>#999999</code> on a <span class="swatch" style="background:#2d2d2d"></span><code>#2d2d2d</code> background.
+  </div>
+</div>
+
+<!-- 5 -->
+<h3 id="webview-init">5. WebView Initializer (ra/d)</h3>
+
+<div class="claim-box">
+  <strong>Claim:</strong> Class <code>ra/d</code> is a lazy singleton that creates a hidden <code>android.webkit.WebView</code>, enables JavaScript, configures <code>WebViewAssetLoader</code>, sets a custom <code>WebViewClient</code>, and loads <code>highlight.html</code> via the <code>appassets.androidplatform.net</code> scheme. The WebView instance is cached for reuse.
+</div>
+
+<div class="evidence-block">
+  <div class="evidence-header">
+    <span class="evidence-file">smali/ra/d.smali &mdash; method a() (WebView creation)</span>
+    <span class="evidence-label label-smali">SMALI</span>
+  </div>
+  <div class="evidence-body">
+<pre># Check if WebView already exists (singleton cache)
+iget-object p1, p0, Lra/d;->c:Landroid/webkit/WebView;
+if-eqz p1, :cond_3
+return-object p1                              # Return cached WebView
+
+:cond_3
+# Create new WebView
+new-instance v1, Landroid/webkit/WebView;
+invoke-direct {v1, v0}, Landroid/webkit/WebView;->&lt;init&gt;(Landroid/content/Context;)V
+
+# Enable JavaScript
+invoke-virtual {v1}, Landroid/webkit/WebView;->getSettings()Landroid/webkit/WebSettings;
+move-result-object v3
+invoke-virtual {v3, v4}, Landroid/webkit/WebSettings;->setJavaScriptEnabled(Z)V
+
+# Create WebViewAssetLoader builder
+new-instance v3, Ld70/d;                      # WebViewAssetLoader.Builder
+const/4 v4, 0x4
+invoke-direct {v3, v4}, Ld70/d;->&lt;init&gt;(I)V
+
+# Add AssetsPathHandler
+new-instance v4, Lp30/b;                      # AssetsPathHandler
+invoke-direct {v4, v0}, Lp30/b;->&lt;init&gt;(Landroid/content/Context;)V
+invoke-virtual {v3, v4}, Ld70/d;->b(Lp30/b;)V
+
+# Build the asset loader
+invoke-virtual {v3}, Ld70/d;->c()Lg70/b;      # build()
+move-result-object v0
+
+# Set custom WebViewClient (eu0/f) with the asset loader
+new-instance v3, Leu0/f;
+invoke-direct {v3, v0, p1, v1}, Leu0/f;->&lt;init&gt;(Lg70/b;Lkotlin/coroutines/SafeContinuation;Landroid/webkit/WebView;)V
+invoke-virtual {v1, v3}, Landroid/webkit/WebView;->setWebViewClient(Landroid/webkit/WebViewClient;)V
+
+# Load highlight.html via appassets scheme
+const-string v0, "https://appassets.androidplatform.net/assets/highlight.html"
+invoke-virtual {v1, v0}, Landroid/webkit/WebView;->loadUrl(Ljava/lang/String;)V
+
+# Cache the WebView instance
+iput-object v1, p0, Lra/d;->c:Landroid/webkit/WebView;</pre>
+  </div>
+  <div class="evidence-note">
+    The <code>appassets.androidplatform.net</code> scheme is provided by AndroidX <code>WebViewAssetLoader</code> &mdash; it maps HTTPS URLs to local APK asset files, avoiding CORS restrictions. This is a more sophisticated approach than Claude's Base64 <code>data:</code> URL method. The WebView is created once and cached in field <code>c</code> for reuse across multiple highlighting calls.
+  </div>
+</div>
+
+<!-- 6 -->
+<h3 id="js-eval">6. JS Evaluation Coroutine (ra/c)</h3>
+
+<div class="claim-box">
+  <strong>Claim:</strong> Class <code>ra/c</code> is a Kotlin suspend lambda that escapes code strings, builds a JavaScript call to <code>highlightCode()</code>, and executes it via <code>WebView.evaluateJavascript()</code>. It handles results through a <code>SafeContinuation</code> and reports failures through a dedicated <code>MarkdownException$HighlightJsFailed</code> exception.
+</div>
+
+<div class="evidence-block">
+  <div class="evidence-header">
+    <span class="evidence-file">smali_classes2/ra/c.smali &mdash; invokeSuspend() (key sections)</span>
+    <span class="evidence-label label-smali">SMALI</span>
+  </div>
+  <div class="evidence-body">
+<pre># JavaScript template for the function call
+const-string v1, "\n                    (function() {\n                        return highlightCode(\'"
+
+# Step 1: Escape single quotes in code
+const-string v5, "\'"
+const-string v7, "\\\'"
+invoke-static {v4, v5, v7, v6}, Lwv0/i;->d0(...)Ljava/lang/String;
+
+# Step 2: Escape newlines
+const-string v5, "\n"
+const-string v7, "\\n"
+invoke-static {v4, v5, v7, v6}, Lwv0/i;->d0(...)Ljava/lang/String;
+
+# Step 3: Escape carriage returns
+const-string v5, "\r"
+const-string v7, "\\r"
+invoke-static {v4, v5, v7, v6}, Lwv0/i;->d0(...)Ljava/lang/String;
+
+# Build the complete JS string: highlightCode('escaped_code', 'lang')
+new-instance v7, Ljava/lang/StringBuilder;
+invoke-direct {v7, v1}, Ljava/lang/StringBuilder;->&lt;init&gt;(Ljava/lang/String;)V
+invoke-virtual {v7, v4}, Ljava/lang/StringBuilder;->append(...)     # escaped code
+const-string v1, "\', \'"
+invoke-virtual {v7, v1}, Ljava/lang/StringBuilder;->append(...)     # separator
+invoke-virtual {v7, v5}, Ljava/lang/StringBuilder;->append(...)     # language
+const-string v1, "\');\n                    })()\n                "
+invoke-virtual {v7, v1}, Ljava/lang/StringBuilder;->append(...)     # closing
+invoke-virtual {v7}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
+
+# Execute JavaScript in WebView
+invoke-virtual {p1, v1, v4}, Landroid/webkit/WebView;->evaluateJavascript(
+    Ljava/lang/String;Landroid/webkit/ValueCallback;)V
+
+# Error handling: wrap in MarkdownException$HighlightJsFailed
+new-instance v1, Lai/perplexity/shared/markdown/MarkdownException$HighlightJsFailed;
+new-instance v4, Ljava/lang/StringBuilder;
+const-string v5, "cause="
+invoke-direct {v4, v5}, Ljava/lang/StringBuilder;->&lt;init&gt;(Ljava/lang/String;)V
+invoke-virtual {v4, p1}, Ljava/lang/StringBuilder;->append(Ljava/lang/Object;)...
+invoke-direct {v1, p1}, Ljava/lang/Exception;->&lt;init&gt;(Ljava/lang/String;)V
+
+# Log the error through crash reporting
+sget-object p1, Ljz0/c;->a:Ljz0/a;
+invoke-virtual {p1, v1, v4, v5}, Ljz0/a;->d(
+    Ljava/lang/Throwable;Ljava/lang/String;[Ljava/lang/Object;)V
+
+# Resume with empty string on failure (graceful degradation)
+invoke-virtual {v2, v0}, Lkotlin/coroutines/SafeContinuation;->resumeWith(
+    Ljava/lang/Object;)V</pre>
+  </div>
+  <div class="evidence-note">
+    The coroutine wraps code in an IIFE <code>(function() { return highlightCode(...) })()</code>. Three escaping steps prevent injection: single quotes, newlines, and carriage returns. On failure, the error is logged to crash reporting and an empty string is returned &mdash; the UI falls back to unstyled code. The <code>v4</code> callback is a <code>ra/b</code> instance that bridges <code>ValueCallback</code> to <code>SafeContinuation</code>.
+  </div>
+</div>
+
+<!-- 7 -->
+<h3 id="webview-client">7. WebViewClient (eu0/f)</h3>
+
+<div class="claim-box">
+  <strong>Claim:</strong> Class <code>eu0/f</code> extends <code>android.webkit.WebViewClient</code> and is a multi-purpose client shared between the Highlight.js WebView and hCaptcha infrastructure. For highlighting, it handles <code>onPageFinished</code> to detect when <code>highlight.html</code> has loaded and resumes the waiting coroutine. It also implements <code>shouldInterceptRequest</code> to serve local assets via <code>WebViewAssetLoader</code>.
+</div>
+
+<div class="evidence-block">
+  <div class="evidence-header">
+    <span class="evidence-file">smali_classes4/eu0/f.smali &mdash; onPageFinished() (highlight mode, a=1)</span>
+    <span class="evidence-label label-smali">SMALI</span>
+  </div>
+  <div class="evidence-body">
+<pre># Called when the WebView finishes loading a page
+.method public final onPageFinished(Landroid/webkit/WebView;Ljava/lang/String;)V
+
+    # Dispatch on mode (packed-switch on field 'a')
+    iget v0, p0, Leu0/f;->a:I
+    packed-switch v0, :pswitch_data_0
+
+    # Mode 1 (highlight WebView): check if highlight.html loaded
+    invoke-super {p0, p1, p2}, ...->onPageFinished(...)
+
+    const-string p1, "https://appassets.androidplatform.net/assets/highlight.html"
+    invoke-static {p2, p1}, Lkotlin/jvm/internal/Intrinsics;->c(...)Z
+    move-result p1
+
+    if-eqz p1, :cond_0       # Not our URL, skip
+
+    # Resume the waiting coroutine with the WebView reference
+    iget-object p1, p0, Leu0/f;->c:Ljava/lang/Object;
+    check-cast p1, Lkotlin/coroutines/SafeContinuation;
+    iget-object p2, p0, Leu0/f;->d:Ljava/lang/Object;
+    check-cast p2, Landroid/webkit/WebView;
+    invoke-virtual {p1, p2}, Lkotlin/coroutines/SafeContinuation;->resumeWith(...)V
+
+    # Mode 0 (hCaptcha): log only
+    :pswitch_0
+    const-string p2, "[webview] onPageFinished "
+    const-string p2, "hCaptchaWebView"
+    invoke-static {p2, p1}, Landroid/util/Log;->d(...)I</pre>
+  </div>
+  <div class="evidence-note">
+    The <code>a</code> field acts as a mode discriminator: <code>0</code> = hCaptcha mode (logging only), <code>1</code> = highlight mode (resumes coroutine when <code>highlight.html</code> loads). This pattern shows Perplexity shares a single <code>WebViewClient</code> implementation across both highlighting and CAPTCHA verification, using a constructor parameter to select behavior.
+  </div>
+</div>
+
+<div class="evidence-block">
+  <div class="evidence-header">
+    <span class="evidence-file">smali_classes4/eu0/f.smali &mdash; shouldInterceptRequest() (asset serving)</span>
+    <span class="evidence-label label-smali">SMALI</span>
+  </div>
+  <div class="evidence-body">
+<pre># Intercepts WebView requests to serve local assets
+.method public final shouldInterceptRequest(...)Landroid/webkit/WebResourceResponse;
+
+    # Mode 1 (highlight): serve assets from APK
+    invoke-interface {p2}, Landroid/webkit/WebResourceRequest;->getUrl()Landroid/net/Uri;
+    move-result-object p1
+
+    # Iterate through registered path handlers
+    iget-object p2, p0, Leu0/f;->b:Ljava/lang/Object;
+    check-cast p2, Lg70/b;                     # WebViewAssetLoader
+    iget-object p2, p2, Lg70/b;->a:Ljava/util/ArrayList;  # path handlers
+
+    # Match URL authority against handler domain (appassets.androidplatform.net)
+    invoke-virtual {p1}, Landroid/net/Uri;->getAuthority()Ljava/lang/String;
+    iget-object v7, v4, Lp30/c;->a:Ljava/lang/String;     # handler domain
+    invoke-virtual {v6, v7}, Ljava/lang/String;->equals(...)Z
+
+    # Open asset from APK
+    invoke-virtual {p2}, Landroid/content/Context;->getAssets()Landroid/content/res/AssetManager;
+    invoke-virtual {p2, v0, v1}, Landroid/content/res/AssetManager;->open(...)Ljava/io/InputStream;
+
+    # Error log tag confirms this is WebViewAssetLoader
+    const-string v0, "WebViewAssetLoader"
+    invoke-static {v0, p1, p2}, Landroid/util/Log;->e(...)I</pre>
+  </div>
+  <div class="evidence-note">
+    The <code>shouldInterceptRequest</code> implementation serves local APK assets (highlight.html, highlight.min.local.js) via the WebViewAssetLoader pattern. Error logging uses the <code>"WebViewAssetLoader"</code> tag, confirming this is AndroidX's official asset-loading mechanism.
+  </div>
+</div>
+
+<!-- 8 -->
+<h3 id="css-parser">8. CSS-to-Color Parser (gn/d)</h3>
+
+<div class="claim-box">
+  <strong>Claim:</strong> Class <code>gn/d</code> (named "jsHighlighter" internally) is the core highlighting orchestrator. It reads CSS theme files from assets, parses CSS rules into a <code>LinkedHashMap&lt;String, Color&gt;</code> mapping hljs class names to colors, and recursively walks the Highlight.js HTML output to build Jetpack Compose <code>AnnotatedString</code> spans.
+</div>
+
+<div class="evidence-block">
+  <div class="evidence-header">
+    <span class="evidence-file">smali/gn/d.smali &mdash; method c() (CSS parser)</span>
+    <span class="evidence-label label-smali">SMALI</span>
+  </div>
+  <div class="evidence-body">
+<pre># Creates a LinkedHashMap of hljs class name -> Color
+.method public final c(Ljava/lang/String;)Ljava/util/LinkedHashMap;
+
+    # Create empty result map
+    new-instance v1, Ljava/util/LinkedHashMap;
+    invoke-direct {v1}, Ljava/util/LinkedHashMap;->&lt;init&gt;()V
+
+    # Open CSS file from assets
+    iget-object v0, v2, Lgn/d;->a:Landroid/content/Context;
+    invoke-virtual {v0}, Landroid/content/Context;->getAssets()Landroid/content/res/AssetManager;
+    move-result-object v0
+    invoke-virtual {v0, v3}, Landroid/content/res/AssetManager;->open(Ljava/lang/String;)Ljava/io/InputStream;
+
+    # Read entire CSS file into String
+    new-instance v4, Ljava/io/InputStreamReader;
+    invoke-direct {v4, v0, v3}, Ljava/io/InputStreamReader;->&lt;init&gt;(...)V
+    new-instance v3, Ljava/io/BufferedReader;
+    invoke-direct {v3, v4, v0}, Ljava/io/BufferedReader;->&lt;init&gt;(...)V
+    invoke-static {v3}, Lkotlin/io/TextStreamsKt;->b(...)Ljava/lang/String;
+
+    # Parse CSS into structured rules
+    sget-object v4, Loi0/d;->w:Loi0/d;        # CSS parser instance
+    invoke-static {v0, v4}, Lti0/a;->b(...)Lpi0/r0;  # parse(cssText)
+
+    # Iterate over CSS rule sets
+    invoke-virtual {v0}, Lfs/u;->t()Lth0/a;   # getRules()
+    invoke-static {v0}, Lev0/f;->y0(...)...    # asSequence()
+
+    # For each CSS rule: extract selectors (hljs class names) and declarations
+    # Filter for CSS declarations that are color properties
+    new-instance v5, Lft/v;
+    const/16 v6, 0xc                           # filter type: CSS declaration
+    invoke-direct {v5, v6}, Lft/v;->&lt;init&gt;(I)V
+
+    # Extract the color value from each declaration
+    new-instance v6, Lft/v;
+    const/16 v9, 0xd                           # map type: get value
+    invoke-direct {v6, v9}, Lft/v;->&lt;init&gt;(I)V
+
+    # Create SpanStyle with the parsed color and put into map
+    new-instance v6, Lhw/j0;                   # SpanStyle constructor
+    invoke-direct/range {v6 .. v25}, Lhw/j0;->&lt;init&gt;(...)V
+    invoke-interface {v1, v4, v6}, Ljava/util/Map;->put(...)Ljava/lang/Object;
+
+    return-object v1</pre>
+  </div>
+  <div class="evidence-note">
+    The method reads a CSS file (e.g., <code>highlight-light.css</code>), parses it using a CSS parser library (<code>ti0/a</code>), iterates over rule sets, extracts <code>.hljs-*</code> selector names, reads the <code>color</code> property from declarations, constructs Jetpack Compose <code>SpanStyle</code> objects with the parsed color, and stores them in a <code>LinkedHashMap&lt;String, SpanStyle&gt;</code>. This map is then used by method <code>b()</code> to apply colors to highlighted output.
+  </div>
+</div>
+
+<div class="evidence-block">
+  <div class="evidence-header">
+    <span class="evidence-file">smali/gn/d.smali &mdash; method b() (HTML span walker)</span>
+    <span class="evidence-label label-smali">SMALI</span>
+  </div>
+  <div class="evidence-body">
+<pre># Recursively walks HTML nodes, applying color spans from the CSS map
+.method public static final b(Ljava/util/Map;Lry0/o;Lhw/e;)V
+
+    # Check if node is an Element (span tag)
+    instance-of v0, p1, Lry0/j;               # is Element?
+    if-eqz v0, :cond_3
+
+    check-cast v0, Lry0/j;
+    invoke-virtual {v0}, Lry0/j;->U()Ljava/lang/String;   # tagName()
+    const-string v2, "span"
+    invoke-static {v1, v2}, ...->c(...)Z       # equals("span")?
+
+    if-eqz v1, :cond_0
+
+    # Get the class attribute (e.g., "hljs-keyword")
+    invoke-virtual {v0}, Lry0/j;->P()Ljava/lang/String;   # className()
+
+    # Look up the class in the CSS color map
+    invoke-interface {p0, v0}, Ljava/util/Map;->get(...)Ljava/lang/Object;
+    check-cast v0, Lhw/j0;                    # SpanStyle
+
+    # If found, push span style onto the AnnotatedString builder
+    if-eqz v0, :cond_1
+    invoke-virtual {p2, v0}, Lhw/e;->k(Lhw/j0;)I    # pushStyle(spanStyle)
+
+    # Recurse into child nodes
+    invoke-virtual {p1}, Lry0/o;->o()Ljava/util/List;     # childNodes()
+    invoke-interface {p1}, Ljava/util/List;->iterator()Ljava/util/Iterator;
+    invoke-static {p0, v1, p2}, Lgn/d;->b(...)V           # recursive call
+
+    # Pop the style after processing children
+    invoke-virtual {p2}, Lhw/e;->g()V                     # pop()
+
+    # Handle text nodes: append raw text
+    :cond_3
+    instance-of p0, p1, Lry0/u;               # is TextNode?
+    check-cast p1, Lry0/u;
+    invoke-virtual {p1}, Lry0/u;->P()Ljava/lang/String;   # getWholeText()
+    invoke-virtual {p2, p0}, Lhw/e;->f(Ljava/lang/String;)V  # append(text)</pre>
+  </div>
+  <div class="evidence-note">
+    The recursive tree walker uses <code>ry0/j</code> (jsoup <code>Element</code>) and <code>ry0/u</code> (jsoup <code>TextNode</code>) to traverse the Highlight.js HTML output. For <code>&lt;span class="hljs-keyword"&gt;</code>, it looks up <code>"hljs-keyword"</code> in the CSS color map, pushes a Compose <code>SpanStyle</code>, recurses into children, then pops. Text nodes are appended directly. The result is a fully styled <code>AnnotatedString</code> for Jetpack Compose rendering.
+  </div>
+</div>
+
+<!-- 9 -->
+<h3 id="theme-switch">9. Theme Switcher (gn/a)</h3>
+
+<div class="claim-box">
+  <strong>Claim:</strong> Class <code>gn/a</code> is a <code>Function0</code> lambda that selects between light and dark CSS files using a <code>packed-switch</code> on an integer field. Case 0 loads <code>highlight-light.css</code>, default loads <code>highlight-dark.css</code>. Both paths call <code>gn/d.c()</code> to produce a <code>LinkedHashMap</code>.
+</div>
+
+<div class="evidence-block">
+  <div class="evidence-header">
+    <span class="evidence-file">smali/gn/a.smali &mdash; invoke()</span>
+    <span class="evidence-label label-smali">SMALI</span>
+  </div>
+  <div class="evidence-body">
+<pre>.class public final synthetic Lgn/a;
+.super Ljava/lang/Object;
+.implements Lkotlin/jvm/functions/Function0;
+
+# Fields
+.field public final synthetic q:I              # Theme index (0=light, 1=dark)
+.field public final synthetic w:Lgn/d;         # Reference to jsHighlighter
+
+.method public final invoke()Ljava/lang/Object;
+    iget v0, p0, Lgn/a;->q:I
+    packed-switch v0, :pswitch_data_0
+
+    # Default case (dark theme)
+    iget-object v0, p0, Lgn/a;->w:Lgn/d;
+    const-string v1, "highlight-dark.css"
+    invoke-virtual {v0, v1}, Lgn/d;->c(Ljava/lang/String;)Ljava/util/LinkedHashMap;
+    move-result-object v0
+    return-object v0
+
+    # Case 0 (light theme)
+    :pswitch_0
+    iget-object v0, p0, Lgn/a;->w:Lgn/d;
+    const-string v1, "highlight-light.css"
+    invoke-virtual {v0, v1}, Lgn/d;->c(Ljava/lang/String;)Ljava/util/LinkedHashMap;
+    move-result-object v0
+    return-object v0
+
+    :pswitch_data_0
+    .packed-switch 0x0
+        :pswitch_0
+    .end packed-switch
+.end method</pre>
+  </div>
+  <div class="evidence-note">
+    These lambdas are created in <code>gn/d</code>'s constructor with indices 0 and 1, then wrapped in <code>Lazy</code> delegates (fields <code>d</code> and <code>e</code>). This means each theme's color map is parsed exactly once and cached &mdash; subsequent highlighting calls reuse the precomputed <code>LinkedHashMap</code>.
+  </div>
+</div>
+
+<!-- 10 -->
+<h3 id="highlighter-main">10. jsHighlighter Entry Point</h3>
+
+<div class="claim-box">
+  <strong>Claim:</strong> The <code>gn/d</code> constructor identifies itself as <code>"jsHighlighter"</code> and wires together the WebView engine (<code>ra/d</code>), the CSS color maps (lazy light/dark), and the HTML parser (jsoup) to produce both light and dark <code>AnnotatedString</code> results in a single call.
+</div>
+
+<div class="evidence-block">
+  <div class="evidence-header">
+    <span class="evidence-file">smali/gn/d.smali &mdash; constructor and method a() (entry point)</span>
+    <span class="evidence-label label-smali">SMALI</span>
+  </div>
+  <div class="evidence-body">
+<pre># Constructor: validates "jsHighlighter" name, sets up lazy theme maps
+.method public constructor &lt;init&gt;(Landroid/content/Context;Lra/d;)V
+    const-string v0, "jsHighlighter"
+    invoke-static {p2, v0}, Lkotlin/jvm/internal/Intrinsics;->g(...)V
+
+    iput-object p1, p0, Lgn/d;->a:Landroid/content/Context;
+    iput-object p2, p0, Lgn/d;->b:Lra/d;      # WebView initializer
+
+    # Create lazy light theme map (gn/a with index 0)
+    new-instance p1, Lgn/a;
+    const/4 p2, 0x0                            # light
+    invoke-direct {p1, p0, p2}, Lgn/a;->&lt;init&gt;(Lgn/d;I)V
+    invoke-static {p1}, Lkotlin/LazyKt;->a(...)Ldv0/d;
+    iput-object p1, p0, Lgn/d;->d:Ldv0/d;     # lazy light map
+
+    # Create lazy dark theme map (gn/a with index 1)
+    new-instance p1, Lgn/a;
+    const/4 p2, 0x1                            # dark
+    invoke-direct {p1, p0, p2}, Lgn/a;->&lt;init&gt;(Lgn/d;I)V
+    invoke-static {p1}, Lkotlin/LazyKt;->a(...)Ldv0/d;
+    iput-object p1, p0, Lgn/d;->e:Ldv0/d;     # lazy dark map
+
+# Method a(): highlight code and produce both themed results
+.method public final a(Ljava/lang/String;Ljava/lang/String;...)Ljava/lang/Object;
+
+    # Dispatch to WebView for JS highlighting (runs on Main dispatcher)
+    iget-object p1, v7, Lgn/d;->c:Lgw0/d;     # Main dispatcher
+    invoke-static {p1, v6, v0}, Lfw0/h0;->u(...)Ljava/lang/Object;
+
+    # Post-process returned HTML string
+    # Unescape: < -> <, \" -> ", \n -> newline
+    const-string p2, "\\u003C"
+    const-string p3, "&lt;"
+    invoke-static {p1, p2, p3, v0}, Lwv0/i;->d0(...)Ljava/lang/String;
+
+    const-string p2, "\\\""
+    const-string p3, "\""
+    invoke-static {p1, p2, p3, v0}, Lwv0/i;->d0(...)Ljava/lang/String;
+
+    const-string p2, "\\n"
+    const-string p3, "\n"
+    invoke-static {p1, p2, p3, v0}, Lwv0/i;->d0(...)Ljava/lang/String;
+
+    # Parse HTML with jsoup and build LIGHT AnnotatedString
+    iget-object p2, v7, Lgn/d;->d:Ldv0/d;     # lazy light map
+    invoke-virtual {p2}, Ldv0/d;->getValue()Ljava/lang/Object;
+    check-cast p2, Ljava/util/Map;
+    invoke-static {p1}, Lmq/b;->l(...)Lry0/g; # Jsoup.parse(html)
+    new-instance v0, Lhw/e;                    # AnnotatedString.Builder
+    invoke-static {p2, p3, v0}, Lgn/d;->b(Ljava/util/Map;Lry0/o;Lhw/e;)V
+    invoke-virtual {v0}, Lhw/e;->l()Lhw/h;    # build() -> light AnnotatedString
+
+    # Parse again and build DARK AnnotatedString
+    iget-object p3, v7, Lgn/d;->e:Ldv0/d;     # lazy dark map
+    invoke-virtual {p3}, Ldv0/d;->getValue()Ljava/lang/Object;
+    check-cast p3, Ljava/util/Map;
+    invoke-static {p1}, Lmq/b;->l(...)Lry0/g; # Jsoup.parse(html)
+    new-instance v0, Lhw/e;                    # AnnotatedString.Builder
+    invoke-static {p3, p1, v0}, Lgn/d;->b(Ljava/util/Map;Lry0/o;Lhw/e;)V
+    invoke-virtual {v0}, Lhw/e;->l()Lhw/h;    # build() -> dark AnnotatedString
+
+    # Return both as a pair (gn/e)
+    new-instance p3, Lgn/e;
+    invoke-direct {p3, p2, p1}, Lgn/e;->&lt;init&gt;(Lhw/h;Lhw/h;)V
+    return-object p3</pre>
+  </div>
+  <div class="evidence-note">
+    A key architectural insight: Perplexity produces <strong>both</strong> light and dark <code>AnnotatedString</code> results from a single Highlight.js call. The JS engine runs once, and the HTML output is parsed twice &mdash; once with the light color map, once with the dark. This means theme switching is instant (no re-highlighting needed). The return type <code>gn/e</code> is a simple pair holding both themed results.
+  </div>
+</div>
+
+<!-- 11 -->
+<h3 id="exception">11. MarkdownException$HighlightJsFailed</h3>
+
+<div class="claim-box">
+  <strong>Claim:</strong> Perplexity defines a dedicated Kotlin sealed-class exception hierarchy for markdown processing. <code>MarkdownException$HighlightJsFailed</code> is a specific subclass for Highlight.js failures, confirming that syntax highlighting is a first-class, error-handled feature &mdash; not a secondary concern.
+</div>
+
+<div class="evidence-block">
+  <div class="evidence-header">
+    <span class="evidence-file">smali_classes2/ai/perplexity/shared/markdown/MarkdownException$HighlightJsFailed.smali</span>
+    <span class="evidence-label label-smali">SMALI</span>
+  </div>
+  <div class="evidence-body">
+<pre>.class public final Lai/perplexity/shared/markdown/MarkdownException$HighlightJsFailed;
+.super Lai/perplexity/shared/markdown/MarkdownException;
+
+# Annotations confirm this is a named inner class
+.annotation system Ldalvik/annotation/EnclosingClass;
+    value = Lai/perplexity/shared/markdown/MarkdownException;
+.end annotation
+
+.annotation system Ldalvik/annotation/InnerClass;
+    accessFlags = 0x19
+    name = "HighlightJsFailed"
+.end annotation
+
+.annotation runtime Lkotlin/Metadata;
+.end annotation</pre>
+  </div>
+  <div class="evidence-note">
+    The fully qualified original class name survives R8 obfuscation: <code>ai.perplexity.shared.markdown.MarkdownException.HighlightJsFailed</code>. The <code>shared</code> package suggests this is part of Perplexity's Kotlin Multiplatform module &mdash; likely shared between Android and iOS. <code>accessFlags = 0x19</code> means <code>public static final</code>, consistent with a Kotlin sealed class member.
+  </div>
+</div>
+
+<!-- 12 -->
+<h3 id="fonts">12. Bundled Monospace Fonts</h3>
+
+<div class="claim-box">
+  <strong>Claim:</strong> Perplexity bundles two premium monospace font families specifically for code rendering: Berkeley Mono (regular + bold, 102 KB total) and Perplexity Mono (variable font, 131 KB). These are commercial/proprietary fonts not commonly found in Android apps.
+</div>
+
+<div class="evidence-block">
+  <div class="evidence-header">
+    <span class="evidence-file">res/font/ &mdash; code-relevant font files</span>
+    <span class="evidence-label label-font">FONT</span>
+  </div>
+  <div class="evidence-body">
+<pre>Monospace code fonts:
+  berkeleymono_regular.otf        50 KB   Berkeley Mono Regular
+  berkeleymono_bold.otf           52 KB   Berkeley Mono Bold
+  pplx_mono_beta_v0_vf.ttf      131 KB   Perplexity Mono (variable, beta v0)
+
+Display &amp; UI fonts:
+  pplx_sans_beta_v2_vf.ttf      366 KB   Perplexity Sans (variable, beta v2)
+  pplx_serif_beta_v2_vf.ttf     321 KB   Perplexity Serif (variable, beta v2)
+  pplx_serif_italic_beta_v2_vf  322 KB   Perplexity Serif Italic
+  fkgrotesk_neue_regular.otf     78 KB   FK Grotesk Neue Regular
+  fkgrotesk_neue_medium.otf      75 KB   FK Grotesk Neue Medium
+  gt_canon_vf.ttf               737 KB   GT Canon (variable)
+  instrumentserif_regular.ttf    68 KB   Instrument Serif Regular
+  cursive.ttf                    62 KB   Cursive
+  roboto_medium_numbers.ttf     3.2 KB   Roboto Medium (numbers only)</pre>
+  </div>
+  <div class="evidence-note">
+    Berkeley Mono is a licensed commercial font ($75/seat) rarely seen in mobile apps. The <code>pplx_mono_beta_v0_vf</code> naming indicates Perplexity is developing their own proprietary monospace font family &mdash; currently in beta. The <code>_vf</code> suffix denotes variable font technology, allowing weight/width interpolation from a single file. This level of investment in code typography is unique among the analyzed apps.
+  </div>
+</div>
+
+<hr class="section-divider">
+
+<h2>Architecture Summary</h2>
+
+<p>The complete Perplexity syntax highlighting pipeline, reconstructed from obfuscated smali bytecode:</p>
+
+<div class="evidence-block">
+  <div class="evidence-header">
+    <span class="evidence-file">End-to-end data flow</span>
+    <span class="evidence-label label-html">DIAGRAM</span>
+  </div>
+  <div class="evidence-body">
+<pre>
+ Code Input                  Hidden WebView                Native Rendering
+ ─────────                   ──────────────                ────────────────
+
+ "def foo():"     ra/c       ┌──────────────────────┐     gn/d
+ + lang="python" ──────────► │  highlight.html       │ ──────────►  CSS Parser
+                  escape ',  │  ┌──────────────────┐ │   HTML       c() reads
+                  \n, \r     │  │ highlight.min.js  │ │   string     highlight-
+                             │  │ v11.11.1 (1 MB)  │ │              light.css
+                  evaluate   │  │ 192 languages     │ │              or -dark.css
+                  Javascript │  └──────────────────┘ │
+                             │                        │              ▼
+                             │  highlightCode(        │
+                             │    'def foo():',       │     LinkedHashMap
+                             │    'python'            │     hljs-keyword → #8959a8
+                             │  )                     │     hljs-string  → #718c00
+                             │           │            │     hljs-title   → #4271ae
+                             │           ▼            │     ...
+                             │  &lt;span class=          │
+                             │   "hljs-keyword"&gt;      │              ▼
+                             │   def                  │
+                             │  &lt;/span&gt; foo():        │     b() recursive walker
+                             └──────────────────────┘     jsoup parse HTML
+                                                          match span class → Map
+                                                          push SpanStyle
+                                                          append text
+                                                          pop SpanStyle
+                                                                   ▼
+
+                                                          AnnotatedString (light)
+                                                          AnnotatedString (dark)
+                                                            ↓ gn/e pair
+                                                          Jetpack Compose Text()
+</pre>
+  </div>
+  <div class="evidence-note">
+    Key classes: <code>ra/d</code> (WebView init), <code>ra/c</code> (JS eval coroutine), <code>eu0/f</code> (WebViewClient), <code>gn/d</code> (jsHighlighter orchestrator), <code>gn/a</code> (theme switcher), <code>gn/b</code> (coroutine continuation), <code>gn/e</code> (light+dark result pair), <code>ra/b</code> (ValueCallback bridge).
+  </div>
+</div>
+
+<footer>
+  <p>Generated from static analysis of <code>ai.perplexity.app.android</code> APK decoded with apktool 3.0.2. All class names shown are R8-obfuscated; original names are lost except where preserved in annotations (e.g., <code>MarkdownException$HighlightJsFailed</code>). Evidence extracted April 26, 2026.</p>
+</footer>
+
+</body>
+</html>

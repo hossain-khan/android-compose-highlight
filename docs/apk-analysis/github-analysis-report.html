@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>APK Analysis — GitHub Android Syntax Highlighting</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: #1d1d1f; background: #fff; line-height: 1.7;
+    max-width: 960px; margin: 0 auto; padding: 48px 24px 80px;
+  }
+  h1 { font-size: 2rem; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 4px; }
+  .subtitle { color: #6e6e73; font-size: 0.95rem; margin-bottom: 12px; }
+  .back-link { font-size: 0.9rem; margin-bottom: 40px; display: block; }
+  h2 { font-size: 1.35rem; font-weight: 600; margin: 48px 0 16px; padding-bottom: 8px; border-bottom: 1px solid #e5e5e7; }
+  h3 { font-size: 1.05rem; font-weight: 600; margin: 28px 0 10px; }
+  p { margin-bottom: 14px; }
+  a { color: #0066cc; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code {
+    font-family: "SF Mono", "Fira Code", Menlo, Consolas, monospace;
+    font-size: 0.85em; background: #f5f5f7; padding: 2px 6px; border-radius: 4px;
+  }
+  pre {
+    background: #f5f5f7; padding: 16px 20px; border-radius: 8px; overflow-x: auto;
+    font-family: "SF Mono", "Fira Code", Menlo, Consolas, monospace;
+    font-size: 0.82rem; line-height: 1.6; margin: 16px 0 20px;
+  }
+  pre code { background: none; padding: 0; }
+  .summary-box {
+    background: #f9f9fb; border: 1px solid #e5e5e7; border-radius: 10px;
+    padding: 20px 24px; margin: 24px 0 32px;
+  }
+  .summary-box p { margin-bottom: 0; }
+  .badge {
+    display: inline-block; font-size: 0.75rem; font-weight: 600; padding: 3px 10px;
+    border-radius: 12px; vertical-align: middle; margin-left: 8px;
+  }
+  .badge-server { background: #f3e5f5; color: #6a1b9a; }
+  table {
+    width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 0.9rem;
+  }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid #e5e5e7; }
+  th { font-weight: 600; background: #fafafa; }
+  tr:last-child td { border-bottom: none; }
+  .arch {
+    background: #fafafa; border: 1px solid #e0e0e0; border-radius: 8px;
+    padding: 20px; margin: 16px 0 20px; overflow-x: auto;
+  }
+  .arch pre { background: none; padding: 0; margin: 0; font-size: 0.78rem; line-height: 1.55; }
+  .evidence { margin: 12px 0 12px 0; }
+  .evidence summary {
+    cursor: pointer; font-weight: 500; font-size: 0.9rem; color: #0066cc; padding: 4px 0;
+  }
+  .evidence summary:hover { text-decoration: underline; }
+  .evidence-table { margin-top: 8px; }
+  .evidence-table td:first-child { font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 0.8rem; white-space: nowrap; }
+  .section-github { border-left: 3px solid #6e40c9; padding-left: 20px; }
+  .color-swatch {
+    display: inline-block; width: 14px; height: 14px; border-radius: 3px;
+    vertical-align: middle; margin-right: 6px; border: 1px solid #ddd;
+  }
+  footer { margin-top: 60px; padding-top: 20px; border-top: 1px solid #e5e5e7; color: #86868b; font-size: 0.8rem; }
+</style>
+</head>
+<body>
+
+<h1>APK Syntax Highlighting Analysis</h1>
+<p class="subtitle">GitHub Android (com.github.android) &mdash; April 26, 2026</p>
+<a class="back-link" href="index.html">&larr; Home</a>
+
+<div class="summary-box">
+  <p><strong>Summary:</strong> GitHub's Android app takes a fundamentally different approach from ChatGPT and Claude &mdash; syntax highlighting happens <strong>server-side</strong>. The GitHub API returns pre-highlighted HTML with Primer CSS classes (<code>.pl-*</code>). The app renders this HTML in a custom <code>GitHubWebView</code> using bundled Primer Light/Dark theme CSS. For native text display (diffs, inline code), a jsoup-based HTML parser converts Primer classes to Android <code>SpannableString</code> spans with custom <code>StyleSpan</code> and <code>TypefaceSpan</code> subclasses. No client-side syntax parsing library (highlight.js, Prism, TreeSitter) exists in the APK.</p>
+</div>
+
+<!-- ============================================================ -->
+<h2>GitHub <span class="badge badge-server">Server-Side Highlighting</span></h2>
+<!-- ============================================================ -->
+
+<div class="section-github">
+
+<h3>Approach</h3>
+<p>Unlike ChatGPT and Claude, which parse and highlight code on-device, GitHub offloads all syntax highlighting to its backend. The GitHub API (via GraphQL/Apollo) returns HTML where each syntax token is already wrapped in <code>&lt;span class="pl-*"&gt;</code> tags &mdash; the same Primer classes used on github.com. The Android app simply renders this pre-highlighted HTML.</p>
+
+<p>The app has two rendering paths:</p>
+<ol>
+  <li style="margin-bottom: 8px;"><strong>WebView path</strong> (markdown, READMEs, comments) &mdash; HTML loaded into a custom <code>GitHubWebView</code> with bundled CSS for Primer syntax themes, markdown styling, and diff coloring.</li>
+  <li><strong>Native Span path</strong> (diffs, inline code) &mdash; jsoup parses the server HTML, maps <code>pl-*</code> classes to custom Android Spans (<code>sd/f</code> for colors, <code>sd/a</code> for monospace), and renders in native <code>TextView</code>/<code>RecyclerView</code>.</li>
+</ol>
+
+<h3>Key Components</h3>
+<table>
+  <tr><th>Component</th><th>Role</th></tr>
+  <tr><td>GitHub API (server)</td><td>Returns HTML with <code>.pl-*</code> Primer syntax classes already applied</td></tr>
+  <tr><td><code>assets/webview/syntax.css</code></td><td>Primer Light syntax theme (25 token types, 125 lines)</td></tr>
+  <tr><td><code>assets/webview/syntax_dark.css</code></td><td>Primer Dark syntax theme (matching token types)</td></tr>
+  <tr><td><code>assets/webview/template.html</code></td><td>Light mode WebView shell &mdash; loads colors, markdown, syntax, font CSS</td></tr>
+  <tr><td><code>assets/webview/template_dark.html</code></td><td>Dark mode WebView shell</td></tr>
+  <tr><td><code>assets/webview/markdown.js</code></td><td>JS bridge: <code>window.github.load()</code> injects HTML, handles height, anchors, task lists</td></tr>
+  <tr><td><code>assets/webview/markdown.css</code></td><td>GitHub-flavored markdown styling (code blocks, tables, etc.)</td></tr>
+  <tr><td><code>assets/webview/colors_light.css</code></td><td>127 CSS variables for Primer Light color system</td></tr>
+  <tr><td><code>assets/webview/colors_dark.css</code></td><td>127 CSS variables for Primer Dark color system</td></tr>
+  <tr><td><code>assets/webview/font.css</code></td><td>Loads Inter font for markdown body text</td></tr>
+  <tr><td><code>smali_classes4/uz0/b.smali</code></td><td>Maps <code>pl-*</code> &rarr; <code>gh*</code> class names for native span conversion</td></tr>
+  <tr><td><code>smali/sd/f.smali</code></td><td>Custom <code>StyleSpan</code>: foreground color + optional background + underline</td></tr>
+  <tr><td><code>smali/sd/a.smali</code></td><td>Custom <code>TypefaceSpan</code>: monospace font + background color from theme</td></tr>
+  <tr><td>jsoup (obfuscated as <code>kc1</code>)</td><td>HTML parser for converting server HTML to Android Spannables</td></tr>
+  <tr><td>IntelliJ Markdown</td><td>Local markdown parsing (for compose-based rendering path)</td></tr>
+</table>
+
+<h3>Architecture</h3>
+<div class="arch"><pre>
+ GitHub API / GraphQL
+ (server-side syntax highlighting via Linguist + TreeSitter)
+            │
+            │  Returns HTML with &lt;span class="pl-*"&gt; tokens
+            ▼
+ ┌──────────────────────────────────────────────────────────┐
+ │                    GitHub Android App                    │
+ │                                                         │
+ │  ┌─────────────────────┐    ┌─────────────────────────┐ │
+ │  │   WEBVIEW PATH      │    │   NATIVE SPAN PATH      │ │
+ │  │                     │    │                          │ │
+ │  │  template.html      │    │  jsoup (kc1) parses     │ │
+ │  │  + syntax.css       │    │  server HTML             │ │
+ │  │  + syntax_dark.css  │    │          │               │ │
+ │  │  + markdown.css     │    │          ▼               │ │
+ │  │  + colors_*.css     │    │  uz0/b.smali maps       │ │
+ │  │  + markdown.js      │    │  pl-* → gh* classes     │ │
+ │  │       │             │    │          │               │ │
+ │  │       ▼             │    │          ▼               │ │
+ │  │  GitHubWebView      │    │  sd/f.smali (color)     │ │
+ │  │  renders HTML+CSS   │    │  sd/a.smali (monospace) │ │
+ │  │                     │    │          │               │ │
+ │  │  Used for:          │    │          ▼               │ │
+ │  │  • READMEs          │    │  SpannableString        │ │
+ │  │  • Issue comments   │    │  in TextView /          │ │
+ │  │  • PR descriptions  │    │  RecyclerView           │ │
+ │  │  • Wiki pages       │    │                          │ │
+ │  │                     │    │  Used for:               │ │
+ │  │                     │    │  • Diff views            │ │
+ │  │                     │    │  • File blob views       │ │
+ │  │                     │    │  • Inline code           │ │
+ │  └─────────────────────┘    └─────────────────────────┘ │
+ └──────────────────────────────────────────────────────────┘</pre></div>
+
+<h3>Syntax Token Palette</h3>
+<p>The Primer CSS theme defines 25+ token types. Key colors:</p>
+<table>
+  <tr><th>Class</th><th>Token Type</th><th>Light</th><th>Dark</th></tr>
+  <tr><td><code>.pl-c</code></td><td>Comments</td><td><span class="color-swatch" style="background:#6a737d"></span>#6a737d</td><td><span class="color-swatch" style="background:#959da5"></span>#959da5</td></tr>
+  <tr><td><code>.pl-k</code></td><td>Keywords</td><td><span class="color-swatch" style="background:#d73a49"></span>#d73a49</td><td><span class="color-swatch" style="background:#ea4a5a"></span>#ea4a5a</td></tr>
+  <tr><td><code>.pl-s</code></td><td>Strings</td><td><span class="color-swatch" style="background:#032f62"></span>#032f62</td><td><span class="color-swatch" style="background:#79b8ff"></span>#79b8ff</td></tr>
+  <tr><td><code>.pl-c1</code></td><td>Constants</td><td><span class="color-swatch" style="background:#005cc5"></span>#005cc5</td><td><span class="color-swatch" style="background:#c8e1ff"></span>#c8e1ff</td></tr>
+  <tr><td><code>.pl-en</code></td><td>Entity names</td><td><span class="color-swatch" style="background:#6f42c1"></span>#6f42c1</td><td><span class="color-swatch" style="background:#b392f0"></span>#b392f0</td></tr>
+  <tr><td><code>.pl-ent</code></td><td>Tags</td><td><span class="color-swatch" style="background:#22863a"></span>#22863a</td><td><span class="color-swatch" style="background:#7bcc72"></span>#7bcc72</td></tr>
+  <tr><td><code>.pl-v</code></td><td>Variables</td><td><span class="color-swatch" style="background:#e36209"></span>#e36209</td><td><span class="color-swatch" style="background:#fb8532"></span>#fb8532</td></tr>
+  <tr><td><code>.pl-bu</code></td><td>Errors</td><td><span class="color-swatch" style="background:#b31d28"></span>#b31d28</td><td><span class="color-swatch" style="background:#d73a49"></span>#d73a49</td></tr>
+  <tr><td><code>.pl-md</code></td><td>Deleted (diff)</td><td><span class="color-swatch" style="background:#b31d28"></span>red on <span class="color-swatch" style="background:#ffeef0"></span>pink</td><td><span class="color-swatch" style="background:#ffdcd7"></span>pink on <span class="color-swatch" style="background:#67060c"></span>dark red</td></tr>
+  <tr><td><code>.pl-mi1</code></td><td>Inserted (diff)</td><td><span class="color-swatch" style="background:#22863a"></span>green on <span class="color-swatch" style="background:#f0fff4"></span>pale green</td><td><span class="color-swatch" style="background:#aff5b4"></span>bright green on <span class="color-swatch" style="background:#033a16"></span>dark green</td></tr>
+</table>
+
+<h3>Code Font</h3>
+<p>The app bundles <strong>Roboto Mono Regular</strong> (<code>res/font/roboto_mono_regular.ttf</code>) for code display. For markdown body text, <strong>Inter</strong> is loaded via <code>font.css</code>. The native span path uses <code>TypefaceSpan("monospace")</code> (class <code>sd/a</code>).</p>
+
+<h3>Diff Rendering</h3>
+<p>Beyond syntax tokens, the app has comprehensive diff color resources for both light and dark themes, covering line-level addition/deletion/hunk backgrounds, line number colors, and blob-level change indicators. A dedicated <code>suggested_changes.css</code> handles GitHub's code suggestion UI within PR reviews.</p>
+
+<h3>Markdown Rendering Stack</h3>
+<p>Two markdown parsing libraries are present:</p>
+<ul>
+  <li><strong>IntelliJ Markdown</strong> (<code>org.intellij.markdown</code>) &mdash; JetBrains' markdown parser, likely used for compose-based native rendering</li>
+  <li><strong>GitHub UI Toolkit Markdown</strong> (<code>com.github.android.uitoolkit.markdown</code>) &mdash; 24 custom component classes for rendering markdown elements natively</li>
+</ul>
+
+<details class="evidence">
+  <summary>Key evidence files</summary>
+  <table class="evidence-table">
+    <tr><td>assets/webview/syntax.css</td><td>Primer Light syntax theme (125 lines, 25+ token types)</td></tr>
+    <tr><td>assets/webview/syntax_dark.css</td><td>Primer Dark syntax theme</td></tr>
+    <tr><td>assets/webview/template.html</td><td>Light mode WebView shell</td></tr>
+    <tr><td>assets/webview/template_dark.html</td><td>Dark mode WebView shell</td></tr>
+    <tr><td>assets/webview/markdown.js</td><td>JS bridge (385 lines, GitHub class)</td></tr>
+    <tr><td>assets/webview/markdown.css</td><td>GFM markdown styling</td></tr>
+    <tr><td>assets/webview/colors_light.css</td><td>127 CSS variables for Primer Light</td></tr>
+    <tr><td>assets/webview/colors_dark.css</td><td>127 CSS variables for Primer Dark</td></tr>
+    <tr><td>assets/webview/font.css</td><td>Inter font for markdown body</td></tr>
+    <tr><td>assets/open_source_licenses.html</td><td>Declared dependencies (no syntax lib)</td></tr>
+    <tr><td>smali_classes4/uz0/b.smali</td><td>pl-* → gh* CSS class mapper</td></tr>
+    <tr><td>smali_classes4/uz0/d.smali</td><td>jsoup HTML → SpannableString converter</td></tr>
+    <tr><td>smali_classes4/uz0/e.smali</td><td>SyntaxHighlightedLine data class</td></tr>
+    <tr><td>smali/sd/a.smali</td><td>CodeSpan (TypefaceSpan + monospace + bg color)</td></tr>
+    <tr><td>smali/sd/f.smali</td><td>Custom StyleSpan (fg color + bg color + underline)</td></tr>
+    <tr><td>res/font/roboto_mono_regular.ttf</td><td>Bundled monospace code font</td></tr>
+  </table>
+</details>
+
+</div>
+
+<!-- ============================================================ -->
+<h2>Comparison: GitHub vs ChatGPT vs Claude</h2>
+<!-- ============================================================ -->
+
+<table>
+  <tr><th>Aspect</th><th>GitHub</th><th>ChatGPT</th><th>Claude</th></tr>
+  <tr>
+    <td><strong>Where highlighting happens</strong></td>
+    <td>Server-side (API returns pre-highlighted HTML)</td>
+    <td>Client-side (native)</td>
+    <td>Client-side (Highlight.js)</td>
+  </tr>
+  <tr>
+    <td><strong>Syntax engine</strong></td>
+    <td>GitHub Linguist + TreeSitter (server)</td>
+    <td>Custom native Spans</td>
+    <td>Highlight.js v11.10.0</td>
+  </tr>
+  <tr>
+    <td><strong>Rendering surface</strong></td>
+    <td>WebView + native Spans (dual)</td>
+    <td>Jetpack Compose only</td>
+    <td>Native Spans + WebView (dual)</td>
+  </tr>
+  <tr>
+    <td><strong>CSS theme</strong></td>
+    <td>GitHub Primer Light/Dark</td>
+    <td>Material 3 custom</td>
+    <td>Atom One Dark/Light</td>
+  </tr>
+  <tr>
+    <td><strong>Bundled JS</strong></td>
+    <td>markdown.js (bridge only, no parser)</td>
+    <td>None</td>
+    <td>highlight.min.js + token-highlight.js</td>
+  </tr>
+  <tr>
+    <td><strong>HTML parser</strong></td>
+    <td>jsoup</td>
+    <td>N/A</td>
+    <td>N/A</td>
+  </tr>
+  <tr>
+    <td><strong>Markdown parser</strong></td>
+    <td>IntelliJ Markdown + GitHub UIToolkit</td>
+    <td>CommonMark + Markwon</td>
+    <td>Separate code path</td>
+  </tr>
+  <tr>
+    <td><strong>Code font</strong></td>
+    <td>Roboto Mono (bundled)</td>
+    <td>System monospace</td>
+    <td>System monospace</td>
+  </tr>
+  <tr>
+    <td><strong>Language support</strong></td>
+    <td>All (server Linguist supports 600+)</td>
+    <td>Implicit via parser</td>
+    <td>22 explicit + auto-detect</td>
+  </tr>
+  <tr>
+    <td><strong>CDN dependency</strong></td>
+    <td>None (all CSS bundled locally)</td>
+    <td>None</td>
+    <td>Theme CSS for full-screen</td>
+  </tr>
+  <tr>
+    <td><strong>Offline code highlighting</strong></td>
+    <td>No (requires API response)</td>
+    <td>Yes</td>
+    <td>Inline: yes / Full-screen: partial</td>
+  </tr>
+  <tr>
+    <td><strong>Diff support</strong></td>
+    <td>Full (addition/deletion/hunk colors)</td>
+    <td>No</td>
+    <td>No</td>
+  </tr>
+</table>
+
+<!-- ============================================================ -->
+<h2>Conclusions</h2>
+<!-- ============================================================ -->
+
+<p><strong>GitHub</strong> takes the most pragmatic approach of the three apps: let the server do the heavy lifting. Since GitHub already has Linguist and TreeSitter powering syntax highlighting on the web, the Android app simply consumes pre-highlighted HTML and applies Primer CSS themes. This gives the app access to 600+ language grammars with zero client-side parsing cost and ensures pixel-perfect consistency with github.com.</p>
+
+<p>The tradeoff is a hard dependency on the server &mdash; code cannot be highlighted offline. But for GitHub's use case (browsing repositories, reviewing PRs, reading issues), this is a non-issue since all content requires network access anyway.</p>
+
+<p>The dual rendering path (WebView for rich markdown, native Spans for diffs and inline code) is well-engineered: the jsoup-based HTML-to-Span converter bridges the gap between server HTML and native Android text rendering, enabling smooth scrolling in diff views while preserving full syntax coloring.</p>
+
+<footer>
+  <p>Analysis performed on APK extracted via ADB from an emulator. Decoded using apktool 3.0.2. All findings based on static analysis of smali bytecode, bundled assets, and resource files.</p>
+  <p>Companion document: <a href="github-technical-reference.html">Technical Reference</a> | Previous analysis: <a href="analysis-report.html">ChatGPT vs Claude Report</a></p>
+</footer>
+
+</body>
+</html>

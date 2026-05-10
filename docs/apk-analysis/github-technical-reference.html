@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Technical Reference — GitHub Android Syntax Highlighting Evidence</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: #1d1d1f; background: #fff; line-height: 1.7;
+    max-width: 960px; margin: 0 auto; padding: 48px 24px 80px;
+  }
+  h1 { font-size: 2rem; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 4px; }
+  .subtitle { color: #6e6e73; font-size: 0.95rem; margin-bottom: 12px; }
+  .back-link { font-size: 0.9rem; margin-bottom: 40px; display: block; }
+  a { color: #0066cc; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  h2 { font-size: 1.4rem; font-weight: 700; margin: 52px 0 8px; }
+  h3 { font-size: 1.1rem; font-weight: 600; margin: 36px 0 12px; color: #1d1d1f; }
+  p { margin-bottom: 14px; }
+  code {
+    font-family: "SF Mono", "Fira Code", Menlo, Consolas, monospace;
+    font-size: 0.84em; background: #f5f5f7; padding: 2px 6px; border-radius: 4px;
+  }
+  .evidence-block {
+    margin: 16px 0 28px; border: 1px solid #e5e5e7; border-radius: 8px; overflow: hidden;
+  }
+  .evidence-header {
+    background: #fafafa; padding: 10px 16px; border-bottom: 1px solid #e5e5e7;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .evidence-file {
+    font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 0.8rem; color: #6e6e73;
+  }
+  .evidence-label {
+    font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;
+    padding: 2px 8px; border-radius: 4px;
+  }
+  .label-smali { background: #fce4ec; color: #c62828; }
+  .label-css { background: #e3f2fd; color: #1565c0; }
+  .label-html { background: #e8f5e9; color: #2e7d32; }
+  .label-js { background: #fff3e0; color: #e65100; }
+  .label-xml { background: #f3e5f5; color: #6a1b9a; }
+  .evidence-body { padding: 0; overflow-x: auto; }
+  .evidence-body pre {
+    margin: 0; padding: 16px 20px; background: #fdfdfd;
+    font-family: "SF Mono", "Fira Code", Menlo, Consolas, monospace;
+    font-size: 0.78rem; line-height: 1.6; white-space: pre; tab-size: 4;
+  }
+  .evidence-note {
+    padding: 10px 16px; background: #f9f9fb; border-top: 1px solid #e5e5e7;
+    font-size: 0.85rem; color: #515154;
+  }
+  .claim-box {
+    background: #f0f7ff; border-left: 3px solid #0066cc; padding: 12px 16px; margin: 12px 0 20px;
+    font-size: 0.9rem; border-radius: 0 6px 6px 0;
+  }
+  .claim-box strong { color: #0066cc; }
+  .toc { margin: 24px 0 40px; padding: 20px 24px; background: #f9f9fb; border: 1px solid #e5e5e7; border-radius: 10px; }
+  .toc-title { font-weight: 600; font-size: 0.95rem; margin-bottom: 10px; }
+  .toc ul { list-style: none; padding: 0; columns: 2; column-gap: 32px; }
+  .toc li { margin: 4px 0; font-size: 0.88rem; break-inside: avoid; }
+  .section-divider { border: none; border-top: 2px solid #e5e5e7; margin: 56px 0 0; }
+  .app-badge {
+    display: inline-block; font-size: 0.8rem; font-weight: 600; padding: 4px 12px;
+    border-radius: 14px; margin-right: 8px; vertical-align: middle;
+    background: #f3e5f5; color: #6a1b9a; border: 1px solid #e1bee7;
+  }
+  footer { margin-top: 60px; padding-top: 20px; border-top: 1px solid #e5e5e7; color: #86868b; font-size: 0.8rem; }
+</style>
+</head>
+<body>
+
+<h1>Technical Reference</h1>
+<p class="subtitle">Supporting Evidence for GitHub Android Syntax Highlighting Analysis &mdash; April 26, 2026</p>
+<a class="back-link" href="index.html">&larr; Home</a>
+<a class="back-link" href="github-analysis-report.html">&larr; Back to Analysis Report</a>
+
+<nav class="toc">
+  <div class="toc-title">Table of Contents</div>
+  <ul>
+    <li><a href="#no-client-lib">1. No Client-Side Syntax Library</a></li>
+    <li><a href="#primer-light">2. Primer Light Syntax CSS</a></li>
+    <li><a href="#primer-dark">3. Primer Dark Syntax CSS</a></li>
+    <li><a href="#template-html">4. WebView HTML Templates</a></li>
+    <li><a href="#markdown-js">5. JavaScript Bridge</a></li>
+    <li><a href="#font-css">6. Font Configuration</a></li>
+    <li><a href="#pl-mapper">7. pl-* &rarr; gh* Class Mapper</a></li>
+    <li><a href="#custom-stylespan">8. Custom StyleSpan (sd/f)</a></li>
+    <li><a href="#codespan">9. CodeSpan / TypefaceSpan (sd/a)</a></li>
+    <li><a href="#syntax-line">10. SyntaxHighlightedLine Data Class</a></li>
+    <li><a href="#jsoup">11. jsoup HTML Parsing</a></li>
+    <li><a href="#diff-colors">12. Diff Color Resources</a></li>
+  </ul>
+</nav>
+
+<hr class="section-divider">
+<h2><span class="app-badge">GitHub</span> Evidence</h2>
+
+<!-- 1 -->
+<h3 id="no-client-lib">1. No Client-Side Syntax Highlighting Library</h3>
+<div class="claim-box"><strong>Claim:</strong> The app contains no client-side syntax parsing library (highlight.js, Prism, CodeMirror, TreeSitter, Shiki, Markwon syntax plugin). Highlighting is done server-side.</div>
+
+<div class="evidence-block">
+  <div class="evidence-header">
+    <span class="evidence-file">github-decoded/assets/open_source_licenses.html &mdash; complete dependency list</span>
+    <span class="evidence-label label-html">html</span>
+  </div>
+  <div class="evidence-body"><pre>&lt;p&gt;GitHub for Android is built using open source software:&lt;/p&gt;
+&lt;ul&gt;
+    &lt;li&gt;AppAuth-Android&lt;/li&gt;
+    &lt;li&gt;Apollo GraphQL Client&lt;/li&gt;
+    &lt;li&gt;Coil&lt;/li&gt;
+    &lt;li&gt;android-gif-drawable&lt;/li&gt;
+    &lt;li&gt;AndroidSVG&lt;/li&gt;
+    &lt;li&gt;jsoup: Java HTML Parser&lt;/li&gt;
+    &lt;li&gt;PdfViewPager&lt;/li&gt;
+    &lt;li&gt;Lingver&lt;/li&gt;
+    &lt;li&gt;OkHttp&lt;/li&gt;
+    &lt;li&gt;Android Open Source Project&lt;/li&gt;
+&lt;/ul&gt;</pre></div>
+  <div class="evidence-note">10 declared dependencies. None are syntax highlighting libraries. No highlight.js, Prism, Shiki, CodeMirror, TreeSitter, Markwon, or CommonMark. The only text-processing library is <strong>jsoup</strong> (HTML parser) &mdash; used to convert server-generated HTML into native Spans, not to parse or highlight code.</div>
+</div>
+
+<!-- 2 -->
+<h3 id="primer-light">2. Primer Light Syntax Theme (Complete)</h3>
+<div class="claim-box"><strong>Claim:</strong> The app bundles GitHub's official Primer Light syntax theme CSS with 25+ token types, sourced from <code>github-syntax-light</code>.</div>
+
+<div class="evidence-block">
+  <div class="evidence-header">
+    <span class="evidence-file">github-decoded/assets/webview/syntax.css &mdash; complete file (125 lines)</span>
+    <span class="evidence-label label-css">css</span>
+  </div>
+  <div class="evidence-body"><pre>/* From https://github.com/primer/github-syntax-light/blob/master/lib/github-light.css */
+.pl-c /* comment, punctuation.definition.comment, string.comment */ {
+  color: #6a737d;
+}
+
+.pl-c1 /* constant, entity.name.constant, variable.other.constant, variable.language,
+  support, meta.property-name, support.constant, support.variable, meta.module-reference,
+  markup.raw, meta.diff.header, meta.output */,
+.pl-s .pl-v /* string variable */ {
+  color: #005cc5;
+}
+
+.pl-e /* entity */,
+.pl-en /* entity.name */ {
+  color: #6f42c1;
+}
+
+.pl-smi /* variable.parameter.function, storage.modifier.package, storage.modifier.import,
+  storage.type.java, variable.other */,
+.pl-s .pl-s1 /* string source */ {
+  color: #24292e;
+}
+
+.pl-ent /* entity.name.tag, markup.quote */ {
+  color: #22863a;
+}
+
+.pl-k /* keyword, storage, storage.type */ {
+  color: #d73a49;
+}
+
+.pl-s /* string */,
+.pl-pds /* punctuation.definition.string, source.regexp, string.regexp.character-class */,
+.pl-s .pl-pse .pl-s1 /* string punctuation.section.embedded source */,
+.pl-sr /* string.regexp */,
+.pl-sr .pl-cce /* string.regexp constant.character.escape */,
+.pl-sr .pl-sre /* string.regexp source.ruby.embedded */,
+.pl-sr .pl-sra /* string.regexp string.regexp.arbitrary-repitition */ {
+  color: #032f62;
+}
+
+.pl-v /* variable */,
+.pl-smw /* sublimelinter.mark.warning */ {
+  color: #e36209;
+}
+
+.pl-bu /* invalid.broken, invalid.deprecated, invalid.unimplemented, message.error,
+  brackethighlighter.unmatched, sublimelinter.mark.error */ {
+  color: #b31d28;
+}
+
+.pl-ii /* invalid.illegal */ {
+  color: #fafbfc;
+  background-color: #b31d28;
+}
+
+.pl-c2 /* carriage-return */ {
+  color: #fafbfc;
+  background-color: #d73a49;
+}
+
+.pl-ml /* markup.list */ { color: #735c0f; }
+
+.pl-mh /* markup.heading */,
+.pl-ms /* meta.separator */ { font-weight: bold; color: #005cc5; }
+
+.pl-md /* markup.deleted */ { color: #b31d28; background-color: #ffeef0; }
+.pl-mi1 /* markup.inserted */ { color: #22863a; background-color: #f0fff4; }
+.pl-mc /* markup.changed */  { color: #e36209; background-color: #ffebda; }
+.pl-mdr /* meta.diff.range */ { font-weight: bold; color: #6f42c1; }
+.pl-ba /* brackethighlighter */ { color: #586069; }
+.pl-sg /* sublimelinter.gutter-mark */ { color: #959da5; }
+.pl-corl /* constant.other.reference.link */ { text-decoration: underline; color: #032f62; }</pre></div>
+  <div class="evidence-note">The CSS source comment explicitly references <code>https://github.com/primer/github-syntax-light</code>. Each <code>.pl-*</code> class maps to TextMate grammar scopes (shown in CSS comments), confirming these are the same classes generated by GitHub's server-side Linguist/TreeSitter pipeline.</div>
+</div>
+
+<!-- 3 -->
+<h3 id="primer-dark">3. Primer Dark Syntax Theme (Key Differences)</h3>
+<div class="claim-box"><strong>Claim:</strong> A matching dark theme CSS file adjusts all token colors for dark backgrounds.</div>
+
+<div class="evidence-block">
+  <div class="evidence-header">
+    <span class="evidence-file">github-decoded/assets/webview/syntax_dark.css &mdash; selected excerpts</span>
+    <span class="evidence-label label-css">css</span>
+  </div>
+  <div class="evidence-body"><pre>/* From https://github.com/primer/github-syntax-dark/blob/master/lib/github-dark.css */
+.pl-c  { color: #959da5; }         /* comments: lighter gray for dark bg */
+.pl-c1 { color: #c8e1ff; }         /* constants: light blue */
+.pl-e, .pl-en { color: #b392f0; }  /* entities: light purple */
+.pl-smi { color: #f6f8fa; }        /* variables: near-white */
+.pl-ent { color: #7bcc72; }        /* tags: bright green */
+.pl-k  { color: #ea4a5a; }         /* keywords: bright red */
+.pl-s  { color: #79b8ff; }         /* strings: bright blue */
+.pl-v  { color: #fb8532; }         /* variables: bright orange */
+
+.pl-md  { color: #ffdcd7; background-color: #67060c; }  /* deleted: pink on dark red */
+.pl-mi1 { color: #aff5b4; background-color: #033a16; }  /* inserted: bright green on dark green */
+.pl-mc  { color: #b08800; background-color: #fffdef; }  /* changed */
+.pl-mdr { font-weight: bold; color: #b392f0; }          /* diff range */</pre></div>
+  <div class="evidence-note">Same class structure, inverted contrast. Source references <code>https://github.com/primer/github-syntax-dark</code>.</div>
+</div>
+
+<!-- 4 -->
+<h3 id="template-html">4. WebView HTML Templates</h3>
+<div class="claim-box"><strong>Claim:</strong> The app uses static HTML templates that load bundled CSS files from <code>android_asset</code>, with separate light and dark variants.</div>
+
+<div class="evidence-block">
+  <div class="evidence-header">
+    <span class="evidence-file">github-decoded/assets/webview/template.html &mdash; complete file</span>
+    <span class="evidence-label label-html">html</span>
+  </div>
+  <div class="evidence-body"><pre>&lt;!DOCTYPE html&gt;
+&lt;html data-color-mode="light"&gt;
+&lt;head&gt;
+    &lt;meta charset="utf-8"&gt;
+    &lt;meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"&gt;
+    &lt;meta name="HandheldFriendly" content="true"&gt;
+    &lt;link rel="stylesheet" type="text/css" href="file:///android_asset/webview/colors_light.css"/&gt;
+    &lt;link rel="stylesheet" type="text/css" href="file:///android_asset/webview/markdown.css"/&gt;
+    &lt;link rel="stylesheet" type="text/css" href="file:///android_asset/webview/syntax.css"/&gt;
+    &lt;link rel="stylesheet" type="text/css" href="file:///android_asset/webview/font.css"/&gt;
+    &lt;link rel="stylesheet" type="text/css" href="file:///android_asset/webview/suggested_changes.css"/&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;main id="content" class="markdown-body"&gt;&lt;/main&gt;
+    &lt;script src="file:///android_asset/webview/markdown.js"&gt;&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</pre></div>
+  <div class="evidence-note">All CSS loaded from local <code>file:///android_asset/</code> &mdash; <strong>zero CDN dependencies</strong>. The dark template is identical except: <code>data-color-mode="dark"</code>, <code>colors_dark.css</code>, and <code>syntax_dark.css</code>. Content is injected via <code>window.github.load(id, html, ...)</code> from the JS bridge.</div>
+</div>
+
+<!-- 5 -->
+<h3 id="markdown-js">5. JavaScript Bridge &mdash; <code>markdown.js</code></h3>
+<div class="claim-box"><strong>Claim:</strong> The JS bridge provides content injection and native communication but contains <strong>no syntax parsing logic</strong>.</div>
+
+<div class="evidence-block">
+  <div class="evidence-header">
+    <span class="evidence-file">github-decoded/assets/webview/markdown.js &mdash; key methods (385 lines total)</span>
+    <span class="evidence-label label-js">js</span>
+  </div>
+  <div class="evidence-body"><pre>class GitHub {
+  // Send message to native Android app
+  _sendMessage (name, message) {
+    const payload = message
+    payload.messageName = name
+    payload.id = this._id
+    window.native.sendMessage(JSON.stringify(payload))
+  }
+
+  // Monitor content height for native layout
+  _addHeightListener () {
+    if (typeof ResizeObserver !== 'undefined') {
+      const resizeObserver = new ResizeObserver(entries =&gt; {
+        this._updateHeight()
+      })
+      resizeObserver.observe(document.body)
+    }
+    // ... fallback listeners for details, video, img
+  }
+
+  // Main entry: inject pre-highlighted HTML into DOM
+  load (id, html, isCommitSuggestedChangesEnabled,
+        isTaskListCompletionEnabled, overridePos, overrideVal) {
+    this._id = id
+    const content = document.getElementById('content')
+    content.innerHTML = html     // HTML already has &lt;span class="pl-*"&gt; tokens
+    // ... handle suggested changes buttons, task list checkboxes
+    this._didLoad()
+    this._updateHeight()
+  }
+}
+
+window.github = new GitHub()</pre></div>
+  <div class="evidence-note">The <code>load()</code> method takes raw HTML and sets it as <code>innerHTML</code>. The HTML already contains <code>&lt;span class="pl-*"&gt;</code> syntax tokens from the server. The JS does zero parsing &mdash; it only handles UI interactions (height reporting, suggested changes, task lists, anchor scrolling). Compare this to Claude's <code>token-highlight.js</code> which actively runs highlight.js to tokenize code.</div>
+</div>
+
+<!-- 6 -->
+<h3 id="font-css">6. Font Configuration</h3>
+<div class="claim-box"><strong>Claim:</strong> Inter is used for markdown body text; Roboto Mono is bundled for code.</div>
+
+<div class="evidence-block">
+  <div class="evidence-header">
+    <span class="evidence-file">github-decoded/assets/webview/font.css &mdash; complete file</span>
+    <span class="evidence-label label-css">css</span>
+  </div>
+  <div class="evidence-body"><pre>@font-face {
+    font-family: inter;
+    src: url("file:///android_res/font/inter_regular.otf")
+}
+
+.markdown-body {
+    font-family: inter;
+}</pre></div>
+  <div class="evidence-note">Inter loaded from bundled <code>res/font/</code>. Code blocks inherit the browser's monospace default within the WebView. For the native Span path, <code>sd/a.smali</code> explicitly uses <code>TypefaceSpan("monospace")</code>, and a bundled <code>res/font/roboto_mono_regular.ttf</code> is available for code display.</div>
+</div>
+
+<!-- 7 -->
+<h3 id="pl-mapper">7. Primer Class Mapper (<code>pl-*</code> &rarr; <code>gh*</code>)</h3>
+<div class="claim-box"><strong>Claim:</strong> For native rendering, a smali class maps all Primer <code>pl-*</code> CSS classes to internal <code>gh*</code> identifiers used by the Android span system.</div>
+
+<div class="evidence-block">
+  <div class="evidence-header">
+    <span class="evidence-file">github-decoded/smali_classes4/uz0/b.smali &mdash; class mapping (30+ entries)</span>
+    <span class="evidence-label label-smali">smali</span>
+  </div>
+  <div class="evidence-body"><pre># Primer CSS class → internal gh* identifier mapping
+const-string v1, "pl-c"       →  const-string v0, "ghc"        # comments
+const-string v1, "pl-c1"      →  const-string v0, "ghc1"       # constants
+const-string v1, "pl-c2"      →  const-string v0, "ghc2"       # carriage-return
+const-string v1, "pl-k"       →  const-string v0, "ghk"        # keywords
+const-string v1, "pl-s"       →  const-string v0, "ghpls"      # strings
+const-string v1, "pl-v"       →  const-string v0, "ghplv"      # variables
+const-string v1, "pl-e"       →  (mapped in same block)         # entities
+const-string v1, "pl-en"      →  (entity names)
+const-string v1, "pl-ent"     →  (entity tags)
+const-string v1, "pl-bu"      →  (broken/error)
+const-string v1, "pl-ba"      →  (bracket highlights)
+const-string v1, "pl-ii"      →  (invalid/illegal)
+const-string v1, "pl-sr"      →  const-string v0, "ghplsr"     # string.regexp
+const-string v1, "pl-sra"     →  const-string v0, "ghplsra"    # regexp arbitrary
+const-string v1, "pl-sre"     →  const-string v0, "ghplsre"    # regexp embedded
+const-string v1, "pl-cce"     →  const-string v0, "ghcce"      # char escape
+const-string v1, "pl-pds"     →  (punctuation def string)
+const-string v1, "pl-smi"     →  (storage modifier)
+const-string v1, "pl-smw"     →  (sublinter warning)
+const-string v1, "pl-corl"    →  const-string v0, "ghcorl"     # reference link
+const-string v1, "pl-md"      →  (markup deleted)
+const-string v1, "pl-mi1"     →  (markup inserted)
+const-string v1, "pl-mi2"     →  (markup ignored)
+const-string v1, "pl-mc"      →  (markup changed)
+const-string v1, "pl-mdr"     →  (meta diff range)
+const-string v1, "pl-mh"      →  (markup heading)
+const-string v1, "pl-mi"      →  (markup italic)
+const-string v1, "pl-mb"      →  (markup bold)
+const-string v1, "pl-ml"      →  (markup list)
+const-string v1, "pl-ms"      →  (meta separator)
+const-string v1, "pl-sg"      →  (sublinter gutter)
+const-string v1, "pl-s1"      →  (string source)</pre></div>
+  <div class="evidence-note">This class parses <code>&lt;span class="pl-*"&gt;</code> elements from the server HTML and maps them to internal identifiers. These identifiers are then used to look up color values from Android color resources (which mirror the CSS colors) and apply them as native Spans.</div>
+</div>
+
+<!-- 8 -->
+<h3 id="custom-stylespan">8. Custom StyleSpan &mdash; <code>sd/f.smali</code></h3>
+<div class="claim-box"><strong>Claim:</strong> A custom <code>StyleSpan</code> subclass applies foreground color, optional background color, and underline styling for syntax tokens in native TextViews.</div>
+
+<div class="evidence-block">
+  <div class="evidence-header">
+    <span class="evidence-file">github-decoded/smali/sd/f.smali &mdash; complete class</span>
+    <span class="evidence-label label-smali">smali</span>
+  </div>
+  <div class="evidence-body"><pre>.class public final Lsd/f;
+.super Landroid/text/style/StyleSpan;
+
+# Fields:
+#   t:I              → foreground color (int)
+#   u:Ljava/lang/Integer;  → background color (nullable)
+#   v:Z              → underline flag (boolean)
+
+# Constructor: (foregroundColor, backgroundColor, underline, bold, italic)
+.method public constructor &lt;init&gt;(ILjava/lang/Integer;ZZZ)V
+    # Determines style: bold=1, italic=2, bold+italic=3, normal=0
+    if-eqz p4, :cond_0
+    if-eqz p5, :cond_0
+    const/4 p4, 0x3          # BOLD_ITALIC
+    goto :goto_0
+    :cond_0
+    if-eqz p4, :cond_1
+    const/4 p4, 0x1          # BOLD
+    :cond_1
+    if-eqz p5, :cond_2
+    const/4 p4, 0x2          # ITALIC
+    :cond_2
+    const/4 p4, 0x0          # NORMAL
+    :goto_0
+    invoke-direct {p0, p4}, Landroid/text/style/StyleSpan;->&lt;init&gt;(I)V
+    iput p1, p0, Lsd/f;->t:I              # store fg color
+    iput-object p2, p0, Lsd/f;->u:Ljava/lang/Integer;  # store bg color
+    iput-boolean p3, p0, Lsd/f;->v:Z      # store underline
+.end method
+
+# Rendering: applies colors and underline to TextPaint
+.method public final updateDrawState(Landroid/text/TextPaint;)V
+    invoke-super {p0, p1}, Landroid/text/style/StyleSpan;->updateDrawState(...)V
+
+    iget v0, p0, Lsd/f;->t:I
+    invoke-virtual {p1, v0}, Landroid/graphics/Paint;->setColor(I)V        # set fg color
+
+    iget-object v0, p0, Lsd/f;->u:Ljava/lang/Integer;
+    if-eqz v0, :cond_0
+    invoke-virtual {v0}, Ljava/lang/Integer;->intValue()I
+    move-result v0
+    iput v0, p1, Landroid/text/TextPaint;->bgColor:I                      # set bg color
+
+    :cond_0
+    iget-boolean v0, p0, Lsd/f;->v:Z
+    invoke-virtual {p1, v0}, Landroid/graphics/Paint;->setUnderlineText(Z)V # set underline
+.end method</pre></div>
+  <div class="evidence-note">This span carries all three styling properties needed for syntax tokens: foreground color (required, for token coloring), background color (optional, used for diff additions/deletions), and underline (for links). The superclass <code>StyleSpan</code> handles bold/italic.</div>
+</div>
+
+<!-- 9 -->
+<h3 id="codespan">9. CodeSpan / TypefaceSpan &mdash; <code>sd/a.smali</code></h3>
+<div class="claim-box"><strong>Claim:</strong> A custom <code>TypefaceSpan</code> subclass applies monospace font and a themed background color for inline code blocks.</div>
+
+<div class="evidence-block">
+  <div class="evidence-header">
+    <span class="evidence-file">github-decoded/smali/sd/a.smali &mdash; complete class</span>
+    <span class="evidence-label label-smali">smali</span>
+  </div>
+  <div class="evidence-body"><pre>.class public final Lsd/a;
+.super Landroid/text/style/TypefaceSpan;
+
+# Field: t:I → background color (from theme resource)
+
+.method public constructor &lt;init&gt;(Landroid/content/Context;)V
+    const-string v0, "monospace"
+    invoke-direct {p0, v0}, Landroid/text/style/TypefaceSpan;->&lt;init&gt;(Ljava/lang/String;)V
+
+    # Load background color from theme resource 0x7f06008c
+    invoke-virtual {p1}, Landroid/content/Context;->getResources()...
+    invoke-virtual {p1}, Landroid/content/Context;->getTheme()...
+    const v1, 0x7f06008c        # R.color.codeBackground
+    invoke-virtual {v0, v1, p1}, Resources;->getColor(I, Theme;)I
+    iput p1, p0, Lsd/a;->t:I   # store bg color
+.end method
+
+.method public final updateDrawState(Landroid/text/TextPaint;)V
+    invoke-super {p0, p1}, Landroid/text/style/TypefaceSpan;->updateDrawState(...)V
+    iget v0, p0, Lsd/a;->t:I
+    iput v0, p1, Landroid/text/TextPaint;->bgColor:I   # apply bg color
+.end method</pre></div>
+  <div class="evidence-note">Hardcoded <code>"monospace"</code> font family. Background color loaded from theme resource <code>0x7f06008c</code> (maps to <code>codeBackground</code>: <code>#fff7f7f9</code> light, <code>#ff242528</code> dark). This span is used for inline <code>&lt;code&gt;</code> elements.</div>
+</div>
+
+<!-- 10 -->
+<h3 id="syntax-line">10. SyntaxHighlightedLine Data Class</h3>
+<div class="claim-box"><strong>Claim:</strong> A <code>SyntaxHighlightedLine</code> data class carries pre-highlighted HTML and its content length for rendering.</div>
+
+<div class="evidence-block">
+  <div class="evidence-header">
+    <span class="evidence-file">github-decoded/smali_classes4/uz0/e.smali &mdash; toString()</span>
+    <span class="evidence-label label-smali">smali</span>
+  </div>
+  <div class="evidence-body"><pre>.method public final toString()Ljava/lang/String;
+    const-string v0, ", contentLength="
+    ...
+    const-string v3, "SyntaxHighlightedLine(html="
+    ...
+.end method</pre></div>
+  <div class="evidence-note">Kotlin data class with two fields: <code>html</code> (the server-highlighted HTML string) and <code>contentLength</code> (character count). The name <code>SyntaxHighlightedLine</code> survived obfuscation in the <code>toString()</code> method, providing clear evidence of the server-side approach.</div>
+</div>
+
+<!-- 11 -->
+<h3 id="jsoup">11. jsoup HTML Parsing for Native Spans</h3>
+<div class="claim-box"><strong>Claim:</strong> jsoup parses server HTML containing <code>pl-*</code> classes and feeds the results to the native span conversion pipeline.</div>
+
+<div class="evidence-block">
+  <div class="evidence-header">
+    <span class="evidence-file">github-decoded/smali_classes4/uz0/d.smali &mdash; jsoup integration</span>
+    <span class="evidence-label label-smali">smali</span>
+  </div>
+  <div class="evidence-body"><pre># Parse HTML string using jsoup (obfuscated as kc1 package)
+invoke-static {p0}, Lcom/google/android/gms/.../c5;->k0(Ljava/lang/String;)Lkc1/g;
+
+# Configure parser settings
+new-instance v3, Lkc1/f;              # jsoup Settings
+invoke-direct {v3}, Lkc1/f;->&lt;init&gt;()V
+iput-boolean v2, v3, Lkc1/f;->v:Z    # configure parsing option
+
+# Parse document and extract body
+iput-object v3, p2, Lkc1/g;->C:Lkc1/f;
+invoke-virtual {p2}, Lkc1/g;->O()Lkc1/j;   # get document body
+
+# Process spans from parsed HTML
+invoke-static {v2, p0}, Ly9/a;->V(Lmc1/r;Lkc1/o;)V  # convert to spans
+invoke-virtual {p0}, Lkc1/j;->L()Ljava/lang/String;   # get text content</pre></div>
+  <div class="evidence-note">jsoup (package <code>kc1</code>) parses the server HTML. The parsed DOM is then walked to extract <code>pl-*</code> classes, which are mapped through <code>uz0/b.smali</code> to colors, and applied as <code>sd/f</code> StyleSpan instances on a SpannableString.</div>
+</div>
+
+<!-- 12 -->
+<h3 id="diff-colors">12. Diff Color Resources</h3>
+<div class="claim-box"><strong>Claim:</strong> Comprehensive diff coloring for additions, deletions, and hunks with full light/dark theme support.</div>
+
+<div class="evidence-block">
+  <div class="evidence-header">
+    <span class="evidence-file">github-decoded/res/values/colors.xml + res/values-night/colors.xml</span>
+    <span class="evidence-label label-xml">xml</span>
+  </div>
+  <div class="evidence-body"><pre>&lt;!-- Light mode --&gt;
+&lt;color name="codeBackground"&gt;#fff7f7f9&lt;/color&gt;
+&lt;color name="diffLineAdditionBackground"&gt;#fff0fff4&lt;/color&gt;
+&lt;color name="diffLineDeletionBackground"&gt;#ffffeef0&lt;/color&gt;
+&lt;color name="diffLineHunkBackground"&gt;#fff1f8ff&lt;/color&gt;
+&lt;color name="diffLineNumberAdditionText"&gt;#ff22863a&lt;/color&gt;
+&lt;color name="diffLineNumberDeletionText"&gt;#ffcb2431&lt;/color&gt;
+&lt;color name="diffLineNumberHunkText"&gt;#ff005cc5&lt;/color&gt;
+&lt;color name="blob_addition_background"&gt;@color/green_300&lt;/color&gt;
+&lt;color name="blob_deletion_background"&gt;@color/red_200&lt;/color&gt;
+
+&lt;!-- Dark mode --&gt;
+&lt;color name="codeBackground_dark"&gt;#ff242528&lt;/color&gt;
+&lt;color name="diffLineAdditionBackground"&gt;#ff061c0b&lt;/color&gt;
+&lt;color name="diffLineDeletionBackground"&gt;#ff300406&lt;/color&gt;
+&lt;color name="diffLineHunkBackground"&gt;#ff081f39&lt;/color&gt;
+&lt;color name="diffLineNumberAdditionText"&gt;#ff95f0ab&lt;/color&gt;
+&lt;color name="diffLineNumberDeletionText"&gt;#ffff808d&lt;/color&gt;
+&lt;color name="diffLineNumberHunkText"&gt;#ff85beff&lt;/color&gt;</pre></div>
+  <div class="evidence-note">Non-obfuscated resource names confirm purpose: <code>diffLineAdditionBackground</code>, <code>diffLineDeletionBackground</code>, <code>diffLineHunkBackground</code>. Dark mode values use high-contrast colors on dark backgrounds. The code background color (<code>#fff7f7f9</code> light / <code>#ff242528</code> dark) is referenced by <code>sd/a.smali</code> (resource ID <code>0x7f06008c</code>).</div>
+</div>
+
+<footer>
+  <p>All evidence extracted via <code>apktool 3.0.2</code> decode of APK pulled from an emulator using ADB. File paths are relative to the decoded APK root directory.</p>
+  <p>Companion document: <a href="github-analysis-report.html">Analysis Report</a></p>
+</footer>
+
+</body>
+</html>

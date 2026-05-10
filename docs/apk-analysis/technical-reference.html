@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Technical Reference — APK Syntax Highlighting Evidence</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: #1d1d1f; background: #fff; line-height: 1.7;
+    max-width: 960px; margin: 0 auto; padding: 48px 24px 80px;
+  }
+  h1 { font-size: 2rem; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 4px; }
+  .subtitle { color: #6e6e73; font-size: 0.95rem; margin-bottom: 12px; }
+  .back-link { font-size: 0.9rem; margin-bottom: 40px; display: block; }
+  a { color: #0066cc; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  h2 { font-size: 1.4rem; font-weight: 700; margin: 52px 0 8px; }
+  h3 { font-size: 1.1rem; font-weight: 600; margin: 36px 0 12px; color: #1d1d1f; }
+  p { margin-bottom: 14px; }
+  code {
+    font-family: "SF Mono", "Fira Code", Menlo, Consolas, monospace;
+    font-size: 0.84em; background: #f5f5f7; padding: 2px 6px; border-radius: 4px;
+  }
+  .evidence-block {
+    margin: 16px 0 28px; border: 1px solid #e5e5e7; border-radius: 8px; overflow: hidden;
+  }
+  .evidence-header {
+    background: #fafafa; padding: 10px 16px; border-bottom: 1px solid #e5e5e7;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .evidence-file {
+    font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 0.8rem; color: #6e6e73;
+  }
+  .evidence-label {
+    font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;
+    padding: 2px 8px; border-radius: 4px;
+  }
+  .label-smali { background: #fce4ec; color: #c62828; }
+  .label-json { background: #e8f5e9; color: #2e7d32; }
+  .label-xml { background: #e3f2fd; color: #1565c0; }
+  .label-js { background: #fff3e0; color: #e65100; }
+  .label-asset { background: #f3e5f5; color: #6a1b9a; }
+  .evidence-body {
+    padding: 0; overflow-x: auto;
+  }
+  .evidence-body pre {
+    margin: 0; padding: 16px 20px; background: #fdfdfd;
+    font-family: "SF Mono", "Fira Code", Menlo, Consolas, monospace;
+    font-size: 0.78rem; line-height: 1.6; white-space: pre; tab-size: 4;
+  }
+  .evidence-note {
+    padding: 10px 16px; background: #f9f9fb; border-top: 1px solid #e5e5e7;
+    font-size: 0.85rem; color: #515154;
+  }
+  .section-divider {
+    border: none; border-top: 2px solid #e5e5e7; margin: 56px 0 0;
+  }
+  .app-badge {
+    display: inline-block; font-size: 0.8rem; font-weight: 600; padding: 4px 12px;
+    border-radius: 14px; margin-right: 8px; vertical-align: middle;
+  }
+  .badge-chatgpt { background: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; }
+  .badge-claude { background: #fff3e0; color: #e65100; border: 1px solid #ffe0b2; }
+  .toc { margin: 24px 0 40px; padding: 20px 24px; background: #f9f9fb; border: 1px solid #e5e5e7; border-radius: 10px; }
+  .toc-title { font-weight: 600; font-size: 0.95rem; margin-bottom: 10px; }
+  .toc ul { list-style: none; padding: 0; columns: 2; column-gap: 32px; }
+  .toc li { margin: 4px 0; font-size: 0.88rem; break-inside: avoid; }
+  .toc li::before { content: ""; }
+  .claim-box {
+    background: #f0f7ff; border-left: 3px solid #0066cc; padding: 12px 16px; margin: 12px 0 20px;
+    font-size: 0.9rem; border-radius: 0 6px 6px 0;
+  }
+  .claim-box strong { color: #0066cc; }
+  .hl { background: #fff9c4; padding: 1px 3px; border-radius: 2px; }
+  footer { margin-top: 60px; padding-top: 20px; border-top: 1px solid #e5e5e7; color: #86868b; font-size: 0.8rem; }
+</style>
+</head>
+<body>
+
+<h1>Technical Reference</h1>
+<p class="subtitle">Supporting Evidence for APK Syntax Highlighting Analysis &mdash; April 21, 2026</p>
+<a class="back-link" href="index.html">&larr; Home</a>
+<a class="back-link" href="syntax-on-3p-app-analysis-report.html">&larr; Back to Analysis Report</a>
+
+<nav class="toc">
+  <div class="toc-title">Table of Contents</div>
+  <ul>
+    <li><a href="#chatgpt-flags">1. ChatGPT &mdash; Feature Flags</a></li>
+    <li><a href="#chatgpt-libs">2. ChatGPT &mdash; Library Dependencies</a></li>
+    <li><a href="#chatgpt-commonmark">3. ChatGPT &mdash; CommonMark Parser</a></li>
+    <li><a href="#chatgpt-spans">4. ChatGPT &mdash; Span-Based Coloring</a></li>
+    <li><a href="#chatgpt-theme">5. ChatGPT &mdash; Code Block Theming</a></li>
+    <li><a href="#chatgpt-strings">6. ChatGPT &mdash; UI Strings</a></li>
+    <li><a href="#claude-hljs">7. Claude &mdash; Highlight.js Bundle</a></li>
+    <li><a href="#claude-tokenbridge">8. Claude &mdash; Token Bridge (Full Source)</a></li>
+    <li><a href="#claude-languages">9. Claude &mdash; Language List</a></li>
+    <li><a href="#claude-html">10. Claude &mdash; WebView HTML Template</a></li>
+    <li><a href="#claude-enum">11. Claude &mdash; Token Type Enum</a></li>
+    <li><a href="#claude-spans">12. Claude &mdash; Token → SpannableString</a></li>
+    <li><a href="#claude-assets">13. Claude &mdash; Asset Loading</a></li>
+    <li><a href="#claude-security">14. Claude &mdash; WebView URL Whitelist</a></li>
+    <li><a href="#claude-strings">15. Claude &mdash; UI Strings</a></li>
+  </ul>
+</nav>
+
+<!-- ================================================================== -->
+<hr class="section-divider">
+<h2><span class="app-badge badge-chatgpt">ChatGPT</span> Evidence</h2>
+<!-- ================================================================== -->
+
+<!-- 1 -->
+<h3 id="chatgpt-flags">1. Feature Flags</h3>
+<div class="claim-box"><strong>Claim:</strong> Syntax highlighting is controlled by server-side feature flags allowing A/B testing and gradual rollout.</div>
+
+<div class="evidence-block">
+  <div class="evidence-header">
+    <span class="evidence-file">chatgpt-decoded/smali/w28.smali &mdash; lines 361&ndash;398</span>
+    <span class="evidence-label label-smali">smali</span>
+  </div>
+  <div class="evidence-body"><pre>:pswitch_e
+    const-string p0, "android_syntax_highlighting"
+
+    .line 49
+    .line 50
+    return-object p0
+
+    ...
+
+:pswitch_f
+    const-string p0, "chatgpt_code_blocks"
+
+    .line 52
+    .line 53
+    return-object p0
+
+    ...
+
+:pswitch_12
+    const-string p0, "android_message_markdown"
+
+    .line 60
+    .line 61
+    return-object p0</pre></div>
+  <div class="evidence-note">All three flags are within a <code>packed-switch</code> statement (a feature flag lookup handler), confirming they are centralized feature toggles.</div>
+</div>
+
+<!-- 2 -->
+<h3 id="chatgpt-libs">2. Library Dependencies</h3>
+<div class="claim-box"><strong>Claim:</strong> ChatGPT uses CommonMark for parsing, Markwon for span rendering, and a custom OpenAI fork of compose-richtext for Compose integration.</div>
+
+<div class="evidence-block">
+  <div class="evidence-header">
+    <span class="evidence-file">chatgpt-decoded/res/raw/aboutlibraries.json</span>
+    <span class="evidence-label label-json">json</span>
+  </div>
+  <div class="evidence-body"><pre>// CommonMark core
+{
+  "uniqueId": "org.commonmark:commonmark",
+  "name": "commonmark-java core",
+  "artifactVersion": "0.26.0",
+  "description": "Core of commonmark-java (a library for parsing
+    Markdown to an AST, modifying the AST and rendering it
+    to HTML or Markdown)"
+}
+
+// Markwon
+{
+  "uniqueId": "io.noties.markwon:core",
+  "name": "Core",
+  "artifactVersion": "4.6.2",
+  "description": "Core Markwon artifact that includes basic
+    markdown parsing and rendering"
+}
+
+// OpenAI's compose-richtext fork (4 modules)
+{
+  "uniqueId": "com.github.openai.compose-richtext:richtext-commonmark",
+  "artifactVersion": "025811376f86eb6203bf2db4dc12326af5a6ad9e",
+  "description": "A library for rendering markdown in Compose
+    using the Commonmark library."
+}
+{
+  "uniqueId": "com.github.openai.compose-richtext:richtext-markdown",
+  "description": "A library for rendering markdown represented
+    as an AST in Compose."
+}
+{
+  "uniqueId": "com.github.openai.compose-richtext:richtext-ui",
+  "description": "A library for rendering high-level text
+    formatting in Compose."
+}
+{
+  "uniqueId": "com.github.openai.compose-richtext:richtext-ui-material3",
+  "description": "An extension library for RichText UI to easily
+    bind with Material3 apps."
+}</pre></div>
+  <div class="evidence-note">The <code>com.github.openai.compose-richtext</code> namespace confirms this is OpenAI's own fork of the <a href="https://github.com/halilozercan/compose-richtext">halilozercan/compose-richtext</a> library, pinned to a specific commit SHA.</div>
+</div>
+
+<!-- 3 -->
+<h3 id="chatgpt-commonmark">3. CommonMark Parser Configuration</h3>
+<div class="claim-box"><strong>Claim:</strong> Markdown is parsed using CommonMark with autolink enabled.</div>
+
+<div class="evidence-block">
+  <div class="evidence-header">
+    <span class="evidence-file">chatgpt-decoded/smali_classes2/gr7.smali &mdash; lines 84&ndash;93</span>
+    <span class="evidence-label label-smali">smali</span>
+  </div>
+  <div class="evidence-body"><pre>.method public final toString()Ljava/lang/String;
+    .locals 0
+
+    .line 1
+    const-string p0, "CommonMarkdownParseOptions(autolink=true)"
+
+    .line 2
+    .line 3
+    return-object p0
+.end method</pre></div>
+  <div class="evidence-note">This is a data class <code>toString()</code> confirming the parse options object. The class is a singleton (confirmed by <code>static</code> field and <code>&lt;clinit&gt;</code>).</div>
+</div>
+
+<!-- 4 -->
+<h3 id="chatgpt-spans">4. Span-Based Syntax Coloring</h3>
+<div class="claim-box"><strong>Claim:</strong> Syntax colors are applied using Android's native <code>SpannableStringBuilder</code> with <code>ForegroundColorSpan</code>, <code>StyleSpan</code>, <code>AbsoluteSizeSpan</code>, and <code>TypefaceSpan</code>.</div>
+
+<div class="evidence-block">
+  <div class="evidence-header">
+    <span class="evidence-file">chatgpt-decoded/smali_classes2/tw6.smali &mdash; lines 422&ndash;431, 841&ndash;859</span>
+    <span class="evidence-label label-smali">smali</span>
+  </div>
+  <div class="evidence-body"><pre># SpannableStringBuilder initialization
+new-instance v0, Landroid/text/SpannableStringBuilder;
+invoke-direct {v0}, Landroid/text/SpannableStringBuilder;->&lt;init&gt;()V
+iput-object v0, p0, Ltw6;->b:Landroid/text/SpannableStringBuilder;
+
+    ...
+
+# ForegroundColorSpan applied to text range
+new-instance v2, Landroid/text/style/ForegroundColorSpan;
+iget v5, p0, Ltw6;->r:I
+invoke-direct {v2, v5}, Landroid/text/style/ForegroundColorSpan;->&lt;init&gt;(I)V
+iget v5, p0, Ltw6;->q:I
+invoke-virtual {v0, v2, v5, v1, v3}, Landroid/text/SpannableStringBuilder;->setSpan(Ljava/lang/Object;III)V</pre></div>
+  <div class="evidence-note">Field <code>r</code> holds the color int, field <code>q</code> holds the start offset. <code>setSpan(span, start, end, flags)</code> applies the color to the token range.</div>
+</div>
+
+<div class="evidence-block">
+  <div class="evidence-header">
+    <span class="evidence-file">chatgpt-decoded/smali_classes2/y020.smali &mdash; lines 5264&ndash;5412</span>
+    <span class="evidence-label label-smali">smali</span>
+  </div>
+  <div class="evidence-body"><pre># ForegroundColorSpan from parsed color string
+new-instance v2, Landroid/text/style/ForegroundColorSpan;
+invoke-static {p1}, Landroid/graphics/Color;->parseColor(Ljava/lang/String;)I
+move-result p1
+invoke-direct {v2, p1}, Landroid/text/style/ForegroundColorSpan;->&lt;init&gt;(I)V
+invoke-virtual {v0, v2, v1, p1, v1}, Landroid/text/SpannableString;->setSpan(Ljava/lang/Object;III)V
+
+    ...
+
+# AbsoluteSizeSpan for monospace sizing
+new-instance p1, Landroid/text/style/AbsoluteSizeSpan;
+invoke-direct {p1, p0}, Landroid/text/style/AbsoluteSizeSpan;->&lt;init&gt;(I)V
+invoke-virtual {v0, p1, v1, p0, v1}, Landroid/text/SpannableString;->setSpan(Ljava/lang/Object;III)V
+
+    ...
+
+# TypefaceSpan for monospace font
+new-instance p1, Landroid/text/style/TypefaceSpan;
+invoke-direct {p1, p0}, Landroid/text/style/TypefaceSpan;->&lt;init&gt;(Ljava/lang/String;)V
+invoke-virtual {v0, p1, v1, p0, v1}, Landroid/text/SpannableString;->setSpan(Ljava/lang/Object;III)V</pre></div>
+  <div class="evidence-note">Three distinct span types: color (<code>ForegroundColorSpan</code>), size (<code>AbsoluteSizeSpan</code>), and font (<code>TypefaceSpan</code> with a string parameter &mdash; likely <code>"monospace"</code>).</div>
+</div>
+
+<!-- 5 -->
+<h3 id="chatgpt-theme">5. Code Block Theming System</h3>
+<div class="claim-box"><strong>Claim:</strong> A complete theming system controls code block container appearance including colors, borders, and shadows.</div>
+
+<div class="evidence-block">
+  <div class="evidence-header">
+    <span class="evidence-file">chatgpt-decoded/smali_classes2/zp10.smali &mdash; lines 1438&ndash;1523</span>
+    <span class="evidence-label label-smali">smali</span>
+  </div>
+  <div class="evidence-body"><pre># Border styling
+.line 53
+const-string v9, "CodeBlockCardBorderColor"
+invoke-static/range {p3 .. p9}, Lc2u;->a(JLoef;Ljava/lang/String;Lv58;II)Lrou;
+move-result-object v5
+
+    ...
+
+# Container background
+.line 59
+const-string v30, "CodeBlockContainerColor"
+invoke-static/range {p3 .. p9}, Lc2u;->a(JLoef;Ljava/lang/String;Lv58;II)Lrou;
+move-result-object v18</pre></div>
+  <div class="evidence-note">Other theme tokens found in the same file: <code>CodeBlockPreviewOverlayTabContainerColor</code>, <code>CodeBlockCardShadowAlpha</code>, <code>CodeBlockPreviewContentAlpha</code>. All use the same Compose theming utility <code>Lc2u;->a()</code>.</div>
+</div>
+
+<!-- 6 -->
+<h3 id="chatgpt-strings">6. UI Strings</h3>
+<div class="claim-box"><strong>Claim:</strong> The app provides user-facing code block interactions: copy, share, and output display.</div>
+
+<div class="evidence-block">
+  <div class="evidence-header">
+    <span class="evidence-file">chatgpt-decoded/res/values/strings.xml</span>
+    <span class="evidence-label label-xml">xml</span>
+  </div>
+  <div class="evidence-body"><pre>&lt;string name="APKTOOL_RENAMED_0x7f14024a"&gt;Share code block&lt;/string&gt;
+&lt;string name="APKTOOL_RENAMED_0x7f14024b"&gt;Code&lt;/string&gt;
+&lt;string name="APKTOOL_RENAMED_0x7f14024c"&gt;Preview&lt;/string&gt;
+&lt;string name="APKTOOL_RENAMED_0x7f14024d"&gt;Copy to Clipboard&lt;/string&gt;
+&lt;string name="APKTOOL_RENAMED_0x7f14024e"&gt;Code Output&lt;/string&gt;
+
+&lt;string name="APKTOOL_RENAMED_0x7f14041d"&gt;Copy code&lt;/string&gt;
+
+&lt;string name="a1d"&gt;Copy code&lt;/string&gt;
+&lt;string name="a24"&gt;Copy code instead&lt;/string&gt;</pre></div>
+</div>
+
+<!-- ================================================================== -->
+<hr class="section-divider">
+<h2><span class="app-badge badge-claude">Claude</span> Evidence</h2>
+<!-- ================================================================== -->
+
+<!-- 7 -->
+<h3 id="claude-hljs">7. Bundled Highlight.js</h3>
+<div class="claim-box"><strong>Claim:</strong> Claude bundles Highlight.js v11.10.0 locally in the APK assets.</div>
+
+<div class="evidence-block">
+  <div class="evidence-header">
+    <span class="evidence-file">claude-decoded/assets/highlight.min.js &mdash; lines 1&ndash;5</span>
+    <span class="evidence-label label-js">js</span>
+  </div>
+  <div class="evidence-body"><pre>/*!
+  Highlight.js v11.10.0 (git: 366a8bd012)
+  (c) 2006-2024 Josh Goebel &lt;hello@joshgoebel.com&gt; and other contributors
+  License: BSD-3-Clause
+ */</pre></div>
+  <div class="evidence-note">The full minified library (~125 KB) is bundled in assets, not loaded from CDN. Only theme CSS is loaded externally.</div>
+</div>
+
+<!-- 8 -->
+<h3 id="claude-tokenbridge">8. Token Bridge &mdash; <code>token-highlight.js</code> (Full Source)</h3>
+<div class="claim-box"><strong>Claim:</strong> A custom JavaScript wrapper extracts highlight.js tokens as <code>[start, end, typeId]</code> triplets for efficient native processing.</div>
+
+<div class="evidence-block">
+  <div class="evidence-header">
+    <span class="evidence-file">claude-decoded/assets/token-highlight.js &mdash; complete file (173 lines)</span>
+    <span class="evidence-label label-js">js</span>
+  </div>
+  <div class="evidence-body"><pre>// Token type mapping — maps hljs CSS classes to numeric IDs
+const TOKEN_TYPES = {
+  'keyword': 1,
+  'string': 2,
+  'comment': 3,
+  'number': 4,
+  'literal': 5,
+  'built_in': 6,
+  'type': 7,
+  'function': 8,
+  'title': 9,
+  'params': 10,
+  'variable': 11,
+  'attr': 12,
+  'attribute': 13,
+  'meta': 14,
+  'operator': 15,
+  'punctuation': 16,
+  'regexp': 17,
+  'symbol': 18,
+  'class': 19,
+  'property': 20,
+  'doctag': 21,
+  'template-tag': 22,
+  'template-variable': 23,
+  'subst': 24,
+  'section': 25,
+  'selector-tag': 26,
+  'selector-id': 27,
+  'selector-class': 28,
+  'tag': 29,
+  'name': 30,
+  'addition': 31,
+  'deletion': 32,
+  'emphasis': 33,
+  'strong': 34,
+  'link': 35,
+  'quote': 36,
+  'code': 37,
+  'bullet': 38,
+  'formula': 39,
+  'char.escape': 40,
+  'title.class': 9,
+  'title.class.inherited': 9,
+  'title.function': 8,
+  'title.function.invoke': 8,
+  'variable.language': 11,
+  'variable.constant': 11,
+  'meta keyword': 14,
+  'meta string': 14
+};
+
+function getTokenType(scope) {
+  if (!scope) return 0;
+  var s = scope.replace('hljs-', '');
+  return TOKEN_TYPES[s] || 0;
+}
+
+// Custom emitter that captures token positions and types
+class PositionEmitter {
+  constructor(opts) {
+    this.options = opts;
+    this.tokens = [];
+    this.currentPosition = 0;
+    this.stack = [];
+  }
+
+  addText(text) {
+    this.currentPosition += text.length;
+  }
+
+  startScope(scope) {
+    this.stack.push({
+      scope: scope,
+      start: this.currentPosition
+    });
+  }
+
+  endScope() {
+    if (this.stack.length === 0) return;
+    var item = this.stack.pop();
+    var tokenType = getTokenType(item.scope);
+    if (tokenType !== 0 &amp;&amp; this.currentPosition > item.start) {
+      this.tokens.push(item.start, this.currentPosition, tokenType);
+    }
+  }
+
+  __addSublanguage(emitter, name) {
+    if (emitter.tokens) {
+      var offset = this.currentPosition;
+      for (var i = 0; i &lt; emitter.tokens.length; i += 3) {
+        this.tokens.push(
+          emitter.tokens[i] + offset,
+          emitter.tokens[i + 1] + offset,
+          emitter.tokens[i + 2]
+        );
+      }
+    }
+    this.currentPosition += emitter.currentPosition;
+  }
+
+  openNode(scope) { this.startScope(scope); }
+  closeNode() { this.endScope(); }
+  toHTML() { return ''; }
+  finalize() { return true; }
+}
+
+// Entry point called from Android native code
+function highlightTokens(code, language) {
+  var lang = language || 'plaintext';
+  if (lang !== 'plaintext' &amp;&amp; !hljs.getLanguage(lang)) {
+    lang = 'plaintext';
+  }
+  const result = hljs.highlight(code, {
+    language: lang,
+    ignoreIllegals: true
+  });
+  return JSON.stringify(result._emitter.tokens);
+}</pre></div>
+  <div class="evidence-note">The <code>PositionEmitter</code> replaces highlight.js's default HTML emitter. Instead of producing <code>&lt;span&gt;</code> tags, it records flat <code>[start, end, type]</code> triplets. The <code>highlightTokens()</code> function is called from Android via the JS bridge, returning a JSON array that native code parses into <code>ForegroundColorSpan</code> instances.</div>
+</div>
+
+<!-- 9 -->
+<h3 id="claude-languages">9. Supported Language List</h3>
+<div class="claim-box"><strong>Claim:</strong> 22 programming languages are explicitly supported, with auto-detect fallback.</div>
+
+<div class="evidence-block">
+  <div class="evidence-header">
+    <span class="evidence-file">claude-decoded/smali_classes2/ox2.smali &mdash; lines 14&ndash;57</span>
+    <span class="evidence-label label-smali">smali</span>
+  </div>
+  <div class="evidence-body"><pre>const-string v1,  "bash"
+const-string v2,  "csharp"
+const-string v3,  "css"
+const-string v4,  "go"
+const-string v5,  "graphql"
+const-string v6,  "html"
+const-string v7,  "java"
+const-string v8,  "javascript"
+const-string v9,  "json"
+const-string v10, "kotlin"
+const-string v11, "less"
+const-string v12, "perl"
+const-string v13, "php"
+const-string v14, "python"
+const-string v15, "r"
+const-string v16, "ruby"
+const-string v17, "rust"
+const-string v18, "scala"
+const-string v19, "scss"
+const-string v20, "sql"
+const-string v21, "swift"
+const-string v22, "typescript"</pre></div>
+  <div class="evidence-note">These are loaded into a static <code>Set</code> (<code>Lox2.a</code>). When a language is not in this set, the app falls back to <code>hljs.highlightAuto()</code>.</div>
+</div>
+
+<!-- 10 -->
+<h3 id="claude-html">10. WebView HTML Template Generation</h3>
+<div class="claim-box"><strong>Claim:</strong> Full-screen code views use a dynamically generated HTML page with highlight.js, Atom One themes from CDN, and Base64-encoded source code.</div>
+
+<div class="evidence-block">
+  <div class="evidence-header">
+    <span class="evidence-file">claude-decoded/smali_classes2/ox2.smali &mdash; lines 281&ndash;494</span>
+    <span class="evidence-label label-smali">smali</span>
+  </div>
+  <div class="evidence-body"><pre># Theme selection based on dark mode
+const-string v4, "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.10.0/styles/atom-one-dark.min.css"
+    ...
+const-string v4, "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.10.0/styles/atom-one-light.min.css"
+
+    ...
+
+# HTML template construction
+new-instance v8, Ljava/lang/StringBuilder;
+const-string v10, "\n        &lt;!DOCTYPE html&gt;\n        &lt;html lang=\"en\"&gt;\n
+    &lt;head&gt;\n            &lt;meta charset=\"UTF-8\"&gt;\n
+    &lt;meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"&gt;\n
+    &lt;style&gt;\n
+        html, body { margin: 0; padding: 0; height: auto; width: 100%; }\n
+        pre { margin: 0 }\n
+    &lt;/style&gt;\n
+    &lt;link rel=\"stylesheet\" href=\""
+invoke-direct {v8, v10}, Ljava/lang/StringBuilder;->&lt;init&gt;(Ljava/lang/String;)V
+invoke-virtual {v8, v4}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+
+const-string v4, "\"&gt;\n
+    &lt;script src=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.10.0/highlight.min.js\"&gt;&lt;/script&gt;\n
+    &lt;/head&gt;\n        &lt;body&gt;\n
+    &lt;pre&gt;&lt;code id=\"content\"&gt;&lt;/code&gt;&lt;/pre&gt;\n
+    &lt;script&gt;"
+
+    ...
+
+# Base64 decode + highlight execution
+const-string v11, "hljs.highlight((function(base64String) {\n
+    const binaryString = atob(base64String);\n
+    const bytes = new Uint8Array(binaryString.length);\n
+    for (let i = 0; i &lt; binaryString.length; i++) {\n
+        bytes[i] = binaryString.charCodeAt(i);\n
+    }\n
+    const decoder = new TextDecoder(\'utf-8\');\n
+    const decodedString = decoder.decode(bytes);\n
+    return decodedString;\n})('"</pre></div>
+  <div class="evidence-note">The template: (1) loads theme CSS from CDN, (2) loads highlight.min.js from CDN, (3) decodes Base64-encoded source code in JavaScript, (4) calls <code>hljs.highlight()</code> with the detected language, (5) inserts the highlighted HTML into the DOM.</div>
+</div>
+
+<!-- 11 -->
+<h3 id="claude-enum">11. Token Type Enum (42 Values)</h3>
+<div class="claim-box"><strong>Claim:</strong> A Kotlin enum maps all 42 highlight.js token types to color values for native rendering.</div>
+
+<div class="evidence-block">
+  <div class="evidence-header">
+    <span class="evidence-file">claude-decoded/smali_classes2/eue.smali &mdash; lines 24&ndash;545</span>
+    <span class="evidence-label label-smali">smali</span>
+  </div>
+  <div class="evidence-body"><pre>.class public final enum Leue;
+.super Ljava/lang/Enum;
+
+# Enum values with numeric IDs:
+#   UNKNOWN(0)     KEYWORD(1)     STRING(2)      COMMENT(3)
+#   NUMBER(4)      LITERAL(5)     BUILT_IN(6)    TYPE(7)
+#   FUNCTION(8)    TITLE(9)       PARAMS(10)     VARIABLE(11)
+#   ATTR(12)       ATTRIBUTE(13)  META(14)       OPERATOR(15)
+#   PUNCTUATION(16) REGEXP(17)    SYMBOL(18)     CLASS(19)
+#   PROPERTY(20)   DOCTAG(21)     TEMPLATE_TAG(22)
+#   TEMPLATE_VARIABLE(23)         SUBST(24)      SECTION(25)
+#   SELECTOR_TAG(26)              SELECTOR_ID(27)
+#   SELECTOR_CLASS(28)            TAG(29)        NAME(30)
+#   ADDITION(31)   DELETION(32)   EMPHASIS(33)   STRONG(34)
+#   LINK(35)       QUOTE(36)      CODE(37)       BULLET(38)
+#   FORMULA(39)    CHAR(40)       CHAR_ESCAPE(41)
+
+    ...
+
+# Color mapping: enum value → color int, stored in LinkedHashMap
+new-instance v1, Ljava/util/LinkedHashMap;
+invoke-direct {v1, v0}, Ljava/util/LinkedHashMap;->&lt;init&gt;(I)V
+invoke-interface {v2}, Ljava/lang/Iterable;->iterator()Ljava/util/Iterator;
+
+:goto_0
+invoke-interface {v0}, Ljava/util/Iterator;->hasNext()Z
+    ...
+iget v3, v3, Leue;->A:I                    # field A = color int
+invoke-static {v3}, Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
+invoke-interface {v1, v3, v2}, Ljava/util/Map;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;</pre></div>
+  <div class="evidence-note">Each enum constant has a field <code>A</code> holding the color int. At initialization, all 42 entries are loaded into a <code>LinkedHashMap&lt;Integer, Leue&gt;</code> for O(1) lookup by token type ID.</div>
+</div>
+
+<!-- 12 -->
+<h3 id="claude-spans">12. Token &rarr; SpannableString Conversion</h3>
+<div class="claim-box"><strong>Claim:</strong> JSON token triplets from highlight.js are parsed and converted to native <code>ForegroundColorSpan</code> instances.</div>
+
+<div class="evidence-block">
+  <div class="evidence-header">
+    <span class="evidence-file">claude-decoded/smali_classes2/sz6.smali &mdash; lines 170&ndash;326</span>
+    <span class="evidence-label label-smali">smali</span>
+  </div>
+  <div class="evidence-body"><pre># Parse JSON array of [start, end, type] triplets
+new-instance v5, Lorg/json/JSONArray;
+invoke-direct {v5, v1}, Lorg/json/JSONArray;->&lt;init&gt;(Ljava/lang/String;)V
+invoke-virtual {v5}, Lorg/json/JSONArray;->length()I
+move-result v1
+div-int/lit8 v1, v1, 0x3            # divide by 3 → number of tokens
+
+move v6, v2
+:goto_2
+if-ge v6, v1, :cond_8               # loop over each token
+mul-int/lit8 v7, v6, 0x3            # index = token * 3
+invoke-virtual {v5, v7}, Lorg/json/JSONArray;->getInt(I)I
+move-result v8                       # v8 = start offset
+
+add-int/lit8 v9, v7, 0x1
+invoke-virtual {v5, v9}, Lorg/json/JSONArray;->getInt(I)I
+move-result v9                       # v9 = end offset
+
+add-int/lit8 v7, v7, 0x2
+invoke-virtual {v5, v7}, Lorg/json/JSONArray;->getInt(I)I
+move-result v7                       # v7 = token type ID
+
+    ...
+
+# Apply ForegroundColorSpan for each token
+aget-object v15, v3, v12             # get SpannableString from array
+new-instance v2, Landroid/text/style/ForegroundColorSpan;
+invoke-direct {v2, v7}, Landroid/text/style/ForegroundColorSpan;->&lt;init&gt;(I)V
+const/16 v0, 0x21                    # SPAN_EXCLUSIVE_EXCLUSIVE = 33
+invoke-virtual {v15, v2, v14, v13, v0}, Landroid/text/SpannableString;->setSpan(Ljava/lang/Object;III)V</pre></div>
+  <div class="evidence-note">The flow: (1) parse JSON string into <code>JSONArray</code>, (2) iterate in steps of 3, (3) extract start/end/type, (4) look up color from the <code>Leue</code> enum, (5) create <code>ForegroundColorSpan</code> with the color, (6) apply to the <code>SpannableString</code> with <code>SPAN_EXCLUSIVE_EXCLUSIVE</code> flag (0x21 = 33).</div>
+</div>
+
+<!-- 13 -->
+<h3 id="claude-assets">13. Asset Loading</h3>
+<div class="claim-box"><strong>Claim:</strong> Both <code>highlight.min.js</code> and <code>token-highlight.js</code> are loaded from Android assets at runtime.</div>
+
+<div class="evidence-block">
+  <div class="evidence-header">
+    <span class="evidence-file">claude-decoded/smali_classes2/mz6.smali &mdash; lines 129&ndash;207</span>
+    <span class="evidence-label label-smali">smali</span>
+  </div>
+  <div class="evidence-body"><pre># Load token-highlight.js
+const-string p1, "token-highlight.js"
+invoke-virtual {p0, p1}, Landroid/content/res/AssetManager;->open(Ljava/lang/String;)Ljava/io/InputStream;
+move-result-object p0
+sget-object p1, Lev1;->a:Ljava/nio/charset/Charset;     # UTF-8
+new-instance v0, Ljava/io/InputStreamReader;
+invoke-direct {v0, p0, p1}, Ljava/io/InputStreamReader;->&lt;init&gt;(Ljava/io/InputStream;Ljava/nio/charset/Charset;)V
+new-instance p0, Ljava/io/BufferedReader;
+invoke-direct {p0, v0, v1}, Ljava/io/BufferedReader;->&lt;init&gt;(Ljava/io/Reader;I)V
+invoke-static {p0}, Lcod;->d(Ljava/io/Reader;)Ljava/lang/String;
+
+    ...
+
+# Load highlight.min.js
+const-string p1, "highlight.min.js"
+invoke-virtual {p0, p1}, Landroid/content/res/AssetManager;->open(Ljava/lang/String;)Ljava/io/InputStream;
+move-result-object p0
+sget-object p1, Lev1;->a:Ljava/nio/charset/Charset;     # UTF-8
+new-instance v0, Ljava/io/InputStreamReader;
+invoke-direct {v0, p0, p1}, Ljava/io/InputStreamReader;->&lt;init&gt;(Ljava/io/InputStream;Ljava/nio/charset/Charset;)V
+new-instance p0, Ljava/io/BufferedReader;
+invoke-direct {p0, v0, v1}, Ljava/io/BufferedReader;->&lt;init&gt;(Ljava/io/Reader;I)V
+invoke-static {p0}, Lcod;->d(Ljava/io/Reader;)Ljava/lang/String;</pre></div>
+  <div class="evidence-note">Both files are read as UTF-8 text via <code>AssetManager.open()</code> &rarr; <code>InputStreamReader</code> &rarr; <code>BufferedReader</code> &rarr; <code>String</code>. The loaded JavaScript is then injected into the WebView or JS engine for execution.</div>
+</div>
+
+<!-- 14 -->
+<h3 id="claude-security">14. WebView URL Whitelist</h3>
+<div class="claim-box"><strong>Claim:</strong> A custom <code>WebViewClient</code> restricts external resource loading to only CDN URLs for highlight.js assets.</div>
+
+<div class="evidence-block">
+  <div class="evidence-header">
+    <span class="evidence-file">claude-decoded/smali_classes2/nx2.smali &mdash; lines 11&ndash;53</span>
+    <span class="evidence-label label-smali">smali</span>
+  </div>
+  <div class="evidence-body"><pre># Constructor — build whitelist set
+.method public constructor &lt;init&gt;(Ljava/lang/String;)V
+    .locals 2
+    invoke-direct {p0}, Landroid/webkit/WebViewClient;->&lt;init&gt;()V
+    const-string v0, "text/html"
+    invoke-static {v0}, Lk1h;->p(Ljava/lang/String;)Ljava/lang/String;
+    move-result-object v0
+    const-string v1, "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.10.0/highlight.min.js"
+    filled-new-array {v0, v1, p1}, [Ljava/lang/String;
+    move-result-object p1
+    invoke-static {p1}, Lcg0;->Z0([Ljava/lang/Object;)Ljava/util/Set;
+    move-result-object p1
+    iput-object p1, p0, Lnx2;->c:Ljava/util/Set;       # whitelist stored as Set
+    return-void
+
+    ...
+
+# URL check — only allows whitelisted URLs
+.method public final a(Landroid/net/Uri;)Z
+    .locals 0
+    iget-object p0, p0, Lnx2;->c:Ljava/util/Set;
+    invoke-virtual {p1}, Landroid/net/Uri;->toString()Ljava/lang/String;
+    move-result-object p1
+    invoke-interface {p0, p1}, Ljava/util/Set;->contains(Ljava/lang/Object;)Z
+    move-result p0
+    return p0</pre></div>
+  <div class="evidence-note">The whitelist contains exactly 3 entries: <code>text/html</code> MIME type, the CDN highlight.js script URL, and a dynamic parameter (the theme CSS URL). All other requests are blocked by the <code>Set.contains()</code> check.</div>
+</div>
+
+<!-- 15 -->
+<h3 id="claude-strings">15. UI Strings</h3>
+<div class="claim-box"><strong>Claim:</strong> The app provides code block interactions (copy, expand) and theme mode settings.</div>
+
+<div class="evidence-block">
+  <div class="evidence-header">
+    <span class="evidence-file">claude-decoded/res/values/strings.xml</span>
+    <span class="evidence-label label-xml">xml</span>
+  </div>
+  <div class="evidence-body"><pre>&lt;!-- Code block UI --&gt;
+&lt;string name="code_block_copied"&gt;Copied&lt;/string&gt;
+&lt;string name="code_block_copy_button"&gt;Copy code&lt;/string&gt;
+&lt;string name="code_block_expand_button"&gt;Expand code&lt;/string&gt;
+&lt;string name="code_block_label_code"&gt;Code&lt;/string&gt;
+
+&lt;!-- Theme settings --&gt;
+&lt;string name="color_mode_setting_dark"&gt;Dark&lt;/string&gt;
+&lt;string name="color_mode_setting_light"&gt;Light&lt;/string&gt;
+&lt;string name="color_mode_setting_system"&gt;System&lt;/string&gt;
+&lt;string name="color_mode_setting_title"&gt;Color mode&lt;/string&gt;</pre></div>
+  <div class="evidence-note">Note: Claude uses <em>non-obfuscated</em> string resource names (<code>code_block_copy_button</code>), while ChatGPT's are R8-obfuscated (<code>APKTOOL_RENAMED_0x7f14...</code>).</div>
+</div>
+
+<footer>
+  <p>All evidence extracted via <code>apktool 3.0.2</code> decode of APKs pulled from a physical device using ADB. File paths are relative to the decoded APK root directories. Line numbers reference the decoded smali/resource files.</p>
+  <p>Companion document: <a href="analysis-report.html">Analysis Report</a></p>
+</footer>
+
+</body>
+</html>
