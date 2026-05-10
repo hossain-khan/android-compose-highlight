@@ -16,12 +16,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.selection.SelectionContainer
-import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -30,9 +28,7 @@ import androidx.compose.ui.platform.ClipEntry
 import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import dev.hossain.highlight.engine.HighlightTheme
@@ -80,8 +76,9 @@ import kotlinx.coroutines.launch
  *     code     = jsonSnippet,
  *     language = "json",
  *     style    = CodeBlockStyle(
- *         shape   = RoundedCornerShape(4.dp),
- *         padding = PaddingValues(8.dp),
+ *         shape     = RoundedCornerShape(4.dp),
+ *         padding   = PaddingValues(8.dp),
+ *         textStyle = SyntaxHighlightedCodeDefaults.codeTextStyle.copy(fontSize = 15.sp),
  *     ),
  *     showCopyButton = false,
  * )
@@ -92,7 +89,9 @@ import kotlinx.coroutines.launch
  * @param modifier Modifier for the outer container.
  * @param theme The theme to use. Defaults to [LocalHighlightTheme]. Throws if no
  *   [HighlightThemeProvider] is present and no explicit theme is passed.
- * @param style Visual style configuration — shape, padding, line-number column, etc.
+ * @param style Visual style configuration — shape, padding, line-number column, font, etc.
+ *   Use [CodeBlockStyle.textStyle] to override typography (font family, size, line height).
+ *   See [SyntaxHighlightedCodeDefaults] for the default values.
  * @param showLineNumbers Whether to show a line-number gutter on the left.
  * @param showLanguageLabel Whether to show the language badge in the header.
  * @param showCopyButton Whether to show the copy-to-clipboard button.
@@ -119,9 +118,6 @@ import kotlinx.coroutines.launch
  *   ```
  * @param onHighlightComplete Optional callback invoked with the highlight duration in milliseconds
  *   when highlighting succeeds. Useful for performance metrics.
- * @param fontFamily Font family for the code text. Defaults to monospace.
- * @param fontSize Font size for the code text.
- * @param lineHeight Line height for the code text.
  */
 @Composable
 fun SyntaxHighlightedCode(
@@ -136,9 +132,6 @@ fun SyntaxHighlightedCode(
     onCopyClick: ((String) -> Unit)? = null,
     copyButtonIcon: (@Composable (tint: Color) -> Unit)? = null,
     onHighlightComplete: ((durationMs: Long) -> Unit)? = null,
-    fontFamily: FontFamily = FontFamily.Monospace,
-    fontSize: TextUnit = 13.sp,
-    lineHeight: TextUnit = 20.sp,
 ) {
     val highlightedState = rememberHighlightedCode(code, language, theme, onHighlightComplete)
     val clipboard = LocalClipboard.current
@@ -153,6 +146,10 @@ fun SyntaxHighlightedCode(
     val lineNumberColor =
         style.lineNumberColor.takeIf { it != Color.Unspecified }
             ?: textColor.copy(alpha = 0.4f)
+
+    // Apply the theme's foreground color on top of the caller-supplied text style.
+    val codeTextStyle = style.textStyle.copy(color = textColor)
+    val lineNumTextStyle = style.textStyle.copy(color = lineNumberColor)
 
     Surface(
         modifier = modifier,
@@ -173,10 +170,9 @@ fun SyntaxHighlightedCode(
                         Text(
                             text = language,
                             style =
-                                TextStyle(
+                                style.textStyle.copy(
                                     color = textColor.copy(alpha = 0.6f),
                                     fontSize = 12.sp,
-                                    fontFamily = fontFamily,
                                 ),
                         )
                     }
@@ -215,24 +211,15 @@ fun SyntaxHighlightedCode(
                             LineNumberedCode(
                                 code = code,
                                 highlighted = highlighted,
-                                textColor = textColor,
-                                lineNumberColor = lineNumberColor,
+                                codeTextStyle = codeTextStyle,
+                                lineNumTextStyle = lineNumTextStyle,
                                 style = style,
-                                fontFamily = fontFamily,
-                                fontSize = fontSize,
-                                lineHeight = lineHeight,
                             )
                         } else {
                             Text(
                                 text = highlighted ?: AnnotatedString(code),
                                 modifier = Modifier.padding(style.padding),
-                                style =
-                                    TextStyle(
-                                        color = textColor,
-                                        fontFamily = fontFamily,
-                                        fontSize = fontSize,
-                                        lineHeight = lineHeight,
-                                    ),
+                                style = codeTextStyle,
                             )
                         }
                     }
@@ -246,29 +233,12 @@ fun SyntaxHighlightedCode(
 private fun LineNumberedCode(
     code: String,
     highlighted: AnnotatedString?,
-    textColor: Color,
-    lineNumberColor: Color,
+    codeTextStyle: TextStyle,
+    lineNumTextStyle: TextStyle,
     style: CodeBlockStyle,
-    fontFamily: FontFamily,
-    fontSize: TextUnit,
-    lineHeight: TextUnit,
 ) {
     // Count lines from the text that will actually be rendered so line numbers always align.
     val lineCount = (highlighted?.text ?: code).lines().size
-    val codeStyle =
-        TextStyle(
-            color = textColor,
-            fontFamily = fontFamily,
-            fontSize = fontSize,
-            lineHeight = lineHeight,
-        )
-    val lineNumStyle =
-        TextStyle(
-            color = lineNumberColor,
-            fontFamily = fontFamily,
-            fontSize = fontSize,
-            lineHeight = lineHeight,
-        )
 
     Row(modifier = Modifier.padding(style.padding)) {
         // Line number gutter — rendered as a single Text to share the same line-height
@@ -276,16 +246,16 @@ private fun LineNumberedCode(
         val lineNumbers = (1..lineCount).joinToString("\n")
         Text(
             text = lineNumbers,
-            style = lineNumStyle,
+            style = lineNumTextStyle,
             modifier = Modifier.width(style.lineNumberWidth),
             textAlign = TextAlign.End,
         )
         Spacer(modifier = Modifier.width(8.dp))
         // Code text
         if (highlighted != null) {
-            Text(text = highlighted, style = codeStyle)
+            Text(text = highlighted, style = codeTextStyle)
         } else {
-            Text(text = code, style = codeStyle)
+            Text(text = code, style = codeTextStyle)
         }
     }
 }

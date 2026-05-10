@@ -183,16 +183,32 @@ Community themes are available at [highlightjs/highlight.js/src/styles](https://
 | `language` | `String` | required | Highlight.js language ID |
 | `modifier` | `Modifier` | `Modifier` | Outer container modifier |
 | `theme` | `HighlightTheme` | `LocalHighlightTheme` | Theme override |
-| `style` | `CodeBlockStyle` | `CodeBlockStyle.Default` | Visual style (padding, shape, etc.) — use `CodeBlockStyle.Compact` for tighter layouts |
+| `style` | `CodeBlockStyle` | `CodeBlockStyle.Default` | Visual style — shape, padding, typography (`textStyle`), line-number gutter, copy-button size. See `SyntaxHighlightedCodeDefaults` for defaults. |
 | `showLineNumbers` | `Boolean` | `false` | Show line-number gutter |
 | `showLanguageLabel` | `Boolean` | `true` | Show language badge in header |
 | `showCopyButton` | `Boolean` | `true` | Show copy-to-clipboard button |
 | `onCopyClick` | `((String) -> Unit)?` | `null` | Custom copy handler; when provided, the caller owns clipboard write and feedback UX |
 | `copyButtonIcon` | `(@Composable (tint: Color) -> Unit)?` | `null` | Custom copy button icon composable; receives theme tint color. Defaults to `⧉` text |
 | `onHighlightComplete` | `((Long) -> Unit)?` | `null` | Callback with highlight duration in ms |
-| `fontFamily` | `FontFamily` | `Monospace` | Code font |
-| `fontSize` | `TextUnit` | `13.sp` | Code font size |
-| `lineHeight` | `TextUnit` | `20.sp` | Code line height |
+
+### Typography customization
+
+Font family, size, and line height are controlled via `CodeBlockStyle.textStyle`. Start from
+`SyntaxHighlightedCodeDefaults.codeTextStyle` and override just the properties you need:
+
+```kotlin
+SyntaxHighlightedCode(
+    code     = snippet,
+    language = "kotlin",
+    style    = CodeBlockStyle(
+        textStyle = SyntaxHighlightedCodeDefaults.codeTextStyle.copy(
+            fontSize   = 15.sp,
+            lineHeight = 24.sp,
+            fontFamily = FontFamily.Serif,
+        ),
+    ),
+)
+```
 
 ---
 
