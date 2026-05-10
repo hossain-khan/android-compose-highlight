@@ -17,7 +17,7 @@ Wrap your screen (or root composable) in `HighlightThemeProvider`, then place `S
 ```kotlin
 HighlightThemeProvider(
     lightHighlightTheme = HighlightTheme.tomorrow(context),
-    darkHighlightTheme  = HighlightTheme.tomorrowNight(context),
+    darkHighlightTheme  = HighlightTheme.atomOneDark(context),
 ) {
     SyntaxHighlightedCode(
         code            = myCode,
@@ -27,7 +27,16 @@ HighlightThemeProvider(
 }
 ```
 
-`HighlightThemeProvider` automatically selects the correct theme based on `isSystemInDarkTheme()`.
+`HighlightThemeProvider` automatically selects the correct theme based on `isSystemInDarkTheme()`. Pass `darkTheme = true/false` to force a specific mode.
+
+### Built-in themes
+
+| Factory | Style |
+|---|---|
+| `HighlightTheme.tomorrow(context)` | Light |
+| `HighlightTheme.atomOneLight(context)` | Light |
+| `HighlightTheme.tomorrowNight(context)` | Dark |
+| `HighlightTheme.atomOneDark(context)` | Dark |
 
 ### Demo 🎥
 
@@ -171,7 +180,7 @@ Community themes are available at [highlightjs/highlight.js/src/styles](https://
 | `language` | `String` | required | Highlight.js language ID |
 | `modifier` | `Modifier` | `Modifier` | Outer container modifier |
 | `theme` | `HighlightTheme` | `LocalHighlightTheme` | Theme override |
-| `style` | `CodeBlockStyle` | `CodeBlockStyle.Default` | Visual style (padding, shape, etc.) |
+| `style` | `CodeBlockStyle` | `CodeBlockStyle.Default` | Visual style (padding, shape, etc.) — use `CodeBlockStyle.Compact` for tighter layouts |
 | `showLineNumbers` | `Boolean` | `false` | Show line-number gutter |
 | `showLanguageLabel` | `Boolean` | `true` | Show language badge in header |
 | `showCopyButton` | `Boolean` | `true` | Show copy-to-clipboard button |
@@ -196,7 +205,30 @@ SyntaxHighlightedCode  (Compose UI)
                     └── HtmlToAnnotatedString  (jsoup → AnnotatedString)
 ```
 
-The WebView loads `bridge.html` from the library's bundled assets, which in turn loads the full 192-language Highlight.js bundle. All WebView operations run on the Main thread; callers interact through suspend functions backed by a `Mutex`.
+The WebView loads `bridge.html` from the library's bundled assets, which in turn loads the full 190+ language Highlight.js bundle. All WebView operations run on the Main thread; callers interact through suspend functions backed by a `Mutex`.
+
+`HighlightThemeProvider` creates a **single shared `HighlightEngine`** (one hidden WebView) for its entire subtree. Screens with multiple `SyntaxHighlightedCode` blocks share one WebView instead of creating one per block, saving ~200 ms warm-up time and ~2–4 MB RAM per extra block.
+
+### Optional: WebView pre-warming
+
+The hidden WebView initializes lazily on first use. To reduce first-call latency, pre-warm the WebView renderer process in your `Application.onCreate()`:
+
+```kotlin
+class MyApp : Application() {
+    override fun onCreate() {
+        super.onCreate()
+        runCatching {
+            WebViewCompat.startUpWebView(
+                applicationContext,
+                WebViewStartUpConfig.Builder(mainExecutor).build(),
+                WebViewOutcomeReceiver { /* no-op */ },
+            )
+        }
+    }
+}
+```
+
+Requires `androidx.webkit:webkit:1.16+` (already a transitive dependency of this library).
 
 For full design details see [`docs/prd-compose-syntax-highlight.md`](docs/prd-compose-syntax-highlight.md).
 
