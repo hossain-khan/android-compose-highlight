@@ -175,7 +175,8 @@ Community themes are available at [highlightjs/highlight.js/src/styles](https://
 | `showLineNumbers` | `Boolean` | `false` | Show line-number gutter |
 | `showLanguageLabel` | `Boolean` | `true` | Show language badge in header |
 | `showCopyButton` | `Boolean` | `true` | Show copy-to-clipboard button |
-| `onCopyClick` | `((String) -> Unit)?` | `null` | Custom copy handler |
+| `onCopyClick` | `((String) -> Unit)?` | `null` | Custom copy handler; when provided, the caller owns clipboard write and feedback UX |
+| `copyButtonIcon` | `(@Composable (tint: Color) -> Unit)?` | `null` | Custom copy button icon composable; receives theme tint color. Defaults to `⧉` text |
 | `onHighlightComplete` | `((Long) -> Unit)?` | `null` | Callback with highlight duration in ms |
 | `fontFamily` | `FontFamily` | `Monospace` | Code font |
 | `fontSize` | `TextUnit` | `13.sp` | Code font size |
@@ -243,7 +244,7 @@ Run on your target device to get accurate numbers. Results are printed in logcat
 
 - Android minSdk 24+
 - Kotlin 2.x
-- Jetpack Compose (BOM 2026.03+)
+- Jetpack Compose (BOM 2026.05+)
 
 ## License
 
