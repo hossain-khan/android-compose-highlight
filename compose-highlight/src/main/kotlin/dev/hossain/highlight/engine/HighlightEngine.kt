@@ -149,7 +149,7 @@ class HighlightEngine(
         }
 
     /**
-     * Full pipeline: highlight → parse theme → convert to [AnnotatedString].
+     * Full pipeline: highlight → parse theme → convert to [HighlightResult].
      *
      * Convenience method combining [highlightToHtml] + [ThemeParser] + [HtmlToAnnotatedString].
      * Returns a [HighlightResult] with the annotated string, span count, and pure highlight time.
