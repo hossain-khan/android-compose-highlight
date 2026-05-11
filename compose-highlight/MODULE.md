@@ -51,8 +51,11 @@ val result = engine.highlight(
     language = "sql",
     theme    = HighlightTheme.tomorrow(context),
 )
-result.onSuccess { annotated ->
-    // apply annotated string in your own Text() composable
+result.onSuccess { r ->
+    // r.annotated   — AnnotatedString ready for Text()
+    // r.spanCount   — 0 signals a silent failure (unsupported language / empty input)
+    // r.durationMs  — JS round-trip time in ms
+    // r.language    — the language identifier that was requested
 }
 
 // Always destroy to release WebView resources
@@ -60,6 +63,39 @@ engine.destroy()
 ```
 
 When used inside a Composable, prefer `rememberHighlightEngine()` — it handles destruction automatically.
+
+## Reactive Initialization State
+
+`HighlightEngine.isInitialized` is a `StateFlow<Boolean>` — observe it in Compose to react when the hidden WebView finishes loading:
+
+```kotlin
+val engine = rememberHighlightEngine()
+val isReady by engine.isInitialized.collectAsState()
+
+if (isReady) {
+    Text("WebView warm — first highlight will be fast")
+}
+```
+
+## Raw HTML Output with Timing
+
+Use `highlightToHtml()` when you need the raw `<span class="hljs-*">` HTML (e.g. for a custom renderer or benchmarking):
+
+```kotlin
+engine.highlightToHtml(code, "kotlin").onSuccess { result ->
+    renderCustomHtml(result.html)
+    log("JS round-trip: ${result.durationMs} ms")  // true JS-only time
+}
+```
+
+`HtmlHighlightResult` carries `.html` and `.durationMs` (measured after WebView is ready and the internal mutex is acquired — excludes warm-up and queue-wait time).
+
+## Engine Introspection
+
+```kotlin
+engine.highlightJsVersion().onSuccess { v -> log("hljs $v") }
+engine.supportedLanguages().onSuccess { langs -> log("${langs.size} languages") }
+```
 
 ## Theme Switching Without Extra JS Round-Trips
 
@@ -73,9 +109,38 @@ val themed = engine.highlightBothThemes(
     darkTheme  = HighlightTheme.tomorrowNight(context),
 )
 themed.onSuccess { result ->
+    // ThemedHighlightResult — both variants pre-computed, no extra JS call
     val displayString = if (isDark) result.dark else result.light
+    // result.durationMs — JS round-trip time for the single highlight pass
 }
 ```
+
+Inside a Composable, use `rememberHighlightedCodeBothThemes()` for the same behaviour with automatic state management:
+
+```kotlin
+HighlightThemeProvider(lightHighlightTheme = ..., darkHighlightTheme = ...) {
+    // Themes default to LocalLightHighlightTheme / LocalDarkHighlightTheme — no explicit args needed
+    val result by rememberHighlightedCodeBothThemes(
+        code     = sourceCode,
+        language = "kotlin",
+        onHighlightComplete = { r -> log("done in ${r.durationMs} ms") },
+    )
+    val text = if (isSystemInDarkTheme()) result?.dark else result?.light
+    if (text != null) Text(text)
+}
+```
+
+## CompositionLocals
+
+`HighlightThemeProvider` exposes three CompositionLocals:
+
+| Local | Type | Content |
+|---|---|---|
+| `LocalHighlightTheme` | `HighlightTheme` | Active theme (light or dark based on system) |
+| `LocalLightHighlightTheme` | `HighlightTheme` | Always the light variant |
+| `LocalDarkHighlightTheme` | `HighlightTheme` | Always the dark variant |
+
+`LocalLightHighlightTheme` and `LocalDarkHighlightTheme` are useful when a composable needs both variants simultaneously (e.g. `rememberHighlightedCodeBothThemes`).
 
 ## Custom Styling
 
