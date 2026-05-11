@@ -37,7 +37,8 @@ import dev.hossain.highlight.engine.ThemedHighlightResult
  * ```
  *
  * Prefer [rememberHighlightedCode] for simple use cases. Use [rememberHighlightEngine]
- * directly only when you need lower-level control (e.g. calling [HighlightEngine.highlightBothThemes]).
+ * directly only when you need lower-level control — for example, calling
+ * [HighlightEngine.highlightBothThemes] or reading [HighlightEngine.isInitialized].
  */
 @Composable
 fun rememberHighlightEngine(): HighlightEngine {
@@ -158,7 +159,10 @@ fun rememberHighlightedCode(
  * @param darkTheme Theme to apply for the dark variant. Create inside `remember` to avoid
  *   re-parsing CSS on every recomposition.
  * @param onHighlightComplete Optional callback invoked with the highlight duration in milliseconds
- *   when highlighting succeeds. Not called on failure.
+ *   when highlighting succeeds. Not called on failure. Note: this callback passes `Long` (pure
+ *   highlight time) rather than a [dev.hossain.highlight.engine.HighlightResult], because
+ *   `highlightBothThemes` produces two annotated strings from one JS call and does not map
+ *   cleanly to a single-language result.
  * @return A [State] holding a [ThemedHighlightResult] with both variants, or `null` while loading / on error.
  */
 @Composable

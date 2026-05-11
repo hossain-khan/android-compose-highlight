@@ -57,7 +57,11 @@ import kotlin.coroutines.resumeWithException
  *     language = "kotlin",
  *     theme    = HighlightTheme.atomOneDark(context),
  * )
- * result.onSuccess { result -> /* use result.annotated (AnnotatedString) */ }
+ * result.onSuccess { highlighted ->
+ *     display(highlighted.annotated)            // AnnotatedString
+ *     log("spans: ${highlighted.spanCount}")    // 0 = unsupported language
+ *     log("time:  ${highlighted.durationMs} ms")
+ * }
  *
  * // Release resources when done
  * engine.destroy()
@@ -175,9 +179,10 @@ class HighlightEngine(
     }
 
     /**
-     * Produces both light and dark [AnnotatedString] from a single JS call.
-     * The HTML is tokenized once, then converted twice with different color maps,
-     * making theme switching instant without an extra JS round-trip.
+     * Highlights [code] once and produces a [ThemedHighlightResult] holding both a light and a dark
+     * [androidx.compose.ui.text.AnnotatedString]. The HTML is tokenized once by the JS engine,
+     * then converted twice with different color maps, making theme switching instant without an
+     * extra JS round-trip.
      */
     suspend fun highlightBothThemes(
         code: String,
