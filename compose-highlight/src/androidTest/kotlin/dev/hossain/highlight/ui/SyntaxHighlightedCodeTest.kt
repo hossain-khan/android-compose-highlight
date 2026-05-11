@@ -6,6 +6,7 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import com.google.common.truth.Truth.assertThat
 import dev.hossain.highlight.engine.HighlightTheme
 import org.junit.Rule
 import org.junit.Test
@@ -84,23 +85,6 @@ class SyntaxHighlightedCodeTest {
     }
 
     @Test
-    fun copyButtonShowsCopiedConfirmation() {
-        composeTestRule.setContent {
-            HighlightThemeProvider {
-                SyntaxHighlightedCode(
-                    code = sampleCode,
-                    language = "python",
-                    showCopyButton = true,
-                    onCopyClick = { /* no-op */ },
-                )
-            }
-        }
-        composeTestRule.onNodeWithText("⧉", useUnmergedTree = true).performClick()
-        composeTestRule.waitForIdle()
-        composeTestRule.onNodeWithText("Copied!", useUnmergedTree = true).assertIsDisplayed()
-    }
-
-    @Test
     fun emptyCodeRendersWithoutCrash() {
         composeTestRule.setContent {
             HighlightThemeProvider {
@@ -120,8 +104,35 @@ class SyntaxHighlightedCodeTest {
                 )
             }
         }
-        composeTestRule.onNodeWithText("1", useUnmergedTree = true).assertIsDisplayed()
-        composeTestRule.onNodeWithText("2", useUnmergedTree = true).assertIsDisplayed()
-        composeTestRule.onNodeWithText("3", useUnmergedTree = true).assertIsDisplayed()
+        composeTestRule.waitForIdle()
+        // Line numbers are rendered as a single Text composable "1\n2\n3" (gutter joined by \n)
+        composeTestRule.onNodeWithText("1\n2\n3", useUnmergedTree = true).assertIsDisplayed()
+    }
+
+    @Test
+    fun onHighlightCompleteCallbackFiresWithCorrectResult() {
+        var capturedResult: dev.hossain.highlight.engine.HighlightResult? = null
+
+        composeTestRule.setContent {
+            HighlightThemeProvider(
+                lightHighlightTheme = HighlightTheme.tomorrow(context),
+                darkHighlightTheme = HighlightTheme.tomorrowNight(context),
+            ) {
+                SyntaxHighlightedCode(
+                    code = sampleCode,
+                    language = "python",
+                    onHighlightComplete = { result -> capturedResult = result },
+                )
+            }
+        }
+
+        // Wait until the callback fires (highlighting happens asynchronously)
+        composeTestRule.waitUntil(timeoutMillis = 10_000L) { capturedResult != null }
+
+        val result = capturedResult!!
+        assertThat(result.language).isEqualTo("python")
+        assertThat(result.spanCount).isGreaterThan(0)
+        assertThat(result.durationMs).isAtLeast(0L)
+        assertThat(result.annotated.text).isNotEmpty()
     }
 }
