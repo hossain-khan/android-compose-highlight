@@ -19,7 +19,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -612,7 +611,6 @@ internal fun AdvancedEngineSection(isDark: Boolean) {
     val darkTheme = remember(context) { HighlightTheme.tomorrowNight(context) }
 
     var useDark by remember(isDark) { mutableStateOf(isDark) }
-    var durationMs by remember { mutableLongStateOf(-1L) }
 
     val result by
         rememberHighlightedCodeBothThemes(
@@ -620,7 +618,6 @@ internal fun AdvancedEngineSection(isDark: Boolean) {
             language = "kotlin",
             lightTheme = lightTheme,
             darkTheme = darkTheme,
-            onHighlightComplete = { ms -> durationMs = ms },
         )
 
     val displayText = if (useDark) result?.dark else result?.light
@@ -674,19 +671,6 @@ internal fun AdvancedEngineSection(isDark: Boolean) {
                         fontFamily = FontFamily.Monospace,
                         fontSize = 13.sp,
                         lineHeight = 20.sp,
-                    ),
-            )
-        }
-
-        // Duration metric
-        if (durationMs >= 0) {
-            Text(
-                text = "⏱ Both themes highlighted in ${durationMs}ms (single JS call)",
-                style =
-                    TextStyle(
-                        color = MaterialTheme.colorScheme.primary,
-                        fontSize = 12.sp,
-                        fontFamily = FontFamily.Monospace,
                     ),
             )
         }

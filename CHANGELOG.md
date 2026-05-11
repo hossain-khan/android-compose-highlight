@@ -38,6 +38,16 @@ All notable changes to this project will be documented in this file.
   `HighlightResult` reflects pure highlight time (JS round-trip + HTML parse), not
   coroutine-scheduling overhead.
 
+### Removed
+- **`onHighlightComplete` removed from `rememberHighlightedCodeBothThemes`** — the callback
+  previously passed `durationMs: Long`, which was asymmetric with the `HighlightResult`-based
+  callbacks on `SyntaxHighlightedCode` and `rememberHighlightedCode`. Callers who need
+  observability from `highlightBothThemes` should use `rememberHighlightEngine()` directly and
+  call `HighlightEngine.highlightBothThemes()` themselves.
+
+  **Migration:** remove the `onHighlightComplete` argument from any
+  `rememberHighlightedCodeBothThemes` call sites.
+
 ## [0.9.0] - 2026-05-10
 
 ### Added

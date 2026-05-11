@@ -158,11 +158,6 @@ fun rememberHighlightedCode(
  *   re-parsing CSS on every recomposition.
  * @param darkTheme Theme to apply for the dark variant. Create inside `remember` to avoid
  *   re-parsing CSS on every recomposition.
- * @param onHighlightComplete Optional callback invoked with the highlight duration in milliseconds
- *   when highlighting succeeds. Not called on failure. Note: this callback passes `Long` (pure
- *   highlight time) rather than a [dev.hossain.highlight.engine.HighlightResult], because
- *   `highlightBothThemes` produces two annotated strings from one JS call and does not map
- *   cleanly to a single-language result.
  * @return A [State] holding a [ThemedHighlightResult] with both variants, or `null` while loading / on error.
  */
 @Composable
@@ -171,21 +166,15 @@ fun rememberHighlightedCodeBothThemes(
     language: String,
     lightTheme: HighlightTheme,
     darkTheme: HighlightTheme,
-    onHighlightComplete: ((durationMs: Long) -> Unit)? = null,
 ): State<ThemedHighlightResult?> {
     val engine = rememberHighlightEngine()
     val state = remember(code, language, lightTheme, darkTheme) { mutableStateOf<ThemedHighlightResult?>(null) }
-    val latestCallback = rememberUpdatedState(onHighlightComplete)
 
     LaunchedEffect(code, language, lightTheme, darkTheme) {
         state.value = null
-        val start = System.nanoTime()
         engine
             .highlightBothThemes(code, language, lightTheme, darkTheme)
-            .onSuccess {
-                state.value = it
-                latestCallback.value?.invoke((System.nanoTime() - start) / 1_000_000L)
-            }
+            .onSuccess { state.value = it }
         // On failure: leave state.value = null; caller renders plain fallback
     }
 
