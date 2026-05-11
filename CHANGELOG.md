@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased]
+## [0.11.0] - 2026-05-11
 
 ### Added
 - **`HtmlHighlightResult` data class** — `HighlightEngine.highlightToHtml()` now returns

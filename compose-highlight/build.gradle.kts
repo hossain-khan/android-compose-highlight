@@ -103,7 +103,7 @@ afterEvaluate {
                 from(components["release"])
                 groupId = "com.github.hossain-khan"
                 artifactId = "android-compose-highlight"
-                version = "0.10.0"
+                version = "0.11.0"
 
                 pom {
                     name.set("compose-highlight")
