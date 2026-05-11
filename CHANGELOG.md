@@ -42,6 +42,10 @@ All notable changes to this project will be documented in this file.
   }
   ```
 
+- **Sample app: Engine tab** — new tab in the demo app showcasing `highlightJsVersion()` and
+  `supportedLanguages()`. Displays the bundled Highlight.js version string and a scrollable,
+  numbered list of all 192 supported language identifiers.
+
 ### Changed
 - **`onHighlightComplete` callback now receives `HighlightResult`** — both
   `SyntaxHighlightedCode` and `rememberHighlightedCode` previously passed `durationMs: Long`
