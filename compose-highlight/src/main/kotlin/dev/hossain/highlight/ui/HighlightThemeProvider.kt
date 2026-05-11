@@ -25,6 +25,38 @@ val LocalHighlightTheme =
     }
 
 /**
+ * CompositionLocal that provides the light [HighlightTheme] configured in [HighlightThemeProvider].
+ *
+ * Use this (along with [LocalDarkHighlightTheme]) when you need both variants in a single
+ * composable — for example, inside [rememberHighlightedCodeBothThemes].
+ *
+ * Throws a descriptive error if accessed without a [HighlightThemeProvider] ancestor.
+ */
+val LocalLightHighlightTheme =
+    staticCompositionLocalOf<HighlightTheme> {
+        error(
+            "No light HighlightTheme provided. " +
+                "Wrap your content in HighlightThemeProvider { ... }.",
+        )
+    }
+
+/**
+ * CompositionLocal that provides the dark [HighlightTheme] configured in [HighlightThemeProvider].
+ *
+ * Use this (along with [LocalLightHighlightTheme]) when you need both variants in a single
+ * composable — for example, inside [rememberHighlightedCodeBothThemes].
+ *
+ * Throws a descriptive error if accessed without a [HighlightThemeProvider] ancestor.
+ */
+val LocalDarkHighlightTheme =
+    staticCompositionLocalOf<HighlightTheme> {
+        error(
+            "No dark HighlightTheme provided. " +
+                "Wrap your content in HighlightThemeProvider { ... }.",
+        )
+    }
+
+/**
  * Internal CompositionLocal that carries the shared [HighlightEngine] provided by
  * [HighlightThemeProvider]. Defaults to `null` so that [rememberHighlightEngine] can detect
  * whether it is inside a provider and fall back to creating a standalone engine.
@@ -50,8 +82,8 @@ internal val LocalHighlightEngine =
  * ```kotlin
  * // In MainActivity.kt or your root composable:
  * HighlightThemeProvider(
- *     lightHighlightTheme = HighlightTheme.tomorrow(LocalContext.current.applicationContext),
- *     darkHighlightTheme  = HighlightTheme.atomOneDark(LocalContext.current.applicationContext),
+ *     lightHighlightTheme = rememberTomorrowTheme(),
+ *     darkHighlightTheme  = rememberAtomOneDarkTheme(),
  * ) {
  *     // All SyntaxHighlightedCode composables inside here will use
  *     // the correct theme automatically.
@@ -66,8 +98,8 @@ internal val LocalHighlightEngine =
  * ```kotlin
  * HighlightThemeProvider(
  *     darkTheme           = userPrefersDark,
- *     lightHighlightTheme = HighlightTheme.tomorrow(LocalContext.current.applicationContext),
- *     darkHighlightTheme  = HighlightTheme.tomorrowNight(LocalContext.current.applicationContext),
+ *     lightHighlightTheme = rememberTomorrowTheme(),
+ *     darkHighlightTheme  = rememberTomorrowNightTheme(),
  * ) { ... }
  * ```
  *
@@ -96,8 +128,10 @@ internal val LocalHighlightEngine =
  * ```
  *
  * @param darkTheme Whether to use the dark theme. Defaults to [isSystemInDarkTheme].
- * @param lightHighlightTheme The theme to use in light mode.
- * @param darkHighlightTheme The theme to use in dark mode.
+ * @param lightHighlightTheme The theme to use in light mode. Also provided via
+ *   [LocalLightHighlightTheme] to the subtree.
+ * @param darkHighlightTheme The theme to use in dark mode. Also provided via
+ *   [LocalDarkHighlightTheme] to the subtree.
  * @param content The composable content to which the theme is provided.
  */
 @Composable
@@ -116,6 +150,8 @@ fun HighlightThemeProvider(
     val activeTheme = if (darkTheme) darkHighlightTheme else lightHighlightTheme
     CompositionLocalProvider(
         LocalHighlightTheme provides activeTheme,
+        LocalLightHighlightTheme provides lightHighlightTheme,
+        LocalDarkHighlightTheme provides darkHighlightTheme,
         LocalHighlightEngine provides engine,
     ) {
         content()

@@ -2,6 +2,63 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+### Added
+- **`HtmlHighlightResult` data class** — `HighlightEngine.highlightToHtml()` now returns
+  `Result<HtmlHighlightResult>` instead of `Result<String>`. The result pairs the raw HTML with
+  timing data so callers no longer need to measure JS round-trip time manually:
+  - `html: String` — raw HTML with `<span class="hljs-*">` tokens (same content as before, via `.html`)
+  - `durationMs: Long` — time from call start through JS round-trip
+
+  **Migration:** replace `.onSuccess { html -> ... }` with `.onSuccess { it.html }`:
+  ```kotlin
+  // Before
+  engine.highlightToHtml(code, "kotlin").onSuccess { html -> renderRawHtml(html) }
+
+  // After
+  engine.highlightToHtml(code, "kotlin").onSuccess { result ->
+      renderRawHtml(result.html)
+      log("JS round-trip: ${result.durationMs} ms")
+  }
+  ```
+
+- **`HighlightEngine.isInitialized: StateFlow<Boolean>`** — changed from a plain `Boolean`
+  property to a `StateFlow<Boolean>`, enabling Compose composables to observe engine
+  initialization reactively without a separate `var engineReady` flag:
+  ```kotlin
+  val isReady by engine.isInitialized.collectAsState()
+  if (isReady) { /* WebView is warm */ }
+  ```
+
+  **Migration:** replace `engine.isInitialized` with `engine.isInitialized.value` in
+  non-Compose contexts; use `engine.isInitialized.collectAsState()` in Compose.
+
+- **`rememberHighlightedCodeBothThemes` now accepts `onHighlightComplete`** — added
+  `onHighlightComplete: ((ThemedHighlightResult) -> Unit)?` callback parameter for consistency
+  with `rememberHighlightedCode`. Fires after the state is updated on success.
+
+- **`rememberHighlightedCodeBothThemes` now works inside `HighlightThemeProvider`** — `lightTheme`
+  and `darkTheme` parameters now default to `LocalLightHighlightTheme.current` and
+  `LocalDarkHighlightTheme.current` respectively, so callers inside a `HighlightThemeProvider`
+  no longer need to pass themes explicitly.
+
+- **`LocalLightHighlightTheme` and `LocalDarkHighlightTheme` CompositionLocals** — `HighlightThemeProvider`
+  now provides both the individual light and dark themes via these new public CompositionLocals
+  (in addition to the existing `LocalHighlightTheme` for the active theme). Useful when
+  composables need both variants simultaneously.
+
+- **`@Composable` theme helpers** — new `rememberTomorrowTheme()`, `rememberTomorrowNightTheme()`,
+  `rememberAtomOneDarkTheme()`, `rememberAtomOneLightTheme()` functions resolve `LocalContext`
+  internally, removing the need for `val context = LocalContext.current` boilerplate at call sites:
+  ```kotlin
+  // Before
+  val theme = remember(context) { HighlightTheme.tomorrow(context.applicationContext) }
+
+  // After
+  val theme = rememberTomorrowTheme()
+  ```
+
 ## [0.10.0] - 2026-05-10
 
 ### Added

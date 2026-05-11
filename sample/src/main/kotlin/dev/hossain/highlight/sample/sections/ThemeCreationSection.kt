@@ -17,6 +17,10 @@ import androidx.compose.ui.unit.dp
 import dev.hossain.highlight.engine.HighlightTheme
 import dev.hossain.highlight.sample.KOTLIN_SNIPPET
 import dev.hossain.highlight.ui.SyntaxHighlightedCode
+import dev.hossain.highlight.ui.rememberAtomOneDarkTheme
+import dev.hossain.highlight.ui.rememberAtomOneLightTheme
+import dev.hossain.highlight.ui.rememberTomorrowNightTheme
+import dev.hossain.highlight.ui.rememberTomorrowTheme
 
 /**
  * Material 3–inspired light CSS theme used to demonstrate [HighlightTheme.fromCss].
@@ -73,11 +77,11 @@ private val MATERIAL3_LIGHT_CSS =
 internal fun ThemeCreationSection() {
     val context = LocalContext.current.applicationContext
 
-    // Built-in themes
-    val tomorrowTheme = remember(context) { HighlightTheme.tomorrow(context) }
-    val tomorrowNightTheme = remember(context) { HighlightTheme.tomorrowNight(context) }
-    val atomOneLightTheme = remember(context) { HighlightTheme.atomOneLight(context) }
-    val atomOneDarkTheme = remember(context) { HighlightTheme.atomOneDark(context) }
+    // Built-in themes — use @Composable helpers that resolve LocalContext internally
+    val tomorrowTheme = rememberTomorrowTheme()
+    val tomorrowNightTheme = rememberTomorrowNightTheme()
+    val atomOneLightTheme = rememberAtomOneLightTheme()
+    val atomOneDarkTheme = rememberAtomOneDarkTheme()
 
     // fromAsset() — GitHub themes bundled in the sample app's assets/
     val githubTheme = remember(context) { HighlightTheme.fromAsset(context, "themes/github.css", "github") }

@@ -22,18 +22,18 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import dev.hossain.highlight.engine.HighlightResult
-import dev.hossain.highlight.engine.HighlightTheme
 import dev.hossain.highlight.sample.KOTLIN_SNIPPET
 import dev.hossain.highlight.ui.SyntaxHighlightedCode
 import dev.hossain.highlight.ui.rememberHighlightEngine
 import dev.hossain.highlight.ui.rememberHighlightedCodeBothThemes
+import dev.hossain.highlight.ui.rememberTomorrowNightTheme
+import dev.hossain.highlight.ui.rememberTomorrowTheme
 
 private val DarkCodeBackground = Color(0xFF1E1E1E)
 private val LightCodeBackground = Color(0xFFFAFAFA)
@@ -57,9 +57,8 @@ private val LightCodeText = Color(0xFF333333)
  */
 @Composable
 internal fun AdvancedEngineSection(isDark: Boolean) {
-    val context = LocalContext.current.applicationContext
-    val lightTheme = remember(context) { HighlightTheme.tomorrow(context) }
-    val darkTheme = remember(context) { HighlightTheme.tomorrowNight(context) }
+    val lightTheme = rememberTomorrowTheme()
+    val darkTheme = rememberTomorrowNightTheme()
 
     var useDark by remember(isDark) { mutableStateOf(isDark) }
 
@@ -212,7 +211,7 @@ internal fun AdvancedEngineSection(isDark: Boolean) {
         val rawEngine = rememberHighlightEngine()
         var rawHtml by remember { mutableStateOf<String?>(null) }
         LaunchedEffect(Unit) {
-            rawEngine.highlightToHtml("val x = 42", "kotlin").onSuccess { rawHtml = it }
+            rawEngine.highlightToHtml("val x = 42", "kotlin").onSuccess { rawHtml = it.html }
         }
         rawHtml?.let { html ->
             Surface(

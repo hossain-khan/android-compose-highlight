@@ -136,16 +136,29 @@ fun rememberHighlightedCode(
  *
  * Returns `null` while highlighting is in progress or if it failed.
  *
- * ## Usage
+ * ## Usage inside a `HighlightThemeProvider`
+ *
+ * When called inside a [HighlightThemeProvider], light and dark themes are picked up
+ * automatically from [LocalLightHighlightTheme] and [LocalDarkHighlightTheme]:
+ *
+ * ```kotlin
+ * HighlightThemeProvider {
+ *     val result by rememberHighlightedCodeBothThemes(code = code, language = "kotlin")
+ *     val text = if (isDark) result?.dark else result?.light
+ *     Text(text = text ?: AnnotatedString(code))
+ * }
+ * ```
+ *
+ * ## Usage outside a provider (explicit themes)
  *
  * ```kotlin
  * @Composable
  * fun CodeSnippet(code: String, isDark: Boolean) {
  *     val result by rememberHighlightedCodeBothThemes(
- *         code      = code,
- *         language  = "kotlin",
- *         lightTheme = remember { HighlightTheme.tomorrow(LocalContext.current.applicationContext) },
- *         darkTheme  = remember { HighlightTheme.tomorrowNight(LocalContext.current.applicationContext) },
+ *         code       = code,
+ *         language   = "kotlin",
+ *         lightTheme = rememberTomorrowTheme(),
+ *         darkTheme  = rememberTomorrowNightTheme(),
  *     )
  *     val text = if (isDark) result?.dark else result?.light
  *     Text(text = text ?: AnnotatedString(code))
@@ -154,10 +167,15 @@ fun rememberHighlightedCode(
  *
  * @param code The source code to highlight.
  * @param language The Highlight.js language identifier (e.g. `"python"`, `"kotlin"`).
- * @param lightTheme Theme to apply for the light variant. Create inside `remember` to avoid
+ * @param lightTheme Theme to apply for the light variant. Defaults to [LocalLightHighlightTheme]
+ *   (available inside [HighlightThemeProvider]). Create inside `remember` to avoid
  *   re-parsing CSS on every recomposition.
- * @param darkTheme Theme to apply for the dark variant. Create inside `remember` to avoid
+ * @param darkTheme Theme to apply for the dark variant. Defaults to [LocalDarkHighlightTheme]
+ *   (available inside [HighlightThemeProvider]). Create inside `remember` to avoid
  *   re-parsing CSS on every recomposition.
+ * @param onHighlightComplete Optional callback invoked with a [ThemedHighlightResult] when
+ *   highlighting succeeds. Fires after the [State] is updated. Not called on failure. Use
+ *   `result.durationMs` for timing, `result.light.spanStyles.size` for span count.
  * @return A [State] holding a [ThemedHighlightResult] with both variants (including
  *   [ThemedHighlightResult.durationMs] for timing), or `null` while loading / on error.
  */
@@ -165,17 +183,22 @@ fun rememberHighlightedCode(
 fun rememberHighlightedCodeBothThemes(
     code: String,
     language: String,
-    lightTheme: HighlightTheme,
-    darkTheme: HighlightTheme,
+    lightTheme: HighlightTheme = LocalLightHighlightTheme.current,
+    darkTheme: HighlightTheme = LocalDarkHighlightTheme.current,
+    onHighlightComplete: ((ThemedHighlightResult) -> Unit)? = null,
 ): State<ThemedHighlightResult?> {
     val engine = rememberHighlightEngine()
     val state = remember(code, language, lightTheme, darkTheme) { mutableStateOf<ThemedHighlightResult?>(null) }
+    val latestCallback = rememberUpdatedState(onHighlightComplete)
 
     LaunchedEffect(code, language, lightTheme, darkTheme) {
         state.value = null
         engine
             .highlightBothThemes(code, language, lightTheme, darkTheme)
-            .onSuccess { state.value = it }
+            .onSuccess { result ->
+                state.value = result
+                latestCallback.value?.invoke(result)
+            }
         // On failure: leave state.value = null; caller renders plain fallback
     }
 

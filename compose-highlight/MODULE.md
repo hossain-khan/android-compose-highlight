@@ -9,8 +9,8 @@ Wrap your screen (or root composable) in `HighlightThemeProvider`, then place `S
 ```kotlin
 // In your Activity or top-level composable
 HighlightThemeProvider(
-    lightHighlightTheme = HighlightTheme.tomorrow(LocalContext.current),
-    darkHighlightTheme  = HighlightTheme.atomOneDark(LocalContext.current),
+    lightHighlightTheme = rememberTomorrowTheme(),
+    darkHighlightTheme  = rememberAtomOneDarkTheme(),
 ) {
     SyntaxHighlightedCode(
         code     = """fun greet(name: String) = "Hello, ${'$'}name!"""",
@@ -24,12 +24,14 @@ HighlightThemeProvider(
 
 ## Supported Built-in Themes
 
-| Factory method              | Style            |
-|-----------------------------|------------------|
-| `HighlightTheme.tomorrow()` | Light (Base16)   |
-| `HighlightTheme.tomorrowNight()` | Dark (Base16) |
-| `HighlightTheme.atomOneDark()` | Dark (Atom One) |
-| `HighlightTheme.atomOneLight()` | Light (Atom One) |
+| `@Composable` helper | Context factory | Style |
+|---|---|---|
+| `rememberTomorrowTheme()` | `HighlightTheme.tomorrow(context)` | Light (Base16) |
+| `rememberTomorrowNightTheme()` | `HighlightTheme.tomorrowNight(context)` | Dark (Base16) |
+| `rememberAtomOneDarkTheme()` | `HighlightTheme.atomOneDark(context)` | Dark (Atom One) |
+| `rememberAtomOneLightTheme()` | `HighlightTheme.atomOneLight(context)` | Light (Atom One) |
+
+The `@Composable` helpers resolve `LocalContext` internally — no need to pass a `Context`.
 
 Custom themes: any Highlight.js CSS file works — load from assets with `HighlightTheme.fromAsset()` or supply raw CSS with `HighlightTheme.fromCss()`.
 

@@ -39,11 +39,12 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import dev.hossain.highlight.engine.HighlightTheme
 import dev.hossain.highlight.sample.CODE_SAMPLES
 import dev.hossain.highlight.sample.R
 import dev.hossain.highlight.ui.HighlightThemeProvider
 import dev.hossain.highlight.ui.SyntaxHighlightedCode
+import dev.hossain.highlight.ui.rememberAtomOneDarkTheme
+import dev.hossain.highlight.ui.rememberAtomOneLightTheme
 
 /** Timing and size metrics captured for a single code block after highlighting completes. */
 internal data class HighlightMetrics(
@@ -78,8 +79,8 @@ fun PerfScreen() {
     }
 
     HighlightThemeProvider(
-        lightHighlightTheme = HighlightTheme.atomOneLight(context),
-        darkHighlightTheme = HighlightTheme.atomOneDark(context),
+        lightHighlightTheme = rememberAtomOneLightTheme(),
+        darkHighlightTheme = rememberAtomOneDarkTheme(),
         darkTheme = isDark,
     ) {
         Scaffold(

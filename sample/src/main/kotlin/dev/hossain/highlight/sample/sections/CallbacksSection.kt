@@ -12,6 +12,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -89,7 +90,7 @@ internal fun CallbacksSection() {
 
         // isInitialized demo
         val engine = rememberHighlightEngine()
-        var engineInitialized by remember { mutableStateOf(engine.isInitialized) }
+        val engineInitialized by engine.isInitialized.collectAsState()
 
         SubSectionHeader("HighlightEngine.isInitialized")
         Text(
@@ -100,7 +101,6 @@ internal fun CallbacksSection() {
             code = PYTHON_SNIPPET,
             language = "python",
             modifier = Modifier.fillMaxWidth(),
-            onHighlightComplete = { engineInitialized = engine.isInitialized },
         )
         Text(
             text = "engine.isInitialized = $engineInitialized",
