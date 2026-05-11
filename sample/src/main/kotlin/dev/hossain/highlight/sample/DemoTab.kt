@@ -1,0 +1,33 @@
+package dev.hossain.highlight.sample
+
+import dev.hossain.highlight.sample.sections.AdvancedEngineSection
+import dev.hossain.highlight.sample.sections.CallbacksSection
+import dev.hossain.highlight.sample.sections.EngineInfoSection
+import dev.hossain.highlight.sample.sections.StylingSection
+import dev.hossain.highlight.sample.sections.ThemeCreationSection
+import dev.hossain.highlight.sample.sections.TogglesSection
+import dev.hossain.highlight.sample.sections.TypographySection
+
+internal sealed class DemoTab(
+    val title: String,
+) {
+    data object Languages : DemoTab("Languages")
+
+    data object Styling : DemoTab("Styling")
+
+    data object Typography : DemoTab("Typography")
+
+    data object Toggles : DemoTab("Toggles")
+
+    data object Callbacks : DemoTab("Callbacks")
+
+    data object Themes : DemoTab("Themes")
+
+    data object Advanced : DemoTab("Advanced")
+
+    data object Engine : DemoTab("Engine")
+
+    companion object {
+        val all = listOf(Languages, Styling, Typography, Toggles, Callbacks, Themes, Advanced, Engine)
+    }
+}

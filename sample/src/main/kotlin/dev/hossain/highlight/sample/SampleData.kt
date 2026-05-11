@@ -8,6 +8,25 @@ internal data class CodeSample(
     val code: String,
 )
 
+internal val KOTLIN_SNIPPET =
+    """
+data class User(val name: String, val age: Int)
+
+fun List<User>.adults(): List<User> =
+    filter { it.age >= 18 }
+    """.trimIndent()
+
+internal val PYTHON_SNIPPET =
+    """
+def fibonacci(n: int) -> int:
+    if n <= 1:
+        return n
+    a, b = 0, 1
+    for _ in range(n - 1):
+        a, b = b, a + b
+    return b
+    """.trimIndent()
+
 /**
  * Collection of code samples used to showcase syntax highlighting across multiple languages.
  *

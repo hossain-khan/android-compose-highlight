@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -32,7 +31,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.ClipEntry
@@ -42,6 +40,14 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import dev.hossain.highlight.engine.HighlightTheme
 import dev.hossain.highlight.sample.perf.PerfActivity
+import dev.hossain.highlight.sample.sections.AdvancedEngineSection
+import dev.hossain.highlight.sample.sections.CallbacksSection
+import dev.hossain.highlight.sample.sections.EngineInfoSection
+import dev.hossain.highlight.sample.sections.SectionHeader
+import dev.hossain.highlight.sample.sections.StylingSection
+import dev.hossain.highlight.sample.sections.ThemeCreationSection
+import dev.hossain.highlight.sample.sections.TogglesSection
+import dev.hossain.highlight.sample.sections.TypographySection
 import dev.hossain.highlight.ui.HighlightThemeProvider
 import dev.hossain.highlight.ui.SyntaxHighlightedCode
 import kotlinx.coroutines.launch
@@ -78,7 +84,7 @@ fun SampleScreen() {
     val snackbarHostState = remember { SnackbarHostState() }
     var isDark by remember { mutableStateOf(true) }
     var showThemeMenu by remember { mutableStateOf(false) }
-    var activeTab by remember { mutableIntStateOf(0) }
+    var activeTab by remember { mutableStateOf<DemoTab>(DemoTab.Languages) }
 
     // Shared copy handler: copies to clipboard and shows a snackbar confirmation.
     val onCopyClick: (String) -> Unit = { code ->
@@ -180,20 +186,19 @@ fun SampleScreen() {
                         .padding(top = innerPadding.calculateTopPadding())
                         .consumeWindowInsets(innerPadding),
             ) {
-                val tabs = listOf("Languages", "Styling", "Typography", "Toggles", "Callbacks", "Themes", "Advanced", "Engine")
-                PrimaryScrollableTabRow(selectedTabIndex = activeTab) {
-                    tabs.forEachIndexed { index, title ->
+                val tabs = DemoTab.all
+                val selectedTabIndex = tabs.indexOf(activeTab)
+                PrimaryScrollableTabRow(selectedTabIndex = selectedTabIndex) {
+                    tabs.forEach { tab ->
                         Tab(
-                            selected = activeTab == index,
-                            onClick = { activeTab = index },
-                            text = { Text(title) },
+                            selected = activeTab == tab,
+                            onClick = { activeTab = tab },
+                            text = { Text(tab.title) },
                         )
                     }
                 }
                 LazyColumn(
-                    modifier =
-                        Modifier
-                            .fillMaxSize(),
+                    modifier = Modifier.fillMaxSize(),
                     contentPadding =
                         PaddingValues(
                             start = 16.dp,
@@ -204,7 +209,7 @@ fun SampleScreen() {
                     verticalArrangement = Arrangement.spacedBy(16.dp),
                 ) {
                     when (activeTab) {
-                        0 -> {
+                        DemoTab.Languages -> {
                             CODE_SAMPLES.forEach { sample ->
                                 item(key = sample.language) {
                                     SectionHeader(sample.language)
@@ -227,55 +232,36 @@ fun SampleScreen() {
                             }
                         }
 
-                        1 -> {
+                        DemoTab.Styling -> {
                             item { StylingSection() }
                         }
 
-                        2 -> {
+                        DemoTab.Typography -> {
                             item { TypographySection() }
                         }
 
-                        3 -> {
+                        DemoTab.Toggles -> {
                             item { TogglesSection() }
                         }
 
-                        4 -> {
+                        DemoTab.Callbacks -> {
                             item { CallbacksSection() }
                         }
 
-                        5 -> {
+                        DemoTab.Themes -> {
                             item { ThemeCreationSection() }
                         }
 
-                        6 -> {
+                        DemoTab.Advanced -> {
                             item { AdvancedEngineSection(isDark = isDark) }
                         }
 
-                        7 -> {
+                        DemoTab.Engine -> {
                             item { EngineInfoSection() }
                         }
                     }
                 }
             }
         }
-    }
-}
-
-/**
- * A simple section label rendered above each code block.
- *
- * Displays the language [title] in uppercase to visually separate samples in the list.
- */
-@Composable
-internal fun SectionHeader(title: String) {
-    Row(
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .padding(bottom = 4.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(text = title.uppercase())
     }
 }
