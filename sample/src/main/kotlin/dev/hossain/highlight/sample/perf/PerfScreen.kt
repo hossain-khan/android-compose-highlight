@@ -45,10 +45,10 @@ import dev.hossain.highlight.sample.R
 import dev.hossain.highlight.sample.loadCodeSamples
 import dev.hossain.highlight.ui.HighlightThemeProvider
 import dev.hossain.highlight.ui.SyntaxHighlightedCode
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import dev.hossain.highlight.ui.rememberAtomOneDarkTheme
 import dev.hossain.highlight.ui.rememberAtomOneLightTheme
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 /** Timing and size metrics captured for a single code block after highlighting completes. */
 internal data class HighlightMetrics(
