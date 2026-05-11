@@ -40,12 +40,13 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import dev.hossain.highlight.engine.HighlightTheme
 import dev.hossain.highlight.sample.CodeSample
 import dev.hossain.highlight.sample.R
 import dev.hossain.highlight.sample.loadCodeSamples
 import dev.hossain.highlight.ui.HighlightThemeProvider
 import dev.hossain.highlight.ui.SyntaxHighlightedCode
+import dev.hossain.highlight.ui.rememberAtomOneDarkTheme
+import dev.hossain.highlight.ui.rememberAtomOneLightTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -85,8 +86,8 @@ fun PerfScreen() {
     }
 
     HighlightThemeProvider(
-        lightHighlightTheme = HighlightTheme.atomOneLight(context),
-        darkHighlightTheme = HighlightTheme.atomOneDark(context),
+        lightHighlightTheme = rememberAtomOneLightTheme(),
+        darkHighlightTheme = rememberAtomOneDarkTheme(),
         darkTheme = isDark,
     ) {
         Scaffold(

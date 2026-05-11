@@ -10,6 +10,9 @@ import android.webkit.WebViewClient
 import androidx.webkit.WebViewAssetLoader
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.withContext
 
 /**
@@ -47,8 +50,17 @@ internal class WebViewManager(
 ) {
     private var webView: WebView? = null
 
-    /** `true` once the WebView has been created and bridge.html has finished loading. */
-    val isInitialized: Boolean get() = webView != null && readyDeferred.isCompleted
+    private val _isInitialized = MutableStateFlow(false)
+
+    /**
+     * `true` once the WebView has been created and bridge.html has finished loading.
+     *
+     * This is a [StateFlow] so that Compose callers can observe initialization reactively:
+     * ```kotlin
+     * val isReady by engine.isInitialized.collectAsState()
+     * ```
+     */
+    val isInitialized: StateFlow<Boolean> = _isInitialized.asStateFlow()
 
     /**
      * Mutable so it can be reset when [initialize] is called after [destroy].
@@ -100,6 +112,7 @@ internal class WebViewManager(
                             ) {
                                 if (!deferred.isCompleted) {
                                     deferred.complete(view)
+                                    _isInitialized.value = true
                                 }
                             }
                         }
@@ -117,6 +130,7 @@ internal class WebViewManager(
     fun destroy() {
         val wv = webView ?: return
         webView = null
+        _isInitialized.value = false
         // Cancel any pending waiter, then reset to drop the strong reference to the
         // destroyed WebView and allow it to be GC'd immediately.
         if (!readyDeferred.isCompleted) {

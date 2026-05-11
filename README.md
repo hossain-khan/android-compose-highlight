@@ -16,8 +16,8 @@ Wrap your screen (or root composable) in `HighlightThemeProvider`, then place `S
 
 ```kotlin
 HighlightThemeProvider(
-    lightHighlightTheme = HighlightTheme.tomorrow(context),
-    darkHighlightTheme  = HighlightTheme.atomOneDark(context),
+    lightHighlightTheme = rememberTomorrowTheme(),
+    darkHighlightTheme  = rememberAtomOneDarkTheme(),
 ) {
     SyntaxHighlightedCode(
         code            = myCode,
@@ -34,12 +34,12 @@ HighlightThemeProvider(
 
 ### Built-in themes
 
-| Factory | Style |
-|---|---|
-| `HighlightTheme.tomorrow(context)` | Light |
-| `HighlightTheme.atomOneLight(context)` | Light |
-| `HighlightTheme.tomorrowNight(context)` | Dark |
-| `HighlightTheme.atomOneDark(context)` | Dark |
+| Factory | Composable helper | Style |
+|---|---|---|
+| `HighlightTheme.tomorrow(context)` | `rememberTomorrowTheme()` | Light |
+| `HighlightTheme.atomOneLight(context)` | `rememberAtomOneLightTheme()` | Light |
+| `HighlightTheme.tomorrowNight(context)` | `rememberTomorrowNightTheme()` | Dark |
+| `HighlightTheme.atomOneDark(context)` | `rememberAtomOneDarkTheme()` | Dark |
 
 ### Demo 🎥
 
@@ -120,7 +120,7 @@ Highlights code and returns a `State<AnnotatedString?>`. Re-runs automatically w
 val highlighted by rememberHighlightedCode(
     code     = snippet,
     language = "kotlin",
-    onHighlightComplete = { ms -> Log.d("Perf", "Highlighted in ${ms}ms") },
+    onHighlightComplete = { result -> Log.d("Perf", "Highlighted in ${result.durationMs}ms") },
 )
 Text(text = highlighted ?: AnnotatedString(snippet))
 ```
@@ -130,12 +130,22 @@ Text(text = highlighted ?: AnnotatedString(snippet))
 Highlights once for both light and dark themes in a single JS call. Theme switching after the
 initial highlight is instant — no re-highlighting needed.
 
+Inside a `HighlightThemeProvider`, themes are picked up automatically:
+```kotlin
+HighlightThemeProvider {
+    val result by rememberHighlightedCodeBothThemes(code = snippet, language = "kotlin")
+    Text(text = (if (isDark) result?.dark else result?.light) ?: AnnotatedString(snippet))
+}
+```
+
+Outside a provider, pass themes explicitly using the `@Composable` theme helpers:
 ```kotlin
 val result by rememberHighlightedCodeBothThemes(
     code       = snippet,
     language   = "kotlin",
-    lightTheme = remember(context) { HighlightTheme.tomorrow(context) },
-    darkTheme  = remember(context) { HighlightTheme.tomorrowNight(context) },
+    lightTheme = rememberTomorrowTheme(),
+    darkTheme  = rememberTomorrowNightTheme(),
+    onHighlightComplete = { result -> Log.d("Perf", "Both themes in ${result.durationMs}ms") },
 )
 Text(text = (if (isDark) result?.dark else result?.light) ?: AnnotatedString(snippet))
 ```

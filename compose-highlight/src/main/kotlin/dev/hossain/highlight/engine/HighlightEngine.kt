@@ -4,6 +4,7 @@ import android.content.Context
 import android.webkit.WebView
 import androidx.compose.ui.text.AnnotatedString
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -34,7 +35,7 @@ import kotlin.coroutines.resumeWithException
  * @Composable
  * fun MyCodeBlock(code: String) {
  *     val engine = rememberHighlightEngine()
- *     val theme = remember { HighlightTheme.tomorrow(LocalContext.current.applicationContext) }
+ *     val theme = rememberTomorrowTheme()
  *     var highlighted by remember(code) { mutableStateOf<AnnotatedString?>(null) }
  *     LaunchedEffect(code) {
  *         engine.highlight(code, "kotlin", theme).onSuccess { highlighted = it.annotated }
@@ -102,15 +103,17 @@ class HighlightEngine(
      * `true` once [initialize] has completed successfully (or the first [highlight] /
      * [highlightToHtml] call has finished warming up the WebView).
      *
-     * Useful for removing boilerplate `var engineReady` flags in calling code:
+     * This is a [StateFlow] so Composables can observe initialization reactively without
+     * a separate `var engineReady` flag:
      *
      * ```kotlin
-     * if (engine.isInitialized) {
-     *     // safe to highlight immediately without warm-up latency
+     * val isReady by engine.isInitialized.collectAsState()
+     * if (isReady) {
+     *     // WebView is warm — next highlight call has no init latency
      * }
      * ```
      */
-    val isInitialized: Boolean get() = manager.isInitialized
+    val isInitialized: StateFlow<Boolean> get() = manager.isInitialized
 
     /**
      * Warms up the hidden WebView and loads bridge.html.
@@ -130,35 +133,43 @@ class HighlightEngine(
     }
 
     /**
-     * Highlights [code] and returns raw HTML with `<span class="hljs-*">` tokens.
+     * Highlights [code] and returns raw HTML with `<span class="hljs-*">` tokens, together
+     * with the time taken for the JavaScript round-trip.
      *
      * Lower-level alternative to [highlight]: use this when you need the raw HTML string rather
      * than a theme-applied [AnnotatedString]. Automatically initializes the WebView on the first
      * call. Thread-safe: may be called from any dispatcher.
      *
      * ```kotlin
-     * engine.highlightToHtml("val x = 42", "kotlin").onSuccess { html ->
-     *     // html contains e.g. <span class="hljs-keyword">val</span> x = ...
-     *     renderRawHtml(html)
+     * engine.highlightToHtml("val x = 42", "kotlin").onSuccess { result ->
+     *     // result.html contains e.g. <span class="hljs-keyword">val</span> x = ...
+     *     renderRawHtml(result.html)
+     *     log("JS round-trip: ${result.durationMs} ms")
      * }
      * ```
      *
      * @param code The source code to highlight.
      * @param language Highlight.js language identifier (e.g. `"kotlin"`, `"python"`).
-     * @return [Result] wrapping the raw HTML string, or [Result.failure] with a
-     *   [HighlightException] on error.
+     * @return [Result] wrapping an [HtmlHighlightResult] (html + timing), or [Result.failure]
+     *   with a [HighlightException] on error.
      */
     suspend fun highlightToHtml(
         code: String,
         language: String,
-    ): Result<String> =
+    ): Result<HtmlHighlightResult> =
         try {
             manager.initialize()
             val webView = manager.getReadyWebView()
 
             mutex.withLock {
+                val start = System.nanoTime()
                 withTimeout(HighlightException.TIMEOUT_SECONDS * 1000L) {
                     executeJs(webView, code, language)
+                }.map { html ->
+                    HtmlHighlightResult(
+                        html = html,
+                        durationMs = (System.nanoTime() - start) / 1_000_000L,
+                    )
                 }
             }
         } catch (e: HighlightException) {
@@ -195,9 +206,9 @@ class HighlightEngine(
         theme: HighlightTheme,
     ): Result<HighlightResult> {
         val start = System.nanoTime()
-        return highlightToHtml(code, language).map { html ->
+        return highlightToHtml(code, language).map { htmlResult ->
             try {
-                val annotated = HtmlToAnnotatedString.convert(html, theme.colorMap)
+                val annotated = HtmlToAnnotatedString.convert(htmlResult.html, theme.colorMap)
                 val durationMs = (System.nanoTime() - start) / 1_000_000L
                 HighlightResult(
                     annotated = annotated,
@@ -243,10 +254,10 @@ class HighlightEngine(
         darkTheme: HighlightTheme,
     ): Result<ThemedHighlightResult> {
         val start = System.nanoTime()
-        return highlightToHtml(code, language).map { html ->
+        return highlightToHtml(code, language).map { htmlResult ->
             try {
-                val light = HtmlToAnnotatedString.convert(html, lightTheme.colorMap)
-                val dark = HtmlToAnnotatedString.convert(html, darkTheme.colorMap)
+                val light = HtmlToAnnotatedString.convert(htmlResult.html, lightTheme.colorMap)
+                val dark = HtmlToAnnotatedString.convert(htmlResult.html, darkTheme.colorMap)
                 ThemedHighlightResult(
                     light = light,
                     dark = dark,
