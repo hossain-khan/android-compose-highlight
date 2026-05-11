@@ -158,11 +158,11 @@ class HighlightEngine(
         language: String,
     ): Result<HtmlHighlightResult> =
         try {
-            val start = System.nanoTime()
             manager.initialize()
             val webView = manager.getReadyWebView()
 
             mutex.withLock {
+                val start = System.nanoTime()
                 withTimeout(HighlightException.TIMEOUT_SECONDS * 1000L) {
                     executeJs(webView, code, language)
                 }.map { html ->

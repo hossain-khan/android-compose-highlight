@@ -21,9 +21,9 @@ package dev.hossain.highlight.engine
  *
  * @property html The raw HTML string produced by Highlight.js, containing
  *   `<span class="hljs-*">` tokens that can be styled by a CSS theme.
- * @property durationMs Pure highlight time in milliseconds — from the start of the
- *   [HighlightEngine.highlightToHtml] call through the JavaScript round-trip.
- *   Excludes coroutine scheduling overhead.
+ * @property durationMs JavaScript round-trip time in milliseconds — measured from immediately
+ *   before `evaluateJavascript()` is called (after WebView is ready and the internal mutex is
+ *   acquired) through receipt of the result. Excludes WebView warm-up and queue-wait time.
  */
 data class HtmlHighlightResult(
     val html: String,
