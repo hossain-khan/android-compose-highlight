@@ -1,4 +1,4 @@
-# compose-highlight
+# Compose Highlight for Android
 
 A Jetpack Compose library for beautiful syntax highlighting — powered by [Highlight.js](https://highlightjs.org/) running in a hidden WebView, converting tokenised HTML output to native Compose `AnnotatedString`. No custom lexers, no bundled grammars to maintain: just drop in the library and highlight any of 190+ languages.
 
