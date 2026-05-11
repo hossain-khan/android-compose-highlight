@@ -10,6 +10,7 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.AnnotatedString
 import dev.hossain.highlight.engine.HighlightEngine
+import dev.hossain.highlight.engine.HighlightResult
 import dev.hossain.highlight.engine.HighlightTheme
 import dev.hossain.highlight.engine.ThemedHighlightResult
 
@@ -36,7 +37,8 @@ import dev.hossain.highlight.engine.ThemedHighlightResult
  * ```
  *
  * Prefer [rememberHighlightedCode] for simple use cases. Use [rememberHighlightEngine]
- * directly only when you need lower-level control (e.g. calling [HighlightEngine.highlightBothThemes]).
+ * directly only when you need lower-level control — for example, calling
+ * [HighlightEngine.highlightBothThemes] or reading [HighlightEngine.isInitialized].
  */
 @Composable
 fun rememberHighlightEngine(): HighlightEngine {
@@ -96,8 +98,8 @@ fun rememberHighlightEngine(): HighlightEngine {
  * @param code The source code to highlight.
  * @param language The Highlight.js language identifier (e.g. `"python"`, `"kotlin"`).
  * @param theme The theme to apply. Defaults to [LocalHighlightTheme].
- * @param onHighlightComplete Optional callback invoked with the highlight duration in milliseconds
- *   when highlighting succeeds. Fires after the [State] is updated. Not called on failure.
+ * @param onHighlightComplete Optional callback invoked with a [HighlightResult] when highlighting
+ *   succeeds. Fires after the [State] is updated. Not called on failure.
  * @return A [State] holding the highlighted [AnnotatedString], or `null` while loading / on error.
  */
 @Composable
@@ -105,7 +107,7 @@ fun rememberHighlightedCode(
     code: String,
     language: String,
     theme: HighlightTheme = LocalHighlightTheme.current,
-    onHighlightComplete: ((durationMs: Long) -> Unit)? = null,
+    onHighlightComplete: ((HighlightResult) -> Unit)? = null,
 ): State<AnnotatedString?> {
     val engine = rememberHighlightEngine()
     val state = remember(code, language, theme) { mutableStateOf<AnnotatedString?>(null) }
@@ -113,12 +115,11 @@ fun rememberHighlightedCode(
 
     LaunchedEffect(code, language, theme) {
         state.value = null
-        val start = System.nanoTime()
         engine
             .highlight(code, language, theme)
-            .onSuccess {
-                state.value = it
-                latestCallback.value?.invoke((System.nanoTime() - start) / 1_000_000L)
+            .onSuccess { result ->
+                state.value = result.annotated
+                latestCallback.value?.invoke(result)
             }
         // On failure: leave state.value = null; caller renders plain fallback
     }
@@ -157,9 +158,8 @@ fun rememberHighlightedCode(
  *   re-parsing CSS on every recomposition.
  * @param darkTheme Theme to apply for the dark variant. Create inside `remember` to avoid
  *   re-parsing CSS on every recomposition.
- * @param onHighlightComplete Optional callback invoked with the highlight duration in milliseconds
- *   when highlighting succeeds. Not called on failure.
- * @return A [State] holding a [ThemedHighlightResult] with both variants, or `null` while loading / on error.
+ * @return A [State] holding a [ThemedHighlightResult] with both variants (including
+ *   [ThemedHighlightResult.durationMs] for timing), or `null` while loading / on error.
  */
 @Composable
 fun rememberHighlightedCodeBothThemes(
@@ -167,21 +167,15 @@ fun rememberHighlightedCodeBothThemes(
     language: String,
     lightTheme: HighlightTheme,
     darkTheme: HighlightTheme,
-    onHighlightComplete: ((durationMs: Long) -> Unit)? = null,
 ): State<ThemedHighlightResult?> {
     val engine = rememberHighlightEngine()
     val state = remember(code, language, lightTheme, darkTheme) { mutableStateOf<ThemedHighlightResult?>(null) }
-    val latestCallback = rememberUpdatedState(onHighlightComplete)
 
     LaunchedEffect(code, language, lightTheme, darkTheme) {
         state.value = null
-        val start = System.nanoTime()
         engine
             .highlightBothThemes(code, language, lightTheme, darkTheme)
-            .onSuccess {
-                state.value = it
-                latestCallback.value?.invoke((System.nanoTime() - start) / 1_000_000L)
-            }
+            .onSuccess { state.value = it }
         // On failure: leave state.value = null; caller renders plain fallback
     }
 

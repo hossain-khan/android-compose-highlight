@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -17,8 +19,8 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -36,11 +38,13 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import dev.hossain.highlight.engine.HighlightResult
 import dev.hossain.highlight.engine.HighlightTheme
 import dev.hossain.highlight.sample.R
 import dev.hossain.highlight.ui.CodeBlockStyle
 import dev.hossain.highlight.ui.SyntaxHighlightedCode
 import dev.hossain.highlight.ui.SyntaxHighlightedCodeDefaults
+import dev.hossain.highlight.ui.rememberHighlightEngine
 import dev.hossain.highlight.ui.rememberHighlightedCodeBothThemes
 
 // ── Short snippets reused across all demo sections ──────────────────────────
@@ -323,36 +327,88 @@ internal fun TogglesSection() {
 
 /**
  * Demonstrates [SyntaxHighlightedCode] event callbacks:
- * - `onHighlightComplete` — shows highlight duration in milliseconds.
+ * - `onHighlightComplete` — shows full [HighlightResult] (duration, span count, language).
  * - `onCopyClick` — custom copy handler with inline feedback.
+ * - `rememberHighlightEngine().isInitialized` — shows engine warm-up state.
  */
 @Composable
 internal fun CallbacksSection() {
     Column(
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        // onHighlightComplete demo
-        var highlightDurationMs by remember { mutableLongStateOf(-1L) }
+        // onHighlightComplete: show full HighlightResult fields
+        var highlightResult by remember { mutableStateOf<HighlightResult?>(null) }
 
-        SubSectionHeader("onHighlightComplete — highlight duration metric")
+        SubSectionHeader("onHighlightComplete — full HighlightResult")
         SyntaxHighlightedCode(
             code = KOTLIN_SNIPPET,
             language = "kotlin",
             modifier = Modifier.fillMaxWidth(),
-            onHighlightComplete = { durationMs -> highlightDurationMs = durationMs },
+            onHighlightComplete = { result -> highlightResult = result },
         )
-        if (highlightDurationMs >= 0) {
-            Text(
-                text = "⏱ Highlighted in ${highlightDurationMs}ms",
-                style =
-                    TextStyle(
-                        color = MaterialTheme.colorScheme.primary,
-                        fontSize = 13.sp,
-                        fontFamily = FontFamily.Monospace,
-                    ),
-                modifier = Modifier.padding(top = 4.dp),
-            )
+        highlightResult?.let { result ->
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                color = MaterialTheme.colorScheme.surfaceVariant,
+                shape = RoundedCornerShape(6.dp),
+            ) {
+                Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
+                    Text(
+                        text = "language  = \"${result.language}\"",
+                        style = TextStyle(fontSize = 12.sp, fontFamily = FontFamily.Monospace),
+                    )
+                    Text(
+                        text = "durationMs = ${result.durationMs} ms",
+                        style = TextStyle(fontSize = 12.sp, fontFamily = FontFamily.Monospace),
+                    )
+                    val spanLabel = if (result.spanCount == 0) "${result.spanCount}  ⚠ silent failure" else "${result.spanCount}"
+                    Text(
+                        text = "spanCount  = $spanLabel",
+                        style =
+                            TextStyle(
+                                fontSize = 12.sp,
+                                fontFamily = FontFamily.Monospace,
+                                color =
+                                    if (result.spanCount ==
+                                        0
+                                    ) {
+                                        MaterialTheme.colorScheme.error
+                                    } else {
+                                        MaterialTheme.colorScheme.onSurfaceVariant
+                                    },
+                            ),
+                    )
+                }
+            }
         }
+
+        HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+
+        // isInitialized demo
+        val engine = rememberHighlightEngine()
+        var engineInitialized by remember { mutableStateOf(engine.isInitialized) }
+
+        SubSectionHeader("HighlightEngine.isInitialized")
+        Text(
+            text = "Highlight a block to warm up the engine, then observe the flag flip.",
+            style = TextStyle(fontSize = 13.sp),
+        )
+        SyntaxHighlightedCode(
+            code = PYTHON_SNIPPET,
+            language = "python",
+            modifier = Modifier.fillMaxWidth(),
+            onHighlightComplete = { engineInitialized = engine.isInitialized },
+        )
+        Text(
+            text = "engine.isInitialized = $engineInitialized",
+            style =
+                TextStyle(
+                    fontSize = 13.sp,
+                    fontFamily = FontFamily.Monospace,
+                    color = if (engineInitialized) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
+                ),
+            modifier = Modifier.padding(top = 4.dp),
+        )
 
         HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
 
@@ -542,6 +598,12 @@ internal fun ThemeCreationSection() {
  * A toggle lets you flip between light and dark to verify the switch is instant once the
  * initial load completes. The duration of the single JS call is shown below the code block.
  *
+ * Also demonstrates:
+ * - Silent failure detection via [HighlightResult.spanCount] — an unsupported language
+ *   produces 0 spans instead of throwing, displayed with an error-coloured card.
+ * - Raw [dev.hossain.highlight.engine.HighlightEngine.highlightToHtml] pipeline — shows the
+ *   `<span class="hljs-*">` HTML string before any theme colour is applied.
+ *
  * @param isDark Whether the global light/dark toggle (from the top-bar button) is currently dark.
  */
 @Composable
@@ -551,7 +613,6 @@ internal fun AdvancedEngineSection(isDark: Boolean) {
     val darkTheme = remember(context) { HighlightTheme.tomorrowNight(context) }
 
     var useDark by remember(isDark) { mutableStateOf(isDark) }
-    var durationMs by remember { mutableLongStateOf(-1L) }
 
     val result by
         rememberHighlightedCodeBothThemes(
@@ -559,7 +620,6 @@ internal fun AdvancedEngineSection(isDark: Boolean) {
             language = "kotlin",
             lightTheme = lightTheme,
             darkTheme = darkTheme,
-            onHighlightComplete = { ms -> durationMs = ms },
         )
 
     val displayText = if (useDark) result?.dark else result?.light
@@ -617,10 +677,12 @@ internal fun AdvancedEngineSection(isDark: Boolean) {
             )
         }
 
-        // Duration metric
-        if (durationMs >= 0) {
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // Duration metric — read directly from the result state, no separate variable needed
+        result?.let { r ->
             Text(
-                text = "⏱ Both themes highlighted in ${durationMs}ms (single JS call)",
+                text = "⏱ Both themes highlighted in ${r.durationMs}ms (single JS call)",
                 style =
                     TextStyle(
                         color = MaterialTheme.colorScheme.primary,
@@ -628,6 +690,93 @@ internal fun AdvancedEngineSection(isDark: Boolean) {
                         fontFamily = FontFamily.Monospace,
                     ),
             )
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+
+        // Silent failure demo
+        SubSectionHeader("Silent failure detection via spanCount")
+        Text(
+            text =
+                "Passing an unsupported language produces no tokens (spanCount = 0) instead of " +
+                    "throwing an exception. Use spanCount to detect this and warn the caller.",
+            style = TextStyle(fontSize = 13.sp),
+        )
+        var silentFailureResult by remember { mutableStateOf<HighlightResult?>(null) }
+        SyntaxHighlightedCode(
+            code = "let x = doSomethingCool(42)",
+            language = "fakescript",
+            modifier = Modifier.fillMaxWidth(),
+            onHighlightComplete = { result -> silentFailureResult = result },
+        )
+        silentFailureResult?.let { result ->
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                color =
+                    if (result.spanCount == 0) {
+                        MaterialTheme.colorScheme.errorContainer
+                    } else {
+                        MaterialTheme.colorScheme.surfaceVariant
+                    },
+                shape = RoundedCornerShape(6.dp),
+            ) {
+                Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
+                    Text(
+                        text = "language  = \"${result.language}\"",
+                        style = TextStyle(fontSize = 12.sp, fontFamily = FontFamily.Monospace),
+                    )
+                    Text(
+                        text = "spanCount = ${result.spanCount}" + if (result.spanCount == 0) "  ← no tokens, silent failure" else "",
+                        style =
+                            TextStyle(
+                                fontSize = 12.sp,
+                                fontFamily = FontFamily.Monospace,
+                                color =
+                                    if (result.spanCount == 0) {
+                                        MaterialTheme.colorScheme.onErrorContainer
+                                    } else {
+                                        MaterialTheme.colorScheme.onSurfaceVariant
+                                    },
+                            ),
+                    )
+                    Text(
+                        text = "durationMs = ${result.durationMs} ms",
+                        style = TextStyle(fontSize = 12.sp, fontFamily = FontFamily.Monospace),
+                    )
+                }
+            }
+        }
+
+        HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+
+        // Raw highlightToHtml pipeline demo
+        SubSectionHeader("Raw pipeline: highlightToHtml()")
+        Text(
+            text =
+                "The lower-level highlightToHtml() returns the raw HTML string with " +
+                    "<span class=\"hljs-*\"> tokens before any theme is applied. " +
+                    "Useful when you need to process tokens yourself.",
+            style = TextStyle(fontSize = 13.sp),
+        )
+        val rawEngine = rememberHighlightEngine()
+        var rawHtml by remember { mutableStateOf<String?>(null) }
+        LaunchedEffect(Unit) {
+            rawEngine.highlightToHtml("val x = 42", "kotlin").onSuccess { rawHtml = it }
+        }
+        rawHtml?.let { html ->
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                color = MaterialTheme.colorScheme.surfaceVariant,
+                shape = RoundedCornerShape(6.dp),
+            ) {
+                Text(
+                    text = html,
+                    modifier = Modifier.padding(12.dp),
+                    style = TextStyle(fontSize = 11.sp, fontFamily = FontFamily.Monospace),
+                )
+            }
         }
 
         Spacer(modifier = Modifier.height(8.dp))
@@ -645,6 +794,111 @@ internal fun AdvancedEngineSection(isDark: Boolean) {
             language = "kotlin",
             modifier = Modifier.fillMaxWidth(),
         )
+    }
+}
+
+/**
+ * Showcases [dev.hossain.highlight.engine.HighlightEngine.highlightJsVersion] and
+ * [dev.hossain.highlight.engine.HighlightEngine.supportedLanguages]:
+ * - Displays the bundled Highlight.js version string.
+ * - Lists every supported language identifier in a scrollable card.
+ */
+@Composable
+internal fun EngineInfoSection() {
+    val engine = rememberHighlightEngine()
+
+    var version by remember { mutableStateOf<String?>(null) }
+    var languages by remember { mutableStateOf<List<String>>(emptyList()) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+
+    LaunchedEffect(Unit) {
+        engine
+            .highlightJsVersion()
+            .onSuccess { version = it }
+            .onFailure { errorMessage = "Version error: ${it.message}" }
+
+        engine
+            .supportedLanguages()
+            .onSuccess { languages = it }
+            .onFailure { errorMessage = (errorMessage?.plus("\n") ?: "") + "Languages error: ${it.message}" }
+    }
+
+    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        // ── Version card ──────────────────────────────────────────────────
+        SubSectionHeader("Bundled Highlight.js version")
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            color = MaterialTheme.colorScheme.primaryContainer,
+            shape = RoundedCornerShape(8.dp),
+        ) {
+            Text(
+                text = version?.let { "hljs.versionString = \"$it\"" } ?: "Loading…",
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                style =
+                    TextStyle(
+                        fontSize = 14.sp,
+                        fontFamily = FontFamily.Monospace,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    ),
+            )
+        }
+
+        errorMessage?.let {
+            Text(
+                text = it,
+                style = TextStyle(color = MaterialTheme.colorScheme.error, fontSize = 12.sp),
+            )
+        }
+
+        // ── Language count badge ──────────────────────────────────────────
+        SubSectionHeader("Supported languages — hljs.listLanguages()")
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            color = MaterialTheme.colorScheme.secondaryContainer,
+            shape = RoundedCornerShape(8.dp),
+        ) {
+            Text(
+                text = if (languages.isEmpty()) "Loading…" else "${languages.size} languages supported",
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                style =
+                    TextStyle(
+                        fontSize = 14.sp,
+                        fontFamily = FontFamily.Monospace,
+                        color = MaterialTheme.colorScheme.onSecondaryContainer,
+                        fontWeight = FontWeight.Medium,
+                    ),
+            )
+        }
+
+        // ── Scrollable language list ──────────────────────────────────────
+        if (languages.isNotEmpty()) {
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                color = MaterialTheme.colorScheme.surfaceVariant,
+                shape = RoundedCornerShape(8.dp),
+            ) {
+                LazyColumn(
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .height(400.dp),
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(2.dp),
+                ) {
+                    itemsIndexed(languages) { index, lang ->
+                        Text(
+                            text = "${index + 1}. $lang",
+                            style =
+                                TextStyle(
+                                    fontSize = 13.sp,
+                                    fontFamily = FontFamily.Monospace,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                ),
+                        )
+                    }
+                }
+            }
+        }
     }
 }
 

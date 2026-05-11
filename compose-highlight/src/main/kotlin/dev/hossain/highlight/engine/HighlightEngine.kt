@@ -37,7 +37,7 @@ import kotlin.coroutines.resumeWithException
  *     val theme = remember { HighlightTheme.tomorrow(LocalContext.current.applicationContext) }
  *     var highlighted by remember(code) { mutableStateOf<AnnotatedString?>(null) }
  *     LaunchedEffect(code) {
- *         engine.highlight(code, "kotlin", theme).onSuccess { highlighted = it }
+ *         engine.highlight(code, "kotlin", theme).onSuccess { highlighted = it.annotated }
  *     }
  *     Text(text = highlighted ?: AnnotatedString(code))
  * }
@@ -57,7 +57,11 @@ import kotlin.coroutines.resumeWithException
  *     language = "kotlin",
  *     theme    = HighlightTheme.atomOneDark(context),
  * )
- * result.onSuccess { annotated -> /* use AnnotatedString */ }
+ * result.onSuccess { highlighted ->
+ *     display(highlighted.annotated)            // AnnotatedString
+ *     log("spans: ${highlighted.spanCount}")    // 0 = unsupported language
+ *     log("time:  ${highlighted.durationMs} ms")
+ * }
  *
  * // Release resources when done
  * engine.destroy()
@@ -86,6 +90,28 @@ class HighlightEngine(
     // Serializes concurrent evaluateJavascript() calls — WebView handles one at a time.
     private val mutex = Mutex()
 
+    // Cached result of supportedLanguages() — list is static for a given bundled hljs version.
+    @Volatile
+    private var cachedLanguages: List<String>? = null
+
+    // Cached result of highlightJsVersion() — version is static for the bundled hljs build.
+    @Volatile
+    private var cachedVersion: String? = null
+
+    /**
+     * `true` once [initialize] has completed successfully (or the first [highlight] /
+     * [highlightToHtml] call has finished warming up the WebView).
+     *
+     * Useful for removing boilerplate `var engineReady` flags in calling code:
+     *
+     * ```kotlin
+     * if (engine.isInitialized) {
+     *     // safe to highlight immediately without warm-up latency
+     * }
+     * ```
+     */
+    val isInitialized: Boolean get() = manager.isInitialized
+
     /**
      * Warms up the hidden WebView and loads bridge.html.
      *
@@ -106,10 +132,21 @@ class HighlightEngine(
     /**
      * Highlights [code] and returns raw HTML with `<span class="hljs-*">` tokens.
      *
-     * Automatically initializes the WebView on the first call.
-     * Thread-safe: may be called from any dispatcher.
+     * Lower-level alternative to [highlight]: use this when you need the raw HTML string rather
+     * than a theme-applied [AnnotatedString]. Automatically initializes the WebView on the first
+     * call. Thread-safe: may be called from any dispatcher.
      *
-     * JS escaping fix (PRD §4.2): backslash is escaped first to avoid double-escaping.
+     * ```kotlin
+     * engine.highlightToHtml("val x = 42", "kotlin").onSuccess { html ->
+     *     // html contains e.g. <span class="hljs-keyword">val</span> x = ...
+     *     renderRawHtml(html)
+     * }
+     * ```
+     *
+     * @param code The source code to highlight.
+     * @param language Highlight.js language identifier (e.g. `"kotlin"`, `"python"`).
+     * @return [Result] wrapping the raw HTML string, or [Result.failure] with a
+     *   [HighlightException] on error.
      */
     suspend fun highlightToHtml(
         code: String,
@@ -131,47 +168,222 @@ class HighlightEngine(
         }
 
     /**
-     * Full pipeline: highlight → parse theme → convert to [AnnotatedString].
+     * Full pipeline: tokenise → apply theme → convert to [HighlightResult].
      *
-     * Convenience method combining [highlightToHtml] + [ThemeParser] + [HtmlToAnnotatedString].
+     * Combines [highlightToHtml] with colour-map application to produce a ready-to-render
+     * [AnnotatedString]. A [HighlightResult.spanCount] of `0` indicates a silent failure —
+     * the language may be unsupported or the code was empty; [HighlightResult.annotated]
+     * still contains plain text so callers can always render something.
+     *
+     * ```kotlin
+     * engine.highlight(code, "kotlin", theme).onSuccess { result ->
+     *     display(result.annotated)
+     *     if (result.spanCount == 0) log("no tokens — language may be unsupported")
+     *     log("highlighted in \${result.durationMs} ms")
+     * }
+     * ```
+     *
+     * @param code The source code to highlight.
+     * @param language Highlight.js language identifier (e.g. `"kotlin"`, `"python"`).
+     * @param theme The [HighlightTheme] whose colour map will be applied.
+     * @return [Result] wrapping a [HighlightResult], or [Result.failure] with a
+     *   [HighlightException] on error.
      */
     suspend fun highlight(
         code: String,
         language: String,
         theme: HighlightTheme,
-    ): Result<AnnotatedString> =
-        highlightToHtml(code, language).map { html ->
+    ): Result<HighlightResult> {
+        val start = System.nanoTime()
+        return highlightToHtml(code, language).map { html ->
             try {
-                HtmlToAnnotatedString.convert(html, theme.colorMap)
+                val annotated = HtmlToAnnotatedString.convert(html, theme.colorMap)
+                val durationMs = (System.nanoTime() - start) / 1_000_000L
+                HighlightResult(
+                    annotated = annotated,
+                    spanCount = annotated.spanStyles.size,
+                    language = language,
+                    durationMs = durationMs,
+                )
             } catch (e: Exception) {
                 throw HighlightException.HtmlParseFailed(e)
             }
         }
+    }
 
     /**
-     * Produces both light and dark [AnnotatedString] from a single JS call.
-     * The HTML is tokenized once, then converted twice with different color maps,
-     * making theme switching instant without an extra JS round-trip.
+     * Highlights [code] once and produces a [ThemedHighlightResult] with both a light and a dark
+     * [androidx.compose.ui.text.AnnotatedString].
+     *
+     * The JS tokeniser runs **once**; the two colour maps are applied to the same HTML output,
+     * so theme switching after the call returns is instant — no extra WebView round-trip.
+     *
+     * ```kotlin
+     * engine.highlightBothThemes(
+     *     code       = sourceCode,
+     *     language   = "typescript",
+     *     lightTheme = HighlightTheme.tomorrow(context),
+     *     darkTheme  = HighlightTheme.tomorrowNight(context),
+     * ).onSuccess { result ->
+     *     val display = if (isDark) result.dark else result.light
+     * }
+     * ```
+     *
+     * @param code The source code to highlight.
+     * @param language Highlight.js language identifier (e.g. `"kotlin"`, `"typescript"`).
+     * @param lightTheme Theme applied to produce [ThemedHighlightResult.light].
+     * @param darkTheme Theme applied to produce [ThemedHighlightResult.dark].
+     * @return [Result] wrapping a [ThemedHighlightResult], or [Result.failure] with a
+     *   [HighlightException] on error.
      */
     suspend fun highlightBothThemes(
         code: String,
         language: String,
         lightTheme: HighlightTheme,
         darkTheme: HighlightTheme,
-    ): Result<ThemedHighlightResult> =
-        highlightToHtml(code, language).map { html ->
+    ): Result<ThemedHighlightResult> {
+        val start = System.nanoTime()
+        return highlightToHtml(code, language).map { html ->
             try {
                 val light = HtmlToAnnotatedString.convert(html, lightTheme.colorMap)
                 val dark = HtmlToAnnotatedString.convert(html, darkTheme.colorMap)
-                ThemedHighlightResult(light, dark)
+                ThemedHighlightResult(
+                    light = light,
+                    dark = dark,
+                    durationMs = (System.nanoTime() - start) / 1_000_000L,
+                )
             } catch (e: Exception) {
                 throw HighlightException.HtmlParseFailed(e)
             }
         }
+    }
 
     /** Releases the WebView resources. */
     fun destroy() {
+        cachedLanguages = null
+        cachedVersion = null
         manager.destroy()
+    }
+
+    /**
+     * Returns the list of language identifiers supported by the bundled Highlight.js.
+     *
+     * The result is fetched from the JS engine on the first call and cached — subsequent calls
+     * return the cached list immediately without a WebView round-trip.
+     *
+     * Automatically initializes the WebView if not yet ready.
+     *
+     * ```kotlin
+     * val languages = engine.supportedLanguages()
+     * languages.onSuccess { list ->
+     *     val isKotlinSupported = "kotlin" in list  // true
+     * }
+     * ```
+     *
+     * @return [Result] wrapping a sorted [List] of language name strings (e.g. `"kotlin"`,
+     *   `"java"`, `"python"`), or [Result.failure] with a [HighlightException] if the WebView
+     *   could not be initialized.
+     */
+    suspend fun supportedLanguages(): Result<List<String>> {
+        cachedLanguages?.let { return Result.success(it) }
+        return try {
+            manager.initialize()
+            val webView = manager.getReadyWebView()
+            mutex.withLock {
+                // Double-checked: another coroutine may have populated the cache while we waited.
+                cachedLanguages?.let { return Result.success(it) }
+                withTimeout(HighlightException.TIMEOUT_SECONDS * 1000L) {
+                    withContext(Dispatchers.Main) {
+                        suspendCancellableCoroutine { continuation ->
+                            webView.evaluateJavascript("listLanguages()") { rawResult ->
+                                if (!continuation.isActive) return@evaluateJavascript
+                                if (rawResult == null || rawResult == "null") {
+                                    continuation.resumeWithException(
+                                        HighlightException.JsExecutionFailed(
+                                            RuntimeException("listLanguages() returned null"),
+                                        ),
+                                    )
+                                    return@evaluateJavascript
+                                }
+                                // evaluateJavascript serializes a JS array to a JSON array string,
+                                // e.g. ["kotlin","java",...] — parse with JSONArray.
+                                try {
+                                    val jsonArray = org.json.JSONArray(rawResult)
+                                    val languages =
+                                        (0 until jsonArray.length())
+                                            .map { jsonArray.getString(it) }
+                                            .sorted()
+                                    cachedLanguages = languages
+                                    continuation.resume(Result.success(languages))
+                                } catch (e: Exception) {
+                                    continuation.resumeWithException(
+                                        HighlightException.JsExecutionFailed(e),
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (e: HighlightException) {
+            Result.failure(e)
+        } catch (e: Exception) {
+            Result.failure(HighlightException.JsExecutionFailed(e))
+        }
+    }
+
+    /**
+     * Returns the version string of the bundled Highlight.js library (e.g. `"11.11.1"`).
+     *
+     * The result is fetched from the JS engine on the first call and cached — subsequent calls
+     * return the cached value immediately without a WebView round-trip.
+     *
+     * Automatically initializes the WebView if not yet ready.
+     *
+     * ```kotlin
+     * engine.highlightJsVersion().onSuccess { version ->
+     *     println("Using Highlight.js $version")
+     * }
+     * ```
+     *
+     * @return [Result] wrapping the version string, or [Result.failure] with a [HighlightException]
+     *   if the WebView could not be initialized.
+     */
+    suspend fun highlightJsVersion(): Result<String> {
+        cachedVersion?.let { return Result.success(it) }
+        return try {
+            manager.initialize()
+            val webView = manager.getReadyWebView()
+            mutex.withLock {
+                // Double-checked: another coroutine may have populated the cache while we waited.
+                cachedVersion?.let { return Result.success(it) }
+                withTimeout(HighlightException.TIMEOUT_SECONDS * 1000L) {
+                    withContext(Dispatchers.Main) {
+                        suspendCancellableCoroutine { continuation ->
+                            webView.evaluateJavascript("hljsVersion()") { rawResult ->
+                                if (!continuation.isActive) return@evaluateJavascript
+                                if (rawResult == null || rawResult == "null") {
+                                    continuation.resumeWithException(
+                                        HighlightException.JsExecutionFailed(
+                                            RuntimeException("hljsVersion() returned null"),
+                                        ),
+                                    )
+                                    return@evaluateJavascript
+                                }
+                                // evaluateJavascript returns a JSON-encoded string — strip quotes.
+                                val version = unescapeJsString(rawResult)
+                                cachedVersion = version
+                                continuation.resume(Result.success(version))
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (e: HighlightException) {
+            Result.failure(e)
+        } catch (e: Exception) {
+            Result.failure(HighlightException.JsExecutionFailed(e))
+        }
     }
 
     /**
@@ -304,8 +516,25 @@ internal fun unescapeJsString(jsonString: String): String {
 /**
  * Holds both light and dark [AnnotatedString] results from a single highlight call.
  * Used by [HighlightEngine.highlightBothThemes].
+ *
+ * ```kotlin
+ * val result by rememberHighlightedCodeBothThemes(
+ *     code       = code,
+ *     language   = "kotlin",
+ *     lightTheme = remember { HighlightTheme.tomorrow(context.applicationContext) },
+ *     darkTheme  = remember { HighlightTheme.tomorrowNight(context.applicationContext) },
+ * )
+ * val text = if (isDark) result?.dark else result?.light
+ * Text(text = text ?: AnnotatedString(code))
+ * ```
+ *
+ * @property light Syntax-highlighted [AnnotatedString] styled with the light theme.
+ * @property dark Syntax-highlighted [AnnotatedString] styled with the dark theme.
+ * @property durationMs Pure highlight time in milliseconds — covers the JS call and both
+ *   HTML conversion passes. Excludes coroutine-scheduling overhead.
  */
 data class ThemedHighlightResult(
     val light: AnnotatedString,
     val dark: AnnotatedString,
+    val durationMs: Long,
 )

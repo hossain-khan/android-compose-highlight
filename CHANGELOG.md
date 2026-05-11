@@ -2,6 +2,78 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+### Added
+- **`HighlightResult` data class** — `HighlightEngine.highlight()` now returns
+  `Result<HighlightResult>` instead of `Result<AnnotatedString>`. The result carries:
+  - `annotated: AnnotatedString` — the highlighted text (same as before, via `.annotated`)
+  - `spanCount: Int` — number of highlight spans; `0` signals a silent failure (unsupported
+    language or empty input) without an exception
+  - `language: String` — the language identifier that was requested
+  - `durationMs: Long` — pure highlight time (JS call + HTML conversion), excluding
+    coroutine-scheduling overhead  
+
+  **Migration:** replace `.onSuccess { it }` with `.onSuccess { it.annotated }`.
+
+- **`HighlightEngine.isInitialized: Boolean`** — `true` once the hidden WebView has loaded
+  `bridge.html`. Removes the need for a manual `var engineReady` flag in calling code.
+
+- **`ThemedHighlightResult.durationMs: Long`** — timing is now included in the result returned
+  by `highlightBothThemes` and `rememberHighlightedCodeBothThemes`. Read it directly from the
+  state value instead of using a separate callback.
+
+- **`HighlightEngine.supportedLanguages(): Result<List<String>>`** — returns the sorted list of
+  language identifiers supported by the bundled Highlight.js (190+ languages). Result is fetched
+  from the JS engine on the first call and cached for subsequent calls.
+
+  ```kotlin
+  engine.supportedLanguages().onSuccess { languages ->
+      val isKotlinSupported = "kotlin" in languages  // true
+  }
+  ```
+
+- **`HighlightEngine.highlightJsVersion(): Result<String>`** — returns the version string of the
+  bundled Highlight.js library (e.g. `"11.11.1"`). Cached after the first call.
+
+  ```kotlin
+  engine.highlightJsVersion().onSuccess { version ->
+      println("Using Highlight.js $version")
+  }
+  ```
+
+- **Sample app: Engine tab** — new tab in the demo app showcasing `highlightJsVersion()` and
+  `supportedLanguages()`. Displays the bundled Highlight.js version string and a scrollable,
+  numbered list of all 192 supported language identifiers.
+
+### Changed
+- **`onHighlightComplete` callback now receives `HighlightResult`** — both
+  `SyntaxHighlightedCode` and `rememberHighlightedCode` previously passed `durationMs: Long`
+  to the callback; they now pass the full `HighlightResult`. Use `result.durationMs` for
+  timing, `result.spanCount` for silent-failure detection.
+
+  **Migration:**
+  ```kotlin
+  // Before
+  onHighlightComplete = { durationMs -> showTiming(durationMs) }
+
+  // After
+  onHighlightComplete = { result -> showTiming(result.durationMs) }
+  ```
+
+- **`rememberHighlightedCode` timing is now measured inside the engine** — `durationMs` in
+  `HighlightResult` reflects pure highlight time (JS round-trip + HTML parse), not
+  coroutine-scheduling overhead.
+
+### Removed
+- **`onHighlightComplete` removed from `rememberHighlightedCodeBothThemes`** — timing is now
+  available directly on `ThemedHighlightResult.durationMs`, so a separate callback is not
+  needed. Read timing from the state value you already hold:
+  ```kotlin
+  val result by rememberHighlightedCodeBothThemes(...)
+  val timing = result?.durationMs   // available once result is non-null
+  ```
+
 ## [0.9.0] - 2026-05-10
 
 ### Added

@@ -47,6 +47,9 @@ internal class WebViewManager(
 ) {
     private var webView: WebView? = null
 
+    /** `true` once the WebView has been created and bridge.html has finished loading. */
+    val isInitialized: Boolean get() = webView != null && readyDeferred.isCompleted
+
     /**
      * Mutable so it can be reset when [initialize] is called after [destroy].
      * Accessed only on the Main thread (inside [initialize]) or awaited from any thread.

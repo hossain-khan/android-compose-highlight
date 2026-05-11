@@ -3,6 +3,7 @@
 <pre><code id="code"></code></pre>
 <script src="highlight.min.js"></script>
 <script>
+// https://highlightjs.readthedocs.io/en/latest/api.html#highlightelement
 function highlightCode(code, lang) {
   const block = document.getElementById("code");
   block.textContent = code;
@@ -10,6 +11,16 @@ function highlightCode(code, lang) {
   delete block.dataset.highlighted;
   hljs.highlightElement(block);
   return block.innerHTML;
+}
+
+// https://highlightjs.readthedocs.io/en/latest/api.html#listlanguages
+function listLanguages() {
+  return hljs.listLanguages();
+}
+
+// https://highlightjs.readthedocs.io/en/latest/api.html#versionstring
+function hljsVersion() {
+  return hljs.versionString;
 }
 </script>
 </body></html>
