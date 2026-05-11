@@ -37,7 +37,7 @@ import kotlin.coroutines.resumeWithException
  *     val theme = remember { HighlightTheme.tomorrow(LocalContext.current.applicationContext) }
  *     var highlighted by remember(code) { mutableStateOf<AnnotatedString?>(null) }
  *     LaunchedEffect(code) {
- *         engine.highlight(code, "kotlin", theme).onSuccess { highlighted = it }
+ *         engine.highlight(code, "kotlin", theme).onSuccess { highlighted = it.annotated }
  *     }
  *     Text(text = highlighted ?: AnnotatedString(code))
  * }
@@ -57,7 +57,7 @@ import kotlin.coroutines.resumeWithException
  *     language = "kotlin",
  *     theme    = HighlightTheme.atomOneDark(context),
  * )
- * result.onSuccess { annotated -> /* use AnnotatedString */ }
+ * result.onSuccess { result -> /* use result.annotated (AnnotatedString) */ }
  *
  * // Release resources when done
  * engine.destroy()
@@ -85,6 +85,20 @@ class HighlightEngine(
 
     // Serializes concurrent evaluateJavascript() calls — WebView handles one at a time.
     private val mutex = Mutex()
+
+    /**
+     * `true` once [initialize] has completed successfully (or the first [highlight] /
+     * [highlightToHtml] call has finished warming up the WebView).
+     *
+     * Useful for removing boilerplate `var engineReady` flags in calling code:
+     *
+     * ```kotlin
+     * if (engine.isInitialized) {
+     *     // safe to highlight immediately without warm-up latency
+     * }
+     * ```
+     */
+    val isInitialized: Boolean get() = manager.isInitialized
 
     /**
      * Warms up the hidden WebView and loads bridge.html.
@@ -134,19 +148,31 @@ class HighlightEngine(
      * Full pipeline: highlight → parse theme → convert to [AnnotatedString].
      *
      * Convenience method combining [highlightToHtml] + [ThemeParser] + [HtmlToAnnotatedString].
+     * Returns a [HighlightResult] with the annotated string, span count, and pure highlight time.
+     * A [HighlightResult.spanCount] of 0 indicates a silent failure (unsupported language or
+     * empty input) — the [HighlightResult.annotated] still contains the plain code text.
      */
     suspend fun highlight(
         code: String,
         language: String,
         theme: HighlightTheme,
-    ): Result<AnnotatedString> =
-        highlightToHtml(code, language).map { html ->
+    ): Result<HighlightResult> {
+        val start = System.nanoTime()
+        return highlightToHtml(code, language).map { html ->
             try {
-                HtmlToAnnotatedString.convert(html, theme.colorMap)
+                val annotated = HtmlToAnnotatedString.convert(html, theme.colorMap)
+                val durationMs = (System.nanoTime() - start) / 1_000_000L
+                HighlightResult(
+                    annotated = annotated,
+                    spanCount = annotated.spanStyles.size,
+                    language = language,
+                    durationMs = durationMs,
+                )
             } catch (e: Exception) {
                 throw HighlightException.HtmlParseFailed(e)
             }
         }
+    }
 
     /**
      * Produces both light and dark [AnnotatedString] from a single JS call.

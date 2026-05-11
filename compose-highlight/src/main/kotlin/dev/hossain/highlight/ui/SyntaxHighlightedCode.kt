@@ -32,6 +32,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import dev.hossain.highlight.engine.HighlightResult
 import dev.hossain.highlight.engine.HighlightTheme
 import kotlinx.coroutines.launch
 
@@ -117,8 +118,10 @@ import kotlinx.coroutines.launch
  *       },
  *   )
  *   ```
- * @param onHighlightComplete Optional callback invoked with the highlight duration in milliseconds
- *   when highlighting succeeds. Useful for performance metrics.
+ * @param onHighlightComplete Optional callback invoked with a [HighlightResult] when highlighting
+ *   succeeds. Use [HighlightResult.durationMs] for timing, [HighlightResult.spanCount] to detect
+ *   silent failures (0 = no tokens produced), and [HighlightResult.language] to confirm the
+ *   language that was highlighted. Useful for performance metrics and test harnesses.
  */
 @Composable
 fun SyntaxHighlightedCode(
@@ -132,7 +135,7 @@ fun SyntaxHighlightedCode(
     showCopyButton: Boolean = true,
     onCopyClick: ((String) -> Unit)? = null,
     copyButtonIcon: (@Composable (tint: Color) -> Unit)? = null,
-    onHighlightComplete: ((durationMs: Long) -> Unit)? = null,
+    onHighlightComplete: ((HighlightResult) -> Unit)? = null,
 ) {
     val highlightedState = rememberHighlightedCode(code, language, theme, onHighlightComplete)
     val clipboard = LocalClipboard.current

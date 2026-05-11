@@ -2,6 +2,42 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+### Added
+- **`HighlightResult` data class** — `HighlightEngine.highlight()` now returns
+  `Result<HighlightResult>` instead of `Result<AnnotatedString>`. The result carries:
+  - `annotated: AnnotatedString` — the highlighted text (same as before, via `.annotated`)
+  - `spanCount: Int` — number of highlight spans; `0` signals a silent failure (unsupported
+    language or empty input) without an exception
+  - `language: String` — the language identifier that was requested
+  - `durationMs: Long` — pure highlight time (JS call + HTML conversion), excluding
+    coroutine-scheduling overhead  
+
+  **Migration:** replace `.onSuccess { it }` with `.onSuccess { it.annotated }`.
+
+- **`HighlightEngine.isInitialized: Boolean`** — `true` once the hidden WebView has loaded
+  `bridge.html`. Removes the need for a manual `var engineReady` flag in calling code.
+
+### Changed
+- **`onHighlightComplete` callback now receives `HighlightResult`** — both
+  `SyntaxHighlightedCode` and `rememberHighlightedCode` previously passed `durationMs: Long`
+  to the callback; they now pass the full `HighlightResult`. Use `result.durationMs` for
+  timing, `result.spanCount` for silent-failure detection.
+
+  **Migration:**
+  ```kotlin
+  // Before
+  onHighlightComplete = { durationMs -> showTiming(durationMs) }
+
+  // After
+  onHighlightComplete = { result -> showTiming(result.durationMs) }
+  ```
+
+- **`rememberHighlightedCode` timing is now measured inside the engine** — `durationMs` in
+  `HighlightResult` reflects pure highlight time (JS round-trip + HTML parse), not
+  coroutine-scheduling overhead.
+
 ## [0.9.0] - 2026-05-10
 
 ### Added

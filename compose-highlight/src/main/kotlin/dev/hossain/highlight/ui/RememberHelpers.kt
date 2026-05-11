@@ -10,6 +10,7 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.AnnotatedString
 import dev.hossain.highlight.engine.HighlightEngine
+import dev.hossain.highlight.engine.HighlightResult
 import dev.hossain.highlight.engine.HighlightTheme
 import dev.hossain.highlight.engine.ThemedHighlightResult
 
@@ -96,8 +97,8 @@ fun rememberHighlightEngine(): HighlightEngine {
  * @param code The source code to highlight.
  * @param language The Highlight.js language identifier (e.g. `"python"`, `"kotlin"`).
  * @param theme The theme to apply. Defaults to [LocalHighlightTheme].
- * @param onHighlightComplete Optional callback invoked with the highlight duration in milliseconds
- *   when highlighting succeeds. Fires after the [State] is updated. Not called on failure.
+ * @param onHighlightComplete Optional callback invoked with a [HighlightResult] when highlighting
+ *   succeeds. Fires after the [State] is updated. Not called on failure.
  * @return A [State] holding the highlighted [AnnotatedString], or `null` while loading / on error.
  */
 @Composable
@@ -105,7 +106,7 @@ fun rememberHighlightedCode(
     code: String,
     language: String,
     theme: HighlightTheme = LocalHighlightTheme.current,
-    onHighlightComplete: ((durationMs: Long) -> Unit)? = null,
+    onHighlightComplete: ((HighlightResult) -> Unit)? = null,
 ): State<AnnotatedString?> {
     val engine = rememberHighlightEngine()
     val state = remember(code, language, theme) { mutableStateOf<AnnotatedString?>(null) }
@@ -113,12 +114,11 @@ fun rememberHighlightedCode(
 
     LaunchedEffect(code, language, theme) {
         state.value = null
-        val start = System.nanoTime()
         engine
             .highlight(code, language, theme)
-            .onSuccess {
-                state.value = it
-                latestCallback.value?.invoke((System.nanoTime() - start) / 1_000_000L)
+            .onSuccess { result ->
+                state.value = result.annotated
+                latestCallback.value?.invoke(result)
             }
         // On failure: leave state.value = null; caller renders plain fallback
     }

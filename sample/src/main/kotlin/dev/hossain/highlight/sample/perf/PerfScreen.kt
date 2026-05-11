@@ -163,11 +163,11 @@ fun PerfScreen() {
                                 language = sample.language,
                                 modifier = Modifier.fillMaxWidth(),
                                 showLineNumbers = true,
-                                onHighlightComplete = { elapsedMs ->
+                                onHighlightComplete = { result ->
                                     metricsMap[sample.language] =
                                         HighlightMetrics(
                                             language = sample.language,
-                                            highlightMs = elapsedMs,
+                                            highlightMs = result.durationMs,
                                             charCount = sample.code.length,
                                             lineCount = sample.code.lines().size,
                                         )
