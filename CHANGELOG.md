@@ -9,7 +9,7 @@ All notable changes to this project will be documented in this file.
   `Result<HtmlHighlightResult>` instead of `Result<String>`. The result pairs the raw HTML with
   timing data so callers no longer need to measure JS round-trip time manually:
   - `html: String` — raw HTML with `<span class="hljs-*">` tokens (same content as before, via `.html`)
-  - `durationMs: Long` — time from call start through JS round-trip
+  - `durationMs: Long` — JavaScript round-trip time, measured after the WebView is ready and the internal mutex is acquired (excludes WebView warm-up and queue-wait time)
 
   **Migration:** replace `.onSuccess { html -> ... }` with `.onSuccess { it.html }`:
   ```kotlin
@@ -58,6 +58,28 @@ All notable changes to this project will be documented in this file.
   // After
   val theme = rememberTomorrowTheme()
   ```
+
+### Fixed
+- **`HtmlHighlightResult.durationMs` now measures JS round-trip only** — the timer previously
+  started before WebView initialisation and mutex acquisition, so it included warm-up and
+  queue-wait time. It now starts immediately before `evaluateJavascript()` is called, after the
+  WebView is ready and the internal mutex is held.
+
+### Sample app improvements
+- **Code samples moved to asset files** — 17 language samples previously hardcoded as Kotlin raw
+  strings in `SampleData.kt` are now individual files in `assets/samples/` (e.g. `01_fibonacci.py`,
+  `08_WeatherApp.kt`). Adding a new language sample only requires dropping a file in that folder —
+  no Kotlin changes needed. Each file has a real extension so IDEs apply syntax highlighting when
+  viewing or editing them.
+- **`sample/README.md`** — documents the sample app structure, what each tab demonstrates, and
+  how to add new language samples or custom themes.
+- **Sample app organisation** — `DemoSections.kt` split into a `sections/` package (one file per
+  tab); tab routing uses a `DemoTab` sealed class instead of integer indices.
+- **Fixed: Engine tab language list now scrollable** — the 192-language list was clipped at a
+  fixed height with no scroll. Fixed by adding `verticalScroll` to the list container.
+- **Fixed: App crash on launch (NPE in tab bar)** — `DemoTab.all` companion `val` was evaluated
+  during class init before the `data object` instances were set, resulting in a list of nulls.
+  Fixed with `by lazy { }`.
 
 ## [0.10.0] - 2026-05-10
 
