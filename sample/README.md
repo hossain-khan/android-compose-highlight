@@ -1,0 +1,69 @@
+# Sample App
+
+A standalone Android app that exercises every feature of the `compose-highlight` library.
+It is **not** published — it exists solely to demonstrate usage and serve as a manual test bed.
+
+## Structure
+
+```
+sample/
+├── src/main/
+│   ├── assets/
+│   │   ├── samples/          # Code snippets shown in the Languages tab (one file per language)
+│   │   └── themes/           # Custom Highlight.js CSS themes (github.css, github-dark.css)
+│   │                         # Demonstrates HighlightTheme.fromAsset()
+│   └── kotlin/…/sample/
+│       ├── MainActivity.kt         # Entry point; wraps SampleScreen in HighlightThemeProvider
+│       ├── SampleScreen.kt         # Top-level screen: tab bar + per-tab content routing
+│       ├── DemoTab.kt              # Sealed class for the 8 demo tabs (type-safe routing)
+│       ├── SampleData.kt           # loadCodeSamples(), loadThemePairs(), KOTLIN_SNIPPET, PYTHON_SNIPPET
+│       ├── sections/               # One file per tab — each exports a single @Composable
+│       │   ├── SectionComponents.kt    # Shared SectionHeader / SubSectionHeader
+│       │   ├── StylingSection.kt
+│       │   ├── TypographySection.kt
+│       │   ├── TogglesSection.kt
+│       │   ├── CallbacksSection.kt
+│       │   ├── ThemeCreationSection.kt
+│       │   ├── AdvancedEngineSection.kt
+│       │   └── EngineInfoSection.kt
+│       └── perf/                   # Separate performance-benchmark screen
+│           ├── PerfActivity.kt
+│           └── PerfScreen.kt
+```
+
+## Demo tabs
+
+| Tab | What it shows |
+|-----|---------------|
+| **Languages** | Highlights every file from `assets/samples/` — one code block per language |
+| **Styling** | `CodeBlockStyle` variants and custom background/border parameters |
+| **Typography** | `CodeBlockStyle.textStyle` — font size, weight, line height |
+| **Toggles** | All boolean flags: line numbers, language label, copy button |
+| **Callbacks** | `onHighlightComplete` and `onCopyClick` in action |
+| **Themes** | Every `HighlightTheme` factory method demonstrated side-by-side |
+| **Advanced** | `rememberHighlightedCodeBothThemes` for instant light/dark switching |
+| **Engine** | `HighlightEngine.highlightJsVersion` and `supportedLanguages` |
+
+## Adding a language sample
+
+Drop a file into `assets/samples/` with:
+- A two-digit numeric prefix for ordering, e.g. `18_example.rb`
+- A real file extension so your IDE applies syntax highlighting
+
+`loadCodeSamples()` in `SampleData.kt` picks it up automatically at runtime — no Kotlin changes needed.
+The file extension is mapped to a Highlight.js language identifier by `extensionToLanguage()`.
+
+## Adding a custom theme
+
+Put a Highlight.js CSS file in `assets/themes/` and load it with:
+
+```kotlin
+HighlightTheme.fromAsset(context, "themes/my-theme.css")
+```
+
+See `SampleData.kt` → `loadThemePairs()` for a working example using the bundled GitHub themes.
+
+## Performance screen
+
+`PerfActivity` / `PerfScreen` measures how long it takes to highlight all language samples
+back-to-back. Launch it from the top-right toolbar icon in the main screen.

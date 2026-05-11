@@ -1,0 +1,2 @@
+This is plaintext.
+Nothing to highlight.
