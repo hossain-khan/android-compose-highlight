@@ -9,6 +9,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -792,6 +795,111 @@ internal fun AdvancedEngineSection(isDark: Boolean) {
             language = "kotlin",
             modifier = Modifier.fillMaxWidth(),
         )
+    }
+}
+
+/**
+ * Showcases [dev.hossain.highlight.engine.HighlightEngine.highlightJsVersion] and
+ * [dev.hossain.highlight.engine.HighlightEngine.supportedLanguages]:
+ * - Displays the bundled Highlight.js version string.
+ * - Lists every supported language identifier in a scrollable card.
+ */
+@Composable
+internal fun EngineInfoSection() {
+    val engine = rememberHighlightEngine()
+
+    var version by remember { mutableStateOf<String?>(null) }
+    var languages by remember { mutableStateOf<List<String>>(emptyList()) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+
+    LaunchedEffect(Unit) {
+        engine
+            .highlightJsVersion()
+            .onSuccess { version = it }
+            .onFailure { errorMessage = "Version error: ${it.message}" }
+
+        engine
+            .supportedLanguages()
+            .onSuccess { languages = it }
+            .onFailure { errorMessage = (errorMessage?.plus("\n") ?: "") + "Languages error: ${it.message}" }
+    }
+
+    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        // ── Version card ──────────────────────────────────────────────────
+        SubSectionHeader("Bundled Highlight.js version")
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            color = MaterialTheme.colorScheme.primaryContainer,
+            shape = RoundedCornerShape(8.dp),
+        ) {
+            Text(
+                text = version?.let { "hljs.versionString = \"$it\"" } ?: "Loading…",
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                style =
+                    TextStyle(
+                        fontSize = 14.sp,
+                        fontFamily = FontFamily.Monospace,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    ),
+            )
+        }
+
+        errorMessage?.let {
+            Text(
+                text = it,
+                style = TextStyle(color = MaterialTheme.colorScheme.error, fontSize = 12.sp),
+            )
+        }
+
+        // ── Language count badge ──────────────────────────────────────────
+        SubSectionHeader("Supported languages — hljs.listLanguages()")
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            color = MaterialTheme.colorScheme.secondaryContainer,
+            shape = RoundedCornerShape(8.dp),
+        ) {
+            Text(
+                text = if (languages.isEmpty()) "Loading…" else "${languages.size} languages supported",
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                style =
+                    TextStyle(
+                        fontSize = 14.sp,
+                        fontFamily = FontFamily.Monospace,
+                        color = MaterialTheme.colorScheme.onSecondaryContainer,
+                        fontWeight = FontWeight.Medium,
+                    ),
+            )
+        }
+
+        // ── Scrollable language list ──────────────────────────────────────
+        if (languages.isNotEmpty()) {
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                color = MaterialTheme.colorScheme.surfaceVariant,
+                shape = RoundedCornerShape(8.dp),
+            ) {
+                LazyColumn(
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .height(400.dp),
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(2.dp),
+                ) {
+                    itemsIndexed(languages) { index, lang ->
+                        Text(
+                            text = "${index + 1}. ${lang.replaceFirstChar { it.uppercase() }}",
+                            style =
+                                TextStyle(
+                                    fontSize = 13.sp,
+                                    fontFamily = FontFamily.Monospace,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                ),
+                        )
+                    }
+                }
+            }
+        }
     }
 }
 

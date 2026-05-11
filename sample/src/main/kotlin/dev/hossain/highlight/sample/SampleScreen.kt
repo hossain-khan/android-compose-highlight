@@ -67,6 +67,7 @@ import kotlinx.coroutines.launch
  * - **Callbacks**: demonstrates `onHighlightComplete` and `onCopyClick` callbacks of [SyntaxHighlightedCode].
  * - **Themes**: exercises every [HighlightTheme] factory method.
  * - **Advanced**: shows [rememberHighlightedCodeBothThemes] for instant theme switching.
+ * - **Engine**: shows [HighlightEngine.highlightJsVersion] and [HighlightEngine.supportedLanguages].
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -179,7 +180,7 @@ fun SampleScreen() {
                         .padding(top = innerPadding.calculateTopPadding())
                         .consumeWindowInsets(innerPadding),
             ) {
-                val tabs = listOf("Languages", "Styling", "Typography", "Toggles", "Callbacks", "Themes", "Advanced")
+                val tabs = listOf("Languages", "Styling", "Typography", "Toggles", "Callbacks", "Themes", "Advanced", "Engine")
                 PrimaryScrollableTabRow(selectedTabIndex = activeTab) {
                     tabs.forEachIndexed { index, title ->
                         Tab(
@@ -248,6 +249,10 @@ fun SampleScreen() {
 
                         6 -> {
                             item { AdvancedEngineSection(isDark = isDark) }
+                        }
+
+                        7 -> {
+                            item { EngineInfoSection() }
                         }
                     }
                 }
