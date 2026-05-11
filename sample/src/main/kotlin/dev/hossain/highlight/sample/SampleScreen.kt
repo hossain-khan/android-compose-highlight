@@ -28,6 +28,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -50,7 +51,9 @@ import dev.hossain.highlight.sample.sections.TogglesSection
 import dev.hossain.highlight.sample.sections.TypographySection
 import dev.hossain.highlight.ui.HighlightThemeProvider
 import dev.hossain.highlight.ui.SyntaxHighlightedCode
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * Main demo screen that renders a scrollable list of syntax-highlighted code snippets.
@@ -79,6 +82,9 @@ import kotlinx.coroutines.launch
 @Composable
 fun SampleScreen() {
     val context = LocalContext.current
+    val codeSamples by produceState(initialValue = emptyList<CodeSample>(), context) {
+        value = withContext(Dispatchers.IO) { loadCodeSamples(context) }
+    }
     val clipboard = LocalClipboard.current
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -210,9 +216,9 @@ fun SampleScreen() {
                 ) {
                     when (activeTab) {
                         DemoTab.Languages -> {
-                            CODE_SAMPLES.forEach { sample ->
-                                item(key = sample.language) {
-                                    SectionHeader(sample.language)
+                            codeSamples.forEach { sample ->
+                                item(key = sample.displayLabel) {
+                                    SectionHeader(sample.displayLabel)
                                     SyntaxHighlightedCode(
                                         code = sample.code,
                                         language = sample.language,
