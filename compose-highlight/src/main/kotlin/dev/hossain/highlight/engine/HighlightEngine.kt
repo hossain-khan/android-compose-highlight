@@ -94,6 +94,10 @@ class HighlightEngine(
     @Volatile
     private var cachedLanguages: List<String>? = null
 
+    // Cached result of highlightJsVersion() — version is static for the bundled hljs build.
+    @Volatile
+    private var cachedVersion: String? = null
+
     /**
      * `true` once [initialize] has completed successfully (or the first [highlight] /
      * [highlightToHtml] call has finished warming up the WebView).
@@ -213,6 +217,7 @@ class HighlightEngine(
     /** Releases the WebView resources. */
     fun destroy() {
         cachedLanguages = null
+        cachedVersion = null
         manager.destroy()
     }
 
@@ -269,6 +274,57 @@ class HighlightEngine(
                                     HighlightException.JsExecutionFailed(e),
                                 )
                             }
+                        }
+                    }
+                }
+            }
+        } catch (e: HighlightException) {
+            Result.failure(e)
+        } catch (e: Exception) {
+            Result.failure(HighlightException.JsExecutionFailed(e))
+        }
+    }
+
+    /**
+     * Returns the version string of the bundled Highlight.js library (e.g. `"11.11.1"`).
+     *
+     * The result is fetched from the JS engine on the first call and cached — subsequent calls
+     * return the cached value immediately without a WebView round-trip.
+     *
+     * Automatically initializes the WebView if not yet ready.
+     *
+     * ```kotlin
+     * engine.highlightJsVersion().onSuccess { version ->
+     *     println("Using Highlight.js $version")
+     * }
+     * ```
+     *
+     * @return [Result] wrapping the version string, or [Result.failure] with a [HighlightException]
+     *   if the WebView could not be initialized.
+     */
+    suspend fun highlightJsVersion(): Result<String> {
+        cachedVersion?.let { return Result.success(it) }
+        return try {
+            manager.initialize()
+            val webView = manager.getReadyWebView()
+            mutex.withLock {
+                // Double-checked: another coroutine may have populated the cache while we waited.
+                cachedVersion?.let { return Result.success(it) }
+                withContext(Dispatchers.Main) {
+                    suspendCancellableCoroutine { continuation ->
+                        webView.evaluateJavascript("hljsVersion()") { rawResult ->
+                            if (rawResult == null || rawResult == "null") {
+                                continuation.resumeWithException(
+                                    HighlightException.JsExecutionFailed(
+                                        RuntimeException("hljsVersion() returned null"),
+                                    ),
+                                )
+                                return@evaluateJavascript
+                            }
+                            // evaluateJavascript returns a JSON-encoded string — strip quotes.
+                            val version = unescapeJsString(rawResult)
+                            cachedVersion = version
+                            continuation.resume(Result.success(version))
                         }
                     }
                 }

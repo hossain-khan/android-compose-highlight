@@ -33,6 +33,15 @@ All notable changes to this project will be documented in this file.
   }
   ```
 
+- **`HighlightEngine.highlightJsVersion(): Result<String>`** — returns the version string of the
+  bundled Highlight.js library (e.g. `"11.11.1"`). Cached after the first call.
+
+  ```kotlin
+  engine.highlightJsVersion().onSuccess { version ->
+      println("Using Highlight.js $version")
+  }
+  ```
+
 ### Changed
 - **`onHighlightComplete` callback now receives `HighlightResult`** — both
   `SyntaxHighlightedCode` and `rememberHighlightedCode` previously passed `durationMs: Long`
