@@ -37,7 +37,7 @@ internal fun loadCodeSamples(context: Context): List<CodeSample> =
                     context.assets
                         .open("samples/$filename")
                         .bufferedReader()
-                        .readText()
+                        .use { it.readText() }
                 val ext = filename.substringAfterLast(".", missingDelimiterValue = "")
                 val language = extensionToLanguage(ext)
                 val displayLabel = filename.substringAfter("_")

@@ -30,5 +30,5 @@ var catalog = new List<Product>
 var svc = new ProductService(catalog);
 var hit = await svc.FindCheapestAsync("kotlin");
 Console.WriteLine(hit is { } p
-    ? ${'$'}"Found: {p.Name} at ${'$'}{p.Price:C}"
+    ? $"Found: {p.Name} at ${p.Price:C}"
     : "Not found");

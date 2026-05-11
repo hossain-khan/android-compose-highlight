@@ -17,7 +17,7 @@ async function fetchWithRetry<T>(
   for (let attempt = 0; attempt < retries; attempt++) {
     try {
       const res = await fetch(url);
-      if (!res.ok) throw new Error(`HTTP ${'$'}{res.status}: ${'$'}{res.statusText}`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
       const data: T = await res.json();
       return { data, status: res.status };
     } catch (err) {

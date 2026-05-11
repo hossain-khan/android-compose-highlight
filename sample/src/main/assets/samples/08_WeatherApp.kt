@@ -19,14 +19,14 @@ class WeatherApp(private val repository: WeatherRepository) {
       .onSuccess { weather ->
         val location = weather.location
         val message = buildString {
-          appendLine("Weather for ${'$'}{location.name}, ${'$'}{location.region ?: location.country}:")
+          appendLine("Weather for ${location.name}, ${location.region ?: location.country}:")
 
           val current = weather.current
           appendLine("\nCurrent conditions:")
-          appendLine("Temperature: ${'$'}{current.temperature}°C")
-          appendLine("Humidity: ${'$'}{current.humidity}%")
-          appendLine("Wind Speed: ${'$'}{current.windSpeed} km/h")
-          appendLine("Description: ${'$'}{current.description}")
+          appendLine("Temperature: ${current.temperature}°C")
+          appendLine("Humidity: ${current.humidity}%")
+          appendLine("Wind Speed: ${current.windSpeed} km/h")
+          appendLine("Description: ${current.description}")
 
           appendLine("\nHourly forecast:")
 
@@ -35,14 +35,14 @@ class WeatherApp(private val repository: WeatherRepository) {
         }
         log(message, false)
       }
-      .onFailure { error -> log("Error fetching weather: ${'$'}{error.message}", true) }
+      .onFailure { error -> log("Error fetching weather: ${error.message}", true) }
   }
 
   private suspend fun byLocation(query: String): Result<WeatherInfo> = coroutineScope {
     try {
       val locations = repository.searchLocation(query).getOrThrow()
       if (locations.isEmpty()) {
-        Result.failure(NoSuchElementException("Location not found: ${'$'}query"))
+        Result.failure(NoSuchElementException("Location not found: $query"))
       } else {
         val location = locations.first()
         val weather = repository.getWeather(location.latitude, location.longitude).getOrThrow()
@@ -114,13 +114,13 @@ class WeatherApp(private val repository: WeatherRepository) {
         forecast.take(24).forEach { hour ->
           val localTime = hour.time.toLocalDateTime(TimeZone.currentSystemDefault())
           val timeStr =
-            "${'$'}{localTime.hour.toString().padStart(2, '0')}:${'$'}{
+            "${localTime.hour.toString().padStart(2, '0')}:${
           localTime.minute.toString().padStart(2, '0')
         }"
 
           row {
             cell(timeStr)
-            cell("${'$'}{hour.temperature}°C")
+            cell("${hour.temperature}°C")
             cell(hour.description)
           }
         }
