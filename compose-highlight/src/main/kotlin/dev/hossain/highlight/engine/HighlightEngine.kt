@@ -132,10 +132,21 @@ class HighlightEngine(
     /**
      * Highlights [code] and returns raw HTML with `<span class="hljs-*">` tokens.
      *
-     * Automatically initializes the WebView on the first call.
-     * Thread-safe: may be called from any dispatcher.
+     * Lower-level alternative to [highlight]: use this when you need the raw HTML string rather
+     * than a theme-applied [AnnotatedString]. Automatically initializes the WebView on the first
+     * call. Thread-safe: may be called from any dispatcher.
      *
-     * JS escaping fix (PRD §4.2): backslash is escaped first to avoid double-escaping.
+     * ```kotlin
+     * engine.highlightToHtml("val x = 42", "kotlin").onSuccess { html ->
+     *     // html contains e.g. <span class="hljs-keyword">val</span> x = ...
+     *     renderRawHtml(html)
+     * }
+     * ```
+     *
+     * @param code The source code to highlight.
+     * @param language Highlight.js language identifier (e.g. `"kotlin"`, `"python"`).
+     * @return [Result] wrapping the raw HTML string, or [Result.failure] with a
+     *   [HighlightException] on error.
      */
     suspend fun highlightToHtml(
         code: String,
@@ -157,12 +168,26 @@ class HighlightEngine(
         }
 
     /**
-     * Full pipeline: highlight → parse theme → convert to [HighlightResult].
+     * Full pipeline: tokenise → apply theme → convert to [HighlightResult].
      *
-     * Convenience method combining [highlightToHtml] + [ThemeParser] + [HtmlToAnnotatedString].
-     * Returns a [HighlightResult] with the annotated string, span count, and pure highlight time.
-     * A [HighlightResult.spanCount] of 0 indicates a silent failure (unsupported language or
-     * empty input) — the [HighlightResult.annotated] still contains the plain code text.
+     * Combines [highlightToHtml] with colour-map application to produce a ready-to-render
+     * [AnnotatedString]. A [HighlightResult.spanCount] of `0` indicates a silent failure —
+     * the language may be unsupported or the code was empty; [HighlightResult.annotated]
+     * still contains plain text so callers can always render something.
+     *
+     * ```kotlin
+     * engine.highlight(code, "kotlin", theme).onSuccess { result ->
+     *     display(result.annotated)
+     *     if (result.spanCount == 0) log("no tokens — language may be unsupported")
+     *     log("highlighted in \${result.durationMs} ms")
+     * }
+     * ```
+     *
+     * @param code The source code to highlight.
+     * @param language Highlight.js language identifier (e.g. `"kotlin"`, `"python"`).
+     * @param theme The [HighlightTheme] whose colour map will be applied.
+     * @return [Result] wrapping a [HighlightResult], or [Result.failure] with a
+     *   [HighlightException] on error.
      */
     suspend fun highlight(
         code: String,
@@ -187,10 +212,29 @@ class HighlightEngine(
     }
 
     /**
-     * Highlights [code] once and produces a [ThemedHighlightResult] holding both a light and a dark
-     * [androidx.compose.ui.text.AnnotatedString]. The HTML is tokenized once by the JS engine,
-     * then converted twice with different color maps, making theme switching instant without an
-     * extra JS round-trip.
+     * Highlights [code] once and produces a [ThemedHighlightResult] with both a light and a dark
+     * [androidx.compose.ui.text.AnnotatedString].
+     *
+     * The JS tokeniser runs **once**; the two colour maps are applied to the same HTML output,
+     * so theme switching after the call returns is instant — no extra WebView round-trip.
+     *
+     * ```kotlin
+     * engine.highlightBothThemes(
+     *     code       = sourceCode,
+     *     language   = "typescript",
+     *     lightTheme = HighlightTheme.tomorrow(context),
+     *     darkTheme  = HighlightTheme.tomorrowNight(context),
+     * ).onSuccess { result ->
+     *     val display = if (isDark) result.dark else result.light
+     * }
+     * ```
+     *
+     * @param code The source code to highlight.
+     * @param language Highlight.js language identifier (e.g. `"kotlin"`, `"typescript"`).
+     * @param lightTheme Theme applied to produce [ThemedHighlightResult.light].
+     * @param darkTheme Theme applied to produce [ThemedHighlightResult.dark].
+     * @return [Result] wrapping a [ThemedHighlightResult], or [Result.failure] with a
+     *   [HighlightException] on error.
      */
     suspend fun highlightBothThemes(
         code: String,
@@ -466,6 +510,17 @@ internal fun unescapeJsString(jsonString: String): String {
 /**
  * Holds both light and dark [AnnotatedString] results from a single highlight call.
  * Used by [HighlightEngine.highlightBothThemes].
+ *
+ * ```kotlin
+ * val result by rememberHighlightedCodeBothThemes(
+ *     code       = code,
+ *     language   = "kotlin",
+ *     lightTheme = remember { HighlightTheme.tomorrow(context.applicationContext) },
+ *     darkTheme  = remember { HighlightTheme.tomorrowNight(context.applicationContext) },
+ * )
+ * val text = if (isDark) result?.dark else result?.light
+ * Text(text = text ?: AnnotatedString(code))
+ * ```
  *
  * @property light Syntax-highlighted [AnnotatedString] styled with the light theme.
  * @property dark Syntax-highlighted [AnnotatedString] styled with the dark theme.

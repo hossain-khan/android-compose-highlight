@@ -16,7 +16,10 @@ sealed class HighlightException(
         cause: Throwable,
     ) : HighlightException("WebView initialization failed", cause)
 
-    /** Thrown when the JavaScript `highlightCode()` call returns `null` or raises an error. */
+    /**
+     * Thrown when a JavaScript engine call (e.g. `highlightCode`, `listLanguages`,
+     * `hljsVersion`) returns `null` or raises an error.
+     */
     class JsExecutionFailed(
         cause: Throwable,
     ) : HighlightException("JavaScript execution failed", cause)
