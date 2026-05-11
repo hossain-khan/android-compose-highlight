@@ -19,6 +19,10 @@ All notable changes to this project will be documented in this file.
 - **`HighlightEngine.isInitialized: Boolean`** — `true` once the hidden WebView has loaded
   `bridge.html`. Removes the need for a manual `var engineReady` flag in calling code.
 
+- **`ThemedHighlightResult.durationMs: Long`** — timing is now included in the result returned
+  by `highlightBothThemes` and `rememberHighlightedCodeBothThemes`. Read it directly from the
+  state value instead of using a separate callback.
+
 ### Changed
 - **`onHighlightComplete` callback now receives `HighlightResult`** — both
   `SyntaxHighlightedCode` and `rememberHighlightedCode` previously passed `durationMs: Long`
@@ -39,14 +43,13 @@ All notable changes to this project will be documented in this file.
   coroutine-scheduling overhead.
 
 ### Removed
-- **`onHighlightComplete` removed from `rememberHighlightedCodeBothThemes`** — the callback
-  previously passed `durationMs: Long`, which was asymmetric with the `HighlightResult`-based
-  callbacks on `SyntaxHighlightedCode` and `rememberHighlightedCode`. Callers who need
-  observability from `highlightBothThemes` should use `rememberHighlightEngine()` directly and
-  call `HighlightEngine.highlightBothThemes()` themselves.
-
-  **Migration:** remove the `onHighlightComplete` argument from any
-  `rememberHighlightedCodeBothThemes` call sites.
+- **`onHighlightComplete` removed from `rememberHighlightedCodeBothThemes`** — timing is now
+  available directly on `ThemedHighlightResult.durationMs`, so a separate callback is not
+  needed. Read timing from the state value you already hold:
+  ```kotlin
+  val result by rememberHighlightedCodeBothThemes(...)
+  val timing = result?.durationMs   // available once result is non-null
+  ```
 
 ## [0.9.0] - 2026-05-10
 

@@ -677,6 +677,21 @@ internal fun AdvancedEngineSection(isDark: Boolean) {
 
         Spacer(modifier = Modifier.height(8.dp))
 
+        // Duration metric — read directly from the result state, no separate variable needed
+        result?.let { r ->
+            Text(
+                text = "⏱ Both themes highlighted in ${r.durationMs}ms (single JS call)",
+                style =
+                    TextStyle(
+                        color = MaterialTheme.colorScheme.primary,
+                        fontSize = 12.sp,
+                        fontFamily = FontFamily.Monospace,
+                    ),
+            )
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
         HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
 
         // Silent failure demo

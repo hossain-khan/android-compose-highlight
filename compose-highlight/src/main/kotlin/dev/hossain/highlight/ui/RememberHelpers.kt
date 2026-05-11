@@ -158,7 +158,8 @@ fun rememberHighlightedCode(
  *   re-parsing CSS on every recomposition.
  * @param darkTheme Theme to apply for the dark variant. Create inside `remember` to avoid
  *   re-parsing CSS on every recomposition.
- * @return A [State] holding a [ThemedHighlightResult] with both variants, or `null` while loading / on error.
+ * @return A [State] holding a [ThemedHighlightResult] with both variants (including
+ *   [ThemedHighlightResult.durationMs] for timing), or `null` while loading / on error.
  */
 @Composable
 fun rememberHighlightedCodeBothThemes(

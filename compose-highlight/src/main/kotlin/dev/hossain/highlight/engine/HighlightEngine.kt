@@ -189,16 +189,22 @@ class HighlightEngine(
         language: String,
         lightTheme: HighlightTheme,
         darkTheme: HighlightTheme,
-    ): Result<ThemedHighlightResult> =
-        highlightToHtml(code, language).map { html ->
+    ): Result<ThemedHighlightResult> {
+        val start = System.nanoTime()
+        return highlightToHtml(code, language).map { html ->
             try {
                 val light = HtmlToAnnotatedString.convert(html, lightTheme.colorMap)
                 val dark = HtmlToAnnotatedString.convert(html, darkTheme.colorMap)
-                ThemedHighlightResult(light, dark)
+                ThemedHighlightResult(
+                    light = light,
+                    dark = dark,
+                    durationMs = (System.nanoTime() - start) / 1_000_000L,
+                )
             } catch (e: Exception) {
                 throw HighlightException.HtmlParseFailed(e)
             }
         }
+    }
 
     /** Releases the WebView resources. */
     fun destroy() {
@@ -335,8 +341,14 @@ internal fun unescapeJsString(jsonString: String): String {
 /**
  * Holds both light and dark [AnnotatedString] results from a single highlight call.
  * Used by [HighlightEngine.highlightBothThemes].
+ *
+ * @property light Syntax-highlighted [AnnotatedString] styled with the light theme.
+ * @property dark Syntax-highlighted [AnnotatedString] styled with the dark theme.
+ * @property durationMs Pure highlight time in milliseconds — covers the JS call and both
+ *   HTML conversion passes. Excludes coroutine-scheduling overhead.
  */
 data class ThemedHighlightResult(
     val light: AnnotatedString,
     val dark: AnnotatedString,
+    val durationMs: Long,
 )
