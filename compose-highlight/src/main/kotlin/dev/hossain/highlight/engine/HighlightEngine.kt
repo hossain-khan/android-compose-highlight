@@ -90,6 +90,10 @@ class HighlightEngine(
     // Serializes concurrent evaluateJavascript() calls — WebView handles one at a time.
     private val mutex = Mutex()
 
+    // Cached result of supportedLanguages() — list is static for a given bundled hljs version.
+    @Volatile
+    private var cachedLanguages: List<String>? = null
+
     /**
      * `true` once [initialize] has completed successfully (or the first [highlight] /
      * [highlightToHtml] call has finished warming up the WebView).
@@ -208,7 +212,72 @@ class HighlightEngine(
 
     /** Releases the WebView resources. */
     fun destroy() {
+        cachedLanguages = null
         manager.destroy()
+    }
+
+    /**
+     * Returns the list of language identifiers supported by the bundled Highlight.js.
+     *
+     * The result is fetched from the JS engine on the first call and cached — subsequent calls
+     * return the cached list immediately without a WebView round-trip.
+     *
+     * Automatically initializes the WebView if not yet ready.
+     *
+     * ```kotlin
+     * val languages = engine.supportedLanguages()
+     * languages.onSuccess { list ->
+     *     val isKotlinSupported = "kotlin" in list  // true
+     * }
+     * ```
+     *
+     * @return [Result] wrapping a sorted [List] of language name strings (e.g. `"kotlin"`,
+     *   `"java"`, `"python"`), or [Result.failure] with a [HighlightException] if the WebView
+     *   could not be initialized.
+     */
+    suspend fun supportedLanguages(): Result<List<String>> {
+        cachedLanguages?.let { return Result.success(it) }
+        return try {
+            manager.initialize()
+            val webView = manager.getReadyWebView()
+            mutex.withLock {
+                // Double-checked: another coroutine may have populated the cache while we waited.
+                cachedLanguages?.let { return Result.success(it) }
+                withContext(Dispatchers.Main) {
+                    suspendCancellableCoroutine { continuation ->
+                        webView.evaluateJavascript("listLanguages()") { rawResult ->
+                            if (rawResult == null || rawResult == "null") {
+                                continuation.resumeWithException(
+                                    HighlightException.JsExecutionFailed(
+                                        RuntimeException("listLanguages() returned null"),
+                                    ),
+                                )
+                                return@evaluateJavascript
+                            }
+                            // evaluateJavascript serializes a JS array to a JSON array string,
+                            // e.g. ["kotlin","java",...] — parse with JSONArray.
+                            try {
+                                val jsonArray = org.json.JSONArray(rawResult)
+                                val languages =
+                                    (0 until jsonArray.length())
+                                        .map { jsonArray.getString(it) }
+                                        .sorted()
+                                cachedLanguages = languages
+                                continuation.resume(Result.success(languages))
+                            } catch (e: Exception) {
+                                continuation.resumeWithException(
+                                    HighlightException.JsExecutionFailed(e),
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (e: HighlightException) {
+            Result.failure(e)
+        } catch (e: Exception) {
+            Result.failure(HighlightException.JsExecutionFailed(e))
+        }
     }
 
     /**

@@ -23,6 +23,16 @@ All notable changes to this project will be documented in this file.
   by `highlightBothThemes` and `rememberHighlightedCodeBothThemes`. Read it directly from the
   state value instead of using a separate callback.
 
+- **`HighlightEngine.supportedLanguages(): Result<List<String>>`** — returns the sorted list of
+  language identifiers supported by the bundled Highlight.js (190+ languages). Result is fetched
+  from the JS engine on the first call and cached for subsequent calls.
+
+  ```kotlin
+  engine.supportedLanguages().onSuccess { languages ->
+      val isKotlinSupported = "kotlin" in languages  // true
+  }
+  ```
+
 ### Changed
 - **`onHighlightComplete` callback now receives `HighlightResult`** — both
   `SyntaxHighlightedCode` and `rememberHighlightedCode` previously passed `durationMs: Long`

@@ -1,0 +1,134 @@
+Initialized native services in: /Users/hossain/.gradle/native
+Initialized jansi services in: /Users/hossain/.gradle/native
+Found daemon DaemonInfo{pid=64820, address=[e118f7ad-ebde-4ffa-8598-82d746c25380 port:59937, addresses:[/127.0.0.1]], state=Idle, lastBusy=1778463313154, context=DefaultDaemonContext[uid=99448de1-38ba-4f5c-9423-02d98fd1c3f4,javaHome=/Users/hossain/.sdkman/candidates/java/25.0.2-tem,javaVersion=25,javaVendor=Eclipse Adoptium,daemonRegistryDir=/Users/hossain/.gradle/daemon,pid=64820,idleTimeout=10800000,priority=NORMAL,applyInstrumentationAgent=true,nativeServicesMode=ENABLED,daemonOpts=-Xmx2048m,-Dfile.encoding=UTF-8,-Duser.country=CA,-Duser.language=en,-Duser.variant]} however its context does not match the desired criteria.
+JVM is incompatible.
+Wanted: DaemonRequestContext{jvmCriteria=Compatible with Java 21, JetBrains, nativeImageCapable=false (from gradle/gradle-daemon-jvm.properties), daemonOpts=[-Xmx2048m, -Dfile.encoding=UTF-8, -Duser.country=CA, -Duser.language=en, -Duser.variant], applyInstrumentationAgent=true, nativeServicesMode=ENABLED, priority=NORMAL}
+Actual: DefaultDaemonContext[uid=99448de1-38ba-4f5c-9423-02d98fd1c3f4,javaHome=/Users/hossain/.sdkman/candidates/java/25.0.2-tem,javaVersion=25,javaVendor=Eclipse Adoptium,daemonRegistryDir=/Users/hossain/.gradle/daemon,pid=64820,idleTimeout=10800000,priority=NORMAL,applyInstrumentationAgent=true,nativeServicesMode=ENABLED,daemonOpts=-Xmx2048m,-Dfile.encoding=UTF-8,-Duser.country=CA,-Duser.language=en,-Duser.variant]
+
+  Looking for a different daemon...
+Found daemon DaemonInfo{pid=68180, address=[002481b0-c145-46db-bc22-045dd283908d port:60160, addresses:[/127.0.0.1]], state=Idle, lastBusy=1778461079111, context=DefaultDaemonContext[uid=f3b76d1e-6737-423b-afa4-1b6e661797e8,javaHome=/Users/hossain/.sdkman/candidates/java/21.0.7-tem,javaVersion=21,javaVendor=Eclipse Adoptium,daemonRegistryDir=/Users/hossain/.gradle/daemon,pid=68180,idleTimeout=10800000,priority=NORMAL,applyInstrumentationAgent=true,nativeServicesMode=ENABLED,daemonOpts=-Xmx2048m,-Dfile.encoding=UTF-8,-Duser.country=CA,-Duser.language=en,-Duser.variant]} however its context does not match the desired criteria.
+JVM is incompatible.
+Wanted: DaemonRequestContext{jvmCriteria=Compatible with Java 21, JetBrains, nativeImageCapable=false (from gradle/gradle-daemon-jvm.properties), daemonOpts=[-Xmx2048m, -Dfile.encoding=UTF-8, -Duser.country=CA, -Duser.language=en, -Duser.variant], applyInstrumentationAgent=true, nativeServicesMode=ENABLED, priority=NORMAL}
+Actual: DefaultDaemonContext[uid=f3b76d1e-6737-423b-afa4-1b6e661797e8,javaHome=/Users/hossain/.sdkman/candidates/java/21.0.7-tem,javaVersion=21,javaVendor=Eclipse Adoptium,daemonRegistryDir=/Users/hossain/.gradle/daemon,pid=68180,idleTimeout=10800000,priority=NORMAL,applyInstrumentationAgent=true,nativeServicesMode=ENABLED,daemonOpts=-Xmx2048m,-Dfile.encoding=UTF-8,-Duser.country=CA,-Duser.language=en,-Duser.variant]
+
+  Looking for a different daemon...
+The client will now receive all logging from the daemon (pid: 57502). The daemon log file: /Users/hossain/.gradle/daemon/9.5.0/daemon-57502.out.log
+Starting 50th build in daemon [uptime: 1 hrs 45 mins 55.633 secs, performance: 97%, GC rate: 0.00/s, heap usage: 18% of 2 GiB]
+Using 10 worker leases.
+Operational build model parameters: {cachingModelBuilding=false, configurationCache=false, configurationCacheDisabledReason=null, configurationCacheParallelLoad=false, configurationCacheParallelStore=false, configureOnDemand=false, invalidateCoupledProjects=false, isolatedProjects=false, modelAsProjectDependency=false, modelBuilding=false, parallelModelBuilding=false, parallelProjectConfiguration=false, parallelProjectExecution=false, resilientModelBuilding=false}
+Now considering [/Users/hossain/dev/repos/android-apps/android-compose-highlight, /Users/hossain/dev/repos/android-apps/android-compose-highlight-test-harness] as hierarchies to watch
+Watching the file system is configured to be enabled if available
+File system watching is active
+Starting Build
+Resolved plugin [id: 'org.gradle.toolchains.foojay-resolver-convention', version: '1.0.0']
+Settings evaluated using settings file '/Users/hossain/dev/repos/android-apps/android-compose-highlight/settings.gradle.kts'.
+Projects loaded. Root project using build file '/Users/hossain/dev/repos/android-apps/android-compose-highlight/build.gradle.kts'.
+Included projects: [root project 'android-compose-highlight', project ':compose-highlight', project ':sample']
+
+> Configure project :
+Evaluating root project 'android-compose-highlight' using build file '/Users/hossain/dev/repos/android-apps/android-compose-highlight/build.gradle.kts'.
+Resolved plugin [id: 'com.android.application', version: '9.2.1', apply: false]
+Resolved plugin [id: 'com.android.library', version: '9.2.1', apply: false]
+Resolved plugin [id: 'com.android.test', version: '9.2.1', apply: false]
+Resolved plugin [id: 'org.jetbrains.kotlin.plugin.compose', version: '2.3.21', apply: false]
+Resolved plugin [id: 'org.jmailen.kotlinter', version: '5.4.2', apply: false]
+Resolved plugin [id: 'org.jetbrains.dokka', version: '2.2.0', apply: false]
+
+> Configure project :compose-highlight
+Evaluating project ':compose-highlight' using build file '/Users/hossain/dev/repos/android-apps/android-compose-highlight/compose-highlight/build.gradle.kts'.
+Resolved plugin [id: 'com.android.library', version: '9.2.1']
+Resolved plugin [id: 'org.jetbrains.kotlin.plugin.compose', version: '2.3.21']
+Resolved plugin [id: 'org.jmailen.kotlinter', version: '5.4.2']
+Resolved plugin [id: 'org.jetbrains.dokka', version: '2.2.0']
+Resolved plugin [id: 'org.gradle.maven-publish']
+Build 8c593ef5-6bf7-4301-91ad-e550e15245b7 is started
+Using default execution profile
+Dokka Gradle Plugin detected PluginMode:V2EnabledWithHelpers (from:V2EnabledWithHelpers) in project ':compose-highlight' /Users/hossain/dev/repos/android-apps/android-compose-highlight/compose-highlight
+Applying KotlinAdapter to :compose-highlight
+Configuring KotlinAdapter in Gradle Kotlin Project :compose-highlight
+applied class org.jetbrains.dokka.gradle.adapters.AndroidAdapter_Decorated to :compose-highlight
+applied DokkaJavaAdapter to :compose-highlight
+Detected Android Gradle Plugin compose compiler configuration
+Detected Android Gradle Plugin compose compiler configuration
+Detected Android Gradle Plugin compose compiler configuration
+Detected Android Gradle Plugin compose compiler configuration
+
+> Configure project :sample
+Evaluating project ':sample' using build file '/Users/hossain/dev/repos/android-apps/android-compose-highlight/sample/build.gradle.kts'.
+Resolved plugin [id: 'com.android.application', version: '9.2.1']
+Resolved plugin [id: 'org.jetbrains.kotlin.plugin.compose', version: '2.3.21']
+Resolved plugin [id: 'org.jmailen.kotlinter', version: '5.4.2']
+Using default execution profile
+Detected Android Gradle Plugin compose compiler configuration
+Detected Android Gradle Plugin compose compiler configuration
+Detected Android Gradle Plugin compose compiler configuration
+Detected Android Gradle Plugin compose compiler configuration
+Detected Android Gradle Plugin compose compiler configuration
+All projects evaluated.
+Task name matched 'formatKotlin'
+Selected primary task 'formatKotlin' from project :
+Tasks to be executed: [task ':compose-highlight:formatKotlinAndroidTest', task ':compose-highlight:formatKotlinAndroidTestDebug', task ':compose-highlight:formatKotlinAndroidTestRelease', task ':compose-highlight:formatKotlinDebug', task ':compose-highlight:formatKotlinMain', task ':compose-highlight:formatKotlinRelease', task ':compose-highlight:formatKotlinTest', task ':compose-highlight:formatKotlinTestDebug', task ':compose-highlight:formatKotlinTestFixtures', task ':compose-highlight:formatKotlinTestFixturesDebug', task ':compose-highlight:formatKotlinTestFixturesRelease', task ':compose-highlight:formatKotlinTestRelease', task ':compose-highlight:formatKotlin', task ':sample:formatKotlinAndroidTest', task ':sample:formatKotlinAndroidTestBenchmark', task ':sample:formatKotlinAndroidTestDebug', task ':sample:formatKotlinAndroidTestRelease', task ':sample:formatKotlinBenchmark', task ':sample:formatKotlinDebug', task ':sample:formatKotlinMain', task ':sample:formatKotlinRelease', task ':sample:formatKotlinTest', task ':sample:formatKotlinTestBenchmark', task ':sample:formatKotlinTestDebug', task ':sample:formatKotlinTestFixtures', task ':sample:formatKotlinTestFixturesBenchmark', task ':sample:formatKotlinTestFixturesDebug', task ':sample:formatKotlinTestFixturesRelease', task ':sample:formatKotlinTestRelease', task ':sample:formatKotlin']
+Tasks that were excluded: []
+Resolve mutations for :compose-highlight:formatKotlinAndroidTest (Thread[#2901,Execution worker,5,main]) started.
+:compose-highlight:formatKotlinAndroidTest (Thread[#2901,Execution worker,5,main]) started.
+This JVM does not support getting OS memory, so no OS memory status updates will be broadcast
+
+> Task :compose-highlight:formatKotlinAndroidTest
+Caching disabled for task ':compose-highlight:formatKotlinAndroidTest' because:
+  Build cache is disabled
+  Caching has not been enabled for the task
+Task ':compose-highlight:formatKotlinAndroidTest' is not up-to-date because:
+  Task.upToDateWhen is false.
+The input changes require a full rebuild for incremental task ':compose-highlight:formatKotlinAndroidTest'.
+file or directory '/Users/hossain/dev/repos/android-apps/android-compose-highlight/compose-highlight/src/androidTest/java', not found
+Starting process 'Gradle Worker Daemon 24'. Working directory: /Users/hossain/.gradle/workers Command: /Users/hossain/Applications/Android Studio.app/Contents/jbr/Contents/Home/bin/java @/Users/hossain/.gradle/.tmp/gradle-worker-classpath9564082482277287183txt -Xmx512m -Dfile.encoding=UTF-8 -Duser.country=CA -Duser.language=en -Duser.variant worker.org.gradle.process.internal.worker.GradleWorkerMain 'Gradle Worker Daemon 24'
+Successfully started process 'Gradle Worker Daemon 24'
+Started Gradle worker daemon (0.164 secs) with fork options DaemonForkOptions{executable=/Users/hossain/Applications/Android Studio.app/Contents/jbr/Contents/Home/bin/java, minHeapSize=null, maxHeapSize=null, jvmArgs=[], keepAliveMode=SESSION}.
+Editorconfig changed, resetting KtLint caches
+Resolve mutations for :compose-highlight:formatKotlinAndroidTestDebug (Thread[#2901,Execution worker,5,main]) started.
+:compose-highlight:formatKotlinAndroidTestDebug (Thread[#2901,Execution worker,5,main]) started.
+
+> Task :compose-highlight:formatKotlinAndroidTestDebug NO-SOURCE
+Skipping task ':compose-highlight:formatKotlinAndroidTestDebug' as it has no source files and no previous output files.
+Resolve mutations for :compose-highlight:formatKotlinAndroidTestRelease (Thread[#2901,Execution worker,5,main]) started.
+:compose-highlight:formatKotlinAndroidTestRelease (Thread[#2907,Execution worker Thread 7,5,main]) started.
+
+> Task :compose-highlight:formatKotlinAndroidTestRelease NO-SOURCE
+Skipping task ':compose-highlight:formatKotlinAndroidTestRelease' as it has no source files and no previous output files.
+Resolve mutations for :compose-highlight:formatKotlinDebug (Thread[#2907,Execution worker Thread 7,5,main]) started.
+:compose-highlight:formatKotlinDebug (Thread[#2907,Execution worker Thread 7,5,main]) started.
+
+> Task :compose-highlight:formatKotlinDebug NO-SOURCE
+Skipping task ':compose-highlight:formatKotlinDebug' as it has no source files and no previous output files.
+Resolve mutations for :compose-highlight:formatKotlinMain (Thread[#2907,Execution worker Thread 7,5,main]) started.
+:compose-highlight:formatKotlinMain (Thread[#2907,Execution worker Thread 7,5,main]) started.
+
+> Task :compose-highlight:formatKotlinMain FAILED
+Caching disabled for task ':compose-highlight:formatKotlinMain' because:
+  Build cache is disabled
+  Caching has not been enabled for the task
+Task ':compose-highlight:formatKotlinMain' is not up-to-date because:
+  Task.upToDateWhen is false.
+The input changes require a full rebuild for incremental task ':compose-highlight:formatKotlinMain'.
+file or directory '/Users/hossain/dev/repos/android-apps/android-compose-highlight/compose-highlight/src/main/java', not found
+Editorconfig changed, resetting KtLint caches
+Build 8c593ef5-6bf7-4301-91ad-e550e15245b7 is closed
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':compose-highlight:formatKotlinMain' (registered by plugin 'org.jmailen.kotlinter').
+> There was a failure while executing work items
+   > A failure occurred while executing org.jmailen.gradle.kotlinter.tasks.format.FormatWorkerAction
+      > format worker execution error
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --debug option to get more log output.
+> Run with --scan to get full insights from a Build Scan (powered by Develocity).
+> Get more help at https://help.gradle.org.
+
+BUILD FAILED in 1s
+2 actionable tasks: 2 executed
+Watched directory hierarchies: [/Users/hossain/dev/repos/android-apps/android-compose-highlight, /Users/hossain/dev/repos/android-apps/android-compose-highlight-test-harness]
+Stopped 1 worker daemon(s).
