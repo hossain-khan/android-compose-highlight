@@ -40,8 +40,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import dev.hossain.highlight.engine.HighlightTheme
-import dev.hossain.highlight.sample.CODE_SAMPLES
 import dev.hossain.highlight.sample.R
+import dev.hossain.highlight.sample.loadCodeSamples
 import dev.hossain.highlight.ui.HighlightThemeProvider
 import dev.hossain.highlight.ui.SyntaxHighlightedCode
 
@@ -54,7 +54,7 @@ internal data class HighlightMetrics(
 )
 
 /**
- * Performance benchmark screen that renders every [CODE_SAMPLES] entry in a scrollable list and
+ * Performance benchmark screen that renders every loaded code sample in a scrollable list and
  * measures per-block highlighting timing, code size, and overall heap usage.
  *
  * - Each block shows a metric card: highlight time, line count, char count.
@@ -65,6 +65,7 @@ internal data class HighlightMetrics(
 @Composable
 fun PerfScreen() {
     val context = LocalContext.current
+    val codeSamples = remember(context) { loadCodeSamples(context) }
     var isDark by remember { mutableStateOf(true) }
 
     val metricsMap = remember { mutableStateMapOf<String, HighlightMetrics>() }
@@ -72,7 +73,7 @@ fun PerfScreen() {
 
     // Take a heap snapshot once all blocks have reported their timing.
     var heapSnapshotKb by remember { mutableStateOf<Long?>(null) }
-    if (metricsMap.size == CODE_SAMPLES.size && heapSnapshotKb == null) {
+    if (metricsMap.size == codeSamples.size && heapSnapshotKb == null) {
         val rt = Runtime.getRuntime()
         heapSnapshotKb = (rt.totalMemory() - rt.freeMemory()) / 1024
     }
@@ -143,16 +144,16 @@ fun PerfScreen() {
                     Spacer(modifier = Modifier.height(4.dp))
                     SummaryHeader(
                         metricsMap = metricsMap,
-                        totalSamples = CODE_SAMPLES.size,
+                        totalSamples = codeSamples.size,
                         heapSnapshotKb = heapSnapshotKb,
                     )
                 }
 
-                items(CODE_SAMPLES, key = { it.language }) { sample ->
-                    val metrics = metricsMap[sample.language]
+                items(codeSamples, key = { it.displayLabel }) { sample ->
+                    val metrics = metricsMap[sample.displayLabel]
                     Column {
                         Text(
-                            text = sample.language.uppercase(),
+                            text = sample.displayLabel,
                             style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.padding(bottom = 4.dp),
@@ -164,7 +165,7 @@ fun PerfScreen() {
                                 modifier = Modifier.fillMaxWidth(),
                                 showLineNumbers = true,
                                 onHighlightComplete = { result ->
-                                    metricsMap[sample.language] =
+                                    metricsMap[sample.displayLabel] =
                                         HighlightMetrics(
                                             language = sample.language,
                                             highlightMs = result.durationMs,

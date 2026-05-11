@@ -79,6 +79,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun SampleScreen() {
     val context = LocalContext.current
+    val codeSamples = remember(context) { loadCodeSamples(context) }
     val clipboard = LocalClipboard.current
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -210,9 +211,9 @@ fun SampleScreen() {
                 ) {
                     when (activeTab) {
                         DemoTab.Languages -> {
-                            CODE_SAMPLES.forEach { sample ->
-                                item(key = sample.language) {
-                                    SectionHeader(sample.language)
+                            codeSamples.forEach { sample ->
+                                item(key = sample.displayLabel) {
+                                    SectionHeader(sample.displayLabel)
                                     SyntaxHighlightedCode(
                                         code = sample.code,
                                         language = sample.language,
