@@ -177,24 +177,10 @@ Community themes are available at [highlightjs/highlight.js/src/styles](https://
 
 ## `SyntaxHighlightedCode` API
 
-| Parameter | Type | Default | Description |
-|---|---|---|---|
-| `code` | `String` | required | Source code to display |
-| `language` | `String` | required | Highlight.js language ID |
-| `modifier` | `Modifier` | `Modifier` | Outer container modifier |
-| `theme` | `HighlightTheme` | `LocalHighlightTheme` | Theme override |
-| `style` | `CodeBlockStyle` | `CodeBlockStyle.Default` | Visual style — shape, padding, typography (`textStyle`), line-number gutter, copy-button size. See `SyntaxHighlightedCodeDefaults` for defaults. |
-| `showLineNumbers` | `Boolean` | `false` | Show line-number gutter |
-| `showLanguageLabel` | `Boolean` | `true` | Show language badge in header |
-| `showCopyButton` | `Boolean` | `true` | Show copy-to-clipboard button |
-| `onCopyClick` | `((String) -> Unit)?` | `null` | Custom copy handler; when provided, the caller owns clipboard write and feedback UX |
-| `copyButtonIcon` | `(@Composable (tint: Color) -> Unit)?` | `null` | Custom copy button icon composable; receives theme tint color. Defaults to `⧉` text |
-| `onHighlightComplete` | `((Long) -> Unit)?` | `null` | Callback with highlight duration in ms |
-
-### Typography customization
+See [`SyntaxHighlightedCode` docs](https://hossain-khan.github.io/android-compose-highlight/compose-highlight/dev.hossain.highlight.ui/-syntax-highlighted-code.html) for usage. 
 
 Font family, size, and line height are controlled via `CodeBlockStyle.textStyle`. Start from
-`SyntaxHighlightedCodeDefaults.codeTextStyle` and override just the properties you need:
+[`SyntaxHighlightedCodeDefaults.codeTextStyle`](https://hossain-khan.github.io/android-compose-highlight/compose-highlight/dev.hossain.highlight.ui/-syntax-highlighted-code-defaults/) and override just the properties you need.
 
 ```kotlin
 SyntaxHighlightedCode(
