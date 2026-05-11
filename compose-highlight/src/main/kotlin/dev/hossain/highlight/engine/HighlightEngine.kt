@@ -292,31 +292,34 @@ class HighlightEngine(
             mutex.withLock {
                 // Double-checked: another coroutine may have populated the cache while we waited.
                 cachedLanguages?.let { return Result.success(it) }
-                withContext(Dispatchers.Main) {
-                    suspendCancellableCoroutine { continuation ->
-                        webView.evaluateJavascript("listLanguages()") { rawResult ->
-                            if (rawResult == null || rawResult == "null") {
-                                continuation.resumeWithException(
-                                    HighlightException.JsExecutionFailed(
-                                        RuntimeException("listLanguages() returned null"),
-                                    ),
-                                )
-                                return@evaluateJavascript
-                            }
-                            // evaluateJavascript serializes a JS array to a JSON array string,
-                            // e.g. ["kotlin","java",...] — parse with JSONArray.
-                            try {
-                                val jsonArray = org.json.JSONArray(rawResult)
-                                val languages =
-                                    (0 until jsonArray.length())
-                                        .map { jsonArray.getString(it) }
-                                        .sorted()
-                                cachedLanguages = languages
-                                continuation.resume(Result.success(languages))
-                            } catch (e: Exception) {
-                                continuation.resumeWithException(
-                                    HighlightException.JsExecutionFailed(e),
-                                )
+                withTimeout(HighlightException.TIMEOUT_SECONDS * 1000L) {
+                    withContext(Dispatchers.Main) {
+                        suspendCancellableCoroutine { continuation ->
+                            webView.evaluateJavascript("listLanguages()") { rawResult ->
+                                if (!continuation.isActive) return@evaluateJavascript
+                                if (rawResult == null || rawResult == "null") {
+                                    continuation.resumeWithException(
+                                        HighlightException.JsExecutionFailed(
+                                            RuntimeException("listLanguages() returned null"),
+                                        ),
+                                    )
+                                    return@evaluateJavascript
+                                }
+                                // evaluateJavascript serializes a JS array to a JSON array string,
+                                // e.g. ["kotlin","java",...] — parse with JSONArray.
+                                try {
+                                    val jsonArray = org.json.JSONArray(rawResult)
+                                    val languages =
+                                        (0 until jsonArray.length())
+                                            .map { jsonArray.getString(it) }
+                                            .sorted()
+                                    cachedLanguages = languages
+                                    continuation.resume(Result.success(languages))
+                                } catch (e: Exception) {
+                                    continuation.resumeWithException(
+                                        HighlightException.JsExecutionFailed(e),
+                                    )
+                                }
                             }
                         }
                     }
@@ -354,21 +357,24 @@ class HighlightEngine(
             mutex.withLock {
                 // Double-checked: another coroutine may have populated the cache while we waited.
                 cachedVersion?.let { return Result.success(it) }
-                withContext(Dispatchers.Main) {
-                    suspendCancellableCoroutine { continuation ->
-                        webView.evaluateJavascript("hljsVersion()") { rawResult ->
-                            if (rawResult == null || rawResult == "null") {
-                                continuation.resumeWithException(
-                                    HighlightException.JsExecutionFailed(
-                                        RuntimeException("hljsVersion() returned null"),
-                                    ),
-                                )
-                                return@evaluateJavascript
+                withTimeout(HighlightException.TIMEOUT_SECONDS * 1000L) {
+                    withContext(Dispatchers.Main) {
+                        suspendCancellableCoroutine { continuation ->
+                            webView.evaluateJavascript("hljsVersion()") { rawResult ->
+                                if (!continuation.isActive) return@evaluateJavascript
+                                if (rawResult == null || rawResult == "null") {
+                                    continuation.resumeWithException(
+                                        HighlightException.JsExecutionFailed(
+                                            RuntimeException("hljsVersion() returned null"),
+                                        ),
+                                    )
+                                    return@evaluateJavascript
+                                }
+                                // evaluateJavascript returns a JSON-encoded string — strip quotes.
+                                val version = unescapeJsString(rawResult)
+                                cachedVersion = version
+                                continuation.resume(Result.success(version))
                             }
-                            // evaluateJavascript returns a JSON-encoded string — strip quotes.
-                            val version = unescapeJsString(rawResult)
-                            cachedVersion = version
-                            continuation.resume(Result.success(version))
                         }
                     }
                 }
