@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased]
+## [0.10.0] - 2026-05-10
 
 ### Added
 - **`HighlightResult` data class** — `HighlightEngine.highlight()` now returns
