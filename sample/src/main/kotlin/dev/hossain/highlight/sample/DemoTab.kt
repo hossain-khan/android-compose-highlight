@@ -28,6 +28,6 @@ internal sealed class DemoTab(
     data object Engine : DemoTab("Engine")
 
     companion object {
-        val all = listOf(Languages, Styling, Typography, Toggles, Callbacks, Themes, Advanced, Engine)
+        val all by lazy { listOf(Languages, Styling, Typography, Toggles, Callbacks, Themes, Advanced, Engine) }
     }
 }
