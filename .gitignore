@@ -38,3 +38,4 @@ google-services.json
 docs/api/
 gradle/gradle-daemon-jvm.properties
 *.salive
+build_log.txt
