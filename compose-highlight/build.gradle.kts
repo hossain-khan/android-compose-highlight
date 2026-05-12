@@ -119,7 +119,7 @@ afterEvaluate {
                     name.set("Android Compose Syntax Highlight")
                     description.set("Jetpack Compose syntax highlighting powered by Highlight.js")
                     url.set("https://github.com/hossain-khan/android-compose-highlight")
-                    inceptionYear.set("2025")
+                    inceptionYear.set("2026")
 
                     licenses {
                         license {
