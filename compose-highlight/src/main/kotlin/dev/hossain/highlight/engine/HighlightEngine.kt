@@ -269,7 +269,7 @@ class HighlightEngine(
         }
     }
 
-    /** Releases the WebView resources. */
+    /** Releases the WebView resources and clears all internal caches (languages, version). */
     fun destroy() {
         cachedLanguages = null
         cachedVersion = null

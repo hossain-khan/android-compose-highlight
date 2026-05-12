@@ -67,6 +67,7 @@ VERSION_NAME=0.12.0
 
 Also update these per the [project conventions](README.md#releasing):
 - `CHANGELOG.md` — rename `[Unreleased]` to `[0.12.0] - YYYY-MM-DD`
+- `compose-highlight/build.gradle.kts` — `version` in the `mavenPublishing` coordinates block
 - `sample/build.gradle.kts` — `versionName` and `versionCode`
 - `README.md` — dependency snippet version
 
