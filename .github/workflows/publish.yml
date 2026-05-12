@@ -7,10 +7,15 @@ on:
         description: 'Git tag to publish (e.g. 0.11.0)'
         required: true
         type: string
+      dry_run:
+        description: 'Dry run — publishes to Maven Local and validates artifacts without uploading to Maven Central'
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   publish:
-    name: Publish to Maven Central
+    name: ${{ inputs.dry_run && 'Dry Run — Validate Artifacts' || 'Publish to Maven Central' }}
     runs-on: ubuntu-latest
 
     steps:
@@ -23,6 +28,7 @@ jobs:
           echo "Tag '${{ inputs.tag }}' found."
 
       - name: Check not already published on Maven Central
+        if: ${{ !inputs.dry_run }}
         run: |
           POM_URL="https://repo1.maven.org/maven2/dev/hossain/compose-highlight/${{ inputs.tag }}/compose-highlight-${{ inputs.tag }}.pom"
           STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$POM_URL")
@@ -48,7 +54,62 @@ jobs:
         with:
           cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
 
+      - name: '[Dry Run] Publish to Maven Local'
+        if: ${{ inputs.dry_run }}
+        run: |
+          ./gradlew :compose-highlight:publishToMavenLocal \
+            -PVERSION_NAME=${{ inputs.tag }}
+        env:
+          SIGNING_KEY_ID: ${{ secrets.SIGNING_KEY_ID }}
+          SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
+          SIGNING_PASSWORD: ${{ secrets.SIGNING_PASSWORD }}
+
+      - name: '[Dry Run] Validate artifacts'
+        if: ${{ inputs.dry_run }}
+        run: |
+          ARTIFACT_DIR="$HOME/.m2/repository/dev/hossain/compose-highlight/${{ inputs.tag }}"
+          VERSION="${{ inputs.tag }}"
+
+          echo "── Artifact directory: $ARTIFACT_DIR"
+          ls -lh "$ARTIFACT_DIR"
+          echo ""
+
+          EXPECTED=(
+            "compose-highlight-${VERSION}.aar"
+            "compose-highlight-${VERSION}.aar.asc"
+            "compose-highlight-${VERSION}.pom"
+            "compose-highlight-${VERSION}.pom.asc"
+            "compose-highlight-${VERSION}-sources.jar"
+            "compose-highlight-${VERSION}-sources.jar.asc"
+            "compose-highlight-${VERSION}-javadoc.jar"
+            "compose-highlight-${VERSION}-javadoc.jar.asc"
+          )
+
+          PASS=0
+          FAIL=0
+          for FILE in "${EXPECTED[@]}"; do
+            FULL_PATH="$ARTIFACT_DIR/$FILE"
+            if [ -f "$FULL_PATH" ] && [ -s "$FULL_PATH" ]; then
+              SIZE=$(du -h "$FULL_PATH" | cut -f1)
+              echo "  ✅  $FILE  ($SIZE)"
+              PASS=$((PASS + 1))
+            else
+              echo "  ❌  $FILE  — MISSING or EMPTY"
+              FAIL=$((FAIL + 1))
+            fi
+          done
+
+          echo ""
+          echo "── Result: $PASS passed, $FAIL failed"
+
+          if [ "$FAIL" -gt 0 ]; then
+            echo "::error::$FAIL expected artifact(s) are missing or empty. See output above."
+            exit 1
+          fi
+          echo "All artifacts present and non-empty — ready to publish! 🎉"
+
       - name: Publish and release to Maven Central
+        if: ${{ !inputs.dry_run }}
         run: |
           ./gradlew publishToSonatype closeAndReleaseSonatypeStagingRepository \
             -PVERSION_NAME=${{ inputs.tag }}
