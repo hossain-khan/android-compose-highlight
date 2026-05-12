@@ -132,7 +132,10 @@ afterEvaluate {
                             id.set("hossain-khan")
                             name.set("Hossain Khan")
                             email.set("hello@hossain.dev")
-                            url.set("https://github.com/hossain-khan")
+                            url.set("https://hossain.dev")
+                            organization.set("Independent")
+                            roles.add("developer")
+                            roles.add("maintainer")
                         }
                     }
                     scm {
