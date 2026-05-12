@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.kotlinter)
     alias(libs.plugins.dokka)
     `maven-publish`
+    `signing`
 }
 
 android {
@@ -93,30 +94,63 @@ dokka {
     }
 }
 
-// JitPack requires a maven-publish publication named "release" that exposes the Android
-// library component. JitPack overrides groupId and version at build time, so only
-// artifactId needs to be meaningful here.
+// Maven Central requires a -javadoc.jar artifact. Kotlin projects commonly ship
+// Dokka HTML output as the javadoc artifact since there is no Javadoc equivalent.
+val dokkaHtmlJar by tasks.registering(Jar::class) {
+    dependsOn(tasks.named("dokkaGeneratePublicationHtml"))
+    from(rootDir.resolve("docs/api"))
+    archiveClassifier.set("javadoc")
+}
+
+// Maven Central publishing. JitPack also uses this block — it overrides groupId and version
+// at build time from the git tag, so both registries are served from the same publication.
+// Repository config lives in root build.gradle.kts (nexusPublishing block).
 afterEvaluate {
     publishing {
         publications {
             create<MavenPublication>("release") {
                 from(components["release"])
-                groupId = "com.github.hossain-khan"
-                artifactId = "android-compose-highlight"
-                version = "0.11.0"
+                artifact(tasks["dokkaHtmlJar"])
+                groupId    = "dev.hossain"
+                artifactId = "compose-highlight"
+                version    = findProperty("VERSION_NAME") as String? ?: "0.11.0"
 
                 pom {
-                    name.set("compose-highlight")
+                    name.set("Android Compose Syntax Highlight")
                     description.set("Jetpack Compose syntax highlighting powered by Highlight.js")
                     url.set("https://github.com/hossain-khan/android-compose-highlight")
+                    inceptionYear.set("2025")
+
                     licenses {
                         license {
                             name.set("MIT License")
                             url.set("https://opensource.org/licenses/MIT")
                         }
                     }
+                    developers {
+                        developer {
+                            id.set("hossain-khan")
+                            name.set("Hossain Khan")
+                            email.set("hello@hossain.dev")
+                            url.set("https://github.com/hossain-khan")
+                        }
+                    }
+                    scm {
+                        connection.set("scm:git:https://github.com/hossain-khan/android-compose-highlight.git")
+                        developerConnection.set("scm:git:ssh://github.com/hossain-khan/android-compose-highlight.git")
+                        url.set("https://github.com/hossain-khan/android-compose-highlight")
+                    }
                 }
             }
         }
+    }
+
+    signing {
+        val signingKeyId = findProperty("signing.keyId") as String? ?: System.getenv("SIGNING_KEY_ID")
+        val signingKey = findProperty("signing.key") as String? ?: System.getenv("SIGNING_KEY")
+        val signingPassword = findProperty("signing.password") as String? ?: System.getenv("SIGNING_PASSWORD")
+        isRequired = signingKeyId != null && signingKey != null
+        useInMemoryPgpKeys(signingKeyId, signingKey, signingPassword)
+        sign(publishing.publications["release"])
     }
 }

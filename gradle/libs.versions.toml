@@ -16,6 +16,7 @@ jsoup = "1.22.2"
 junit = "4.13.2"
 kotlin = "2.3.21"
 kotlinter = "5.4.2"
+nexus-publish = "2.0.0"
 truth = "1.4.5"
 
 [libraries]
@@ -50,3 +51,4 @@ android-test = { id = "com.android.test", version.ref = "agp" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
 kotlinter = { id = "org.jmailen.kotlinter", version.ref = "kotlinter" }
+nexus-publish = { id = "io.github.gradle-nexus.publish-plugin", version.ref = "nexus-publish" }
