@@ -1,0 +1,60 @@
+name: Publish to Maven Central
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Git tag to publish (e.g. 0.11.0)'
+        required: true
+        type: string
+
+jobs:
+  publish:
+    name: Publish to Maven Central
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Verify tag exists
+        run: |
+          if ! git ls-remote --tags "https://github.com/${{ github.repository }}.git" "refs/tags/${{ inputs.tag }}" | grep -q .; then
+            echo "::error::Tag '${{ inputs.tag }}' does not exist in the repository."
+            exit 1
+          fi
+          echo "Tag '${{ inputs.tag }}' found."
+
+      - name: Check not already published on Maven Central
+        run: |
+          POM_URL="https://repo1.maven.org/maven2/dev/hossain/compose-highlight/${{ inputs.tag }}/compose-highlight-${{ inputs.tag }}.pom"
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$POM_URL")
+          if [ "$STATUS" = "200" ]; then
+            echo "::error::Version ${{ inputs.tag }} is already published on Maven Central. Aborting to avoid duplicate deployment."
+            exit 1
+          fi
+          echo "Version ${{ inputs.tag }} is not yet on Maven Central — proceeding."
+
+      - name: Checkout tag
+        uses: actions/checkout@v6.0.2
+        with:
+          ref: refs/tags/${{ inputs.tag }}
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v5.2.0
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v6.1.0
+        with:
+          cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
+
+      - name: Publish and release to Maven Central
+        run: |
+          ./gradlew publishToSonatype closeAndReleaseSonatypeStagingRepository \
+            -PVERSION_NAME=${{ inputs.tag }}
+        env:
+          SIGNING_KEY_ID: ${{ secrets.SIGNING_KEY_ID }}
+          SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
+          SIGNING_PASSWORD: ${{ secrets.SIGNING_PASSWORD }}
+          OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
+          OSSRH_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
