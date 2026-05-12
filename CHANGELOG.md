@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.12.0] - 2026-05-11
+
+### Added
+- **Maven Central publishing** — library is now published to Maven Central (`dev.hossain:compose-highlight`)
+  in addition to JitPack. GPG signing, sources JAR, and Dokka HTML javadoc JAR are all included.
+- **`PUBLISHING.md`** — end-to-end guide covering prerequisites (Sonatype, GPG, GitHub Secrets),
+  release steps, dry-run instructions, local dry run, and Gradle task reference.
+
+### Infrastructure
+- Added `gradle-nexus/publish-plugin` v2.0.0 for Central Portal staging API integration.
+- Added `publish.yml` GitHub Actions workflow with `workflow_dispatch` (`tag` + `dry_run` inputs),
+  pre-flight tag/already-published checks, artifact validation, and one-click real publish.
+
 ## [0.11.0] - 2026-05-11
 
 ### Added
