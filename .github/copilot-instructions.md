@@ -100,17 +100,17 @@ HighlightThemeProvider  ← creates ONE shared HighlightEngine for its subtree
 ```
 Do not commit if any of these fail.
 
-**Git tags must not use a `v` prefix.** Use `0.3.0`, not `v0.3.0`. JitPack uses the tag as the dependency version, so the version string consumers write in their `build.gradle.kts` matches the tag exactly.
+**Git tags must not use a `v` prefix.** Use `0.3.0`, not `v0.3.0`. Maven Central uses the tag as the dependency version (via `-PVERSION_NAME=<tag>` in the publish workflow), so the version string consumers write in their `build.gradle.kts` matches the tag exactly.
 
 **Before tagging a release — verify all version references are updated:**
 - `README.md` — dependency snippet must reference the new version
-- `compose-highlight/build.gradle.kts` — `version` in the `MavenPublication` block (used for local `publishToMavenLocal`; JitPack overrides this with the git tag, but keep it in sync)
+- `compose-highlight/build.gradle.kts` — `version` in the `mavenPublishing` coordinates block (used for local `publishToMavenLocal`; the publish workflow overrides this with `-PVERSION_NAME=<tag>`, but keep it in sync)
 - `CHANGELOG.md` — rename `[Unreleased]` to `[X.Y.Z] - YYYY-MM-DD` with the release date
 - `sample/build.gradle.kts` — `versionName` must match the release version (e.g. `"0.6.0"`); `versionCode` must be incremented (use the major+minor version number, e.g. version `0.6.0` → `versionCode = 6`)
 
 Only create the git tag after all of the above are committed and pushed.
 
-**Dependency coordinates (JitPack):**
+**Dependency coordinates (Maven Central):**
 ```
-com.github.hossain-khan:android-compose-highlight:<version>
+dev.hossain:compose-highlight:<version>
 ```
