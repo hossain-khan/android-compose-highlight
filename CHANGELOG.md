@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.13.0] - 2026-05-11
+
+### Infrastructure
+- Migrated publishing from `gradle-nexus/publish-plugin` to
+  `com.vanniktech:gradle-maven-publish-plugin` 0.36.0, which natively supports
+  the Sonatype Central Portal API for new accounts.
+- Removed JitPack distribution; library is now published exclusively to
+  Maven Central (`dev.hossain:compose-highlight`).
+
 ## [0.12.0] - 2026-05-11
 
 ### Added
