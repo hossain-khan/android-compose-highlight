@@ -113,7 +113,9 @@ afterEvaluate {
                 artifact(tasks["dokkaHtmlJar"])
                 groupId    = "dev.hossain"
                 artifactId = "compose-highlight"
-                version    = findProperty("VERSION_NAME") as String? ?: "0.11.0"
+                version    = requireNotNull(findProperty("VERSION_NAME") as String?) {
+                    "VERSION_NAME must be set in gradle.properties before publishing"
+                }
 
                 pom {
                     name.set("Android Compose Syntax Highlight")
@@ -149,10 +151,14 @@ afterEvaluate {
     }
 
     signing {
+        // SIGNING_KEY must be the ASCII-armored private key — the literal text starting with
+        // "-----BEGIN PGP PRIVATE KEY BLOCK-----". Export it with:
+        //   gpg --export-secret-keys --armor <FINGERPRINT>
+        // Store that output directly as the SIGNING_KEY secret (no base64 encoding).
         val signingKeyId = findProperty("signing.keyId") as String? ?: System.getenv("SIGNING_KEY_ID")
         val signingKey = findProperty("signing.key") as String? ?: System.getenv("SIGNING_KEY")
         val signingPassword = findProperty("signing.password") as String? ?: System.getenv("SIGNING_PASSWORD")
-        isRequired = signingKeyId != null && signingKey != null
+        isRequired = signingKeyId != null && signingKey != null && signingPassword != null
         useInMemoryPgpKeys(signingKeyId, signingKey, signingPassword)
         sign(publishing.publications["release"])
     }
