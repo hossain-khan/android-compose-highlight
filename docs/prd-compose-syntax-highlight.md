@@ -131,11 +131,13 @@ Code ("def foo():") + lang ("python")
 | File | Description | Size |
 |------|-------------|------|
 | `highlight.min.js` | Highlight.js v11.11.1, full 192-language bundle | ~1.04 MB |
-| `bridge.html` | HTML page with `highlightCode()` JS function | ~300 bytes |
+| `bridge.html` | HTML page with `highlightCode()`, `listLanguages()`, and `hljsVersion()` JS functions | ~600 bytes |
 | `themes/tomorrow.css` | Base16 Tomorrow (light theme) | ~3 KB |
 | `themes/tomorrow-night.css` | Base16 Tomorrow Night (dark theme) | ~3 KB |
+| `themes/atom-one-dark.css` | Atom One Dark theme | ~3 KB |
+| `themes/atom-one-light.css` | Atom One Light theme | ~3 KB |
 
-**bridge.html** (exact implementation — proven in Perplexity production):
+**bridge.html** (current implementation):
 
 ```html
 <!DOCTYPE html>
@@ -143,6 +145,7 @@ Code ("def foo():") + lang ("python")
 <pre><code id="code"></code></pre>
 <script src="highlight.min.js"></script>
 <script>
+// https://highlightjs.readthedocs.io/en/latest/api.html#highlightelement
 function highlightCode(code, lang) {
   const block = document.getElementById("code");
   block.textContent = code;
@@ -150,6 +153,16 @@ function highlightCode(code, lang) {
   delete block.dataset.highlighted;
   hljs.highlightElement(block);
   return block.innerHTML;
+}
+
+// https://highlightjs.readthedocs.io/en/latest/api.html#listlanguages
+function listLanguages() {
+  return hljs.listLanguages();
+}
+
+// https://highlightjs.readthedocs.io/en/latest/api.html#versionstring
+function hljsVersion() {
+  return hljs.versionString;
 }
 </script>
 </body></html>
@@ -166,34 +179,32 @@ function highlightCode(code, lang) {
 The core class that manages the hidden WebView and executes highlighting.
 
 ```kotlin
-package dev.composehighlight.engine
+package dev.hossain.highlight.engine
 
-class HighlightEngine internal constructor(
-    private val context: Context,
-) {
-    private var webView: WebView? = null
-    private val readyDeferred = CompletableDeferred<WebView>()
-    private val mutex = Mutex()
+class HighlightEngine(context: Context) {
+    // StateFlow — true once the WebView has loaded bridge.html.
+    // Observe in Compose with engine.isInitialized.collectAsState().
+    val isInitialized: StateFlow<Boolean>
 
-    // Initialize WebView on Main thread, load bridge.html
-    // Must be called before highlight()
-    // Returns immediately if already initialized
+    // Initialize WebView on Main thread, load bridge.html.
+    // Optional optimization — auto-initializes on the first highlight call if skipped.
+    // Idempotent: safe to call multiple times.
     suspend fun initialize()
 
-    // Highlight code and return raw HTML with <span class="hljs-*"> tokens
-    // Runs JS in the cached WebView via evaluateJavascript()
-    // Thread-safe: uses Mutex to serialize concurrent calls
-    suspend fun highlightToHtml(code: String, language: String): Result<String>
+    // Highlight code and return raw HTML with <span class="hljs-*"> tokens, plus timing.
+    // Thread-safe: uses Mutex to serialize concurrent calls.
+    suspend fun highlightToHtml(code: String, language: String): Result<HtmlHighlightResult>
 
-    // Full pipeline: highlight + parse + apply theme → AnnotatedString
-    // Convenience method that combines highlightToHtml + ThemeParser + HtmlToAnnotatedString
+    // Full pipeline: highlight + parse + apply theme → AnnotatedString + metadata.
+    // Combines highlightToHtml + ThemeParser + HtmlToAnnotatedString.
     suspend fun highlight(
         code: String,
         language: String,
         theme: HighlightTheme,
-    ): Result<AnnotatedString>
+    ): Result<HighlightResult>
 
-    // Produce both light and dark results from a single JS call (Perplexity pattern)
+    // Produce both light and dark results from a single JS call (Perplexity pattern).
+    // The JS tokenizer runs once; two color maps are applied to the same HTML output.
     suspend fun highlightBothThemes(
         code: String,
         language: String,
@@ -201,13 +212,37 @@ class HighlightEngine internal constructor(
         darkTheme: HighlightTheme,
     ): Result<ThemedHighlightResult>
 
-    // Release WebView resources
+    // Returns the sorted list of language identifiers supported by the bundled Highlight.js.
+    // Cached after the first call — no extra WebView round-trip on subsequent calls.
+    suspend fun supportedLanguages(): Result<List<String>>
+
+    // Returns the version string of the bundled Highlight.js (e.g. "11.11.1").
+    // Cached after the first call.
+    suspend fun highlightJsVersion(): Result<String>
+
+    // Release WebView resources and clear caches.
     fun destroy()
 }
 
+// Raw HTML output + JS round-trip timing.
+data class HtmlHighlightResult(
+    val html: String,
+    val durationMs: Long,
+)
+
+// Full highlight result including the AnnotatedString, span count, and timing.
+data class HighlightResult(
+    val annotated: AnnotatedString,
+    val spanCount: Int,    // 0 = silent failure (unsupported language or empty input)
+    val language: String,
+    val durationMs: Long,
+)
+
+// Both light and dark AnnotatedStrings from a single JS call, plus timing.
 data class ThemedHighlightResult(
     val light: AnnotatedString,
     val dark: AnnotatedString,
+    val durationMs: Long,
 )
 ```
 
@@ -224,7 +259,7 @@ data class ThemedHighlightResult(
 
 **JavaScript execution** (matches Perplexity's `ra/c` class):
 
-1. Escape the code string: `'` → `\'`, `\n` → `\\n`, `\r` → `\\r`
+1. Escape the code string: `\` → `\\` (first), `'` → `\'`, `\n` → `\\n`, `\r` → `\\r`
 2. Build the JS call: `(function() { return highlightCode('ESCAPED_CODE', 'LANG'); })()`
 3. Call `webView.evaluateJavascript(js, callback)`
 4. The callback receives a JSON-encoded string — unescape: `<` → `<`, `\"` → `"`, `\\n` → `\n`
@@ -243,14 +278,17 @@ data class ThemedHighlightResult(
 Parses Highlight.js CSS theme files into a color map at runtime (matches Perplexity's `gn/d.c()` method).
 
 ```kotlin
-package dev.composehighlight.engine
+package dev.hossain.highlight.engine
 
 object ThemeParser {
-    // Parse a CSS theme file from assets into a map of hljs class → SpanStyle
-    // Results should be cached (Lazy) — only parse once per theme
+    // Parse a CSS theme file from assets into a map of hljs class → SpanStyle.
+    // Silently returns an empty map on any error.
     fun parse(context: Context, cssAssetPath: String): Map<String, SpanStyle>
 
-    // Parse CSS text directly (for themes provided as strings)
+    // Parse a CSS theme file from assets, throwing IOException if the file cannot be opened.
+    fun parseAsset(context: Context, cssAssetPath: String): Map<String, SpanStyle>
+
+    // Parse CSS text directly (for themes provided as strings or fetched at runtime).
     fun parse(cssText: String): Map<String, SpanStyle>
 }
 ```
@@ -284,10 +322,10 @@ object ThemeParser {
 Converts Highlight.js HTML output into Compose `AnnotatedString` (matches Perplexity's `gn/d.b()` method).
 
 ```kotlin
-package dev.composehighlight.engine
+package dev.hossain.highlight.engine
 
 object HtmlToAnnotatedString {
-    // Convert highlighted HTML to AnnotatedString using the given color map
+    // Convert highlighted HTML to AnnotatedString using the given color map.
     fun convert(html: String, colorMap: Map<String, SpanStyle>): AnnotatedString
 }
 ```
@@ -322,8 +360,9 @@ function walkNode(node, colorMap, builder):
 Represents a syntax highlighting theme with lazy color map initialization.
 
 ```kotlin
-package dev.composehighlight.engine
+package dev.hossain.highlight.engine
 
+@Stable
 class HighlightTheme private constructor(
     val name: String,
     private val colorMapProvider: () -> Map<String, SpanStyle>,
@@ -332,25 +371,31 @@ class HighlightTheme private constructor(
     val colorMap: Map<String, SpanStyle> by lazy { colorMapProvider() }
 
     // Background color extracted from .hljs rule
-    val backgroundColor: Color by lazy {
-        // Parse from CSS .hljs { background: #xxx }
-    }
+    val backgroundColor: Color by lazy { /* derived from colorMap["hljs"] */ }
 
     // Default text color extracted from .hljs rule
-    val defaultTextColor: Color by lazy {
-        // Parse from CSS .hljs { color: #xxx }
-    }
+    val defaultTextColor: Color by lazy { /* derived from colorMap["hljs"] */ }
 
     companion object {
         // Built-in themes
-        fun tomorrow(context: Context): HighlightTheme
-        fun tomorrowNight(context: Context): HighlightTheme
+        fun tomorrow(context: Context): HighlightTheme      // Base16 Tomorrow (light)
+        fun tomorrowNight(context: Context): HighlightTheme // Base16 Tomorrow Night (dark)
+        fun atomOneDark(context: Context): HighlightTheme   // Atom One Dark
+        fun atomOneLight(context: Context): HighlightTheme  // Atom One Light
 
-        // Custom theme from an asset CSS file path
+        // Custom theme from an asset CSS file path — lazy, throws on first use if missing
         fun fromAsset(context: Context, assetPath: String, name: String): HighlightTheme
 
         // Custom theme from raw CSS text
         fun fromCss(cssText: String, name: String): HighlightTheme
+
+        // Custom theme from a precomputed color map (e.g. for Material 3 dynamic color)
+        fun fromColorMap(
+            name: String,
+            colorMap: Map<String, SpanStyle>,
+            backgroundColor: Color? = null,
+            defaultTextColor: Color? = null,
+        ): HighlightTheme
     }
 }
 ```
@@ -362,7 +407,7 @@ class HighlightTheme private constructor(
 #### 4.6.1 SyntaxHighlightedCode (primary composable)
 
 ```kotlin
-package dev.composehighlight.ui
+package dev.hossain.highlight.ui
 
 @Composable
 fun SyntaxHighlightedCode(
@@ -374,8 +419,9 @@ fun SyntaxHighlightedCode(
     showLineNumbers: Boolean = false,
     showLanguageLabel: Boolean = true,
     showCopyButton: Boolean = true,
-    onCopyClick: ((String) -> Unit)? = null,  // null = use default clipboard
-    style: CodeBlockStyle = CodeBlockStyle.Default,  // includes textStyle for typography
+    onCopyClick: ((String) -> Unit)? = null,
+    copyButtonIcon: (@Composable (tint: Color) -> Unit)? = null,
+    onHighlightComplete: ((HighlightResult) -> Unit)? = null,
 )
 ```
 
@@ -404,7 +450,7 @@ fun SyntaxHighlightedCode(
 - No visible flicker — use `Crossfade` or `AnimatedContent` for smooth transition
 - Horizontal scrolling for lines that exceed the container width
 - Native text selection via `SelectionContainer`
-- Copy button copies raw code (not styled), shows a brief "Copied!" confirmation
+- Copy button copies raw code (not styled)
 - Language label shows the language name in a small badge
 
 #### 4.6.2 CodeBlockStyle
@@ -417,6 +463,7 @@ data class CodeBlockStyle(
     val lineNumberColor: Color = Color.Unspecified,  // Unspecified = derive from theme
     val lineNumberWidth: Dp = 32.dp,
     val copyButtonSize: Dp = 32.dp,
+    val textStyle: TextStyle = SyntaxHighlightedCodeDefaults.codeTextStyle,  // monospace 13sp
 ) {
     companion object {
         val Default = CodeBlockStyle()
@@ -431,16 +478,16 @@ data class CodeBlockStyle(
 #### 4.6.3 Theme Provider
 
 ```kotlin
-// CompositionLocal for providing theme to all SyntaxHighlightedCode instances
-val LocalHighlightTheme = staticCompositionLocalOf<HighlightTheme> {
-    error("No HighlightTheme provided. Wrap your content in HighlightThemeProvider.")
-}
+// CompositionLocals provided to all SyntaxHighlightedCode composables in the subtree
+val LocalHighlightTheme = staticCompositionLocalOf<HighlightTheme> { ... }       // active theme
+val LocalLightHighlightTheme = staticCompositionLocalOf<HighlightTheme> { ... }  // always light
+val LocalDarkHighlightTheme = staticCompositionLocalOf<HighlightTheme> { ... }   // always dark
 
 @Composable
 fun HighlightThemeProvider(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    lightTheme: HighlightTheme = HighlightTheme.tomorrow(LocalContext.current),
-    darkTheme: HighlightTheme = HighlightTheme.tomorrowNight(LocalContext.current),
+    lightHighlightTheme: HighlightTheme = HighlightTheme.tomorrow(LocalContext.current.applicationContext),
+    darkHighlightTheme: HighlightTheme = HighlightTheme.tomorrowNight(LocalContext.current.applicationContext),
     content: @Composable () -> Unit,
 )
 ```
@@ -448,17 +495,38 @@ fun HighlightThemeProvider(
 #### 4.6.4 Remember helpers
 
 ```kotlin
-// Create and remember a HighlightEngine scoped to the composition
+// Create and remember a HighlightEngine scoped to the composition.
+// Returns the shared engine from HighlightThemeProvider when available;
+// otherwise creates a standalone engine that is destroyed on composition exit.
 @Composable
 fun rememberHighlightEngine(): HighlightEngine
 
-// Pre-highlight code and remember the result
+// Pre-highlight code and remember the result as State<AnnotatedString?>.
+// Returns null while highlighting is in progress or if it failed.
 @Composable
 fun rememberHighlightedCode(
     code: String,
     language: String,
     theme: HighlightTheme = LocalHighlightTheme.current,
+    onHighlightComplete: ((HighlightResult) -> Unit)? = null,
 ): State<AnnotatedString?>
+
+// Highlight once for both light and dark themes; returns State<ThemedHighlightResult?>.
+// The JS tokenizer runs once — theme switching after the result is ready is instant.
+@Composable
+fun rememberHighlightedCodeBothThemes(
+    code: String,
+    language: String,
+    lightTheme: HighlightTheme = LocalLightHighlightTheme.current,
+    darkTheme: HighlightTheme = LocalDarkHighlightTheme.current,
+    onHighlightComplete: ((ThemedHighlightResult) -> Unit)? = null,
+): State<ThemedHighlightResult?>
+
+// Composable helpers that resolve LocalContext internally — no Context boilerplate needed.
+@Composable fun rememberTomorrowTheme(): HighlightTheme
+@Composable fun rememberTomorrowNightTheme(): HighlightTheme
+@Composable fun rememberAtomOneDarkTheme(): HighlightTheme
+@Composable fun rememberAtomOneLightTheme(): HighlightTheme
 ```
 
 ---
@@ -482,12 +550,14 @@ HighlightThemeProvider {
 
 ```kotlin
 val engine = rememberHighlightEngine()
-val theme = HighlightTheme.tomorrow(LocalContext.current)
+val theme = rememberTomorrowTheme()
 
 LaunchedEffect(code) {
     val result = engine.highlight(code, "kotlin", theme)
-    result.onSuccess { annotatedString ->
-        // Use annotatedString in your own Text() composable
+    result.onSuccess { highlighted ->
+        // highlighted.annotated — AnnotatedString ready for Text()
+        // highlighted.spanCount — 0 means no tokens (unsupported language or empty input)
+        // highlighted.durationMs — JS round-trip + HTML conversion time
     }
 }
 ```
@@ -510,6 +580,7 @@ val customTheme = HighlightTheme.fromAsset(
 compose-highlight/
 ├── compose-highlight/                    # Library module
 │   ├── build.gradle.kts
+│   ├── MODULE.md                         # Dokka module-level documentation
 │   ├── src/
 │   │   ├── main/
 │   │   │   ├── assets/
@@ -518,42 +589,54 @@ compose-highlight/
 │   │   │   │       ├── highlight.min.js
 │   │   │   │       └── themes/
 │   │   │   │           ├── tomorrow.css
-│   │   │   │           └── tomorrow-night.css
+│   │   │   │           ├── tomorrow-night.css
+│   │   │   │           ├── atom-one-dark.css
+│   │   │   │           └── atom-one-light.css
 │   │   │   ├── kotlin/
-│   │   │   │   └── dev/composehighlight/
+│   │   │   │   └── dev/hossain/highlight/
 │   │   │   │       ├── engine/
-│   │   │   │       │   ├── HighlightEngine.kt
+│   │   │   │       │   ├── HighlightEngine.kt       # + ThemedHighlightResult
+│   │   │   │       │   ├── HighlightException.kt
+│   │   │   │       │   ├── HighlightResult.kt
+│   │   │   │       │   ├── HtmlHighlightResult.kt
 │   │   │   │       │   ├── HighlightTheme.kt
 │   │   │   │       │   ├── ThemeParser.kt
 │   │   │   │       │   ├── HtmlToAnnotatedString.kt
 │   │   │   │       │   └── WebViewManager.kt
 │   │   │   │       └── ui/
 │   │   │   │           ├── SyntaxHighlightedCode.kt
+│   │   │   │           ├── SyntaxHighlightedCodeDefaults.kt
 │   │   │   │           ├── CodeBlockStyle.kt
-│   │   │   │           ├── HighlightThemeProvider.kt
+│   │   │   │           ├── HighlightThemeProvider.kt  # + CompositionLocals
+│   │   │   │           ├── HighlightThemeComposables.kt  # rememberXxxTheme() helpers
 │   │   │   │           └── RememberHelpers.kt
 │   │   │   └── AndroidManifest.xml
-│   │   ├── test/                         # Unit tests
-│   │   │   └── kotlin/dev/composehighlight/
-│   │   │       ├── engine/
-│   │   │       │   ├── ThemeParserTest.kt
-│   │   │       │   └── HtmlToAnnotatedStringTest.kt
-│   │   │       └── ui/
-│   │   └── androidTest/                  # Instrumented tests
-│   │       └── kotlin/dev/composehighlight/
+│   │   ├── test/                         # JVM unit tests (no device required)
+│   │   │   └── kotlin/dev/hossain/highlight/
+│   │   │       └── engine/
+│   │   │           ├── ThemeParserTest.kt
+│   │   │           ├── HtmlToAnnotatedStringTest.kt
+│   │   │           └── UnescapeJsStringTest.kt
+│   │   └── androidTest/                  # Instrumented tests + microbenchmarks
+│   │       └── kotlin/dev/hossain/highlight/
 │   │           ├── engine/
 │   │           │   └── HighlightEngineTest.kt
-│   │           └── ui/
-│   │               └── SyntaxHighlightedCodeTest.kt
+│   │           └── benchmark/
+│   │               ├── ThemeParserBenchmark.kt
+│   │               ├── HtmlToAnnotatedStringBenchmark.kt
+│   │               └── HighlightEngineBenchmark.kt
 │   └── consumer-rules.pro
-├── sample/                               # Demo app module
+├── sample/                               # Demo app module (not published)
 │   ├── build.gradle.kts
-│   └── src/main/kotlin/dev/composehighlight/sample/
+│   ├── README.md
+│   └── src/main/kotlin/dev/hossain/highlight/sample/
 │       ├── MainActivity.kt
 │       └── SampleScreen.kt
 ├── build.gradle.kts                      # Root build file
 ├── settings.gradle.kts
 ├── gradle.properties
+├── CHANGELOG.md
+├── PUBLISHING.md
 └── README.md
 ```
 
@@ -565,36 +648,38 @@ compose-highlight/
 // compose-highlight/build.gradle.kts
 dependencies {
     // Core Android
-    implementation("androidx.core:core-ktx:1.13.1")
+    implementation("androidx.core:core-ktx:1.18.0")
 
     // WebView asset loading (Perplexity's approach)
-    implementation("androidx.webkit:webkit:1.11.0")
+    implementation("androidx.webkit:webkit:1.16.0")
 
     // HTML parsing (used by both Claude and Perplexity)
-    implementation("org.jsoup:jsoup:1.18.1")
+    implementation("org.jsoup:jsoup:1.22.2")
 
     // Jetpack Compose
-    implementation(platform("androidx.compose:compose-bom:2024.12.01"))
+    implementation(platform("androidx.compose:compose-bom:2026.05.00"))
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.foundation:foundation")
     implementation("androidx.compose.material3:material3")
 
     // Coroutines
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.11.0")
 
     // Testing
     testImplementation("junit:junit:4.13.2")
-    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.9.0")
+    testImplementation("com.google.truth:truth:1.4.4")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.11.0")
     androidTestImplementation("androidx.test.ext:junit:1.2.1")
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
+    androidTestImplementation("androidx.benchmark:benchmark-junit4:1.3.4")
 }
 ```
 
-**compileSdk**: 35  
-**minSdk**: 24  
-**targetSdk**: 35  
-**Kotlin**: 2.0+  
-**AGP**: 8.5+
+**compileSdk**: 36
+**minSdk**: 24
+**targetSdk**: 36
+**Kotlin**: 2.x
+**AGP**: 8.9+
 
 ---
 
@@ -617,7 +702,7 @@ Caller coroutine (any dispatcher)
     │
     ├─ HtmlToAnnotatedString.convert()     // Pure computation, any thread
     │
-    └─ Return AnnotatedString
+    └─ Return HighlightResult
 ```
 
 **Critical rule**: `WebView` MUST be created and accessed on the Android Main thread. All `evaluateJavascript()` calls must use `withContext(Dispatchers.Main)`.
@@ -635,8 +720,8 @@ Follow Perplexity's pattern: graceful degradation to unstyled code.
 val result = engine.highlight(code, "python", theme)
 
 result.fold(
-    onSuccess = { annotatedString ->
-        // Render highlighted code
+    onSuccess = { highlighted ->
+        // Render highlighted code (highlighted.annotated, highlighted.spanCount, etc.)
     },
     onFailure = { error ->
         // Log error, render plain unstyled code
