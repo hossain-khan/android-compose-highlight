@@ -138,7 +138,7 @@ Or search on [central.sonatype.com](https://central.sonatype.com/artifact/dev.ho
 You can also validate signing and artifact generation locally:
 
 ```bash
-export SIGNING_KEY_ID=F17804D7
+export SIGNING_KEY_ID=<YOUR_KEY_ID>
 export SIGNING_KEY="$(gpg --export-secret-keys --armor <FULL_FINGERPRINT>)"
 export SIGNING_PASSWORD=<your-passphrase>
 
@@ -159,5 +159,5 @@ ls -lh ~/.m2/repository/dev/hossain/compose-highlight/0.12.0/
 | `publishToMavenLocal` | Publishes to `~/.m2` — no upload, useful for local testing |
 | `publishToSonatype` | Uploads to Sonatype staging repository |
 | `closeSonatypeStagingRepository` | Closes the staging repo (triggers validation) |
-| `releaseAndCloseSonatypeStagingRepository` | Closes and releases in one step |
+| `releaseSonatypeStagingRepository` | Releases (publishes) a closed staging repo |
 | `closeAndReleaseSonatypeStagingRepository` | Full publish — used in CI |
