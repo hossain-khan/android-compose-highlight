@@ -69,22 +69,31 @@ jobs:
       - name: '[Dry Run] Validate artifacts'
         if: ${{ inputs.dry_run }}
         run: |
-          ARTIFACT_DIR="$HOME/.m2/repository/dev/hossain/compose-highlight/${{ inputs.tag }}"
           VERSION="${{ inputs.tag }}"
 
+          # Derive groupId and artifactId from the publication POM that Gradle just wrote,
+          # so this works regardless of which tag's build config was checked out.
+          POM_SEARCH=$(find "$HOME/.m2/repository" -name "*.pom" -path "*/${VERSION}/*" 2>/dev/null | head -1)
+          if [ -z "$POM_SEARCH" ]; then
+            echo "::error::No POM found under ~/.m2/repository for version ${VERSION}. publishToMavenLocal may have failed."
+            exit 1
+          fi
+
+          ARTIFACT_DIR=$(dirname "$POM_SEARCH")
+          ARTIFACT_ID=$(basename "$POM_SEARCH" "-${VERSION}.pom")
           echo "── Artifact directory: $ARTIFACT_DIR"
           ls -lh "$ARTIFACT_DIR"
           echo ""
 
           EXPECTED=(
-            "compose-highlight-${VERSION}.aar"
-            "compose-highlight-${VERSION}.aar.asc"
-            "compose-highlight-${VERSION}.pom"
-            "compose-highlight-${VERSION}.pom.asc"
-            "compose-highlight-${VERSION}-sources.jar"
-            "compose-highlight-${VERSION}-sources.jar.asc"
-            "compose-highlight-${VERSION}-javadoc.jar"
-            "compose-highlight-${VERSION}-javadoc.jar.asc"
+            "${ARTIFACT_ID}-${VERSION}.aar"
+            "${ARTIFACT_ID}-${VERSION}.aar.asc"
+            "${ARTIFACT_ID}-${VERSION}.pom"
+            "${ARTIFACT_ID}-${VERSION}.pom.asc"
+            "${ARTIFACT_ID}-${VERSION}-sources.jar"
+            "${ARTIFACT_ID}-${VERSION}-sources.jar.asc"
+            "${ARTIFACT_ID}-${VERSION}-javadoc.jar"
+            "${ARTIFACT_ID}-${VERSION}-javadoc.jar.asc"
           )
 
           PASS=0
