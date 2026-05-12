@@ -3,8 +3,7 @@ plugins {
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.kotlinter)
     alias(libs.plugins.dokka)
-    `maven-publish`
-    `signing`
+    alias(libs.plugins.maven.publish)
 }
 
 android {
@@ -38,13 +37,6 @@ android {
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
-        }
-    }
-
-    // Expose the release variant as a Maven component for JitPack / maven-publish.
-    publishing {
-        singleVariant("release") {
-            withSourcesJar()
         }
     }
 }
@@ -94,72 +86,51 @@ dokka {
     }
 }
 
-// Maven Central requires a -javadoc.jar artifact. Kotlin projects commonly ship
-// Dokka HTML output as the javadoc artifact since there is no Javadoc equivalent.
-val dokkaHtmlJar by tasks.registering(Jar::class) {
-    dependsOn(tasks.named("dokkaGeneratePublicationHtml"))
-    from(rootDir.resolve("docs/api"))
-    archiveClassifier.set("javadoc")
-}
+// Maven Central publishing via vanniktech/gradle-maven-publish-plugin.
+// Credentials are read from ORG_GRADLE_PROJECT_* environment variables (set in CI).
+// Signing credentials: ORG_GRADLE_PROJECT_signingInMemoryKeyId,
+//   ORG_GRADLE_PROJECT_signingInMemoryKey (ASCII-armored, full -----BEGIN block-----),
+//   ORG_GRADLE_PROJECT_signingInMemoryKeyPassword
+// Maven Central credentials: ORG_GRADLE_PROJECT_mavenCentralUsername,
+//   ORG_GRADLE_PROJECT_mavenCentralPassword (Central Portal user token)
+mavenPublishing {
+    signAllPublications()
 
-// Maven Central publishing. JitPack also uses this block — it overrides groupId and version
-// at build time from the git tag, so both registries are served from the same publication.
-// Repository config lives in root build.gradle.kts (nexusPublishing block).
-afterEvaluate {
-    publishing {
-        publications {
-            create<MavenPublication>("release") {
-                from(components["release"])
-                artifact(tasks["dokkaHtmlJar"])
-                groupId    = "dev.hossain"
-                artifactId = "compose-highlight"
-                version    = requireNotNull(findProperty("VERSION_NAME") as String?) {
-                    "VERSION_NAME must be set in gradle.properties before publishing"
-                }
+    coordinates(
+        groupId    = "dev.hossain",
+        artifactId = "compose-highlight",
+        version    = requireNotNull(findProperty("VERSION_NAME") as String?) {
+            "VERSION_NAME must be set in gradle.properties before publishing"
+        },
+    )
 
-                pom {
-                    name.set("Android Compose Syntax Highlight")
-                    description.set("Jetpack Compose syntax highlighting powered by Highlight.js")
-                    url.set("https://github.com/hossain-khan/android-compose-highlight")
-                    inceptionYear.set("2026")
+    pom {
+        name.set("Android Compose Syntax Highlight")
+        description.set("Jetpack Compose syntax highlighting powered by Highlight.js")
+        url.set("https://github.com/hossain-khan/android-compose-highlight")
+        inceptionYear.set("2026")
 
-                    licenses {
-                        license {
-                            name.set("MIT License")
-                            url.set("https://opensource.org/licenses/MIT")
-                        }
-                    }
-                    developers {
-                        developer {
-                            id.set("hossain-khan")
-                            name.set("Hossain Khan")
-                            email.set("hello@hossain.dev")
-                            url.set("https://hossain.dev")
-                            organization.set("Independent")
-                            roles.add("developer")
-                            roles.add("maintainer")
-                        }
-                    }
-                    scm {
-                        connection.set("scm:git:https://github.com/hossain-khan/android-compose-highlight.git")
-                        developerConnection.set("scm:git:ssh://github.com/hossain-khan/android-compose-highlight.git")
-                        url.set("https://github.com/hossain-khan/android-compose-highlight")
-                    }
-                }
+        licenses {
+            license {
+                name.set("MIT License")
+                url.set("https://opensource.org/licenses/MIT")
             }
         }
-    }
-
-    signing {
-        // SIGNING_KEY must be the ASCII-armored private key — the literal text starting with
-        // "-----BEGIN PGP PRIVATE KEY BLOCK-----". Export it with:
-        //   gpg --export-secret-keys --armor <FINGERPRINT>
-        // Store that output directly as the SIGNING_KEY secret (no base64 encoding).
-        val signingKeyId = findProperty("signing.keyId") as String? ?: System.getenv("SIGNING_KEY_ID")
-        val signingKey = findProperty("signing.key") as String? ?: System.getenv("SIGNING_KEY")
-        val signingPassword = findProperty("signing.password") as String? ?: System.getenv("SIGNING_PASSWORD")
-        isRequired = signingKeyId != null && signingKey != null && signingPassword != null
-        useInMemoryPgpKeys(signingKeyId, signingKey, signingPassword)
-        sign(publishing.publications["release"])
+        developers {
+            developer {
+                id.set("hossain-khan")
+                name.set("Hossain Khan")
+                email.set("hello@hossain.dev")
+                url.set("https://hossain.dev")
+                organization.set("Independent")
+                roles.add("developer")
+                roles.add("maintainer")
+            }
+        }
+        scm {
+            connection.set("scm:git:https://github.com/hossain-khan/android-compose-highlight.git")
+            developerConnection.set("scm:git:ssh://github.com/hossain-khan/android-compose-highlight.git")
+            url.set("https://github.com/hossain-khan/android-compose-highlight")
+        }
     }
 }

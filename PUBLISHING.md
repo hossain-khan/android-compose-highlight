@@ -1,11 +1,6 @@
 # Publishing Guide
 
-This library is distributed through two channels:
-
-| Channel | Coordinates | How it works |
-|---|---|---|
-| **Maven Central** | `dev.hossain:compose-highlight:<version>` | Primary channel — published via GitHub Actions |
-| **JitPack** | `com.github.hossain-khan:android-compose-highlight:<version>` | Auto-built from git tags; no action required |
+This library is distributed through **Maven Central** with coordinates `dev.hossain:compose-highlight:<version>`.
 
 ---
 
@@ -56,6 +51,8 @@ Add the following secrets in **Settings → Secrets and variables → Actions**:
 | `SIGNING_PASSWORD` | Passphrase used when generating the key |
 | `OSSRH_USERNAME` | Central Portal token username |
 | `OSSRH_PASSWORD` | Central Portal token password |
+
+The workflow maps these to `ORG_GRADLE_PROJECT_*` environment variables that the vanniktech plugin reads automatically.
 
 ---
 
@@ -138,9 +135,9 @@ Or search on [central.sonatype.com](https://central.sonatype.com/artifact/dev.ho
 You can also validate signing and artifact generation locally:
 
 ```bash
-export SIGNING_KEY_ID=<YOUR_KEY_ID>
-export SIGNING_KEY="$(gpg --export-secret-keys --armor <FULL_FINGERPRINT>)"
-export SIGNING_PASSWORD=<your-passphrase>
+export ORG_GRADLE_PROJECT_signingInMemoryKeyId=<YOUR_KEY_ID>
+export ORG_GRADLE_PROJECT_signingInMemoryKey="$(gpg --export-secret-keys --armor <FULL_FINGERPRINT>)"
+export ORG_GRADLE_PROJECT_signingInMemoryKeyPassword=<your-passphrase>
 
 ./gradlew :compose-highlight:publishToMavenLocal -PVERSION_NAME=0.12.0
 ```
@@ -157,7 +154,5 @@ ls -lh ~/.m2/repository/dev/hossain/compose-highlight/0.12.0/
 | Task | Description |
 |---|---|
 | `publishToMavenLocal` | Publishes to `~/.m2` — no upload, useful for local testing |
-| `publishToSonatype` | Uploads to Sonatype staging repository |
-| `closeSonatypeStagingRepository` | Closes the staging repo (triggers validation) |
+| `publishAllPublicationsToMavenCentralRepository` | Uploads and releases to Maven Central (used in CI) |
 | `releaseSonatypeStagingRepository` | Releases (publishes) a closed staging repo |
-| `closeAndReleaseSonatypeStagingRepository` | Full publish — used in CI |

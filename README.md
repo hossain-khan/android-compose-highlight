@@ -49,27 +49,15 @@ https://github.com/user-attachments/assets/10617b72-9b7c-413b-92b5-a939a34ad6af
 
 ## Setup
 
-[![](https://jitpack.io/v/hossain-khan/android-compose-highlight.svg)](https://jitpack.io/#hossain-khan/android-compose-highlight)
-
-Add JitPack to your root `settings.gradle.kts`:
-
-```kotlin
-dependencyResolutionManagement {
-    repositories {
-        google()
-        mavenCentral()
-        maven { url = uri("https://jitpack.io") }
-    }
-}
-```
-
-Then add the dependency in your module's `build.gradle.kts`:
+Add the dependency in your module's `build.gradle.kts`:
 
 ```kotlin
 dependencies {
-    implementation("com.github.hossain-khan:android-compose-highlight:0.12.0")
+    implementation("dev.hossain:compose-highlight:0.12.0")
 }
 ```
+
+`mavenCentral()` is included in the default Android project template, so no extra repository setup is needed.
 
 The library requires `minSdk = 24`.
 
