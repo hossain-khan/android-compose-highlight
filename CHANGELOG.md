@@ -10,6 +10,12 @@ All notable changes to this project will be documented in this file.
 - **`language` parameter escaped in JS template** — `executeJs` now escapes backslashes and single
   quotes in `language` before interpolating into the `highlightCode(...)` JS call, closing a minor
   JS-injection vector (defense-in-depth; the WebView has no access to sensitive data).
+- **Accessibility: copy button `contentDescription`** — The copy-to-clipboard `IconButton` inside
+  `SyntaxHighlightedCode` now carries `contentDescription = "Copy code"` so TalkBack announces it
+  meaningfully instead of the generic "Button".
+- **Accessibility: `testTag` on outer container** — `SyntaxHighlightedCode` now applies
+  `testTag("syntax-highlighted-code")` on its outer `Surface`, giving UI-test consumers a stable
+  node handle without relying on fragile text or structure queries.
 
 ## [0.13.0] - 2026-05-11
 

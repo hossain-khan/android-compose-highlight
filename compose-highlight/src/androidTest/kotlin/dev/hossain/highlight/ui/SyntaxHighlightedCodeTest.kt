@@ -2,6 +2,8 @@ package dev.hossain.highlight.ui
 
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -134,5 +136,59 @@ class SyntaxHighlightedCodeTest {
         assertThat(result.spanCount).isGreaterThan(0)
         assertThat(result.durationMs).isAtLeast(0L)
         assertThat(result.annotated.text).isNotEmpty()
+    }
+
+    @Test
+    fun copyButtonHasAccessibleContentDescription() {
+        composeTestRule.setContent {
+            HighlightThemeProvider {
+                SyntaxHighlightedCode(
+                    code = sampleCode,
+                    language = "kotlin",
+                    showCopyButton = true,
+                )
+            }
+        }
+        // The copy button must be findable by its content description for TalkBack / a11y
+        composeTestRule
+            .onNodeWithContentDescription("Copy code", useUnmergedTree = true)
+            .assertIsDisplayed()
+    }
+
+    @Test
+    fun composableHasTestTag() {
+        composeTestRule.setContent {
+            HighlightThemeProvider {
+                SyntaxHighlightedCode(
+                    code = sampleCode,
+                    language = "kotlin",
+                )
+            }
+        }
+        // The outer surface must carry the "syntax-highlighted-code" test tag
+        composeTestRule
+            .onNodeWithTag("syntax-highlighted-code")
+            .assertIsDisplayed()
+    }
+
+    @Test
+    fun copyButtonWithContentDescriptionIsClickable() {
+        var copyCalled = false
+        composeTestRule.setContent {
+            HighlightThemeProvider {
+                SyntaxHighlightedCode(
+                    code = sampleCode,
+                    language = "python",
+                    showCopyButton = true,
+                    onCopyClick = { copyCalled = true },
+                )
+            }
+        }
+        // The copy button can be found and clicked via its content description
+        composeTestRule
+            .onNodeWithContentDescription("Copy code", useUnmergedTree = true)
+            .performClick()
+        composeTestRule.waitForIdle()
+        assertThat(copyCalled).isTrue()
     }
 }
