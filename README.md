@@ -31,6 +31,8 @@ HighlightThemeProvider(
 
 - 📚 **API Docs:** https://hossain-khan.github.io/android-compose-highlight/
 - 📝 **Blog:** https://hossain.dev/posts/syntax-highlighting-on-android-highlight-js-native-compose-engine/
+- 📱 **Sample App:** https://github.com/hossain-khan/android-compose-highlight/tree/main/sample
+- 📱 **Alternative Sample App:** https://github.com/hossain-khan/android-syntax-highlighter-compose
 
 ### Demo 🎥
 
