@@ -8,6 +8,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.text.AnnotatedString
 import dev.hossain.highlight.engine.HighlightEngine
 import dev.hossain.highlight.engine.HighlightResult
@@ -113,15 +114,19 @@ fun rememberHighlightedCode(
     val state = remember(code, language, theme) { mutableStateOf<AnnotatedString?>(null) }
     val latestCallback = rememberUpdatedState(onHighlightComplete)
 
-    LaunchedEffect(code, language, theme) {
-        state.value = null
-        engine
-            .highlight(code, language, theme)
-            .onSuccess { result ->
-                state.value = result.annotated
-                latestCallback.value?.invoke(result)
-            }
-        // On failure: leave state.value = null; caller renders plain fallback
+    // In Android Studio Preview, WebView-based highlighting is not available.
+    // Skip the LaunchedEffect so the engine is never called; callers will render a fallback.
+    if (!LocalInspectionMode.current) {
+        LaunchedEffect(code, language, theme) {
+            state.value = null
+            engine
+                .highlight(code, language, theme)
+                .onSuccess { result ->
+                    state.value = result.annotated
+                    latestCallback.value?.invoke(result)
+                }
+            // On failure: leave state.value = null; caller renders plain fallback
+        }
     }
 
     return state
@@ -191,15 +196,19 @@ fun rememberHighlightedCodeBothThemes(
     val state = remember(code, language, lightTheme, darkTheme) { mutableStateOf<ThemedHighlightResult?>(null) }
     val latestCallback = rememberUpdatedState(onHighlightComplete)
 
-    LaunchedEffect(code, language, lightTheme, darkTheme) {
-        state.value = null
-        engine
-            .highlightBothThemes(code, language, lightTheme, darkTheme)
-            .onSuccess { result ->
-                state.value = result
-                latestCallback.value?.invoke(result)
-            }
-        // On failure: leave state.value = null; caller renders plain fallback
+    // In Android Studio Preview, WebView-based highlighting is not available.
+    // Skip the LaunchedEffect so the engine is never called; callers will render a fallback.
+    if (!LocalInspectionMode.current) {
+        LaunchedEffect(code, language, lightTheme, darkTheme) {
+            state.value = null
+            engine
+                .highlightBothThemes(code, language, lightTheme, darkTheme)
+                .onSuccess { result ->
+                    state.value = result
+                    latestCallback.value?.invoke(result)
+                }
+            // On failure: leave state.value = null; caller renders plain fallback
+        }
     }
 
     return state
