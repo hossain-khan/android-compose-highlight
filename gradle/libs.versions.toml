@@ -16,6 +16,7 @@ jsoup = "1.22.2"
 junit = "4.13.2"
 kotlin = "2.3.21"
 kotlinter = "5.4.2"
+leakcanary = "2.14"
 vanniktech-publish = "0.36.0"
 truth = "1.4.5"
 
@@ -42,6 +43,7 @@ jsoup = { module = "org.jsoup:jsoup", version.ref = "jsoup" }
 junit = { module = "junit:junit", version.ref = "junit" }
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "coroutines" }
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
+leakcanary-android = { module = "com.squareup.leakcanary:leakcanary-android", version.ref = "leakcanary" }
 truth = { module = "com.google.truth:truth", version.ref = "truth" }
 
 [plugins]

@@ -93,12 +93,15 @@ fun SampleScreen() {
     var activeTab by remember { mutableStateOf<DemoTab>(DemoTab.Languages) }
 
     // Shared copy handler: copies to clipboard and shows a snackbar confirmation.
-    val onCopyClick: (String) -> Unit = { code ->
-        scope.launch {
-            clipboard.setClipEntry(ClipEntry(ClipData.newPlainText("code", code)))
-            snackbarHostState.showSnackbar("Successfully copied source code to clipboard")
+    val onCopyClick: (String) -> Unit =
+        remember(scope, clipboard, snackbarHostState) {
+            { code ->
+                scope.launch {
+                    clipboard.setClipEntry(ClipEntry(ClipData.newPlainText("code", code)))
+                    snackbarHostState.showSnackbar("Successfully copied source code to clipboard")
+                }
+            }
         }
-    }
 
     // All available theme pairs — GitHub uses fromAsset() to demonstrate custom themes.
     val themePairs =
