@@ -80,7 +80,7 @@ fun PerfScreen() {
 
     // Take a heap snapshot once all blocks have reported their timing.
     var heapSnapshotKb by remember { mutableStateOf<Long?>(null) }
-    if (metricsMap.size == codeSamples.size && heapSnapshotKb == null) {
+    if (codeSamples.isNotEmpty() && metricsMap.size == codeSamples.size && heapSnapshotKb == null) {
         val rt = Runtime.getRuntime()
         heapSnapshotKb = (rt.totalMemory() - rt.freeMemory()) / 1024
     }

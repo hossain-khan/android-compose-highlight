@@ -140,6 +140,33 @@ class ThemeParserTest {
     }
 
     @Test
+    fun `parse handles rgba with fractional alpha`() {
+        val css = ".hljs-keyword { color: rgba(255, 0, 128, 0.75); }"
+        val result = ThemeParser.parse(css)
+        val style = result["hljs-keyword"]
+        assertThat(style).isNotNull()
+        assertThat(style!!.color).isEqualTo(Color(255, 0, 128, 191)) // 0.75 * 255 ≈ 191
+    }
+
+    @Test
+    fun `parse handles rgba with integer alpha`() {
+        val css = ".hljs-string { color: rgba(0, 128, 255, 200); }"
+        val result = ThemeParser.parse(css)
+        val style = result["hljs-string"]
+        assertThat(style).isNotNull()
+        assertThat(style!!.color).isEqualTo(Color(0, 128, 255, 200))
+    }
+
+    @Test
+    fun `parse handles rgba with leading-dot fractional alpha`() {
+        val css = ".hljs-comment { color: rgba(255, 0, 0, .75); }"
+        val result = ThemeParser.parse(css)
+        val style = result["hljs-comment"]
+        assertThat(style).isNotNull()
+        assertThat(style!!.color).isEqualTo(Color(255, 0, 0, 191)) // 0.75 * 255 ≈ 191
+    }
+
+    @Test
     fun `parse handles background-color property`() {
         val css = ".hljs { background-color: #1e1e1e }"
         val result = ThemeParser.parse(css)

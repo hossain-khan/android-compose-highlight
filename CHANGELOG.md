@@ -17,6 +17,11 @@ All notable changes to this project will be documented in this file.
   ```
 
 ### Fixed
+- **U+2028/U+2029 escaping in JS template** — `executeJs` now escapes Unicode Line Separator
+  (U+2028) and Paragraph Separator (U+2029) before interpolating code into the JS call.
+  Pre-ES2019 WebView engines (Android < 10) treat these as line terminators inside string literals,
+  causing a `SyntaxError` / `JsExecutionFailed`. The escape logic has been extracted into a
+  testable package-level `escapeForJs` function.
 - `SyntaxHighlightedCode` no longer crashes in Android Studio `@Preview`. When
   `LocalInspectionMode.current` is `true`, the composable renders a plain-text
   monospace fallback and skips WebView initialization entirely.
