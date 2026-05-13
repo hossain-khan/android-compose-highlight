@@ -66,7 +66,11 @@ internal class WebViewManager(
     /**
      * Mutable so it can be reset when [initialize] is called after [destroy].
      * Accessed only on the Main thread (inside [initialize]) or awaited from any thread.
+     *
+     * Marked `@Volatile` so that a write by [destroy] (any thread) is immediately visible to
+     * [getReadyWebView] and [initialize] running on another thread (ARM weak memory model).
      */
+    @Volatile
     private var readyDeferred = CompletableDeferred<WebView>()
 
     /** Returns the ready WebView. Suspends until bridge.html has finished loading. */
@@ -111,6 +115,14 @@ internal class WebViewManager(
                                 view: WebView,
                                 url: String,
                             ) {
+                                // Guard against a race where destroy() ran while the page
+                                // was still loading: webView was set to null by destroy(),
+                                // and readyDeferred was replaced with a fresh instance.
+                                // Completing the captured (now-cancelled) deferred would
+                                // leave the new deferred permanently incomplete → hung engine.
+                                // Returning here lets the next initialize() call pick up
+                                // the fresh deferred and complete it normally.
+                                if (webView == null) return
                                 if (!deferred.isCompleted) {
                                     deferred.complete(view)
                                     _isInitialized.value = true

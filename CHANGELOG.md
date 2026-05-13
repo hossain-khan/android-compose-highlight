@@ -24,6 +24,18 @@ All notable changes to this project will be documented in this file.
   ```
 
 ### Fixed
+- **`WebViewManager`: race condition between `initialize()` and `destroy()` can no longer hang
+  the engine permanently.** If `destroy()` fires from another thread while `initialize()` is
+  creating the WebView (after `webView = view` but before `onPageFinished`), `destroy()` would
+  cancel the captured `CompletableDeferred` and replace `readyDeferred` with a fresh instance.
+  `onPageFinished` would then skip completing (cancelled deferred is already "completed"), leaving
+  the new deferred permanently unresolved — all subsequent highlight calls would suspend forever.
+  Two targeted fixes applied (Option C from the issue report):
+  - `readyDeferred` is now `@Volatile` so writes by `destroy()` (any thread) are immediately
+    visible to `getReadyWebView()` and `initialize()` on other threads (ARM weak memory model).
+  - `onPageFinished` now checks `webView == null` before completing the deferred. If `destroy()`
+    ran while the page was loading, the callback returns early; the next `initialize()` call
+    picks up the fresh deferred and completes it normally, fully recovering the engine.
 - **U+2028/U+2029 escaping in JS template** — `executeJs` now escapes Unicode Line Separator
   (U+2028) and Paragraph Separator (U+2029) before interpolating code into the JS call.
   Pre-ES2019 WebView engines (Android < 10) treat these as line terminators inside string literals,
