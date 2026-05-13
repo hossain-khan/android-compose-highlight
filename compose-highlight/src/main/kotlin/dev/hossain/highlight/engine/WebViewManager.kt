@@ -48,6 +48,7 @@ import kotlinx.coroutines.withContext
 internal class WebViewManager(
     private val context: Context,
 ) {
+    @Volatile
     private var webView: WebView? = null
 
     private val _isInitialized = MutableStateFlow(false)

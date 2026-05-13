@@ -420,7 +420,14 @@ class HighlightEngine(
                 .replace("\n", "\\n")
                 .replace("\r", "\\r")
 
-        val js = "(function() { return highlightCode('$escaped', '$language'); })()"
+        val escapedLang =
+            language
+                .replace("\\", "\\\\") // Must be first
+                .replace("'", "\\'")
+                .replace("\n", "\\n")
+                .replace("\r", "\\r")
+
+        val js = "(function() { return highlightCode('$escaped', '$escapedLang'); })()"
 
         return withContext(Dispatchers.Main) {
             suspendCancellableCoroutine { continuation ->
