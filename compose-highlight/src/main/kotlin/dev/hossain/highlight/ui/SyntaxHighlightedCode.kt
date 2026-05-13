@@ -26,6 +26,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ClipEntry
 import androidx.compose.ui.platform.LocalClipboard
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
@@ -88,7 +91,8 @@ import kotlinx.coroutines.launch
  *
  * @param code The source code to display.
  * @param language Highlight.js language identifier (e.g. `"python"`, `"kotlin"`).
- * @param modifier Modifier for the outer container.
+ * @param modifier Modifier for the outer container. The composable also applies a
+ *   `testTag("syntax-highlighted-code")` on the outer surface to support UI testing.
  * @param theme The theme to use. Defaults to [LocalHighlightTheme]. Throws if no
  *   [HighlightThemeProvider] is present and no explicit theme is passed.
  * @param style Visual style configuration — shape, padding, line-number column, font, etc.
@@ -118,6 +122,9 @@ import kotlinx.coroutines.launch
  *       },
  *   )
  *   ```
+ * @param copyButtonContentDescription The content description for the copy button, used by
+ *   accessibility services like TalkBack. Defaults to `"Copy code"`. Provide a localized string
+ *   for non-English users.
  * @param onHighlightComplete Optional callback invoked with a [HighlightResult] when highlighting
  *   succeeds. Use [HighlightResult.durationMs] for timing, [HighlightResult.spanCount] to detect
  *   silent failures (0 = no tokens produced), and [HighlightResult.language] to confirm the
@@ -135,6 +142,7 @@ fun SyntaxHighlightedCode(
     showCopyButton: Boolean = true,
     onCopyClick: ((String) -> Unit)? = null,
     copyButtonIcon: (@Composable (tint: Color) -> Unit)? = null,
+    copyButtonContentDescription: String = "Copy code",
     onHighlightComplete: ((HighlightResult) -> Unit)? = null,
 ) {
     val highlightedState = rememberHighlightedCode(code, language, theme, onHighlightComplete)
@@ -156,7 +164,7 @@ fun SyntaxHighlightedCode(
     val themedLineNumStyle = style.textStyle.copy(color = lineNumberColor)
 
     Surface(
-        modifier = modifier,
+        modifier = modifier.testTag("syntax-highlighted-code"),
         shape = style.shape,
         color = backgroundColor,
     ) {
@@ -187,6 +195,7 @@ fun SyntaxHighlightedCode(
                             size = style.copyButtonSize,
                             tint = textColor.copy(alpha = 0.7f),
                             customIcon = copyButtonIcon,
+                            contentDescription = copyButtonContentDescription,
                             onClick = {
                                 val handler = onCopyClick
                                 if (handler != null) {
@@ -270,11 +279,12 @@ private fun CopyButton(
     size: androidx.compose.ui.unit.Dp,
     tint: Color,
     customIcon: (@Composable (tint: Color) -> Unit)?,
+    contentDescription: String,
     onClick: () -> Unit,
 ) {
     IconButton(
         onClick = onClick,
-        modifier = Modifier.size(size),
+        modifier = Modifier.size(size).semantics { this.contentDescription = contentDescription },
     ) {
         if (customIcon != null) {
             customIcon(tint)
