@@ -234,12 +234,12 @@ fun SyntaxHighlightedCode(
 
             // Code content with horizontal scroll
             Box(modifier = Modifier.horizontalScroll(rememberScrollState())) {
-                SelectionContainer {
-                    AnimatedContent(
-                        targetState = highlightedState.value,
-                        transitionSpec = { fadeIn() togetherWith fadeOut() },
-                        label = "syntax-highlight-fade",
-                    ) { highlighted ->
+                AnimatedContent(
+                    targetState = highlightedState.value,
+                    transitionSpec = { fadeIn() togetherWith fadeOut() },
+                    label = "syntax-highlight-fade",
+                ) { highlighted ->
+                    SelectionContainer {
                         if (showLineNumbers) {
                             LineNumberedCode(
                                 code = code,
