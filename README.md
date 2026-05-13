@@ -29,8 +29,8 @@ HighlightThemeProvider(
 
 `HighlightThemeProvider` automatically selects the correct theme based on `isSystemInDarkTheme()`. Pass `darkTheme = true/false` to force a specific mode.
 
-- API Docs: https://hossain-khan.github.io/android-compose-highlight/
-- Blog: https://hossain.dev/posts/syntax-highlighting-on-android-highlight-js-native-compose-engine/
+- 📚 API Docs: https://hossain-khan.github.io/android-compose-highlight/
+- 📝 Blog: https://hossain.dev/posts/syntax-highlighting-on-android-highlight-js-native-compose-engine/
 
 ### Built-in themes
 
