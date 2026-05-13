@@ -5,12 +5,21 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Fixed
+<<<<<<< copilot/add-preview-support-fallback
 - `SyntaxHighlightedCode` no longer crashes in Android Studio `@Preview`. When
   `LocalInspectionMode.current` is `true`, the composable renders a plain-text
   monospace fallback and skips WebView initialization entirely.
 - `rememberHighlightedCode` and `rememberHighlightedCodeBothThemes` skip the
   `LaunchedEffect` (and thus never call the WebView engine) when running inside
   an Android Studio Preview, preventing crashes in preview-only code paths.
+=======
+- **Accessibility: copy button `contentDescription`** — The copy-to-clipboard `IconButton` inside
+  `SyntaxHighlightedCode` now carries `contentDescription = "Copy code"` so TalkBack announces it
+  meaningfully instead of the generic "Button".
+- **Accessibility: `testTag` on outer container** — `SyntaxHighlightedCode` now applies
+  `testTag("syntax-highlighted-code")` on its outer `Surface`, giving UI-test consumers a stable
+  node handle without relying on fragile text or structure queries.
+>>>>>>> main
 
 ## [0.13.0] - 2026-05-11
 
