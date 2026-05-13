@@ -15,6 +15,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -30,6 +31,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import dev.hossain.highlight.engine.HighlightEngine
 import dev.hossain.highlight.engine.HighlightException
 import dev.hossain.highlight.engine.HighlightResult
 import dev.hossain.highlight.engine.HighlightTheme
@@ -249,7 +251,12 @@ internal fun AdvancedEngineSection(isDark: Boolean) {
                     "Useful to reduce latency on the first real highlight request.",
             style = TextStyle(fontSize = 13.sp),
         )
-        val initEngine = rememberHighlightEngine()
+        // Use a dedicated standalone engine (not the shared provider engine) so it starts
+        // uninitialized regardless of other highlights already having warmed up the provider's
+        // shared WebView. This lets the demo always show real warm-up timing on first tap.
+        val initContext = LocalContext.current
+        val initEngine = remember { HighlightEngine(initContext.applicationContext) }
+        DisposableEffect(Unit) { onDispose { initEngine.destroy() } }
         val scope = rememberCoroutineScope()
         var initStatus by remember { mutableStateOf<String?>(null) }
         Button(onClick = {
@@ -365,6 +372,10 @@ internal fun AdvancedEngineSection(isDark: Boolean) {
                         name = "broken",
                     )
                 runCatching {
+                    // runCatching is needed because theme.colorMap is a lazy property that can
+                    // throw an IOException (wrapped in HighlightException) when first accessed
+                    // during highlight(). The Result returned by highlight() only covers
+                    // failures that occur after colorMap succeeds.
                     directEngine.highlight("val x = 42", "kotlin", brokenTheme)
                 }.onFailure { e ->
                     caughtException =
