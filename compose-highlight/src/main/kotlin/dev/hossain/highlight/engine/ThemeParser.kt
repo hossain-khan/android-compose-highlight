@@ -5,6 +5,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import kotlin.math.roundToInt
 
 /**
  * Parses Highlight.js CSS theme files into a map of hljs class names → [SpanStyle].
@@ -179,11 +180,22 @@ object ThemeParser {
 
     private fun parseRgbColor(value: String): Color? =
         try {
-            val nums = Regex("""\d+""").findAll(value).map { it.value.toInt() }.toList()
+            val nums = Regex("""\d+\.?\d*""").findAll(value).map { it.value }.toList()
             when (nums.size) {
-                3 -> Color(nums[0], nums[1], nums[2])
-                4 -> Color(nums[0], nums[1], nums[2], nums[3])
-                else -> null
+                3 -> {
+                    Color(nums[0].toInt(), nums[1].toInt(), nums[2].toInt())
+                }
+
+                4 -> {
+                    val alpha = nums[3].toFloat()
+                    // CSS rgba alpha is 0.0–1.0; values > 1 are treated as 0–255
+                    val alphaInt = if (alpha <= 1.0f) (alpha * 255).roundToInt() else alpha.toInt()
+                    Color(nums[0].toInt(), nums[1].toInt(), nums[2].toInt(), alphaInt)
+                }
+
+                else -> {
+                    null
+                }
             }
         } catch (e: Exception) {
             null
