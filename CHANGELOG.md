@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+- **LeakCanary integrated into the sample app** — `com.squareup.leakcanary:leakcanary-android:2.14`
+  is added as a `debugImplementation` dependency in `sample/build.gradle.kts`. LeakCanary
+  automatically detects memory leaks in debug builds and displays a notification with a heap dump
+  analysis when a leak is found. No code changes are required — LeakCanary installs itself via
+  its `ContentProvider`.
+
 ### Changed
 - **`SelectionContainer` moved inside `AnimatedContent`** in `SyntaxHighlightedCode` — during the
   plain-text → highlighted crossfade, `SelectionContainer` now wraps only the currently visible
