@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Changed
+- **`SelectionContainer` moved inside `AnimatedContent`** in `SyntaxHighlightedCode` — during the
+  plain-text → highlighted crossfade, `SelectionContainer` now wraps only the currently visible
+  content rather than both states simultaneously, preventing potential disruption to active text
+  selection during the transition animation.
+- **`CodeBlockStyle` annotated `@Stable`** — Compose can now skip recomposition of callers that
+  pass an unchanged `CodeBlockStyle`. For custom styles constructed inline in a composable, wrap
+  them in `remember` to avoid unnecessary recompositions:
+  ```kotlin
+  val myStyle = remember { CodeBlockStyle(padding = PaddingValues(8.dp)) }
+  ```
+
 ### Fixed
 - `SyntaxHighlightedCode` no longer crashes in Android Studio `@Preview`. When
   `LocalInspectionMode.current` is `true`, the composable renders a plain-text

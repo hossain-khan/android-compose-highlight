@@ -1,6 +1,7 @@
 package dev.hossain.highlight.ui
 
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.runtime.Stable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.text.TextStyle
@@ -52,7 +53,14 @@ import dev.hossain.highlight.engine.HighlightTheme
  *
  * The [lineNumberColor] defaults to `Color.Unspecified`, which derives the color from the
  * active theme at 40% opacity. Override it to use a fixed color.
+ *
+ * For custom styles constructed inline in a composable, wrap them in `remember` to avoid
+ * unnecessary recompositions:
+ * ```kotlin
+ * val myStyle = remember { CodeBlockStyle(padding = PaddingValues(8.dp)) }
+ * ```
  */
+@Stable
 data class CodeBlockStyle(
     val shape: Shape = SyntaxHighlightedCodeDefaults.shape,
     val padding: PaddingValues = SyntaxHighlightedCodeDefaults.padding,
