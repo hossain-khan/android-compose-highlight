@@ -69,7 +69,7 @@ class HighlightEngineEscapeTest {
     }
 
     @Test
-    fun `backslash is doubled before U+2028 escape to avoid double-escaping`() {
+    fun `backslash followed by U+2028 is escaped correctly`() {
         // Input: one backslash + U+2028.
         // Expected: two backslashes (the backslash doubled) + the 6-char literal \u2028
         // i.e. the string "\\" + "\\u2028" = three backslashes followed by u2028.
