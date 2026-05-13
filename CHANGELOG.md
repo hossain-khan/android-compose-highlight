@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.14.0] - 2026-05-13
+
 ### Added
 - **LeakCanary integrated into the sample app** — `com.squareup.leakcanary:leakcanary-android:2.14`
   is added as a `debugImplementation` dependency in `sample/build.gradle.kts`. LeakCanary
