@@ -422,8 +422,10 @@ class HighlightEngine(
 
         val escapedLang =
             language
-                .replace("\\", "\\\\")
+                .replace("\\", "\\\\") // Must be first
                 .replace("'", "\\'")
+                .replace("\n", "\\n")
+                .replace("\r", "\\r")
 
         val js = "(function() { return highlightCode('$escaped', '$escapedLang'); })()"
 
