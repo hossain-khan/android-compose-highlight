@@ -48,15 +48,11 @@ dependencies {
 }
 ```
 
-`mavenCentral()` is included in the default Android project template, so no extra repository setup is needed.
-
-The library requires `minSdk = 24`.
-
 ---
 
 ## Engine-Only Usage
 
-Use `HighlightEngine` directly if you only need an `AnnotatedString` without the full composable:
+Use `HighlightEngine` directly if you only need an `AnnotatedString` without the full composable code-block view:
 
 ```kotlin
 val engine = HighlightEngine(context)
