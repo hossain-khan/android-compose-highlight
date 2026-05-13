@@ -11,6 +11,11 @@ All notable changes to this project will be documented in this file.
 - `rememberHighlightedCode` and `rememberHighlightedCodeBothThemes` skip the
   `LaunchedEffect` (and thus never call the WebView engine) when running inside
   an Android Studio Preview, preventing crashes in preview-only code paths.
+- **`WebViewManager.webView` marked `@Volatile`** — prevents stale-read on ARM's weak memory model
+  when `initialize()` checks the field before switching to the Main thread.
+- **`language` parameter escaped in JS template** — `executeJs` now escapes backslashes and single
+  quotes in `language` before interpolating into the `highlightCode(...)` JS call, closing a minor
+  JS-injection vector (defense-in-depth; the WebView has no access to sensitive data).
 - **Accessibility: copy button `contentDescription`** — The copy-to-clipboard `IconButton` inside
   `SyntaxHighlightedCode` now carries `contentDescription = "Copy code"` so TalkBack announces it
   meaningfully instead of the generic "Button".
