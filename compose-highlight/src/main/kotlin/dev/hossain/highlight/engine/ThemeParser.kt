@@ -180,7 +180,7 @@ object ThemeParser {
 
     private fun parseRgbColor(value: String): Color? =
         try {
-            val nums = Regex("""\d+\.?\d*""").findAll(value).map { it.value }.toList()
+            val nums = Regex("""\d*\.?\d+""").findAll(value).map { it.value }.toList()
             when (nums.size) {
                 3 -> {
                     Color(nums[0].toInt(), nums[1].toInt(), nums[2].toInt())
