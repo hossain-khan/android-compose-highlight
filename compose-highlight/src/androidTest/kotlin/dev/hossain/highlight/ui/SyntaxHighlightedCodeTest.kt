@@ -1,5 +1,9 @@
 package dev.hossain.highlight.ui
 
+import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
@@ -190,5 +194,33 @@ class SyntaxHighlightedCodeTest {
             .performClick()
         composeTestRule.waitForIdle()
         assertThat(copyCalled).isTrue()
+    }
+
+    @Test
+    fun defaultThemesAreStableAcrossRecomposition() {
+        var recomposeTick by mutableStateOf(0)
+        val seenLightThemes = mutableSetOf<Int>()
+        val seenDarkThemes = mutableSetOf<Int>()
+
+        composeTestRule.setContent {
+            HighlightThemeProvider {
+                // Read state so this subtree recomposes when tick changes.
+                recomposeTick
+                val lightTheme = LocalLightHighlightTheme.current
+                val darkTheme = LocalDarkHighlightTheme.current
+                SideEffect {
+                    seenLightThemes += System.identityHashCode(lightTheme)
+                    seenDarkThemes += System.identityHashCode(darkTheme)
+                }
+            }
+        }
+
+        composeTestRule.runOnIdle { recomposeTick++ }
+        composeTestRule.waitForIdle()
+        composeTestRule.runOnIdle { recomposeTick++ }
+        composeTestRule.waitForIdle()
+
+        assertThat(seenLightThemes).hasSize(1)
+        assertThat(seenDarkThemes).hasSize(1)
     }
 }
