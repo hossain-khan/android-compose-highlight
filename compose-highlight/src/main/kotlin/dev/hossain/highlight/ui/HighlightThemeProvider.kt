@@ -79,11 +79,14 @@ internal val LocalHighlightEngine =
  *
  * ## Typical setup
  *
+ * Prefer [rememberTomorrowTheme] and [rememberTomorrowNightTheme] as the default pattern so theme
+ * instances stay stable across recompositions:
+ *
  * ```kotlin
  * // In MainActivity.kt or your root composable:
  * HighlightThemeProvider(
  *     lightHighlightTheme = rememberTomorrowTheme(),
- *     darkHighlightTheme  = rememberAtomOneDarkTheme(),
+ *     darkHighlightTheme  = rememberTomorrowNightTheme(),
  * ) {
  *     // All SyntaxHighlightedCode composables inside here will use
  *     // the correct theme automatically.
@@ -137,8 +140,8 @@ internal val LocalHighlightEngine =
 @Composable
 fun HighlightThemeProvider(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    lightHighlightTheme: HighlightTheme = HighlightTheme.tomorrow(LocalContext.current.applicationContext),
-    darkHighlightTheme: HighlightTheme = HighlightTheme.tomorrowNight(LocalContext.current.applicationContext),
+    lightHighlightTheme: HighlightTheme = rememberTomorrowTheme(),
+    darkHighlightTheme: HighlightTheme = rememberTomorrowNightTheme(),
     content: @Composable () -> Unit,
 ) {
     val context = LocalContext.current

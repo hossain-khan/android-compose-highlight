@@ -39,6 +39,9 @@ All notable changes to this project will be documented in this file.
 - **Accessibility: `testTag` on outer container** — `SyntaxHighlightedCode` now applies
   `testTag("syntax-highlighted-code")` on its outer `Surface`, giving UI-test consumers a stable
   node handle without relying on fragile text or structure queries.
+- **`HighlightThemeProvider` default themes are now remembered** — default parameters now use
+  `rememberTomorrowTheme()` / `rememberTomorrowNightTheme()` so recomposition no longer allocates
+  new `HighlightTheme` wrapper instances when callers rely on defaults.
 
 ## [0.13.0] - 2026-05-11
 
