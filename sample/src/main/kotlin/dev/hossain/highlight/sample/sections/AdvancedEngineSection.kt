@@ -294,7 +294,8 @@ internal fun AdvancedEngineSection(isDark: Boolean) {
         SubSectionHeader("Direct call — engine.highlight()")
         Text(
             text =
-                "Calls engine.highlight() directly — the full pipeline in one suspend call. " +
+                "Use engine.highlight() directly when you need highlighting outside a composable — " +
+                    "for example, in a ViewModel or background coroutine. " +
                     "Returns a HighlightResult with the AnnotatedString, span count, and timing.",
             style = TextStyle(fontSize = 13.sp),
         )
@@ -353,9 +354,8 @@ internal fun AdvancedEngineSection(isDark: Boolean) {
         SubSectionHeader("Error handling — HighlightException")
         Text(
             text =
-                "Demonstrates the HighlightException sealed class hierarchy. " +
-                    "The button highlights with a non-existent theme asset, " +
-                    "triggering a HtmlParseFailed exception wrapping the underlying IOException.",
+                "Engine methods return Result<T> and wrap failures in HighlightException subtypes. " +
+                    "Tap the button to trigger an error (invalid theme asset) and see the sealed class in action.",
             style = TextStyle(fontSize = 13.sp),
         )
         val context = LocalContext.current
