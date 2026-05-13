@@ -400,11 +400,7 @@ class HighlightEngine(
     /**
      * Executes the highlight JS call and returns the resulting HTML.
      *
-     * String escaping order:
-     * 1. `\` → `\\` (must be first to avoid double-escaping)
-     * 2. `'` → `\'`
-     * 3. `\n` → `\\n`
-     * 4. `\r` → `\\r`
+     * String escaping is delegated to [escapeForJs]; see that function for the full escape order.
      *
      * The JS callback returns a JSON-encoded string — parsed by [unescapeJsString].
      */
@@ -413,19 +409,8 @@ class HighlightEngine(
         code: String,
         language: String,
     ): Result<String> {
-        val escaped =
-            code
-                .replace("\\", "\\\\") // Must be first
-                .replace("'", "\\'")
-                .replace("\n", "\\n")
-                .replace("\r", "\\r")
-
-        val escapedLang =
-            language
-                .replace("\\", "\\\\") // Must be first
-                .replace("'", "\\'")
-                .replace("\n", "\\n")
-                .replace("\r", "\\r")
+        val escaped = escapeForJs(code)
+        val escapedLang = escapeForJs(language)
 
         val js = "(function() { return highlightCode('$escaped', '$escapedLang'); })()"
 
@@ -530,6 +515,30 @@ internal fun unescapeJsString(jsonString: String): String {
     }
     return sb.toString()
 }
+
+/**
+ * Escapes a string for safe interpolation into a single-quoted JavaScript string literal.
+ *
+ * Escape order:
+ * 1. `\` → `\\` (must be first to avoid double-escaping subsequent replacements)
+ * 2. `'` → `\'`
+ * 3. `\n` (LF, U+000A) → `\n`
+ * 4. `\r` (CR, U+000D) → `\r`
+ * 5. U+2028 (Line Separator) → `\u2028` (pre-ES2019 JS treats this as a line terminator)
+ * 6. U+2029 (Paragraph Separator) → `\u2029` (pre-ES2019 JS treats this as a line terminator)
+ *
+ * Steps 5–6 are required for compatibility with WebView on pre-Android 10 devices (pre-ES2019
+ * V8). Without these escapes, a string containing U+2028 or U+2029 would produce an unterminated
+ * string literal in the JS engine, resulting in a [HighlightException.JsExecutionFailed].
+ */
+internal fun escapeForJs(str: String): String =
+    str
+        .replace("\\", "\\\\") // Must be first
+        .replace("'", "\\'")
+        .replace("\n", "\\n")
+        .replace("\r", "\\r")
+        .replace("\u2028", "\\u2028")
+        .replace("\u2029", "\\u2029")
 
 /**
  * Holds both light and dark [AnnotatedString] results from a single highlight call.
