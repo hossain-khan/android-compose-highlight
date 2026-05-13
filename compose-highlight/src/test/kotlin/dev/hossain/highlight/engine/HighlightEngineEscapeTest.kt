@@ -70,9 +70,10 @@ class HighlightEngineEscapeTest {
 
     @Test
     fun `backslash is doubled before U+2028 escape to avoid double-escaping`() {
-        // A literal backslash immediately before U+2028 must produce \\ followed by \u2028,
-        // not \\\u2028 (which would be a malformed sequence).
-        assertThat(escapeForJs("\\\u2028")).isEqualTo("\\\\\u005cu2028")
+        // Input: one backslash + U+2028.
+        // Expected: two backslashes (the backslash doubled) + the 6-char literal \u2028
+        // i.e. the string "\\" + "\\u2028" = three backslashes followed by u2028.
+        assertThat(escapeForJs("\\\u2028")).isEqualTo("\\\\" + "\\u2028")
     }
 
     @Test
