@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -18,22 +19,27 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import dev.hossain.highlight.engine.HighlightException
 import dev.hossain.highlight.engine.HighlightResult
+import dev.hossain.highlight.engine.HighlightTheme
 import dev.hossain.highlight.sample.KOTLIN_SNIPPET
 import dev.hossain.highlight.ui.SyntaxHighlightedCode
 import dev.hossain.highlight.ui.rememberHighlightEngine
 import dev.hossain.highlight.ui.rememberHighlightedCodeBothThemes
 import dev.hossain.highlight.ui.rememberTomorrowNightTheme
 import dev.hossain.highlight.ui.rememberTomorrowTheme
+import kotlinx.coroutines.launch
 
 private val DarkCodeBackground = Color(0xFF1E1E1E)
 private val LightCodeBackground = Color(0xFFFAFAFA)
@@ -52,6 +58,12 @@ private val LightCodeText = Color(0xFF333333)
  *   produces 0 spans instead of throwing, displayed with an error-coloured card.
  * - Raw [dev.hossain.highlight.engine.HighlightEngine.highlightToHtml] pipeline — shows the
  *   `<span class="hljs-*">` HTML string before any theme colour is applied.
+ * - Pre-warming via [dev.hossain.highlight.engine.HighlightEngine.initialize] — measures
+ *   WebView warm-up time with a button-triggered call.
+ * - Direct [dev.hossain.highlight.engine.HighlightEngine.highlight] call — full pipeline in a
+ *   single suspend call, showing [HighlightResult] metrics.
+ * - [dev.hossain.highlight.engine.HighlightException] error handling — catches and displays
+ *   sealed class subtypes in an error-coloured card.
  *
  * @param isDark Whether the global light/dark toggle (from the top-bar button) is currently dark.
  */
@@ -227,7 +239,174 @@ internal fun AdvancedEngineSection(isDark: Boolean) {
             }
         }
 
-        Spacer(modifier = Modifier.height(8.dp))
+        HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+
+        // Pre-warming demo
+        SubSectionHeader("Pre-warming — engine.initialize()")
+        Text(
+            text =
+                "Calling initialize() warms up the hidden WebView before the first highlight. " +
+                    "Useful to reduce latency on the first real highlight request.",
+            style = TextStyle(fontSize = 13.sp),
+        )
+        val initEngine = rememberHighlightEngine()
+        val scope = rememberCoroutineScope()
+        var initStatus by remember { mutableStateOf<String?>(null) }
+        Button(onClick = {
+            scope.launch {
+                val alreadyReady = initEngine.isInitialized.value
+                if (alreadyReady) {
+                    initStatus = "Already initialized"
+                } else {
+                    val start = System.nanoTime()
+                    initEngine.initialize()
+                    val elapsedMs = (System.nanoTime() - start) / 1_000_000L
+                    initStatus = "WebView warmed up in ${elapsedMs}ms"
+                }
+            }
+        }) {
+            Text("Initialize Engine")
+        }
+        initStatus?.let { status ->
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                color = MaterialTheme.colorScheme.surfaceVariant,
+                shape = RoundedCornerShape(6.dp),
+            ) {
+                Text(
+                    text = status,
+                    modifier = Modifier.padding(12.dp),
+                    style = TextStyle(fontSize = 12.sp, fontFamily = FontFamily.Monospace),
+                )
+            }
+        }
+
+        HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+
+        // Direct engine.highlight() call demo
+        SubSectionHeader("Direct call — engine.highlight()")
+        Text(
+            text =
+                "Calls engine.highlight() directly — the full pipeline in one suspend call. " +
+                    "Returns a HighlightResult with the AnnotatedString, span count, and timing.",
+            style = TextStyle(fontSize = 13.sp),
+        )
+        val directTheme = rememberTomorrowNightTheme()
+        val directEngine = rememberHighlightEngine()
+        var directResult by remember { mutableStateOf<HighlightResult?>(null) }
+        LaunchedEffect(Unit) {
+            directEngine
+                .highlight(KOTLIN_SNIPPET, "kotlin", directTheme)
+                .onSuccess { directResult = it }
+        }
+        directResult?.let { r ->
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(8.dp),
+                color = directTheme.backgroundColor.takeIf { it != Color.Unspecified } ?: DarkCodeBackground,
+            ) {
+                Text(
+                    text = r.annotated,
+                    modifier = Modifier.padding(16.dp),
+                    style =
+                        TextStyle(
+                            color = directTheme.defaultTextColor.takeIf { it != Color.Unspecified } ?: DarkCodeText,
+                            fontFamily = FontFamily.Monospace,
+                            fontSize = 13.sp,
+                            lineHeight = 20.sp,
+                        ),
+                )
+            }
+            Spacer(modifier = Modifier.height(4.dp))
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                color = MaterialTheme.colorScheme.surfaceVariant,
+                shape = RoundedCornerShape(6.dp),
+            ) {
+                Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
+                    Text(
+                        text = "language   = \"${r.language}\"",
+                        style = TextStyle(fontSize = 12.sp, fontFamily = FontFamily.Monospace),
+                    )
+                    Text(
+                        text = "spanCount  = ${r.spanCount}",
+                        style = TextStyle(fontSize = 12.sp, fontFamily = FontFamily.Monospace),
+                    )
+                    Text(
+                        text = "durationMs = ${r.durationMs} ms",
+                        style = TextStyle(fontSize = 12.sp, fontFamily = FontFamily.Monospace),
+                    )
+                }
+            }
+        }
+
+        HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+
+        // HighlightException error handling demo
+        SubSectionHeader("Error handling — HighlightException")
+        Text(
+            text =
+                "Demonstrates the HighlightException sealed class hierarchy. " +
+                    "The button highlights with a non-existent theme asset, " +
+                    "triggering a HtmlParseFailed exception wrapping the underlying IOException.",
+            style = TextStyle(fontSize = 13.sp),
+        )
+        val context = LocalContext.current
+        val errorScope = rememberCoroutineScope()
+        var caughtException by remember { mutableStateOf<HighlightException?>(null) }
+        Button(onClick = {
+            errorScope.launch {
+                // Use a theme pointing to a non-existent asset — colorMap access throws IOException,
+                // which is wrapped in HighlightException.HtmlParseFailed by the engine.
+                val brokenTheme =
+                    HighlightTheme.fromAsset(
+                        context = context.applicationContext,
+                        assetPath = "nonexistent-theme.css",
+                        name = "broken",
+                    )
+                runCatching {
+                    directEngine.highlight("val x = 42", "kotlin", brokenTheme)
+                }.onFailure { e ->
+                    caughtException =
+                        when (e) {
+                            is HighlightException -> e
+                            else -> HighlightException.HtmlParseFailed(e)
+                        }
+                }
+            }
+        }) {
+            Text("Trigger Engine Error")
+        }
+        caughtException?.let { ex ->
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                color = MaterialTheme.colorScheme.errorContainer,
+                shape = RoundedCornerShape(6.dp),
+            ) {
+                Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
+                    Text(
+                        text = "type    = ${ex::class.simpleName}",
+                        style =
+                            TextStyle(
+                                fontSize = 12.sp,
+                                fontFamily = FontFamily.Monospace,
+                                color = MaterialTheme.colorScheme.onErrorContainer,
+                            ),
+                    )
+                    Text(
+                        text = "message = ${ex.message}",
+                        style =
+                            TextStyle(
+                                fontSize = 12.sp,
+                                fontFamily = FontFamily.Monospace,
+                                color = MaterialTheme.colorScheme.onErrorContainer,
+                            ),
+                    )
+                }
+            }
+        }
+
+        HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
 
         // Comparison note
         SubSectionHeader("For comparison — standard SyntaxHighlightedCode (re-highlights on toggle)")
