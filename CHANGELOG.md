@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+### Fixed
+- `SyntaxHighlightedCode` no longer crashes in Android Studio `@Preview`. When
+  `LocalInspectionMode.current` is `true`, the composable renders a plain-text
+  monospace fallback and skips WebView initialization entirely.
+- `rememberHighlightedCode` and `rememberHighlightedCodeBothThemes` skip the
+  `LaunchedEffect` (and thus never call the WebView engine) when running inside
+  an Android Studio Preview, preventing crashes in preview-only code paths.
+
 ## [0.13.0] - 2026-05-11
 
 ### Infrastructure

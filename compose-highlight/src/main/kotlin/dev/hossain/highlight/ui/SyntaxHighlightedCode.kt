@@ -26,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ClipEntry
 import androidx.compose.ui.platform.LocalClipboard
+import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
@@ -137,10 +138,6 @@ fun SyntaxHighlightedCode(
     copyButtonIcon: (@Composable (tint: Color) -> Unit)? = null,
     onHighlightComplete: ((HighlightResult) -> Unit)? = null,
 ) {
-    val highlightedState = rememberHighlightedCode(code, language, theme, onHighlightComplete)
-    val clipboard = LocalClipboard.current
-    val scope = rememberCoroutineScope()
-
     val backgroundColor =
         theme.backgroundColor.takeIf { it != Color.Unspecified }
             ?: Color(0xFF1E1E1E)
@@ -154,6 +151,24 @@ fun SyntaxHighlightedCode(
     // Apply the theme's foreground color on top of the caller-supplied text style.
     val themedCodeStyle = style.textStyle.copy(color = textColor)
     val themedLineNumStyle = style.textStyle.copy(color = lineNumberColor)
+
+    // In Android Studio Preview, WebView cannot be created. Render a themed fallback
+    // (using the active theme's background and text colors) so that @Preview composables
+    // work without crashing.
+    if (LocalInspectionMode.current) {
+        Surface(modifier = modifier, shape = style.shape, color = backgroundColor) {
+            Text(
+                text = code,
+                modifier = Modifier.padding(style.padding),
+                style = themedCodeStyle,
+            )
+        }
+        return
+    }
+
+    val highlightedState = rememberHighlightedCode(code, language, theme, onHighlightComplete)
+    val clipboard = LocalClipboard.current
+    val scope = rememberCoroutineScope()
 
     Surface(
         modifier = modifier,
