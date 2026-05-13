@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+### Fixed
+- **`WebViewManager.webView` marked `@Volatile`** — prevents stale-read on ARM's weak memory model
+  when `initialize()` checks the field before switching to the Main thread.
+- **`language` parameter escaped in JS template** — `executeJs` now escapes backslashes and single
+  quotes in `language` before interpolating into the `highlightCode(...)` JS call, closing a minor
+  JS-injection vector (defense-in-depth; the WebView has no access to sensitive data).
+
 ## [0.13.0] - 2026-05-11
 
 ### Infrastructure
