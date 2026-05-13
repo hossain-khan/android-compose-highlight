@@ -262,6 +262,14 @@ Run on your target device to get accurate numbers. Results are printed in logcat
 
 ---
 
+## Development Tools
+
+### Memory Leak Detection (Sample App)
+
+The sample app includes [LeakCanary](https://square.github.io/leakcanary/) (`com.squareup.leakcanary:leakcanary-android`) as a `debugImplementation` dependency. LeakCanary installs itself automatically via a `ContentProvider` — no code changes are needed. When a memory leak is detected in a debug build, a notification appears and a heap-dump analysis is shown.
+
+---
+
 
 
 ## Requirements
