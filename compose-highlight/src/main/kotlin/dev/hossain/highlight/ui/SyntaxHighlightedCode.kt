@@ -164,7 +164,11 @@ fun SyntaxHighlightedCode(
     // (using the active theme's background and text colors) so that @Preview composables
     // work without crashing.
     if (LocalInspectionMode.current) {
-        Surface(modifier = modifier, shape = style.shape, color = backgroundColor) {
+        Surface(
+            modifier = modifier.testTag("syntax-highlighted-code"),
+            shape = style.shape,
+            color = backgroundColor,
+        ) {
             Text(
                 text = code,
                 modifier = Modifier.padding(style.padding),
