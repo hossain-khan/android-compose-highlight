@@ -92,6 +92,8 @@ HighlightThemeProvider  ← creates ONE shared HighlightEngine for its subtree
 
 **KDoc is required on all public API.** Dokka API docs are generated from KDoc and published to GitHub Pages (`.github/workflows/docs.yml`). Every public class, function, and property in `ui/` and the public `engine/` classes must have KDoc. Include at least one usage example (triple-backtick code block) on non-trivial classes and composables. Internal classes do not need KDoc but benefit from it.
 
+**Git workflow — always create new commits.** Never use `git commit --amend`, `git push --force`, `git push --force-with-lease`, or similar rewriting operations. Always create a new commit for any changes. This keeps commit history clean, preserves attribution, and prevents accidental data loss. If changes are needed after pushing, create a new commit with a descriptive message (e.g., "fix: address code review feedback in X").
+
 **Before every commit — verify stability.** Run the following three tasks and ensure they all pass:
 ```bash
 ./gradlew formatKotlin                          # auto-fix formatting

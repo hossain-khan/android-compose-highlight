@@ -29,8 +29,16 @@ jobs:
       - name: Check Kotlin formatting
         run: ./gradlew lintKotlin
 
-      - name: Run unit tests
-        run: ./gradlew :compose-highlight:test
+      - name: Run unit tests and generate coverage report
+        run: ./gradlew :compose-highlight:test :compose-highlight:jacocoTestReport
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          slug: hossain-khan/android-compose-highlight
+          files: ./compose-highlight/build/reports/jacoco/jacocoTestReport.xml
+          fail_ci_if_error: false
 
       - name: Assemble library (debug)
         run: ./gradlew :compose-highlight:assembleDebug
