@@ -56,6 +56,8 @@ kotlin {
 }
 
 dependencies {
+    // Available in maven central https://central.sonatype.com/artifact/dev.hossain/compose-highlight
+    // implementation("dev.hossain:compose-highlight:<version>")
     implementation(project(":compose-highlight"))
 
     implementation(libs.androidx.core.ktx)
