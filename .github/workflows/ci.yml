@@ -32,49 +32,6 @@ jobs:
       - name: Run unit tests and generate coverage report
         run: ./gradlew :compose-highlight:test :compose-highlight:jacocoTestReport
 
-      - name: Debug - Check coverage files
-        if: always()
-        run: |
-          echo "=== Checking exec file ==="
-          if [ -f compose-highlight/build/outputs/unit_test_code_coverage/debugUnitTest/testDebugUnitTest.exec ]; then
-            EXEC_SIZE=$(wc -c < compose-highlight/build/outputs/unit_test_code_coverage/debugUnitTest/testDebugUnitTest.exec)
-            echo "Exec file exists, size: $EXEC_SIZE bytes"
-            if [ "$EXEC_SIZE" -lt 100 ]; then
-              echo "WARNING: Exec file is suspiciously small!"
-            fi
-          else
-            echo "Exec file NOT found"
-          fi
-          echo ""
-          echo "=== All intermediates directories with .class files ==="
-          if [ -d compose-highlight/build/intermediates ]; then
-            echo "Searching for .class files in intermediates..."
-            find compose-highlight/build/intermediates -name "*.class" -type f | head -5 | xargs -I {} dirname {} | sort | uniq
-            echo ""
-            echo "Total .class files found:"
-            find compose-highlight/build/intermediates -name "*.class" -type f | wc -l
-            echo ""
-            echo "Top-level intermediates directories:"
-            ls -la compose-highlight/build/intermediates/ | grep "^d"
-          else
-            echo "Intermediates directory NOT found"
-          fi
-          echo ""
-          echo "=== Checking XML report ==="
-          if [ -f compose-highlight/build/reports/jacoco/jacocoTestReport.xml ]; then
-            XML_SIZE=$(wc -c < compose-highlight/build/reports/jacoco/jacocoTestReport.xml)
-            echo "XML file exists, size: $XML_SIZE bytes"
-            if grep -q "<package" compose-highlight/build/reports/jacoco/jacocoTestReport.xml; then
-              echo "✓ XML contains package data"
-            else
-              echo "✗ XML is EMPTY (no package data)"
-            fi
-            echo "First 30 lines:"
-            head -30 compose-highlight/build/reports/jacoco/jacocoTestReport.xml
-          else
-            echo "XML file NOT found"
-          fi
-
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v5
         with:
