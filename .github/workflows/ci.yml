@@ -46,12 +46,18 @@ jobs:
             echo "Exec file NOT found"
           fi
           echo ""
-          echo "=== Checking class directories ==="
-          if [ -d compose-highlight/build/intermediates/runtime_library_classes_dir/debug ]; then
-            CLASS_COUNT=$(find compose-highlight/build/intermediates/runtime_library_classes_dir/debug -name "*.class" | wc -l)
-            echo "Class dir exists, contains $CLASS_COUNT .class files"
+          echo "=== All intermediates directories with .class files ==="
+          if [ -d compose-highlight/build/intermediates ]; then
+            echo "Searching for .class files in intermediates..."
+            find compose-highlight/build/intermediates -name "*.class" -type f | head -5 | xargs -I {} dirname {} | sort | uniq
+            echo ""
+            echo "Total .class files found:"
+            find compose-highlight/build/intermediates -name "*.class" -type f | wc -l
+            echo ""
+            echo "Top-level intermediates directories:"
+            ls -la compose-highlight/build/intermediates/ | grep "^d"
           else
-            echo "Class directory NOT found"
+            echo "Intermediates directory NOT found"
           fi
           echo ""
           echo "=== Checking XML report ==="
