@@ -44,7 +44,7 @@ https://github.com/user-attachments/assets/10617b72-9b7c-413b-92b5-a939a34ad6af
 
 ## Setup
 
-Add the dependency in your module's `build.gradle.kts`:
+Add the [dependency](https://central.sonatype.com/artifact/dev.hossain/compose-highlight) in your module's `build.gradle.kts`:
 
 ```kotlin
 dependencies {
