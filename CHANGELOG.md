@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+- **Robolectric JVM tests for Compose UI** — Added 13 new unit tests in `src/test/` that run on
+  the JVM without an emulator using Robolectric 4.16.1 and the v2 Compose testing APIs
+  (`androidx.compose.ui.test.junit4.v2.createComposeRule`).
+  - `SyntaxHighlightedCodeRobolectricTest` (8 tests): verifies preview fallback rendering, test
+    tags, language label, copy button visibility, copy button content description, custom copy
+    button content description, copy click callback, and default language label display.
+  - `HighlightThemeProviderRobolectricTest` (5 tests): verifies theme provision, light/dark theme
+    access, dark-mode selection, light-mode selection, and the expected error when accessed without
+    a provider.
+
 ## [0.14.0] - 2026-05-13
 
 ### Added
