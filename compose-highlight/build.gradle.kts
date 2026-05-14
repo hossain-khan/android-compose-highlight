@@ -106,7 +106,11 @@ dokka {
 // Maven Central credentials: ORG_GRADLE_PROJECT_mavenCentralUsername,
 //   ORG_GRADLE_PROJECT_mavenCentralPassword (Central Portal user token)
 mavenPublishing {
-    signAllPublications()
+    // Only sign when publishing to Maven Central (credentials provided in CI).
+    // Local publishToMavenLocal does not require signing.
+    if (hasProperty("signingInMemoryKey")) {
+        signAllPublications()
+    }
 
     coordinates(
         groupId    = "dev.hossain",
