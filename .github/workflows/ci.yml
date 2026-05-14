@@ -46,6 +46,9 @@ jobs:
       - name: Run unit tests
         run: ./gradlew :compose-highlight:testDebugUnitTest
 
+      - name: Accept Android SDK licenses
+        run: yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses
+
       - name: Run instrumented tests on Gradle Managed Device (ATD)
         run: |
           ./gradlew :compose-highlight:pixel2api30DebugAndroidTest \
