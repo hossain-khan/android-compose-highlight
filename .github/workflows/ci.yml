@@ -32,6 +32,20 @@ jobs:
       - name: Run unit tests and generate coverage report
         run: ./gradlew :compose-highlight:test :compose-highlight:jacocoTestReport
 
+      - name: Debug - Check coverage files
+        if: always()
+        run: |
+          echo "=== Checking exec file ==="
+          find compose-highlight/build -name "*.exec" -type f
+          echo "=== Checking XML report ==="
+          if [ -f compose-highlight/build/reports/jacoco/jacocoTestReport.xml ]; then
+            echo "XML file exists"
+            wc -c compose-highlight/build/reports/jacoco/jacocoTestReport.xml
+            head -20 compose-highlight/build/reports/jacoco/jacocoTestReport.xml
+          else
+            echo "XML file NOT found"
+          fi
+
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v5
         with:
