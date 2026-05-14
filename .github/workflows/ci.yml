@@ -26,11 +26,33 @@ jobs:
         with:
           cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
 
+      - name: Enable KVM (required for hardware-accelerated emulation)
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Cache ATD system image
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.android/avd
+            ~/Android/Sdk/system-images
+          key: managed-device-pixel2api30-aosp-atd-${{ runner.os }}
+
       - name: Check Kotlin formatting
         run: ./gradlew lintKotlin
 
-      - name: Run unit tests and generate coverage report
-        run: ./gradlew :compose-highlight:test :compose-highlight:jacocoTestReport
+      - name: Run unit tests
+        run: ./gradlew :compose-highlight:testDebugUnitTest
+
+      - name: Run instrumented tests on Gradle Managed Device (ATD)
+        run: |
+          ./gradlew :compose-highlight:pixel2api30DebugAndroidTest \
+            -P android.testInstrumentationRunnerArguments.notPackage=dev.hossain.highlight.benchmark
+
+      - name: Generate combined coverage report
+        run: ./gradlew :compose-highlight:jacocoTestReport
 
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v5
@@ -50,5 +72,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v7.0.1
         with:
-          name: unit-test-results
-          path: compose-highlight/build/test-results/
+          name: test-results
+          path: |
+            compose-highlight/build/test-results/
+            compose-highlight/build/reports/androidTests/
