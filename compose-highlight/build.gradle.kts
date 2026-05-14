@@ -167,7 +167,8 @@ tasks.register<JacocoReport>("jacocoTestReport") {
             include(
                 "intermediates/compile_library_classes_jar/debug/**/*.class",
                 "intermediates/javac/debug/**/*.class",
-                "intermediates/classes/debug/**/*.class"
+                "intermediates/classes/debug/**/*.class",
+                "intermediates/built_in_kotlinc/debug/**/*.class"
             )
             exclude("**/R.class", "**/R\$*.class", "**/BuildConfig.*")
         }
