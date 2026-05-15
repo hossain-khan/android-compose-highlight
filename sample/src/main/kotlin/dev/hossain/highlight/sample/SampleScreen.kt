@@ -128,8 +128,7 @@ fun SampleScreen() {
         }
 
     var selectedThemeIndex by rememberSaveable { mutableIntStateOf(2) } // Atom One
-    val normalizedSelectedThemeIndex = selectedThemeIndex.coerceIn(themePairs.indices)
-    val activePair = themePairs[normalizedSelectedThemeIndex]
+    val activePair = themePairs[selectedThemeIndex.coerceIn(themePairs.indices)]
 
     HighlightThemeProvider(
         lightHighlightTheme = activePair.light,
