@@ -266,12 +266,12 @@ class HtmlToAnnotatedStringTest {
         light.spanStyles.forEachIndexed { i, span ->
             assertThat(span.start).isEqualTo(singleLight.spanStyles[i].start)
             assertThat(span.end).isEqualTo(singleLight.spanStyles[i].end)
-            assertThat(span.item.color).isEqualTo(singleLight.spanStyles[i].item.color)
+            assertThat(span.item).isEqualTo(singleLight.spanStyles[i].item)
         }
         dark.spanStyles.forEachIndexed { i, span ->
             assertThat(span.start).isEqualTo(singleDark.spanStyles[i].start)
             assertThat(span.end).isEqualTo(singleDark.spanStyles[i].end)
-            assertThat(span.item.color).isEqualTo(singleDark.spanStyles[i].item.color)
+            assertThat(span.item).isEqualTo(singleDark.spanStyles[i].item)
         }
     }
 

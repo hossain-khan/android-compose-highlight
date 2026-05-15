@@ -59,7 +59,7 @@ object HtmlToAnnotatedString {
      * efficient: the HTML is parsed once and the DOM is walked once. Both builders receive
      * text nodes and span styles in parallel, each resolved against their own color map.
      *
-     * Each builder independently applies the `.hljs` base text color from its own [colorMap],
+     * Each builder independently applies the `.hljs` base text color from its own color map,
      * so light and dark outputs have the correct default text colors.
      *
      * @param html HTML fragment output from highlight.js (not a full document)
