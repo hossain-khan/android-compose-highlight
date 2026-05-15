@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased]
+## [0.15.0] - 2026-05-14
 
 ### Changed
 - **`HighlightEngine.initialize()` now returns `Result<Unit>`** instead of throwing
