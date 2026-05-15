@@ -20,6 +20,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -271,12 +272,13 @@ private fun LineNumberedCode(
     style: CodeBlockStyle,
 ) {
     // Count lines from the text that will actually be rendered so line numbers always align.
-    val lineCount = (highlighted?.text ?: code).lines().size
+    // Memoized to avoid recomputing on every recomposition when the rendered text is unchanged.
+    val lineCount = remember(highlighted?.text, code) { (highlighted?.text ?: code).lines().size }
+    val lineNumbers = remember(lineCount) { (1..lineCount).joinToString("\n") }
 
     Row(modifier = Modifier.padding(style.padding)) {
         // Line number gutter — rendered as a single Text to share the same line-height
         // behaviour as the code Text, keeping numbers and code visually aligned.
-        val lineNumbers = (1..lineCount).joinToString("\n")
         Text(
             text = lineNumbers,
             style = lineNumTextStyle,
