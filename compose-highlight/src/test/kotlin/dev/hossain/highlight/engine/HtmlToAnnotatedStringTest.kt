@@ -24,6 +24,19 @@ class HtmlToAnnotatedStringTest {
     private val colorMapNoBase =
         colorMap.filterKeys { it != "hljs" }
 
+    // Dark-theme color map used in convertBothThemes tests — different colors than colorMap.
+    private val darkBaseColor = Color(0xFFABB2BF.toInt())
+    private val darkColorMap =
+        mapOf(
+            "hljs" to SpanStyle(color = darkBaseColor, background = Color(0xFF282C34.toInt())),
+            "hljs-keyword" to SpanStyle(color = Color(0xFFC678DD.toInt())),
+            "hljs-string" to SpanStyle(color = Color(0xFF98C379.toInt())),
+            "hljs-number" to SpanStyle(color = Color(0xFFD19A66.toInt())),
+            "hljs-comment" to SpanStyle(color = Color(0xFF5C6370.toInt())),
+            "hljs-strong" to SpanStyle(color = Color(0xFFE5C07B.toInt()), fontWeight = FontWeight.Bold),
+            "hljs-title.function_" to SpanStyle(color = Color(0xFF61AFEF.toInt())),
+        )
+
     @Test
     fun `convert simple keyword span produces colored span`() {
         val html = """<span class="hljs-keyword">if</span>"""
@@ -166,5 +179,133 @@ class HtmlToAnnotatedStringTest {
         val fullRangeSpans = result.spanStyles.filter { it.start == 0 && it.end == result.text.length }
         assertThat(fullRangeSpans).hasSize(1)
         assertThat(fullRangeSpans[0].item.color).isEqualTo(baseColor)
+    }
+
+    // -----------------------------------------------------------------------------------------
+    // convertBothThemes tests
+    // -----------------------------------------------------------------------------------------
+
+    @Test
+    fun `convertBothThemes empty HTML returns two empty AnnotatedStrings`() {
+        val (light, dark) = HtmlToAnnotatedString.convertBothThemes("", colorMap, darkColorMap)
+        assertThat(light.text).isEmpty()
+        assertThat(dark.text).isEmpty()
+        assertThat(light.spanStyles).isEmpty()
+        assertThat(dark.spanStyles).isEmpty()
+    }
+
+    @Test
+    fun `convertBothThemes plain text produces identical text in both outputs`() {
+        val html = "hello world"
+        val (light, dark) = HtmlToAnnotatedString.convertBothThemes(html, colorMapNoBase, darkColorMap.filterKeys { it != "hljs" })
+        assertThat(light.text).isEqualTo("hello world")
+        assertThat(dark.text).isEqualTo("hello world")
+    }
+
+    @Test
+    fun `convertBothThemes produces same text content as two separate convert calls`() {
+        val html = """<span class="hljs-keyword">fun</span> <span class="hljs-string">"hi"</span>"""
+        val (light, dark) = HtmlToAnnotatedString.convertBothThemes(html, colorMap, darkColorMap)
+        val singleLight = HtmlToAnnotatedString.convert(html, colorMap)
+        val singleDark = HtmlToAnnotatedString.convert(html, darkColorMap)
+        assertThat(light.text).isEqualTo(singleLight.text)
+        assertThat(dark.text).isEqualTo(singleDark.text)
+    }
+
+    @Test
+    fun `convertBothThemes light output uses light keyword color`() {
+        val html = """<span class="hljs-keyword">val</span>"""
+        val (light, _) = HtmlToAnnotatedString.convertBothThemes(html, colorMap, darkColorMap)
+        val keywordSpans = light.spanStyles.filter { it.item.color == Color(0xFF8959a8.toInt()) }
+        assertThat(keywordSpans).isNotEmpty()
+    }
+
+    @Test
+    fun `convertBothThemes dark output uses dark keyword color`() {
+        val html = """<span class="hljs-keyword">val</span>"""
+        val (_, dark) = HtmlToAnnotatedString.convertBothThemes(html, colorMap, darkColorMap)
+        val keywordSpans = dark.spanStyles.filter { it.item.color == Color(0xFFC678DD.toInt()) }
+        assertThat(keywordSpans).isNotEmpty()
+    }
+
+    @Test
+    fun `convertBothThemes light and dark keyword spans have different colors`() {
+        val html = """<span class="hljs-keyword">return</span>"""
+        val (light, dark) = HtmlToAnnotatedString.convertBothThemes(html, colorMap, darkColorMap)
+        val lightKeyword = light.spanStyles.firstOrNull()
+        val darkKeyword = dark.spanStyles.firstOrNull()
+        assertThat(lightKeyword).isNotNull()
+        assertThat(darkKeyword).isNotNull()
+        assertThat(lightKeyword!!.item.color).isNotEqualTo(darkKeyword!!.item.color)
+    }
+
+    @Test
+    fun `convertBothThemes applies independent base colors per builder`() {
+        val html = """plain <span class="hljs-keyword">if</span> code"""
+        val (light, dark) = HtmlToAnnotatedString.convertBothThemes(html, colorMap, darkColorMap)
+        val lightBase = light.spanStyles.filter { it.start == 0 && it.end == light.text.length }
+        val darkBase = dark.spanStyles.filter { it.start == 0 && it.end == dark.text.length }
+        assertThat(lightBase).hasSize(1)
+        assertThat(darkBase).hasSize(1)
+        assertThat(lightBase[0].item.color).isEqualTo(baseColor)
+        assertThat(darkBase[0].item.color).isEqualTo(darkBaseColor)
+        // The two base colors must be distinct — not shared across builders.
+        assertThat(lightBase[0].item.color).isNotEqualTo(darkBase[0].item.color)
+    }
+
+    @Test
+    fun `convertBothThemes output matches two independent convert calls span-for-span`() {
+        val html =
+            """<span class="hljs-keyword">fun</span> <span class="hljs-title function_">greet</span>(<span class="hljs-string">"hi"</span>)"""
+        val (light, dark) = HtmlToAnnotatedString.convertBothThemes(html, colorMap, darkColorMap)
+        val singleLight = HtmlToAnnotatedString.convert(html, colorMap)
+        val singleDark = HtmlToAnnotatedString.convert(html, darkColorMap)
+        // Span counts and positions must match
+        assertThat(light.spanStyles.size).isEqualTo(singleLight.spanStyles.size)
+        assertThat(dark.spanStyles.size).isEqualTo(singleDark.spanStyles.size)
+        light.spanStyles.forEachIndexed { i, span ->
+            assertThat(span.start).isEqualTo(singleLight.spanStyles[i].start)
+            assertThat(span.end).isEqualTo(singleLight.spanStyles[i].end)
+            assertThat(span.item.color).isEqualTo(singleLight.spanStyles[i].item.color)
+        }
+        dark.spanStyles.forEachIndexed { i, span ->
+            assertThat(span.start).isEqualTo(singleDark.spanStyles[i].start)
+            assertThat(span.end).isEqualTo(singleDark.spanStyles[i].end)
+            assertThat(span.item.color).isEqualTo(singleDark.spanStyles[i].item.color)
+        }
+    }
+
+    @Test
+    fun `convertBothThemes handles compound hljs class correctly in both outputs`() {
+        val html = """<span class="hljs-title function_">myFunc</span>"""
+        val (light, dark) = HtmlToAnnotatedString.convertBothThemes(html, colorMapNoBase, darkColorMap.filterKeys { it != "hljs" })
+        assertThat(light.spanStyles).hasSize(1)
+        assertThat(dark.spanStyles).hasSize(1)
+        assertThat(light.spanStyles[0].item.color).isEqualTo(Color(0xFF4271ae.toInt()))
+        assertThat(dark.spanStyles[0].item.color).isEqualTo(Color(0xFF61AFEF.toInt()))
+    }
+
+    @Test
+    fun `convertBothThemes handles nested spans in both outputs`() {
+        val html = """<span class="hljs-string">"<span class="hljs-keyword">val</span>"</span>"""
+        val (light, dark) = HtmlToAnnotatedString.convertBothThemes(html, colorMapNoBase, darkColorMap.filterKeys { it != "hljs" })
+        assertThat(light.text).isEqualTo(""""val"""")
+        assertThat(dark.text).isEqualTo(""""val"""")
+        assertThat(light.spanStyles.size).isAtLeast(2)
+        assertThat(dark.spanStyles.size).isAtLeast(2)
+    }
+
+    @Test
+    fun `convertBothThemes with no base hljs entry produces no full-range spans`() {
+        // Use plain text outside the span so the keyword span does not accidentally cover
+        // the full range — we only want to verify the absence of the base .hljs wrap.
+        val html = """x <span class="hljs-keyword">if</span> y"""
+        val lightNoBase = colorMap.filterKeys { it != "hljs" }
+        val darkNoBase = darkColorMap.filterKeys { it != "hljs" }
+        val (light, dark) = HtmlToAnnotatedString.convertBothThemes(html, lightNoBase, darkNoBase)
+        val lightFullRange = light.spanStyles.filter { it.start == 0 && it.end == light.text.length }
+        val darkFullRange = dark.spanStyles.filter { it.start == 0 && it.end == dark.text.length }
+        assertThat(lightFullRange).isEmpty()
+        assertThat(darkFullRange).isEmpty()
     }
 }
