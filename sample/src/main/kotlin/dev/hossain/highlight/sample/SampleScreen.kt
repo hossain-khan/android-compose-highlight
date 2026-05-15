@@ -92,7 +92,7 @@ fun SampleScreen() {
     val snackbarHostState = remember { SnackbarHostState() }
     var isDark by rememberSaveable { mutableStateOf(true) }
     var showThemeMenu by remember { mutableStateOf(false) }
-    var activeTabTitle by rememberSaveable { mutableStateOf(DemoTab.Languages.title) }
+    var activeTabIndex by rememberSaveable { mutableIntStateOf(0) }
 
     // Shared copy handler: copies to clipboard and shows a snackbar confirmation.
     val onCopyClick: (String) -> Unit =
@@ -128,7 +128,6 @@ fun SampleScreen() {
         }
 
     var selectedThemeIndex by rememberSaveable { mutableIntStateOf(2) } // Atom One
-    val activeTab = DemoTab.all.firstOrNull { it.title == activeTabTitle } ?: DemoTab.Languages
     val activePair = themePairs[selectedThemeIndex]
 
     HighlightThemeProvider(
@@ -199,12 +198,12 @@ fun SampleScreen() {
                         .consumeWindowInsets(innerPadding),
             ) {
                 val tabs = DemoTab.all
-                val selectedTabIndex = tabs.indexOf(activeTab)
+                val selectedTabIndex = activeTabIndex.coerceIn(tabs.indices)
                 PrimaryScrollableTabRow(selectedTabIndex = selectedTabIndex) {
-                    tabs.forEach { tab ->
+                    tabs.forEachIndexed { index, tab ->
                         Tab(
-                            selected = activeTab == tab,
-                            onClick = { activeTabTitle = tab.title },
+                            selected = selectedTabIndex == index,
+                            onClick = { activeTabIndex = index },
                             text = { Text(tab.title) },
                         )
                     }
@@ -220,7 +219,7 @@ fun SampleScreen() {
                         ),
                     verticalArrangement = Arrangement.spacedBy(16.dp),
                 ) {
-                    when (activeTab) {
+                    when (tabs[selectedTabIndex]) {
                         DemoTab.Languages -> {
                             codeSamples.forEach { sample ->
                                 item(key = sample.displayLabel) {
