@@ -5,6 +5,7 @@ import androidx.benchmark.junit4.measureRepeated
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import dev.hossain.highlight.engine.HighlightEngine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Before
@@ -39,8 +40,12 @@ class HighlightEngineBenchmark {
     fun setUp() {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         engine = HighlightEngine(context)
-        // Pre-warm WebView so benchmark iterations measure steady-state performance
-        runBlocking { engine.initialize() }
+        // Pre-warm WebView so benchmark iterations measure steady-state performance.
+        // Wait for isInitialized so bridge.html has fully loaded before measuring.
+        runBlocking {
+            engine.initialize().getOrThrow()
+            engine.isInitialized.first { it }
+        }
     }
 
     @After

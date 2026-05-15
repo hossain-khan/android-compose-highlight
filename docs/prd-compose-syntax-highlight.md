@@ -189,7 +189,7 @@ class HighlightEngine(context: Context) {
     // Initialize WebView on Main thread, load bridge.html.
     // Optional optimization — auto-initializes on the first highlight call if skipped.
     // Idempotent: safe to call multiple times.
-    suspend fun initialize()
+    suspend fun initialize(): Result<Unit>
 
     // Highlight code and return raw HTML with <span class="hljs-*"> tokens, plus timing.
     // Thread-safe: uses Mutex to serialize concurrent calls.

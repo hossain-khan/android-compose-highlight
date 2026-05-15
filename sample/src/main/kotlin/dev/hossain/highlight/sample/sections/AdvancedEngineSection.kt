@@ -41,6 +41,7 @@ import dev.hossain.highlight.ui.rememberHighlightEngine
 import dev.hossain.highlight.ui.rememberHighlightedCodeBothThemes
 import dev.hossain.highlight.ui.rememberTomorrowNightTheme
 import dev.hossain.highlight.ui.rememberTomorrowTheme
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 private val DarkCodeBackground = Color(0xFF1E1E1E)
@@ -266,9 +267,18 @@ internal fun AdvancedEngineSection(isDark: Boolean) {
                     initStatus = "Already initialized"
                 } else {
                     val start = System.nanoTime()
-                    initEngine.initialize()
+                    val initResult = initEngine.initialize()
+                    if (initResult.isSuccess) {
+                        // Await bridge.html fully loaded (onPageFinished) for accurate timing
+                        initEngine.isInitialized.first { it }
+                    }
                     val elapsedMs = (System.nanoTime() - start) / 1_000_000L
-                    initStatus = "WebView warmed up in ${elapsedMs}ms"
+                    initStatus =
+                        if (initResult.isSuccess) {
+                            "WebView ready in ${elapsedMs}ms"
+                        } else {
+                            "Init failed: ${initResult.exceptionOrNull()?.message}"
+                        }
                 }
             }
         }) {

@@ -3,6 +3,7 @@ package dev.hossain.highlight.engine
 import android.content.Context
 import android.webkit.WebView
 import androidx.compose.ui.text.AnnotatedString
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -51,7 +52,7 @@ import kotlin.coroutines.resumeWithException
  *
  * // Optional: call initialize() to warm up the WebView before the first highlight.
  * // If skipped, the first call to highlight() will initialize it automatically.
- * engine.initialize()
+ * engine.initialize().onFailure { /* handle WebViewInitFailed if needed */ }
  *
  * val result = engine.highlight(
  *     code     = "val x = 42",
@@ -123,14 +124,20 @@ class HighlightEngine(
      * to reduce latency on the first highlight request.
      *
      * Safe to call multiple times — idempotent.
+     *
+     * @return [Result.success] when the WebView load has been started (full readiness is
+     *   signalled asynchronously via [isInitialized]), or [Result.failure] wrapping a
+     *   [HighlightException.WebViewInitFailed] if initialization fails.
      */
-    suspend fun initialize() {
+    suspend fun initialize(): Result<Unit> =
         try {
             manager.initialize()
+            Result.success(Unit)
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
-            throw HighlightException.WebViewInitFailed(e)
+            Result.failure(HighlightException.WebViewInitFailed(e))
         }
-    }
 
     /**
      * Highlights [code] and returns raw HTML with `<span class="hljs-*">` tokens, together
