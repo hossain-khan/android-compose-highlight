@@ -31,6 +31,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -82,15 +83,16 @@ import kotlinx.coroutines.withContext
 @Composable
 fun SampleScreen() {
     val context = LocalContext.current
+    val appContext = context.applicationContext
     val codeSamples by produceState(initialValue = emptyList<CodeSample>(), context) {
         value = withContext(Dispatchers.IO) { loadCodeSamples(context) }
     }
     val clipboard = LocalClipboard.current
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
-    var isDark by remember { mutableStateOf(true) }
+    var isDark by rememberSaveable { mutableStateOf(true) }
     var showThemeMenu by remember { mutableStateOf(false) }
-    var activeTab by remember { mutableStateOf<DemoTab>(DemoTab.Languages) }
+    var activeTabTitle by rememberSaveable { mutableStateOf(DemoTab.Languages.title) }
 
     // Shared copy handler: copies to clipboard and shows a snackbar confirmation.
     val onCopyClick: (String) -> Unit =
@@ -109,23 +111,24 @@ fun SampleScreen() {
             listOf(
                 ThemePair(
                     name = "GitHub",
-                    light = HighlightTheme.fromAsset(context, "themes/github.css", "github"),
-                    dark = HighlightTheme.fromAsset(context, "themes/github-dark.css", "github-dark"),
+                    light = HighlightTheme.fromAsset(appContext, "themes/github.css", "github"),
+                    dark = HighlightTheme.fromAsset(appContext, "themes/github-dark.css", "github-dark"),
                 ),
                 ThemePair(
                     name = "Tomorrow",
-                    light = HighlightTheme.tomorrow(context),
-                    dark = HighlightTheme.tomorrowNight(context),
+                    light = HighlightTheme.tomorrow(appContext),
+                    dark = HighlightTheme.tomorrowNight(appContext),
                 ),
                 ThemePair(
                     name = "Atom One",
-                    light = HighlightTheme.atomOneLight(context),
-                    dark = HighlightTheme.atomOneDark(context),
+                    light = HighlightTheme.atomOneLight(appContext),
+                    dark = HighlightTheme.atomOneDark(appContext),
                 ),
             )
         }
 
-    var selectedThemeIndex by remember { mutableIntStateOf(2) } // Atom One
+    var selectedThemeIndex by rememberSaveable { mutableIntStateOf(2) } // Atom One
+    val activeTab = DemoTab.all.firstOrNull { it.title == activeTabTitle } ?: DemoTab.Languages
     val activePair = themePairs[selectedThemeIndex]
 
     HighlightThemeProvider(
@@ -201,7 +204,7 @@ fun SampleScreen() {
                     tabs.forEach { tab ->
                         Tab(
                             selected = activeTab == tab,
-                            onClick = { activeTab = tab },
+                            onClick = { activeTabTitle = tab.title },
                             text = { Text(tab.title) },
                         )
                     }

@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Fixed
+- **Sample app preserves top-level demo selections across recreation** — `SampleScreen` now uses
+  `rememberSaveable` for the light/dark toggle, selected demo tab, and selected theme family so
+  those user-facing choices survive configuration changes.
+
 ### Added
 - **Robolectric JVM tests for Compose UI** — Added 13 new unit tests in `src/test/` that run on
   the JVM without an emulator using Robolectric 4.16.1 and the v2 Compose testing APIs
