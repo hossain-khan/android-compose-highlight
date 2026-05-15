@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Changed
+- **`highlightBothThemes` now parses the HTML once** — `HtmlToAnnotatedString.convertBothThemes()`
+  replaces the prior double-`convert()` call in `HighlightEngine.highlightBothThemes()`. The HTML
+  fragment is parsed into a DOM once and walked once, with two `AnnotatedString.Builder` instances
+  updated in parallel (one per theme). This removes a redundant Jsoup parse and a redundant DOM
+  traversal on every dual-theme highlight call. Closes #82.
+
 ### Added
 - **Robolectric JVM tests for Compose UI** — Added 13 new unit tests in `src/test/` that run on
   the JVM without an emulator using Robolectric 4.16.1 and the v2 Compose testing APIs
