@@ -142,8 +142,16 @@ object HtmlToAnnotatedString {
                 val darkStyle: SpanStyle?
                 if (node.tagName() == "span") {
                     val cls = node.className()
-                    lightStyle = resolveStyle(cls, lightColorMap)
-                    darkStyle = resolveStyle(cls, darkColorMap)
+                    if (cls.isBlank()) {
+                        lightStyle = null
+                        darkStyle = null
+                    } else {
+                        // Parse the class list once; reuse for both color-map lookups to avoid
+                        // redundant trim/split/Regex work on the hot dual-theme path.
+                        val classes = cls.trim().split(Regex("\\s+"))
+                        lightStyle = resolveStyleFromClasses(cls, classes, lightColorMap)
+                        darkStyle = resolveStyleFromClasses(cls, classes, darkColorMap)
+                    }
                 } else {
                     lightStyle = null
                     darkStyle = null
@@ -193,6 +201,26 @@ object HtmlToAnnotatedString {
         }
 
         // Fall back to the first recognized class
+        return classes.firstNotNullOfOrNull { colorMap[it] }
+    }
+
+    /**
+     * Like [resolveStyle] but accepts a pre-parsed class list so the [walkNodeBothThemes]
+     * hot path can parse the class attribute once and reuse it for both color-map lookups.
+     */
+    private fun resolveStyleFromClasses(
+        classAttr: String,
+        classes: List<String>,
+        colorMap: Map<String, SpanStyle>,
+    ): SpanStyle? {
+        // Fast-path: exact match (e.g. "hljs-keyword" — the large majority of tokens).
+        colorMap[classAttr]?.let { return it }
+        // Compound key (e.g. "hljs-title.function_" for class="hljs-title function_").
+        if (classes.size > 1) {
+            val compoundKey = classes.joinToString(".")
+            colorMap[compoundKey]?.let { return it }
+        }
+        // Fall back to the first recognized class.
         return classes.firstNotNullOfOrNull { colorMap[it] }
     }
 }

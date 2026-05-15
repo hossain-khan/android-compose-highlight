@@ -195,6 +195,15 @@ class HtmlToAnnotatedStringTest {
     }
 
     @Test
+    fun `convertBothThemes blank whitespace-only HTML returns two empty AnnotatedStrings`() {
+        val (light, dark) = HtmlToAnnotatedString.convertBothThemes("   \n  ", colorMap, darkColorMap)
+        assertThat(light.text).isEmpty()
+        assertThat(dark.text).isEmpty()
+        assertThat(light.spanStyles).isEmpty()
+        assertThat(dark.spanStyles).isEmpty()
+    }
+
+    @Test
     fun `convertBothThemes plain text produces identical text in both outputs`() {
         val html = "hello world"
         val (light, dark) = HtmlToAnnotatedString.convertBothThemes(html, colorMapNoBase, darkColorMap.filterKeys { it != "hljs" })
