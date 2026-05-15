@@ -3,6 +3,7 @@ package dev.hossain.highlight.engine
 import android.content.Context
 import android.webkit.WebView
 import androidx.compose.ui.text.AnnotatedString
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -124,13 +125,16 @@ class HighlightEngine(
      *
      * Safe to call multiple times — idempotent.
      *
-     * @return [Result.success] when the WebView is ready, or [Result.failure] wrapping a
+     * @return [Result.success] when the WebView load has been started (full readiness is
+     *   signalled asynchronously via [isInitialized]), or [Result.failure] wrapping a
      *   [HighlightException.WebViewInitFailed] if initialization fails.
      */
     suspend fun initialize(): Result<Unit> =
         try {
             manager.initialize()
             Result.success(Unit)
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Result.failure(HighlightException.WebViewInitFailed(e))
         }

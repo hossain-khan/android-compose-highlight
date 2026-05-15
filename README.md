@@ -60,7 +60,8 @@ Use `HighlightEngine` directly if you only need an `AnnotatedString` without the
 
 ```kotlin
 val engine = HighlightEngine(context)
-engine.initialize() // warms up the WebView; returns Result<Unit>
+engine.initialize()
+    .onFailure { /* handle WebView init failure if needed */ }
 
 val result: Result<AnnotatedString> =
     engine.highlight(code = "val x = 42", language = "kotlin", theme = HighlightTheme.tomorrow(context))
