@@ -65,5 +65,14 @@ See `SampleData.kt` → `loadThemePairs()` for a working example using the bundl
 
 ## Performance screen
 
-`PerfActivity` / `PerfScreen` measures how long it takes to highlight all language samples
-back-to-back. Launch it from the top-right toolbar icon in the main screen.
+`PerfActivity` / `PerfScreen` is an **exploratory, demo-oriented** tool that visually shows how long it takes to highlight all language samples back-to-back. Launch it from the top-right toolbar icon in the main screen.
+
+> [!WARNING]
+> The in-app performance screen is **not** a substitute for benchmark-grade measurement. It runs in a debug build without the release optimizations needed for reliable numbers, and results vary with device state and background load.
+>
+> For authoritative performance measurement and regression detection, use the AndroidX microbenchmarks in `compose-highlight/src/androidTest/` — specifically the `HighlightEngineBenchmark` class:
+> ```bash
+> ./gradlew :compose-highlight:connectedAndroidTest \
+>   -Pandroid.testInstrumentationRunnerArguments.class=dev.hossain.highlight.benchmark.HighlightEngineBenchmark
+> ```
+> See the [Benchmarks section in the root README](../README.md#benchmarks) for full details.
