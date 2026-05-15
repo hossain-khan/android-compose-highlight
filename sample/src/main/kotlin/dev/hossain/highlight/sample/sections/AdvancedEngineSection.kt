@@ -266,9 +266,14 @@ internal fun AdvancedEngineSection(isDark: Boolean) {
                     initStatus = "Already initialized"
                 } else {
                     val start = System.nanoTime()
-                    initEngine.initialize()
+                    val initResult = initEngine.initialize()
                     val elapsedMs = (System.nanoTime() - start) / 1_000_000L
-                    initStatus = "WebView warmed up in ${elapsedMs}ms"
+                    initStatus =
+                        if (initResult.isSuccess) {
+                            "WebView warmed up in ${elapsedMs}ms"
+                        } else {
+                            "Init failed: ${initResult.exceptionOrNull()?.message}"
+                        }
                 }
             }
         }) {

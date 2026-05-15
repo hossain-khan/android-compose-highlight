@@ -51,7 +51,7 @@ import kotlin.coroutines.resumeWithException
  *
  * // Optional: call initialize() to warm up the WebView before the first highlight.
  * // If skipped, the first call to highlight() will initialize it automatically.
- * engine.initialize()
+ * engine.initialize().onFailure { /* handle WebViewInitFailed if needed */ }
  *
  * val result = engine.highlight(
  *     code     = "val x = 42",
@@ -123,14 +123,17 @@ class HighlightEngine(
      * to reduce latency on the first highlight request.
      *
      * Safe to call multiple times — idempotent.
+     *
+     * @return [Result.success] when the WebView is ready, or [Result.failure] wrapping a
+     *   [HighlightException.WebViewInitFailed] if initialization fails.
      */
-    suspend fun initialize() {
+    suspend fun initialize(): Result<Unit> =
         try {
             manager.initialize()
+            Result.success(Unit)
         } catch (e: Exception) {
-            throw HighlightException.WebViewInitFailed(e)
+            Result.failure(HighlightException.WebViewInitFailed(e))
         }
-    }
 
     /**
      * Highlights [code] and returns raw HTML with `<span class="hljs-*">` tokens, together

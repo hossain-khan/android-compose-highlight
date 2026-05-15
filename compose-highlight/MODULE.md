@@ -44,7 +44,7 @@ Use `HighlightEngine` directly when you need an `AnnotatedString` without the bu
 val engine = HighlightEngine(context)
 
 // Optional: warm up the WebView before the first call
-engine.initialize()
+engine.initialize() // optional warm-up; returns Result<Unit>
 
 val result = engine.highlight(
     code     = "SELECT * FROM users WHERE active = 1",

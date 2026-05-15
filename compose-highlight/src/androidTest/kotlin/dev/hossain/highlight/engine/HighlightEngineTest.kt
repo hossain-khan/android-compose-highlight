@@ -32,8 +32,8 @@ class HighlightEngineTest {
     @Test
     fun webViewInitializesSuccessfully() =
         runBlocking {
-            engine.initialize()
-            // If no exception was thrown, WebView initialized successfully
+            val result = engine.initialize()
+            assertTrue("Expected initialize() to succeed", result.isSuccess)
         }
 
     @Test

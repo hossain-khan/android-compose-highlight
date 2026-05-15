@@ -40,7 +40,7 @@ class HighlightEngineBenchmark {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         engine = HighlightEngine(context)
         // Pre-warm WebView so benchmark iterations measure steady-state performance
-        runBlocking { engine.initialize() }
+        runBlocking { engine.initialize().getOrThrow() }
     }
 
     @After

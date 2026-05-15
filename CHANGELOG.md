@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Changed
+- **`HighlightEngine.initialize()` now returns `Result<Unit>`** instead of throwing
+  `HighlightException.WebViewInitFailed`. This aligns `initialize()` with the library's
+  documented `Result`-based public error model. Migration: replace bare `engine.initialize()`
+  calls with `engine.initialize().onFailure { /* handle */ }` or
+  `engine.initialize().getOrThrow()` if you want failure to propagate as an exception.
+
+### Changed
 - **`highlightBothThemes` now parses the HTML once** — `HtmlToAnnotatedString.convertBothThemes()`
   replaces the prior double-`convert()` call in `HighlightEngine.highlightBothThemes()`. The HTML
   fragment is parsed into a DOM once and walked once, with two `AnnotatedString.Builder` instances
