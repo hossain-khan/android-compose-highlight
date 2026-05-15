@@ -48,37 +48,39 @@ import kotlin.coroutines.resumeWithException
  * ## Manual usage (e.g. ViewModel or background work)
  *
  * ```kotlin
- * val engine = HighlightEngine(context)
+ * val engine = HighlightEngine(context.applicationContext)
  *
- * // Optional: call initialize() to warm up the WebView before the first highlight.
- * // If skipped, the first call to highlight() will initialize it automatically.
- * engine.initialize().onFailure { /* handle WebViewInitFailed if needed */ }
+ * // Suspend calls must run inside a coroutine (e.g. viewModelScope.launch).
+ * viewModelScope.launch {
+ *     // Optional: warm up before first use to reduce first-call latency.
+ *     engine.initialize().onFailure { /* handle WebViewInitFailed if needed */ }
  *
- * val result = engine.highlight(
- *     code     = "val x = 42",
- *     language = "kotlin",
- *     theme    = HighlightTheme.atomOneDark(context),
- * )
- * result.onSuccess { highlighted ->
- *     display(highlighted.annotated)            // AnnotatedString
- *     log("spans: ${highlighted.spanCount}")    // 0 = unsupported language
- *     log("time:  ${highlighted.durationMs} ms")
+ *     val result = engine.highlight(
+ *         code     = "val x = 42",
+ *         language = "kotlin",
+ *         theme    = HighlightTheme.atomOneDark(context.applicationContext),
+ *     )
+ *     result.onSuccess { highlighted ->
+ *         display(highlighted.annotated)            // AnnotatedString
+ *         log("spans: ${highlighted.spanCount}")    // 0 = unsupported language
+ *         log("time:  ${highlighted.durationMs} ms")
+ *     }
  * }
  *
- * // Release resources when done
+ * // Release resources when done (e.g. in ViewModel.onCleared())
  * engine.destroy()
  * ```
  *
  * ## Highlight once, render in two themes
  *
  * ```kotlin
- * val themed = engine.highlightBothThemes(
+ * // Inside a coroutine (e.g. viewModelScope.launch or LaunchedEffect):
+ * engine.highlightBothThemes(
  *     code       = sourceCode,
  *     language   = "typescript",
- *     lightTheme = HighlightTheme.tomorrow(context),
- *     darkTheme  = HighlightTheme.tomorrowNight(context),
- * )
- * themed.onSuccess { result ->
+ *     lightTheme = HighlightTheme.tomorrow(context.applicationContext),
+ *     darkTheme  = HighlightTheme.tomorrowNight(context.applicationContext),
+ * ).onSuccess { result ->
  *     val display = if (isDark) result.dark else result.light
  * }
  * ```
@@ -197,7 +199,7 @@ class HighlightEngine(
      * engine.highlight(code, "kotlin", theme).onSuccess { result ->
      *     display(result.annotated)
      *     if (result.spanCount == 0) log("no tokens — language may be unsupported")
-     *     log("highlighted in \${result.durationMs} ms")
+     *     log("highlighted in ${result.durationMs} ms")
      * }
      * ```
      *
@@ -237,11 +239,12 @@ class HighlightEngine(
      * so theme switching after the call returns is instant — no extra WebView round-trip.
      *
      * ```kotlin
+     * // Inside a coroutine (e.g. viewModelScope.launch or LaunchedEffect):
      * engine.highlightBothThemes(
      *     code       = sourceCode,
      *     language   = "typescript",
-     *     lightTheme = HighlightTheme.tomorrow(context),
-     *     darkTheme  = HighlightTheme.tomorrowNight(context),
+     *     lightTheme = HighlightTheme.tomorrow(context.applicationContext),
+     *     darkTheme  = HighlightTheme.tomorrowNight(context.applicationContext),
      * ).onSuccess { result ->
      *     val display = if (isDark) result.dark else result.light
      * }
@@ -559,8 +562,8 @@ internal fun escapeForJs(str: String): String =
  * val result by rememberHighlightedCodeBothThemes(
  *     code       = code,
  *     language   = "kotlin",
- *     lightTheme = remember { HighlightTheme.tomorrow(context.applicationContext) },
- *     darkTheme  = remember { HighlightTheme.tomorrowNight(context.applicationContext) },
+ *     lightTheme = rememberTomorrowTheme(),
+ *     darkTheme  = rememberTomorrowNightTheme(),
  * )
  * val text = if (isDark) result?.dark else result?.light
  * Text(text = text ?: AnnotatedString(code))

@@ -90,8 +90,15 @@ fun rememberHighlightEngine(): HighlightEngine {
  * recomposition:
  *
  * ```kotlin
+ * val context = LocalContext.current
  * val theme = remember(context) { HighlightTheme.tomorrow(context.applicationContext) }
  * val highlighted by rememberHighlightedCode(code, "kotlin", theme)
+ * ```
+ *
+ * Or use the built-in convenience functions which handle this internally:
+ *
+ * ```kotlin
+ * val highlighted by rememberHighlightedCode(code, "kotlin", rememberTomorrowTheme())
  * ```
  *
  * For light/dark toggling without re-highlighting, prefer [rememberHighlightedCodeBothThemes].
