@@ -232,10 +232,20 @@ For full design details see [`docs/prd-compose-syntax-highlight.md`](docs/prd-co
 
 Microbenchmarks are included in `compose-highlight/src/androidTest/` using the [AndroidX Microbenchmark library](https://developer.android.com/topic/performance/benchmarking/microbenchmark-overview). They measure the three core pipeline stages on a real device.
 
+> [!IMPORTANT]
+> The `HighlightEngineBenchmark` class (and the other benchmark classes below) are the **authoritative** source for performance measurement. Use `connectedAndroidTest` results for regression detection and performance comparisons — not the sample app's built-in performance screen, which is exploratory and demo-oriented only (see [Sample App — Performance screen](sample/README.md#performance-screen)).
+>
+> Note: benchmarks are most reliable when run on a **physical device** in a release build. Debuggable builds (the default for `connectedAndroidTest`) have JIT and coverage overhead that inflates timings — treat debug-build numbers as relative comparisons, not absolute measurements.
+
 ### Run
 
 ```bash
+# Run all microbenchmarks (requires a connected physical device or emulator)
 ./gradlew :compose-highlight:connectedAndroidTest
+
+# Run only the HighlightEngineBenchmark class
+./gradlew :compose-highlight:connectedAndroidTest \
+  -Pandroid.testInstrumentationRunnerArguments.class=dev.hossain.highlight.benchmark.HighlightEngineBenchmark
 ```
 
 Results are printed in logcat under the `BENCHMARK` tag.
