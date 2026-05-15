@@ -51,6 +51,53 @@ object HtmlToAnnotatedString {
         return result
     }
 
+    /**
+     * Converts highlighted HTML to two [AnnotatedString] values — one per theme — in a single
+     * DOM parse and traversal pass.
+     *
+     * Semantically equivalent to calling [convert] twice with different color maps, but more
+     * efficient: the HTML is parsed once and the DOM is walked once. Both builders receive
+     * text nodes and span styles in parallel, each resolved against their own color map.
+     *
+     * Each builder independently applies the `.hljs` base text color from its own color map,
+     * so light and dark outputs have the correct default text colors.
+     *
+     * @param html HTML fragment output from highlight.js (not a full document)
+     * @param lightColorMap Color map for the light theme, from [ThemeParser]
+     * @param darkColorMap Color map for the dark theme, from [ThemeParser]
+     * @return A [Pair] of (light [AnnotatedString], dark [AnnotatedString])
+     */
+    internal fun convertBothThemes(
+        html: String,
+        lightColorMap: Map<String, SpanStyle>,
+        darkColorMap: Map<String, SpanStyle>,
+    ): Pair<AnnotatedString, AnnotatedString> {
+        if (html.isBlank()) return Pair(AnnotatedString(""), AnnotatedString(""))
+
+        val doc = Jsoup.parseBodyFragment(html)
+        val body = doc.body()
+
+        // Each builder gets its own independent base text color from its own color map.
+        // Do NOT share a single base style — light and dark themes have different default colors.
+        val lightBaseStyle = lightColorMap["hljs"]?.color?.takeIf { it != Color.Unspecified }?.let { SpanStyle(color = it) }
+        val darkBaseStyle = darkColorMap["hljs"]?.color?.takeIf { it != Color.Unspecified }?.let { SpanStyle(color = it) }
+
+        val lightBuilder = AnnotatedString.Builder()
+        val darkBuilder = AnnotatedString.Builder()
+
+        if (lightBaseStyle != null) lightBuilder.pushStyle(lightBaseStyle)
+        if (darkBaseStyle != null) darkBuilder.pushStyle(darkBaseStyle)
+
+        body.childNodes().forEach { node ->
+            walkNodeBothThemes(node, lightColorMap, darkColorMap, lightBuilder, darkBuilder)
+        }
+
+        if (lightBaseStyle != null) lightBuilder.pop()
+        if (darkBaseStyle != null) darkBuilder.pop()
+
+        return Pair(lightBuilder.toAnnotatedString(), darkBuilder.toAnnotatedString())
+    }
+
     private fun walkNode(
         node: org.jsoup.nodes.Node,
         colorMap: Map<String, SpanStyle>,
@@ -81,6 +128,53 @@ object HtmlToAnnotatedString {
         }
     }
 
+    private fun walkNodeBothThemes(
+        node: org.jsoup.nodes.Node,
+        lightColorMap: Map<String, SpanStyle>,
+        darkColorMap: Map<String, SpanStyle>,
+        lightBuilder: AnnotatedString.Builder,
+        darkBuilder: AnnotatedString.Builder,
+    ) {
+        when (node) {
+            is Element -> {
+                // Evaluate tagName once; resolve styles for both color maps in the same pass.
+                val lightStyle: SpanStyle?
+                val darkStyle: SpanStyle?
+                if (node.tagName() == "span") {
+                    val cls = node.className()
+                    if (cls.isBlank()) {
+                        lightStyle = null
+                        darkStyle = null
+                    } else {
+                        // Parse the class list once; reuse for both color-map lookups to avoid
+                        // redundant trim/split/Regex work on the hot dual-theme path.
+                        val classes = cls.trim().split(Regex("\\s+"))
+                        lightStyle = resolveStyleFromClasses(cls, classes, lightColorMap)
+                        darkStyle = resolveStyleFromClasses(cls, classes, darkColorMap)
+                    }
+                } else {
+                    lightStyle = null
+                    darkStyle = null
+                }
+
+                if (lightStyle != null) lightBuilder.pushStyle(lightStyle)
+                if (darkStyle != null) darkBuilder.pushStyle(darkStyle)
+
+                node.childNodes().forEach { child ->
+                    walkNodeBothThemes(child, lightColorMap, darkColorMap, lightBuilder, darkBuilder)
+                }
+
+                if (lightStyle != null) lightBuilder.pop()
+                if (darkStyle != null) darkBuilder.pop()
+            }
+
+            is TextNode -> {
+                lightBuilder.append(node.wholeText)
+                darkBuilder.append(node.wholeText)
+            }
+        }
+    }
+
     /**
      * Resolves the best [SpanStyle] for a given element class attribute.
      *
@@ -107,6 +201,26 @@ object HtmlToAnnotatedString {
         }
 
         // Fall back to the first recognized class
+        return classes.firstNotNullOfOrNull { colorMap[it] }
+    }
+
+    /**
+     * Like [resolveStyle] but accepts a pre-parsed class list so the [walkNodeBothThemes]
+     * hot path can parse the class attribute once and reuse it for both color-map lookups.
+     */
+    private fun resolveStyleFromClasses(
+        classAttr: String,
+        classes: List<String>,
+        colorMap: Map<String, SpanStyle>,
+    ): SpanStyle? {
+        // Fast-path: exact match (e.g. "hljs-keyword" — the large majority of tokens).
+        colorMap[classAttr]?.let { return it }
+        // Compound key (e.g. "hljs-title.function_" for class="hljs-title function_").
+        if (classes.size > 1) {
+            val compoundKey = classes.joinToString(".")
+            colorMap[compoundKey]?.let { return it }
+        }
+        // Fall back to the first recognized class.
         return classes.firstNotNullOfOrNull { colorMap[it] }
     }
 }

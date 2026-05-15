@@ -256,8 +256,12 @@ class HighlightEngine(
         val start = System.nanoTime()
         return highlightToHtml(code, language).map { htmlResult ->
             try {
-                val light = HtmlToAnnotatedString.convert(htmlResult.html, lightTheme.colorMap)
-                val dark = HtmlToAnnotatedString.convert(htmlResult.html, darkTheme.colorMap)
+                val (light, dark) =
+                    HtmlToAnnotatedString.convertBothThemes(
+                        htmlResult.html,
+                        lightTheme.colorMap,
+                        darkTheme.colorMap,
+                    )
                 ThemedHighlightResult(
                     light = light,
                     dark = dark,
@@ -557,8 +561,9 @@ internal fun escapeForJs(str: String): String =
  *
  * @property light Syntax-highlighted [AnnotatedString] styled with the light theme.
  * @property dark Syntax-highlighted [AnnotatedString] styled with the dark theme.
- * @property durationMs Pure highlight time in milliseconds — covers the JS call and both
- *   HTML conversion passes. Excludes coroutine-scheduling overhead.
+ * @property durationMs Pure highlight time in milliseconds — covers the JS call and a single
+ *   HTML conversion pass (light and dark outputs are produced together in one pass). Excludes
+ *   coroutine-scheduling overhead.
  */
 data class ThemedHighlightResult(
     val light: AnnotatedString,

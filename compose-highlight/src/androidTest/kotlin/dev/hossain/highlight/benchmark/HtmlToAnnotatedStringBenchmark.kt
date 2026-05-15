@@ -29,6 +29,7 @@ class HtmlToAnnotatedStringBenchmark {
     val benchmarkRule = BenchmarkRule()
 
     private lateinit var colorMap: Map<String, SpanStyle>
+    private lateinit var darkColorMap: Map<String, SpanStyle>
 
     // Realistic hljs HTML output for a Python function (from actual device log)
     private val pythonHtml =
@@ -80,6 +81,7 @@ class HtmlToAnnotatedStringBenchmark {
     fun loadTheme() {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         colorMap = ThemeParser.parse(context, "compose-highlight/themes/tomorrow.css")
+        darkColorMap = ThemeParser.parse(context, "compose-highlight/themes/tomorrow-night.css")
     }
 
     @Test
@@ -98,5 +100,25 @@ class HtmlToAnnotatedStringBenchmark {
     fun convertSqlHtml() =
         benchmarkRule.measureRepeated {
             HtmlToAnnotatedString.convert(sqlHtml, colorMap)
+        }
+
+    // Dual-theme benchmarks — measure the single-parse / single-traversal path.
+
+    @Test
+    fun convertBothThemesPythonHtml() =
+        benchmarkRule.measureRepeated {
+            HtmlToAnnotatedString.convertBothThemes(pythonHtml, colorMap, darkColorMap)
+        }
+
+    @Test
+    fun convertBothThemesKotlinHtml() =
+        benchmarkRule.measureRepeated {
+            HtmlToAnnotatedString.convertBothThemes(kotlinHtml, colorMap, darkColorMap)
+        }
+
+    @Test
+    fun convertBothThemesSqlHtml() =
+        benchmarkRule.measureRepeated {
+            HtmlToAnnotatedString.convertBothThemes(sqlHtml, colorMap, darkColorMap)
         }
 }

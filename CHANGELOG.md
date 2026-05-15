@@ -4,10 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
-### Fixed
-- **Sample app preserves top-level demo selections across recreation** — `SampleScreen` now uses
-  `rememberSaveable` for the light/dark toggle, selected demo tab, and selected theme family so
-  those user-facing choices survive configuration changes.
+### Changed
+- **`highlightBothThemes` now parses the HTML once** — `HtmlToAnnotatedString.convertBothThemes()`
+  replaces the prior double-`convert()` call in `HighlightEngine.highlightBothThemes()`. The HTML
+  fragment is parsed into a DOM once and walked once, with two `AnnotatedString.Builder` instances
+  updated in parallel (one per theme). This removes a redundant Jsoup parse and a redundant DOM
+  traversal on every dual-theme highlight call. Closes #82.
 
 ### Added
 - **Robolectric JVM tests for Compose UI** — Added 13 new unit tests in `src/test/` that run on
@@ -25,6 +27,9 @@ All notable changes to this project will be documented in this file.
   `tomorrow`, `tomorrowNight`, `atomOneDark`, `atomOneLight`, and `fromAsset` defensively resolve
   `context.applicationContext` before retaining it in lazy theme providers, preventing accidental
   Activity-context retention when a theme instance outlives an Activity lifecycle.
+- **Sample app preserves top-level demo selections across recreation** — `SampleScreen` now uses
+  `rememberSaveable` for the light/dark toggle, selected demo tab, and selected theme family so
+  those user-facing choices survive configuration changes.
 
 ## [0.14.0] - 2026-05-13
 
