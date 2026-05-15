@@ -105,33 +105,61 @@ class HighlightTheme private constructor(
     override fun toString(): String = "HighlightTheme(name=$name)"
 
     companion object {
-        /** Built-in Base16 Tomorrow light theme. */
-        fun tomorrow(context: Context): HighlightTheme =
-            HighlightTheme(
+        /**
+         * Built-in Base16 Tomorrow light theme.
+         *
+         * The provided [context] is defensively normalized to `applicationContext` before being
+         * retained by the lazy theme provider.
+         */
+        fun tomorrow(context: Context): HighlightTheme {
+            val appContext = context.applicationContext
+            return HighlightTheme(
                 name = "tomorrow",
-                colorMapProvider = { ThemeParser.parseAsset(context, "compose-highlight/themes/tomorrow.css") },
+                colorMapProvider = { ThemeParser.parseAsset(appContext, "compose-highlight/themes/tomorrow.css") },
             )
+        }
 
-        /** Built-in Base16 Tomorrow Night dark theme. */
-        fun tomorrowNight(context: Context): HighlightTheme =
-            HighlightTheme(
+        /**
+         * Built-in Base16 Tomorrow Night dark theme.
+         *
+         * The provided [context] is defensively normalized to `applicationContext` before being
+         * retained by the lazy theme provider.
+         */
+        fun tomorrowNight(context: Context): HighlightTheme {
+            val appContext = context.applicationContext
+            return HighlightTheme(
                 name = "tomorrow-night",
-                colorMapProvider = { ThemeParser.parseAsset(context, "compose-highlight/themes/tomorrow-night.css") },
+                colorMapProvider = { ThemeParser.parseAsset(appContext, "compose-highlight/themes/tomorrow-night.css") },
             )
+        }
 
-        /** Built-in Atom One Dark theme. */
-        fun atomOneDark(context: Context): HighlightTheme =
-            HighlightTheme(
+        /**
+         * Built-in Atom One Dark theme.
+         *
+         * The provided [context] is defensively normalized to `applicationContext` before being
+         * retained by the lazy theme provider.
+         */
+        fun atomOneDark(context: Context): HighlightTheme {
+            val appContext = context.applicationContext
+            return HighlightTheme(
                 name = "atom-one-dark",
-                colorMapProvider = { ThemeParser.parseAsset(context, "compose-highlight/themes/atom-one-dark.css") },
+                colorMapProvider = { ThemeParser.parseAsset(appContext, "compose-highlight/themes/atom-one-dark.css") },
             )
+        }
 
-        /** Built-in Atom One Light theme. */
-        fun atomOneLight(context: Context): HighlightTheme =
-            HighlightTheme(
+        /**
+         * Built-in Atom One Light theme.
+         *
+         * The provided [context] is defensively normalized to `applicationContext` before being
+         * retained by the lazy theme provider.
+         */
+        fun atomOneLight(context: Context): HighlightTheme {
+            val appContext = context.applicationContext
+            return HighlightTheme(
                 name = "atom-one-light",
-                colorMapProvider = { ThemeParser.parseAsset(context, "compose-highlight/themes/atom-one-light.css") },
+                colorMapProvider = { ThemeParser.parseAsset(appContext, "compose-highlight/themes/atom-one-light.css") },
             )
+        }
 
         /**
          * Custom theme loaded from a Highlight.js CSS file in the app's `assets/` folder.
@@ -151,6 +179,8 @@ class HighlightTheme private constructor(
          * ```
          *
          * Note: loading is lazy — the CSS is parsed on first use, not at factory-call time.
+         * The provided [context] is defensively normalized to `applicationContext` before being
+         * retained by the lazy theme provider.
          *
          * @throws [HighlightException.ThemeNotFound] if the asset file is found but contains no
          *   parseable color rules (e.g. it is empty or uses only unsupported CSS properties).
@@ -161,15 +191,17 @@ class HighlightTheme private constructor(
             context: Context,
             assetPath: String,
             name: String,
-        ): HighlightTheme =
-            HighlightTheme(
+        ): HighlightTheme {
+            val appContext = context.applicationContext
+            return HighlightTheme(
                 name = name,
                 colorMapProvider = {
-                    val map = ThemeParser.parseAsset(context, assetPath)
+                    val map = ThemeParser.parseAsset(appContext, assetPath)
                     if (map.isEmpty()) throw HighlightException.ThemeNotFound(assetPath)
                     map
                 },
             )
+        }
 
         /**
          * Custom theme from raw Highlight.js CSS text.
