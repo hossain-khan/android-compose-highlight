@@ -15,6 +15,12 @@ All notable changes to this project will be documented in this file.
     access, dark-mode selection, light-mode selection, and the expected error when accessed without
     a provider.
 
+### Fixed
+- **`HighlightTheme` context factories now normalize to `applicationContext` internally** —
+  `tomorrow`, `tomorrowNight`, `atomOneDark`, `atomOneLight`, and `fromAsset` defensively resolve
+  `context.applicationContext` before retaining it in lazy theme providers, preventing accidental
+  Activity-context retention when a theme instance outlives an Activity lifecycle.
+
 ## [0.14.0] - 2026-05-13
 
 ### Added

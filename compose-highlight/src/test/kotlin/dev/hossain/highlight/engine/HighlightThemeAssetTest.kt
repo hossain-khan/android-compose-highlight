@@ -1,5 +1,8 @@
 package dev.hossain.highlight.engine
 
+import android.content.Context
+import android.content.ContextWrapper
+import android.content.res.AssetManager
 import androidx.compose.ui.graphics.Color
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
@@ -12,6 +15,7 @@ import org.robolectric.annotation.Config
 @Config(sdk = [30])
 class HighlightThemeAssetTest {
     private val context get() = InstrumentationRegistry.getInstrumentation().targetContext
+    private val contextWithThrowingAssets get() = ThrowingAssetsContext(context)
 
     @Test
     fun `tomorrow factory produces valid colorMap from asset`() {
@@ -62,6 +66,29 @@ class HighlightThemeAssetTest {
     }
 
     @Test
+    fun `built-in factories normalize to applicationContext`() {
+        val context = contextWithThrowingAssets
+        val themes =
+            listOf(
+                HighlightTheme.tomorrow(context),
+                HighlightTheme.tomorrowNight(context),
+                HighlightTheme.atomOneDark(context),
+                HighlightTheme.atomOneLight(context),
+            )
+
+        themes.forEach { theme ->
+            assertThat(theme.colorMap).isNotEmpty()
+            assertThat(theme.colorMap).containsKey("hljs")
+        }
+    }
+
+    @Test
+    fun `fromAsset normalizes to applicationContext`() {
+        val theme = HighlightTheme.fromAsset(contextWithThrowingAssets, "compose-highlight/themes/tomorrow.css", "test-asset")
+        assertThat(theme.colorMap).isNotEmpty()
+    }
+
+    @Test
     fun `fromAsset with missing path throws on colorMap access`() {
         val theme = HighlightTheme.fromAsset(context, "nonexistent.css", "bad")
         try {
@@ -71,5 +98,13 @@ class HighlightThemeAssetTest {
             val isExpected = e is java.io.IOException || e is HighlightException.ThemeNotFound
             assertThat(isExpected).isTrue()
         }
+    }
+
+    private class ThrowingAssetsContext(
+        base: Context,
+    ) : ContextWrapper(base) {
+        override fun getAssets(): AssetManager = throw IllegalStateException("assets must be read from applicationContext")
+
+        override fun getApplicationContext(): Context = baseContext.applicationContext
     }
 }
