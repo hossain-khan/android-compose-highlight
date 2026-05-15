@@ -78,6 +78,9 @@ import androidx.compose.ui.text.SpanStyle
  * `HighlightTheme` uses [name] as its identity for `equals()` and `hashCode()`. This means
  * Compose APIs (`remember`, `LaunchedEffect`, `key`) correctly detect theme changes by name.
  * **Names must be unique** — do not create two themes with different content but the same name.
+ *
+ * @property name Unique display name for this theme. Used by [equals] and [hashCode] — two themes
+ *   with the same [name] are considered equal regardless of their color maps.
  */
 @Stable
 class HighlightTheme private constructor(
