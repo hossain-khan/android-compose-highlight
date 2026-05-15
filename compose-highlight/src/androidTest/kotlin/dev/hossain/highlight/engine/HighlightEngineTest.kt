@@ -3,6 +3,7 @@ package dev.hossain.highlight.engine
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.google.common.truth.Truth.assertThat
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.junit.After
@@ -34,6 +35,9 @@ class HighlightEngineTest {
         runBlocking {
             val result = engine.initialize()
             assertTrue("Expected initialize() to succeed", result.isSuccess)
+            // Wait for bridge.html to finish loading (onPageFinished → isInitialized = true)
+            engine.isInitialized.first { it }
+            assertTrue("Expected isInitialized true after WebView page load", engine.isInitialized.value)
         }
 
     @Test
