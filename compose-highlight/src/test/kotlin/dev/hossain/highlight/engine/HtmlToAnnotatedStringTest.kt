@@ -231,7 +231,10 @@ class HtmlToAnnotatedStringTest {
     @Test
     fun `convertBothThemes light and dark keyword spans have different colors`() {
         val html = """<span class="hljs-keyword">return</span>"""
-        val (light, dark) = HtmlToAnnotatedString.convertBothThemes(html, colorMap, darkColorMap)
+        // Use maps without the base .hljs entry so firstOrNull() reliably returns the keyword
+        // span rather than the full-range base style span (which would also differ between
+        // themes but would not verify that keyword styling is applied correctly).
+        val (light, dark) = HtmlToAnnotatedString.convertBothThemes(html, colorMapNoBase, darkColorMap.filterKeys { it != "hljs" })
         val lightKeyword = light.spanStyles.firstOrNull()
         val darkKeyword = dark.spanStyles.firstOrNull()
         assertThat(lightKeyword).isNotNull()

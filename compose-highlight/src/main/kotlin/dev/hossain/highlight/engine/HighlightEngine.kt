@@ -561,8 +561,9 @@ internal fun escapeForJs(str: String): String =
  *
  * @property light Syntax-highlighted [AnnotatedString] styled with the light theme.
  * @property dark Syntax-highlighted [AnnotatedString] styled with the dark theme.
- * @property durationMs Pure highlight time in milliseconds — covers the JS call and both
- *   HTML conversion passes. Excludes coroutine-scheduling overhead.
+ * @property durationMs Pure highlight time in milliseconds — covers the JS call and a single
+ *   HTML conversion pass (light and dark outputs are produced together in one pass). Excludes
+ *   coroutine-scheduling overhead.
  */
 data class ThemedHighlightResult(
     val light: AnnotatedString,
