@@ -81,6 +81,13 @@ object ThemeParser {
             // overwriting the standalone `.hljs-keyword` entry with a context-specific style.
             selectorsPart.split(",").forEach { individualSelector ->
                 val trimmed = individualSelector.trim()
+
+                // Skip pseudo-element and pseudo-class selectors (::selection, :hover, etc.).
+                // Without this check, a rule like `.hljs::selection { background: #aabbcc }`
+                // strips the pseudo-element and incorrectly overwrites `result["hljs"]`
+                // with the selection-highlight color instead of the real background color.
+                if (trimmed.contains("::") || trimmed.contains(Regex(""":(?!:)[a-z]"""))) return@forEach
+
                 val matches = selectorPattern.findAll(trimmed).toList()
 
                 // Skip context-specific descendant selectors entirely.

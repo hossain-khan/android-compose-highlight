@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Fixed
+- **`ThemeParser` — pseudo-element/pseudo-class selector leak** — selectors containing `::` or `:`
+  (e.g. `.hljs::selection`, `.hljs:hover`) were being stripped of the pseudo-part and incorrectly
+  stored as the `.hljs` base entry. This caused the selection-highlight background color
+  (e.g. `#516d7b` in `base16/atelier-lakeside`) to overwrite the real theme background (`#161b1d`),
+  making code blocks appear with the wrong background color. All `::selection`, `:hover`, etc. rules
+  are now skipped during parsing.
+
 ### Changed
 - **Sample app — "All Themes" tab** — new tab that bundles all 256 highlight.js 11.11.1 theme CSS
   files as sample app assets. A searchable dropdown lets users pick any theme and instantly

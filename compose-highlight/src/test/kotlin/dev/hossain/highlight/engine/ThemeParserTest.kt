@@ -201,4 +201,24 @@ class ThemeParserTest {
         // The descendant selector should not create an entry for hljs-keyword
         assertThat(result["hljs-keyword"]).isNull()
     }
+
+    @Test
+    fun `parse does not overwrite hljs background with pseudo-element selection color`() {
+        // Regression: .hljs::selection has a different background (selection highlight) that
+        // must NOT overwrite the real .hljs background derived from the base rule.
+        val css =
+            ".hljs { color: #7ea2b4; background: #161b1d } " +
+                ".hljs ::selection, .hljs::selection { background-color: #516d7b; color: #7ea2b4 }"
+        val result = ThemeParser.parse(css)
+        // The real background color must be preserved
+        assertThat(result["hljs"]?.background).isEqualTo(Color(0xFF161b1d))
+    }
+
+    @Test
+    fun `parse skips pseudo-class selectors`() {
+        // :focus, :hover etc. should not pollute the color map
+        val css = ".hljs { background: #1e1e1e } .hljs:hover { background: #ff0000 }"
+        val result = ThemeParser.parse(css)
+        assertThat(result["hljs"]?.background).isEqualTo(Color(0xFF1e1e1e))
+    }
 }
