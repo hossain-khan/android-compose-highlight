@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased]
+## [0.17.0] - 2026-05-16
 
 ### Fixed
 - **`ThemeParser` — pseudo-element/pseudo-class selector leak** — selectors containing `::` or `:`
@@ -10,19 +10,19 @@ All notable changes to this project will be documented in this file.
   stored as the `.hljs` base entry. This caused the selection-highlight background color
   (e.g. `#516d7b` in `base16/atelier-lakeside`) to overwrite the real theme background (`#161b1d`),
   making code blocks appear with the wrong background color. All `::selection`, `:hover`, etc. rules
-  are now skipped during parsing.
+  are now skipped during parsing. Affects all 4 bundled themes (`tomorrow`, `tomorrow-night` had
+  `::selection` rules) and any custom `fromAsset()` / `fromCss()` theme with similar rules.
 
 ### Changed
 - **Sample app — "All Themes" tab** — new tab that bundles all 256 highlight.js 11.11.1 theme CSS
   files as sample app assets. A searchable dropdown lets users pick any theme and instantly
   live-preview it on a code block, similar to the highlightjs.org/demo experience.
-
-### Changed
 - **Sample app — interactive Styling section** — replaced three static `CodeBlockStyle` demo blocks
   with a single live-preview code block. An `ExtendedFloatingActionButton` (bottom-right) opens a
-  `ModalBottomSheet` where all `CodeBlockStyle` parameters (corner radius, padding, header padding,
-  line number width, copy button size) and visibility toggles (line numbers, language label, copy
-  button, custom copy icon) can be adjusted and instantly reflected in the code block behind it.
+  `ModalBottomSheet` where all `CodeBlockStyle` parameters can be adjusted and instantly reflected
+  in the code block behind it.
+- **Sample app — Themes section** — trimmed to one built-in theme demo and one `fromAsset()` demo
+  that shows its own loading code as the highlighted snippet.
 
 ## [0.16.0] - 2026-05-16
 
