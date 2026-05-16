@@ -102,6 +102,39 @@ httpApiClient.get("/users")
     }
     """.trimIndent()
 
+/**
+ * Kotlin snippet demonstrating [HighlightTheme.fromAsset] — intentionally shown
+ * inside a [dev.hossain.highlight.ui.SyntaxHighlightedCode] block so the demo
+ * highlights its own loading code ("eat your own dog food").
+ */
+internal val FROM_ASSET_SNIPPET =
+    """
+// Save any highlight.js CSS theme file in your app's assets:
+//   app/src/main/assets/themes/dracula.min.css
+
+val theme = HighlightTheme.fromAsset(
+    context   = context.applicationContext,
+    assetPath = "themes/dracula.min.css",
+    name      = "dracula",
+)
+
+// Pass the theme directly to the composable
+SyntaxHighlightedCode(
+    code     = sourceCode,
+    language = "kotlin",
+    theme    = theme,
+)
+
+// Or wrap a subtree so all code blocks share one theme
+HighlightThemeProvider(
+    lightHighlightTheme = lightTheme,
+    darkHighlightTheme  = theme,
+) {
+    SyntaxHighlightedCode(code = sourceCode, language = "kotlin")
+    SyntaxHighlightedCode(code = otherCode,  language = "python")
+}
+    """.trimIndent()
+
 internal val JAVASCRIPT_EXTENDED_SNIPPET =
     """
 // --- Classes & inheritance ---
