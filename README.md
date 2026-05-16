@@ -38,7 +38,10 @@ HighlightThemeProvider(
 
 ### Demo 🎥
 
-https://github.com/user-attachments/assets/10617b72-9b7c-413b-92b5-a939a34ad6af
+| Sample App | Customizations |
+| ---- | ----- |
+| <video src="https://github.com/user-attachments/assets/10617b72-9b7c-413b-92b5-a939a34ad6af"> | <video src="https://github.com/user-attachments/assets/e97ec831-5531-43d3-8e23-e55498b326c9"> |
+
 
 ---
 
