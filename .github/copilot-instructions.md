@@ -122,3 +122,6 @@ Never tell the user "the publish workflow will trigger automatically" — it won
 ```
 dev.hossain:compose-highlight:<version>
 ```
+
+**Updating bundled highlight.js themes in the sample app** — to refresh the 256 `.min.css` theme files under `sample/src/main/assets/themes/` (e.g. when upgrading highlight.js), follow the steps in [`docs/updating-hljs-themes.md`](../docs/updating-hljs-themes.md).
+
