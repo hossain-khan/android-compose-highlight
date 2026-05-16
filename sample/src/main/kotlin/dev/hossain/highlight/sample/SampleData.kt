@@ -102,6 +102,73 @@ httpApiClient.get("/users")
     }
     """.trimIndent()
 
+internal val JAVASCRIPT_EXTENDED_SNIPPET =
+    """
+// --- Classes & inheritance ---
+class Animal {
+  #name; // private field
+  constructor(name) { this.#name = name; }
+  get name() { return this.#name; }
+  speak() { return `${'$'}{this.#name} makes a noise.`; }
+}
+
+class Dog extends Animal {
+  speak() { return `${'$'}{this.name} barks.`; }
+}
+
+// --- Destructuring, spread, rest ---
+const { name: dogName, ...rest } = { name: "Rex", age: 4, breed: "Lab" };
+const merged = { ...rest, owner: "Alice" };
+
+// --- Async / await with error handling ---
+const API_URL = "https://api.example.com";
+
+async function fetchUsers(page = 1) {
+  try {
+    const res = await fetch(`${'$'}{API_URL}/users?page=${'$'}{page}`);
+    if (!res.ok) throw new Error(`HTTP ${'$'}{res.status}`);
+    const { data, total } = await res.json();
+    return data.filter(u => u.active).map(({ id, email }) => ({ id, email }));
+  } catch (err) {
+    console.error("fetchUsers failed:", err.message);
+    return [];
+  }
+}
+
+// --- Generator function ---
+function* range(start, end, step = 1) {
+  for (let i = start; i < end; i += step) yield i;
+}
+
+// --- Promises & chaining ---
+Promise.all([fetchUsers(1), fetchUsers(2)])
+  .then(([page1, page2]) => [...page1, ...page2])
+  .then(all => all.sort((a, b) => a.id - b.id))
+  .catch(console.error)
+  .finally(() => console.log("done"));
+
+// --- Proxy & Reflect ---
+const handler = {
+  get(target, key) {
+    return key in target ? target[key] : `unknown key: ${'$'}{key}`;
+  },
+};
+const safe = new Proxy({}, handler);
+
+// --- Tagged template literal ---
+function highlight(strings, ...values) {
+  return strings.reduce((acc, str, i) =>
+    `${'$'}{acc}${'$'}{str}<b>${'$'}{values[i] ?? ""}</b>`, "");
+}
+const msg = highlight`Hello, ${'$'}{"world"}! You have ${'$'}{42} messages.`;
+
+// --- Symbol & WeakMap ---
+const _cache = new WeakMap();
+const ID = Symbol("id");
+
+export { Animal, Dog, fetchUsers, range };
+    """.trimIndent()
+
 internal val PYTHON_SNIPPET =
     """
 def fibonacci(n: int) -> int:

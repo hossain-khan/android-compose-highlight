@@ -22,7 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import dev.hossain.highlight.engine.HighlightTheme
-import dev.hossain.highlight.sample.KOTLIN_SNIPPET
+import dev.hossain.highlight.sample.JAVASCRIPT_EXTENDED_SNIPPET
 import dev.hossain.highlight.ui.SyntaxHighlightedCode
 
 /**
@@ -129,8 +129,8 @@ internal fun AllThemesSection() {
         )
 
         SyntaxHighlightedCode(
-            code = KOTLIN_SNIPPET,
-            language = "kotlin",
+            code = JAVASCRIPT_EXTENDED_SNIPPET,
+            language = "javascript",
             modifier = Modifier.fillMaxWidth(),
             theme = theme,
             showLineNumbers = true,
