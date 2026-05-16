@@ -18,6 +18,7 @@ Wrap your screen (or root composable) in `HighlightThemeProvider`, then place `S
 
 ```kotlin
 HighlightThemeProvider(
+    // Uses budled theme, or load CSS theme from assets, use style map, etc.
     lightHighlightTheme = rememberTomorrowTheme(),
     darkHighlightTheme  = rememberAtomOneDarkTheme(),
 ) {
