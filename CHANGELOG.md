@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Fixed
+- **`CancellationException` is no longer swallowed in `HighlightEngine`** — `highlightToHtml`,
+  `supportedLanguages`, and `highlightJsVersion` previously caught all `Exception` types,
+  silently converting parent coroutine cancellations into `Result.failure(JsExecutionFailed(...))`.
+  They now rethrow `CancellationException` to respect structured concurrency.
+- **`HighlightException.Timeout` is now actually thrown on timeout** — the same broad
+  `catch (e: Exception)` was swallowing `TimeoutCancellationException` (from `withTimeout`),
+  making `HighlightException.Timeout` dead code. Timeout is now correctly caught and converted
+  to `Result.failure(HighlightException.Timeout())` in all three methods.
+
 ### Performance
 - **`SyntaxHighlightedCode` is now `restartable skippable`** — Derived colors and `TextStyle`
   values (`backgroundColor`, `textColor`, `lineNumberColor`, `themedCodeStyle`,

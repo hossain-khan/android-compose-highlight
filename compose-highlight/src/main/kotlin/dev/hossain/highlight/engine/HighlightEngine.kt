@@ -5,6 +5,7 @@ import android.webkit.WebView
 import androidx.compose.ui.text.AnnotatedString
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.sync.Mutex
@@ -160,13 +161,14 @@ class HighlightEngine(
      * @param code The source code to highlight.
      * @param language Highlight.js language identifier (e.g. `"kotlin"`, `"python"`).
      * @return [Result] wrapping an [HtmlHighlightResult] (html + timing), or [Result.failure]
-     *   with a [HighlightException] on error.
+     *   with a [HighlightException] on error. Returns [HighlightException.Timeout] if the
+     *   JavaScript call does not complete within the timeout window.
      */
     suspend fun highlightToHtml(
         code: String,
         language: String,
     ): Result<HtmlHighlightResult> =
-        try {
+        withEngineErrorHandling {
             manager.initialize()
             val webView = manager.getReadyWebView()
 
@@ -181,10 +183,6 @@ class HighlightEngine(
                     )
                 }
             }
-        } catch (e: HighlightException) {
-            Result.failure(e)
-        } catch (e: Exception) {
-            Result.failure(HighlightException.JsExecutionFailed(e))
         }
 
     /**
@@ -311,49 +309,49 @@ class HighlightEngine(
      */
     suspend fun supportedLanguages(): Result<List<String>> {
         cachedLanguages?.let { return Result.success(it) }
-        return try {
+        return withEngineErrorHandling {
             manager.initialize()
             val webView = manager.getReadyWebView()
             mutex.withLock {
                 // Double-checked: another coroutine may have populated the cache while we waited.
-                cachedLanguages?.let { return Result.success(it) }
-                withTimeout(HighlightException.TIMEOUT_SECONDS * 1000L) {
-                    withContext(Dispatchers.Main) {
-                        suspendCancellableCoroutine { continuation ->
-                            webView.evaluateJavascript("listLanguages()") { rawResult ->
-                                if (!continuation.isActive) return@evaluateJavascript
-                                if (rawResult == null || rawResult == "null") {
-                                    continuation.resumeWithException(
-                                        HighlightException.JsExecutionFailed(
-                                            RuntimeException("listLanguages() returned null"),
-                                        ),
-                                    )
-                                    return@evaluateJavascript
-                                }
-                                // evaluateJavascript serializes a JS array to a JSON array string,
-                                // e.g. ["kotlin","java",...] — parse with JSONArray.
-                                try {
-                                    val jsonArray = org.json.JSONArray(rawResult)
-                                    val languages =
-                                        (0 until jsonArray.length())
-                                            .map { jsonArray.getString(it) }
-                                            .sorted()
-                                    cachedLanguages = languages
-                                    continuation.resume(Result.success(languages))
-                                } catch (e: Exception) {
-                                    continuation.resumeWithException(
-                                        HighlightException.JsExecutionFailed(e),
-                                    )
+                val cached = cachedLanguages
+                if (cached != null) {
+                    Result.success(cached)
+                } else {
+                    withTimeout(HighlightException.TIMEOUT_SECONDS * 1000L) {
+                        withContext(Dispatchers.Main) {
+                            suspendCancellableCoroutine { continuation ->
+                                webView.evaluateJavascript("listLanguages()") { rawResult ->
+                                    if (!continuation.isActive) return@evaluateJavascript
+                                    if (rawResult == null || rawResult == "null") {
+                                        continuation.resumeWithException(
+                                            HighlightException.JsExecutionFailed(
+                                                RuntimeException("listLanguages() returned null"),
+                                            ),
+                                        )
+                                        return@evaluateJavascript
+                                    }
+                                    // evaluateJavascript serializes a JS array to a JSON array string,
+                                    // e.g. ["kotlin","java",...] — parse with JSONArray.
+                                    try {
+                                        val jsonArray = org.json.JSONArray(rawResult)
+                                        val languages =
+                                            (0 until jsonArray.length())
+                                                .map { jsonArray.getString(it) }
+                                                .sorted()
+                                        cachedLanguages = languages
+                                        continuation.resume(Result.success(languages))
+                                    } catch (e: Exception) {
+                                        continuation.resumeWithException(
+                                            HighlightException.JsExecutionFailed(e),
+                                        )
+                                    }
                                 }
                             }
                         }
                     }
                 }
             }
-        } catch (e: HighlightException) {
-            Result.failure(e)
-        } catch (e: Exception) {
-            Result.failure(HighlightException.JsExecutionFailed(e))
         }
     }
 
@@ -376,38 +374,38 @@ class HighlightEngine(
      */
     suspend fun highlightJsVersion(): Result<String> {
         cachedVersion?.let { return Result.success(it) }
-        return try {
+        return withEngineErrorHandling {
             manager.initialize()
             val webView = manager.getReadyWebView()
             mutex.withLock {
                 // Double-checked: another coroutine may have populated the cache while we waited.
-                cachedVersion?.let { return Result.success(it) }
-                withTimeout(HighlightException.TIMEOUT_SECONDS * 1000L) {
-                    withContext(Dispatchers.Main) {
-                        suspendCancellableCoroutine { continuation ->
-                            webView.evaluateJavascript("hljsVersion()") { rawResult ->
-                                if (!continuation.isActive) return@evaluateJavascript
-                                if (rawResult == null || rawResult == "null") {
-                                    continuation.resumeWithException(
-                                        HighlightException.JsExecutionFailed(
-                                            RuntimeException("hljsVersion() returned null"),
-                                        ),
-                                    )
-                                    return@evaluateJavascript
+                val cached = cachedVersion
+                if (cached != null) {
+                    Result.success(cached)
+                } else {
+                    withTimeout(HighlightException.TIMEOUT_SECONDS * 1000L) {
+                        withContext(Dispatchers.Main) {
+                            suspendCancellableCoroutine { continuation ->
+                                webView.evaluateJavascript("hljsVersion()") { rawResult ->
+                                    if (!continuation.isActive) return@evaluateJavascript
+                                    if (rawResult == null || rawResult == "null") {
+                                        continuation.resumeWithException(
+                                            HighlightException.JsExecutionFailed(
+                                                RuntimeException("hljsVersion() returned null"),
+                                            ),
+                                        )
+                                        return@evaluateJavascript
+                                    }
+                                    // evaluateJavascript returns a JSON-encoded string — strip quotes.
+                                    val version = unescapeJsString(rawResult)
+                                    cachedVersion = version
+                                    continuation.resume(Result.success(version))
                                 }
-                                // evaluateJavascript returns a JSON-encoded string — strip quotes.
-                                val version = unescapeJsString(rawResult)
-                                cachedVersion = version
-                                continuation.resume(Result.success(version))
                             }
                         }
                     }
                 }
             }
-        } catch (e: HighlightException) {
-            Result.failure(e)
-        } catch (e: Exception) {
-            Result.failure(HighlightException.JsExecutionFailed(e))
         }
     }
 
@@ -445,6 +443,32 @@ class HighlightEngine(
         }
     }
 }
+
+/**
+ * Executes [block] and maps common exceptions to [Result] failure types, while correctly
+ * propagating [CancellationException] for structured concurrency.
+ *
+ * - [TimeoutCancellationException] (from internal `withTimeout`) → [HighlightException.Timeout]
+ * - [CancellationException] (parent scope cancellation) → rethrown
+ * - [HighlightException] → preserved as [Result.failure]
+ * - Any other [Exception] → wrapped in [HighlightException.JsExecutionFailed]
+ *
+ * This helper eliminates the repeated catch chain in [HighlightEngine.highlightToHtml],
+ * [HighlightEngine.supportedLanguages], and [HighlightEngine.highlightJsVersion], and enables
+ * direct unit testing of the exception-mapping logic without a real WebView.
+ */
+internal suspend fun <T> withEngineErrorHandling(block: suspend () -> Result<T>): Result<T> =
+    try {
+        block()
+    } catch (e: TimeoutCancellationException) {
+        Result.failure(HighlightException.Timeout())
+    } catch (e: CancellationException) {
+        throw e
+    } catch (e: HighlightException) {
+        Result.failure(e)
+    } catch (e: Exception) {
+        Result.failure(HighlightException.JsExecutionFailed(e))
+    }
 
 /**
  * Unescapes a JSON-encoded string returned by [WebView.evaluateJavascript].
