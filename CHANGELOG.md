@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Changed
+- **Sample app — "All Themes" tab** — new tab that bundles all 256 highlight.js 11.11.1 theme CSS
+  files as sample app assets. A searchable dropdown lets users pick any theme and instantly
+  live-preview it on a code block, similar to the highlightjs.org/demo experience.
+
+### Changed
 - **Sample app — interactive Styling section** — replaced three static `CodeBlockStyle` demo blocks
   with a single live-preview code block. An `ExtendedFloatingActionButton` (bottom-right) opens a
   `ModalBottomSheet` where all `CodeBlockStyle` parameters (corner radius, padding, header padding,

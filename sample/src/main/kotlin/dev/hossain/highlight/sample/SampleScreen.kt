@@ -44,6 +44,7 @@ import androidx.compose.ui.unit.dp
 import dev.hossain.highlight.engine.HighlightTheme
 import dev.hossain.highlight.sample.perf.PerfActivity
 import dev.hossain.highlight.sample.sections.AdvancedEngineSection
+import dev.hossain.highlight.sample.sections.AllThemesSection
 import dev.hossain.highlight.sample.sections.CallbacksSection
 import dev.hossain.highlight.sample.sections.EngineInfoSection
 import dev.hossain.highlight.sample.sections.SectionHeader
@@ -277,6 +278,10 @@ fun SampleScreen() {
 
                         DemoTab.Themes -> {
                             item { ThemeCreationSection() }
+                        }
+
+                        DemoTab.AllThemes -> {
+                            item { AllThemesSection() }
                         }
 
                         DemoTab.Advanced -> {
