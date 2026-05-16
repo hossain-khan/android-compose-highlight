@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased]
+## [0.16.0] - 2026-05-16
 
 ### Fixed
 - **`CancellationException` is no longer swallowed in `HighlightEngine`** — `highlightToHtml`,
