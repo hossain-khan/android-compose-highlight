@@ -140,12 +140,38 @@ object ThemeParser {
         )
     }
 
+    // CSS named colors used in highlight.js themes (standard CSS Color Level 4 values).
+    private val namedColors =
+        mapOf(
+            "black" to Color(0xFF000000),
+            "white" to Color(0xFFFFFFFF),
+            "red" to Color(0xFFFF0000),
+            "green" to Color(0xFF008000),
+            "blue" to Color(0xFF0000FF),
+            "yellow" to Color(0xFFFFFF00),
+            "orange" to Color(0xFFFFA500),
+            "purple" to Color(0xFF800080),
+            "gray" to Color(0xFF808080),
+            "grey" to Color(0xFF808080),
+            "silver" to Color(0xFFC0C0C0),
+            "navy" to Color(0xFF000080),
+            "teal" to Color(0xFF008080),
+            "maroon" to Color(0xFF800000),
+            "olive" to Color(0xFF808000),
+            "lime" to Color(0xFF00FF00),
+            "aqua" to Color(0xFF00FFFF),
+            "cyan" to Color(0xFF00FFFF),
+            "fuchsia" to Color(0xFFFF00FF),
+            "magenta" to Color(0xFFFF00FF),
+            "gold" to Color(0xFFFFD700),
+        )
+
     private fun parseColor(value: String): Color? {
         val trimmed = value.trim()
         return when {
             trimmed.startsWith("#") -> parseHexColor(trimmed)
             trimmed.startsWith("rgb") -> parseRgbColor(trimmed)
-            else -> null
+            else -> namedColors[trimmed.lowercase()]
         }
     }
 
@@ -153,11 +179,21 @@ object ThemeParser {
         try {
             val cleaned = hex.trimStart('#')
             when (cleaned.length) {
+                // 3-digit: #rgb - expand each digit to two (e.g. #f06 = #ff0066)
                 3 -> {
                     val r = cleaned[0].toString().repeat(2).toInt(16)
                     val g = cleaned[1].toString().repeat(2).toInt(16)
                     val b = cleaned[2].toString().repeat(2).toInt(16)
                     Color(r, g, b)
+                }
+
+                // 4-digit: #rgba - expand each digit to two (e.g. #444a = #44 44 44 aa)
+                4 -> {
+                    val r = cleaned[0].toString().repeat(2).toInt(16)
+                    val g = cleaned[1].toString().repeat(2).toInt(16)
+                    val b = cleaned[2].toString().repeat(2).toInt(16)
+                    val a = cleaned[3].toString().repeat(2).toInt(16)
+                    Color(r, g, b, a)
                 }
 
                 6 -> {
