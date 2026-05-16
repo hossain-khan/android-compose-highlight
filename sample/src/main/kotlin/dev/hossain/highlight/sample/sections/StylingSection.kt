@@ -31,6 +31,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
+import dev.hossain.highlight.sample.KOTLIN_EXTENDED_SNIPPET
 import dev.hossain.highlight.sample.KOTLIN_SNIPPET
 import dev.hossain.highlight.sample.R
 import dev.hossain.highlight.ui.CodeBlockStyle
@@ -88,7 +89,7 @@ internal fun StylingSection(
         modifier = Modifier.padding(bottom = 8.dp),
     )
     SyntaxHighlightedCode(
-        code = KOTLIN_SNIPPET,
+        code = KOTLIN_EXTENDED_SNIPPET,
         language = "kotlin",
         modifier = Modifier.fillMaxWidth(),
         style = style,
