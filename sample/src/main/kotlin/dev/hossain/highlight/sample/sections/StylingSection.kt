@@ -81,6 +81,12 @@ internal fun StylingSection(
         }
 
     // ── Live preview code block ───────────────────────────────────────────────
+    Text(
+        text = "Tap \"Customize Style\" to live-preview CodeBlockStyle options.",
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.padding(bottom = 8.dp),
+    )
     SyntaxHighlightedCode(
         code = KOTLIN_SNIPPET,
         language = "kotlin",
