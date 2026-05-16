@@ -10,7 +10,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilledTonalIconButton
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -86,15 +86,17 @@ internal fun StylingSection() {
         )
 
         // ── Open sheet button ─────────────────────────────────────────────────
-        FilledTonalIconButton(
+        ExtendedFloatingActionButton(
             onClick = { showSheet = true },
+            icon = {
+                Icon(
+                    painter = painterResource(R.drawable.tune_24dp),
+                    contentDescription = null,
+                )
+            },
+            text = { Text("Customize Style") },
             modifier = Modifier.align(Alignment.CenterHorizontally),
-        ) {
-            Icon(
-                painter = painterResource(R.drawable.tune_24dp),
-                contentDescription = "Customize style",
-            )
-        }
+        )
     }
 
     // ── Bottom sheet ──────────────────────────────────────────────────────────
