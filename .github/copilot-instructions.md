@@ -112,6 +112,12 @@ Do not commit if any of these fail.
 
 Only create the git tag after all of the above are committed and pushed.
 
+**Publishing to Maven Central is a manual two-step workflow — it is NOT triggered automatically by pushing a tag.** After tagging:
+1. Manually trigger the publish GitHub Actions workflow in **dry-run mode** first and verify it passes.
+2. Only if the dry run succeeds, trigger the workflow again **without dry-run** to actually publish to Maven Central.
+
+Never tell the user "the publish workflow will trigger automatically" — it won't.
+
 **Dependency coordinates (Maven Central):**
 ```
 dev.hossain:compose-highlight:<version>
