@@ -107,15 +107,9 @@ import kotlinx.coroutines.launch
  *   This callback is your signal that a copy occurred — use it to show your own feedback
  *   (e.g. a `Snackbar`, `Toast`, or animated indicator). The library does not show any
  *   built-in "Copied!" confirmation.
- *   Wrap lambdas in `remember { }` at the call site to avoid unnecessary recompositions:
- *   ```kotlin
- *   val onCopy = remember<(String) -> Unit> { { code -> showSnackbar(code) } }
- *   SyntaxHighlightedCode(code = snippet, language = "kotlin", onCopyClick = onCopy)
- *   ```
  * @param copyButtonIcon Optional composable slot that replaces the default `⧉` copy icon.
  *   Receives the recommended `tint` [Color] derived from the active theme so the icon blends
  *   naturally with the code block background. Only used when [showCopyButton] is `true`.
- *   Wrap the slot in `remember { }` at the call site to avoid unnecessary recompositions.
  *   Example:
  *   ```kotlin
  *   SyntaxHighlightedCode(
@@ -137,7 +131,6 @@ import kotlinx.coroutines.launch
  *   succeeds. Use [HighlightResult.durationMs] for timing, [HighlightResult.spanCount] to detect
  *   silent failures (0 = no tokens produced), and [HighlightResult.language] to confirm the
  *   language that was highlighted. Useful for performance metrics and test harnesses.
- *   Wrap lambdas in `remember { }` at the call site to avoid unnecessary recompositions.
  */
 @Composable
 fun SyntaxHighlightedCode(
