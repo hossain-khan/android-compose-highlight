@@ -8,9 +8,23 @@ import androidx.compose.ui.text.font.FontWeight
 import kotlin.math.roundToInt
 
 /**
- * Parses Highlight.js CSS theme files into a map of hljs class names → [SpanStyle].
+ * Parses Highlight.js CSS theme files into a map of hljs class names -> [SpanStyle].
  *
- * hljs theme CSS files follow a strict, predictable format so a regex-based parser is sufficient.
+ * ## Why this exists
+ *
+ * Highlight.js tokenizes source code into HTML where each token is wrapped in a
+ * `<span class="hljs-keyword">` (or similar class). It assigns **class names only** - it does
+ * not apply colors. Colors come from the companion CSS theme file, where rules like
+ * `.hljs-keyword { color: #7928a1 }` define the appearance of each token type.
+ *
+ * Compose cannot consume CSS directly, so [ThemeParser] bridges the gap: it reads the CSS
+ * file and produces a `Map<String, SpanStyle>` (e.g. `"hljs-keyword" -> SpanStyle(color=...)`)
+ * that `HtmlToAnnotatedString` uses to apply the correct color to each token when building
+ * the final [androidx.compose.ui.text.AnnotatedString].
+ *
+ * hljs theme CSS files follow a strict, predictable flat-rule format so a regex-based parser
+ * is sufficient. At-rule blocks (e.g. `@media`, `@supports`) are stripped before parsing to
+ * prevent inner rules from overwriting top-level color declarations.
  */
 object ThemeParser {
     /**
