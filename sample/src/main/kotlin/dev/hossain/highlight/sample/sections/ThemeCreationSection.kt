@@ -11,7 +11,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -74,13 +73,8 @@ private val MATERIAL3_LIGHT_CSS =
  */
 @Composable
 internal fun ThemeCreationSection() {
-    val context = LocalContext.current.applicationContext
-
     // Built-in theme — @Composable helper resolves LocalContext internally
     val atomOneDarkTheme = rememberAtomOneDarkTheme()
-
-    // fromAsset() — GitHub theme bundled in the sample app's assets/
-    val githubTheme = remember(context) { HighlightTheme.fromAsset(context, "themes/github.css", "github") }
 
     // fromCss() — Material 3–inspired inline CSS string
     val material3LightTheme =
@@ -121,7 +115,15 @@ internal fun ThemeCreationSection() {
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         // ── Built-in theme ─────────────────────────────────────────────────
-        SubSectionHeader("Built-in: HighlightTheme.atomOneDark()")
+        SubSectionHeader("Built-in themes")
+        Text(
+            text =
+                "The library bundles 4 ready-to-use themes: atomOneDark, atomOneLight, " +
+                    "tomorrow, and tomorrowNight. No extra assets needed — just call the " +
+                    "corresponding factory function. Here is atomOneDark as an example:",
+            style = MaterialTheme.typography.bodySmall,
+            modifier = Modifier.padding(horizontal = 4.dp),
+        )
         SyntaxHighlightedCode(
             code = KOTLIN_SNIPPET,
             language = "kotlin",
@@ -137,8 +139,7 @@ internal fun ThemeCreationSection() {
             text =
                 "Save any highlight.js-compatible CSS file anywhere under your app's assets/ " +
                     "directory and load it at runtime with HighlightTheme.fromAsset(). " +
-                    "The code block below is highlighted with a theme loaded from assets/ " +
-                    "and also shows you exactly how to do it.",
+                    "The code block below shows you exactly how to do it:",
             style = MaterialTheme.typography.bodySmall,
             modifier = Modifier.padding(horizontal = 4.dp),
         )
@@ -146,7 +147,7 @@ internal fun ThemeCreationSection() {
             code = FROM_ASSET_SNIPPET,
             language = "kotlin",
             modifier = Modifier.fillMaxWidth(),
-            theme = githubTheme,
+            theme = atomOneDarkTheme,
         )
 
         HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
