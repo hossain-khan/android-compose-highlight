@@ -5,6 +5,7 @@ import android.webkit.WebView
 import androidx.compose.ui.text.AnnotatedString
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.sync.Mutex
@@ -160,7 +161,8 @@ class HighlightEngine(
      * @param code The source code to highlight.
      * @param language Highlight.js language identifier (e.g. `"kotlin"`, `"python"`).
      * @return [Result] wrapping an [HtmlHighlightResult] (html + timing), or [Result.failure]
-     *   with a [HighlightException] on error.
+     *   with a [HighlightException] on error. Returns [HighlightException.Timeout] if the
+     *   JavaScript call does not complete within the timeout window.
      */
     suspend fun highlightToHtml(
         code: String,
@@ -181,6 +183,10 @@ class HighlightEngine(
                     )
                 }
             }
+        } catch (e: TimeoutCancellationException) {
+            Result.failure(HighlightException.Timeout())
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: HighlightException) {
             Result.failure(e)
         } catch (e: Exception) {
@@ -350,6 +356,10 @@ class HighlightEngine(
                     }
                 }
             }
+        } catch (e: TimeoutCancellationException) {
+            Result.failure(HighlightException.Timeout())
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: HighlightException) {
             Result.failure(e)
         } catch (e: Exception) {
@@ -404,6 +414,10 @@ class HighlightEngine(
                     }
                 }
             }
+        } catch (e: TimeoutCancellationException) {
+            Result.failure(HighlightException.Timeout())
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: HighlightException) {
             Result.failure(e)
         } catch (e: Exception) {
