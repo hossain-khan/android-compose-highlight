@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+### Fixed
+- **`ThemeParser` - CSS named color support** - colors specified by name (e.g. `color: red`,
+  `color: green`, `color: grey`) were silently ignored, causing tokens that use named colors
+  to render in the default text color. Added a map of 21 named CSS colors covering all colors
+  used in bundled highlight.js themes (including `red`, `green`, `grey`, `silver`, `navy`,
+  `teal`, `purple`, `maroon`, `gold`, `orange`, etc.).
+- **`ThemeParser` - 4-digit hex color support** - colors specified as `#rgba` (e.g. `#444a`)
+  were not parsed; each digit is now expanded by doubling identical to 3-digit `#rgb` handling.
+- **`ThemeParser` - `@media` at-rule block leakage** - inner rules inside `@media` (and other
+  at-rule) blocks (e.g. `@media screen and (-ms-high-contrast:active)`) were mistakenly parsed
+  as top-level rules and could overwrite earlier correct color entries. For example,
+  `a11y-light` has `.hljs-keyword { font-weight:700 }` inside a `@media` block that overwrote
+  the real `.hljs-keyword { color:#7928a1 }`, causing keywords to appear dark instead of purple.
+  All `@` at-rule blocks and their content are now stripped before rule extraction. CSS comments
+  are also stripped first to avoid misreading author email addresses (e.g. `@ericwbailey`) as
+  at-rule markers.
+
 ## [0.17.0] - 2026-05-16
 
 ### Fixed

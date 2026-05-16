@@ -8,9 +8,23 @@ import androidx.compose.ui.text.font.FontWeight
 import kotlin.math.roundToInt
 
 /**
- * Parses Highlight.js CSS theme files into a map of hljs class names → [SpanStyle].
+ * Parses Highlight.js CSS theme files into a map of hljs class names -> [SpanStyle].
  *
- * hljs theme CSS files follow a strict, predictable format so a regex-based parser is sufficient.
+ * ## Why this exists
+ *
+ * Highlight.js tokenizes source code into HTML where each token is wrapped in a
+ * `<span class="hljs-keyword">` (or similar class). It assigns **class names only** - it does
+ * not apply colors. Colors come from the companion CSS theme file, where rules like
+ * `.hljs-keyword { color: #7928a1 }` define the appearance of each token type.
+ *
+ * Compose cannot consume CSS directly, so [ThemeParser] bridges the gap: it reads the CSS
+ * file and produces a `Map<String, SpanStyle>` (e.g. `"hljs-keyword" -> SpanStyle(color=...)`)
+ * that `HtmlToAnnotatedString` uses to apply the correct color to each token when building
+ * the final [androidx.compose.ui.text.AnnotatedString].
+ *
+ * hljs theme CSS files follow a strict, predictable flat-rule format so a regex-based parser
+ * is sufficient. At-rule blocks (e.g. `@media`, `@supports`) are stripped before parsing to
+ * prevent inner rules from overwriting top-level color declarations.
  */
 object ThemeParser {
     /**
@@ -61,6 +75,22 @@ object ThemeParser {
     fun parse(cssText: String): Map<String, SpanStyle> {
         if (cssText.isBlank()) return emptyMap()
 
+        // Strip CSS comments first so that @ signs inside comment blocks
+        // (e.g. author emails like @ericwbailey) are not mistaken for at-rules.
+        val withoutComments = cssText.replace(Regex("""/\*[^*]*\*+(?:[^/*][^*]*\*+)*/"""), "")
+
+        // Strip @at-rules and their entire content blocks (e.g. @media, @supports, @keyframes).
+        // Without this, inner rules like `.hljs-keyword { font-weight:700 }` inside a
+        // @media block would overwrite the real color entry parsed from the main stylesheet.
+        // The pattern handles one level of nested braces (sufficient for all known hljs themes).
+        val withoutAtRules =
+            withoutComments.replace(
+                Regex("""@[a-zA-Z][^{]*\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}"""),
+                "",
+            )
+
+        if (withoutAtRules.isBlank()) return emptyMap()
+
         val result = mutableMapOf<String, SpanStyle>()
         // Match each CSS rule block: selectors { declarations }
         val rulePattern = Regex("""([^{}]+)\{([^{}]*)\}""")
@@ -70,7 +100,7 @@ object ThemeParser {
         // Stops at whitespace (descendant combinator) and at a second .hljs (which would be a new selector token).
         val selectorPattern = Regex("""\.hljs[-\w]*(?:\.(?!hljs)[\w][-\w.]*)*""")
 
-        rulePattern.findAll(cssText).forEach { matchResult ->
+        rulePattern.findAll(withoutAtRules).forEach { matchResult ->
             val selectorsPart = matchResult.groupValues[1]
             val declarations = matchResult.groupValues[2]
 
@@ -140,12 +170,38 @@ object ThemeParser {
         )
     }
 
+    // CSS named colors used in highlight.js themes (standard CSS Color Level 4 values).
+    private val namedColors =
+        mapOf(
+            "black" to Color(0xFF000000),
+            "white" to Color(0xFFFFFFFF),
+            "red" to Color(0xFFFF0000),
+            "green" to Color(0xFF008000),
+            "blue" to Color(0xFF0000FF),
+            "yellow" to Color(0xFFFFFF00),
+            "orange" to Color(0xFFFFA500),
+            "purple" to Color(0xFF800080),
+            "gray" to Color(0xFF808080),
+            "grey" to Color(0xFF808080),
+            "silver" to Color(0xFFC0C0C0),
+            "navy" to Color(0xFF000080),
+            "teal" to Color(0xFF008080),
+            "maroon" to Color(0xFF800000),
+            "olive" to Color(0xFF808000),
+            "lime" to Color(0xFF00FF00),
+            "aqua" to Color(0xFF00FFFF),
+            "cyan" to Color(0xFF00FFFF),
+            "fuchsia" to Color(0xFFFF00FF),
+            "magenta" to Color(0xFFFF00FF),
+            "gold" to Color(0xFFFFD700),
+        )
+
     private fun parseColor(value: String): Color? {
         val trimmed = value.trim()
         return when {
             trimmed.startsWith("#") -> parseHexColor(trimmed)
             trimmed.startsWith("rgb") -> parseRgbColor(trimmed)
-            else -> null
+            else -> namedColors[trimmed.lowercase()]
         }
     }
 
@@ -153,11 +209,21 @@ object ThemeParser {
         try {
             val cleaned = hex.trimStart('#')
             when (cleaned.length) {
+                // 3-digit: #rgb - expand each digit to two (e.g. #f06 = #ff0066)
                 3 -> {
                     val r = cleaned[0].toString().repeat(2).toInt(16)
                     val g = cleaned[1].toString().repeat(2).toInt(16)
                     val b = cleaned[2].toString().repeat(2).toInt(16)
                     Color(r, g, b)
+                }
+
+                // 4-digit: #rgba - expand each digit to two (e.g. #444a = #44 44 44 aa)
+                4 -> {
+                    val r = cleaned[0].toString().repeat(2).toInt(16)
+                    val g = cleaned[1].toString().repeat(2).toInt(16)
+                    val b = cleaned[2].toString().repeat(2).toInt(16)
+                    val a = cleaned[3].toString().repeat(2).toInt(16)
+                    Color(r, g, b, a)
                 }
 
                 6 -> {

@@ -21,6 +21,23 @@ import kotlin.coroutines.resumeWithException
  * Thread safety: WebView is always accessed on the Main thread.
  * Concurrent highlight calls are serialized via [mutex].
  *
+ * ## How highlighting works
+ *
+ * Highlight.js runs inside a hidden off-screen WebView. When you call [highlight], the engine:
+ *
+ * 1. **Tokenizes** - calls `highlightCode(code, lang)` via `evaluateJavascript()`, which returns
+ *    an HTML string where each token is wrapped in a `<span class="hljs-keyword">` (or similar).
+ *    highlight.js only assigns class names - it does not apply any colors itself.
+ *
+ * 2. **Resolves colors** - [HighlightTheme] lazily parses its CSS file via [ThemeParser], which
+ *    translates CSS rules like `.hljs-keyword { color: #7928a1 }` into a map of
+ *    `"hljs-keyword" -> SpanStyle(color=Color(0xFF7928a1))`. This is the bridge between
+ *    CSS-based theming and Compose's styling model.
+ *
+ * 3. **Builds AnnotatedString** - `HtmlToAnnotatedString` walks the HTML token tree with jsoup,
+ *    looks up each span's class name in the theme's color map, and applies the matching
+ *    [SpanStyle]. The result is a fully colored [AnnotatedString] ready for Compose `Text`.
+ *
  * ## Lifecycle
  *
  * The engine holds a hidden WebView resource. Always call [destroy] when the engine is no
