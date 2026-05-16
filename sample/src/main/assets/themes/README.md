@@ -76,31 +76,3 @@ SyntaxHighlightedCode(
 See [`AllThemesSection.kt`](../../../kotlin/dev/hossain/highlight/sample/sections/AllThemesSection.kt)
 for the full implementation.
 
-## Re-downloading themes
-
-To refresh these themes (e.g. for a newer highlight.js version), run:
-
-```bash
-VERSION="11.11.1"
-DEST="sample/src/main/assets/themes"
-mkdir -p "$DEST/base16"
-
-curl -s "https://api.cdnjs.com/libraries/highlight.js/$VERSION?fields=files" \
-  | python3 -c "
-import json, sys
-files = json.load(sys.stdin).get('files', [])
-themes = sorted(set(
-    f.split('styles/')[1].replace('.min.css','')
-    for f in files
-    if 'styles/' in f and f.endswith('.min.css')
-))
-print('\n'.join(themes))
-" | while IFS= read -r theme; do
-    url="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/$VERSION/styles/${theme}.min.css"
-    outfile="$DEST/${theme}.min.css"
-    mkdir -p "$(dirname "$outfile")"
-    curl -s -o "$outfile" "$url" &
-done
-wait
-echo "Downloaded $(find $DEST -name '*.min.css' | wc -l) themes"
-```
