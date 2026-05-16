@@ -28,7 +28,7 @@ import dev.hossain.highlight.ui.SyntaxHighlightedCode
 /**
  * Showcases all 256 bundled highlight.js 11.11.1 themes.
  *
- * Theme names are discovered at runtime from the sample app's `assets/compose-highlight/themes/`
+ * Theme names are discovered at runtime from the sample app's `assets/themes/`
  * directory. A searchable dropdown lets the user pick any theme; the code block below updates live.
  */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -42,13 +42,13 @@ internal fun AllThemesSection() {
             val assets = context.assets
             val root =
                 assets
-                    .list("compose-highlight/themes")
+                    .list("themes")
                     ?.filter { it.endsWith(".min.css") }
                     ?.map { it.removeSuffix(".min.css") }
                     ?: emptyList()
             val base16 =
                 assets
-                    .list("compose-highlight/themes/base16")
+                    .list("themes/base16")
                     ?.filter { it.endsWith(".min.css") }
                     ?.map { "base16/${it.removeSuffix(".min.css")}" }
                     ?: emptyList()
