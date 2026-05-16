@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased]
+## [0.17.1] - 2026-05-16
 
 ### Fixed
 - **`ThemeParser` - CSS named color support** - colors specified by name (e.g. `color: red`,
