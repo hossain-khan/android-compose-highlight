@@ -82,6 +82,26 @@ fun List<User>.adults(): List<User> =
     filter { it.age >= 18 }
     """.trimIndent()
 
+internal val KOTLIN_EXTENDED_SNIPPET =
+    """
+data class User(val name: String, val age: Int)
+
+fun List<User>.adults(): List<User> =
+    filter { it.age >= 18 }
+
+// Sample API endpoint to manage users
+const val API = "https://api.example.com"
+
+val httpApiClient = MyHttpClient(API)
+httpApiClient.get("/users")
+    .onSuccess { response ->
+        println("Fetched users: ${'$'}{response.body}")
+    }
+    .onFailure { error ->
+        println("Error fetching users: ${'$'}{error.message}")
+    }
+    """.trimIndent()
+
 internal val PYTHON_SNIPPET =
     """
 def fibonacci(n: int) -> int:

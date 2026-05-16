@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Changed
+- **Sample app — interactive Styling section** — replaced three static `CodeBlockStyle` demo blocks
+  with a single live-preview code block. An `ExtendedFloatingActionButton` (bottom-right) opens a
+  `ModalBottomSheet` where all `CodeBlockStyle` parameters (corner radius, padding, header padding,
+  line number width, copy button size) and visibility toggles (line numbers, language label, copy
+  button, custom copy icon) can be adjusted and instantly reflected in the code block behind it.
+
 ## [0.16.0] - 2026-05-16
 
 ### Fixed
