@@ -132,4 +132,29 @@ class ThemeParserAssetTest {
         val result = ThemeParser.parseAsset(context, "1c-light.min.css")
         assertThat(result["hljs-tag"]?.color).isEqualTo(Color(68, 68, 68, 170))
     }
+
+    // ── a11y-light theme regression - @media block overwrites keyword color ───────────────────────
+    // a11y-light has a @media (-ms-high-contrast) block with .hljs-keyword { font-weight:700 }.
+    // Before the @media-stripping fix, that font-weight-only SpanStyle overwrote the real
+    // .hljs-keyword { color:#7928a1 } entry, so keywords showed as default text color (dark).
+
+    @Test
+    fun `parseAsset a11y-light theme background is near-white`() {
+        val result = ThemeParser.parseAsset(context, "a11y-light.min.css")
+        assertThat(result["hljs"]?.background).isEqualTo(Color(0xFFfefefe))
+    }
+
+    @Test
+    fun `parseAsset a11y-light theme keyword is purple not dark text`() {
+        // .hljs-keyword { color: #7928a1 } - must survive the @media block override
+        val result = ThemeParser.parseAsset(context, "a11y-light.min.css")
+        assertThat(result["hljs-keyword"]?.color).isEqualTo(Color(0xFF7928a1))
+    }
+
+    @Test
+    fun `parseAsset a11y-light theme string is green named color`() {
+        // .hljs-string { color: green } = #008000
+        val result = ThemeParser.parseAsset(context, "a11y-light.min.css")
+        assertThat(result["hljs-string"]?.color).isEqualTo(Color(0xFF008000))
+    }
 }

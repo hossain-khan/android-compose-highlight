@@ -337,4 +337,36 @@ class ThemeParserTest {
         assertThat(result["hljs-comment"]?.color).isEqualTo(Color(0xFF008000))
         assertThat(result["hljs-string"]?.color).isEqualTo(Color(0xFF000000))
     }
+
+    // ── a11y-light theme regression ────────────────────────────────────────────────────────────────
+
+    @Test
+    fun `parse a11y-light @media block does not overwrite keyword color`() {
+        // a11y-light has a @media (-ms-high-contrast) block that contains:
+        //   .hljs-keyword { font-weight: 700 }
+        // Before the @media-stripping fix, this SpanStyle (font-weight only, no color) would
+        // overwrite the real .hljs-keyword { color:#7928a1 } entry, making keywords appear
+        // in the default text color instead of purple.
+        val css =
+            ".hljs{background:#fefefe;color:#545454}" +
+                ".hljs-keyword,.hljs-selector-tag{color:#7928a1}" +
+                "@media screen and (-ms-high-contrast:active){" +
+                ".hljs-keyword,.hljs-selector-tag{font-weight:700}" +
+                "}"
+        val result = ThemeParser.parse(css)
+        // Color must be the purple from the real rule, not lost due to @media override
+        assertThat(result["hljs-keyword"]?.color).isEqualTo(Color(0xFF7928a1))
+    }
+
+    @Test
+    fun `parse strips @media block entirely leaving main rules intact`() {
+        val css =
+            ".hljs{background:#fff;color:#000}" +
+                ".hljs-string{color:#718c00}" +
+                "@media print{.hljs-string{color:black}}" +
+                ".hljs-number{color:#f5871f}"
+        val result = ThemeParser.parse(css)
+        assertThat(result["hljs-string"]?.color).isEqualTo(Color(0xFF718c00))
+        assertThat(result["hljs-number"]?.color).isEqualTo(Color(0xFFf5871f))
+    }
 }

@@ -61,6 +61,22 @@ object ThemeParser {
     fun parse(cssText: String): Map<String, SpanStyle> {
         if (cssText.isBlank()) return emptyMap()
 
+        // Strip CSS comments first so that @ signs inside comment blocks
+        // (e.g. author emails like @ericwbailey) are not mistaken for at-rules.
+        val withoutComments = cssText.replace(Regex("""/\*[^*]*\*+(?:[^/*][^*]*\*+)*/"""), "")
+
+        // Strip @at-rules and their entire content blocks (e.g. @media, @supports, @keyframes).
+        // Without this, inner rules like `.hljs-keyword { font-weight:700 }` inside a
+        // @media block would overwrite the real color entry parsed from the main stylesheet.
+        // The pattern handles one level of nested braces (sufficient for all known hljs themes).
+        val withoutAtRules =
+            withoutComments.replace(
+                Regex("""@[a-zA-Z][^{]*\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}"""),
+                "",
+            )
+
+        if (withoutAtRules.isBlank()) return emptyMap()
+
         val result = mutableMapOf<String, SpanStyle>()
         // Match each CSS rule block: selectors { declarations }
         val rulePattern = Regex("""([^{}]+)\{([^{}]*)\}""")
@@ -70,7 +86,7 @@ object ThemeParser {
         // Stops at whitespace (descendant combinator) and at a second .hljs (which would be a new selector token).
         val selectorPattern = Regex("""\.hljs[-\w]*(?:\.(?!hljs)[\w][-\w.]*)*""")
 
-        rulePattern.findAll(cssText).forEach { matchResult ->
+        rulePattern.findAll(withoutAtRules).forEach { matchResult ->
             val selectorsPart = matchResult.groupValues[1]
             val declarations = matchResult.groupValues[2]
 
