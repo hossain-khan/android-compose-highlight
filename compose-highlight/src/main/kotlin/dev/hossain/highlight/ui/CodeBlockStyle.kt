@@ -62,12 +62,22 @@ import dev.hossain.highlight.engine.HighlightTheme
  */
 @Stable
 data class CodeBlockStyle(
+    /** Shape applied to the outer container of the code block. */
     val shape: Shape = SyntaxHighlightedCodeDefaults.shape,
+    /** Inner padding between the container edge and the code content area. */
     val padding: PaddingValues = SyntaxHighlightedCodeDefaults.padding,
+    /** Padding for the header row (language label + copy button). */
     val headerPadding: PaddingValues = SyntaxHighlightedCodeDefaults.headerPadding,
-    /** Color.Unspecified means derive from the active theme. */
+    /**
+     * Color of the line number gutter text.
+     *
+     * Defaults to [Color.Unspecified], which derives the color from the active theme at 40% opacity.
+     * Override to use a fixed color.
+     */
     val lineNumberColor: Color = Color.Unspecified,
+    /** Width reserved for the line number gutter. */
     val lineNumberWidth: Dp = SyntaxHighlightedCodeDefaults.lineNumberWidth,
+    /** Size (width and height) of the copy-to-clipboard button icon. */
     val copyButtonSize: Dp = SyntaxHighlightedCodeDefaults.copyButtonSize,
     /**
      * Text style applied to the code content (font family, size, line height, etc.).

@@ -304,8 +304,10 @@ class HighlightEngine(
      * ```
      *
      * @return [Result] wrapping a sorted [List] of language name strings (e.g. `"kotlin"`,
-     *   `"java"`, `"python"`), or [Result.failure] with a [HighlightException] if the WebView
-     *   could not be initialized.
+     *   `"java"`, `"python"`), or [Result.failure] with a [HighlightException] on failure.
+     *   Possible failures: [HighlightException.WebViewInitFailed] if the WebView could not be
+     *   initialized, [HighlightException.Timeout] if the JS call exceeds the timeout, or
+     *   [HighlightException.JsExecutionFailed] for other JS errors.
      */
     suspend fun supportedLanguages(): Result<List<String>> {
         cachedLanguages?.let { return Result.success(it) }
@@ -370,7 +372,9 @@ class HighlightEngine(
      * ```
      *
      * @return [Result] wrapping the version string, or [Result.failure] with a [HighlightException]
-     *   if the WebView could not be initialized.
+     *   on failure. Possible failures: [HighlightException.WebViewInitFailed] if the WebView could
+     *   not be initialized, [HighlightException.Timeout] if the JS call exceeds the timeout, or
+     *   [HighlightException.JsExecutionFailed] for other JS errors.
      */
     suspend fun highlightJsVersion(): Result<String> {
         cachedVersion?.let { return Result.success(it) }
