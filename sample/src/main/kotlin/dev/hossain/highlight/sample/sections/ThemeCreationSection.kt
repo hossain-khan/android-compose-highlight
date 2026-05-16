@@ -5,22 +5,21 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import dev.hossain.highlight.engine.HighlightTheme
+import dev.hossain.highlight.sample.FROM_ASSET_SNIPPET
 import dev.hossain.highlight.sample.KOTLIN_SNIPPET
 import dev.hossain.highlight.ui.SyntaxHighlightedCode
 import dev.hossain.highlight.ui.rememberAtomOneDarkTheme
-import dev.hossain.highlight.ui.rememberAtomOneLightTheme
-import dev.hossain.highlight.ui.rememberTomorrowNightTheme
-import dev.hossain.highlight.ui.rememberTomorrowTheme
 
 /**
  * Material 3–inspired light CSS theme used to demonstrate [HighlightTheme.fromCss].
@@ -66,26 +65,16 @@ private val MATERIAL3_LIGHT_CSS =
     """.trimIndent()
 
 /**
- * Exercises every [HighlightTheme] factory method side-by-side:
- * - Built-in: [HighlightTheme.tomorrow], [HighlightTheme.tomorrowNight],
- *   [HighlightTheme.atomOneLight], [HighlightTheme.atomOneDark]
- * - [HighlightTheme.fromAsset] — GitHub CSS bundled in sample assets
+ * Demonstrates all four [HighlightTheme] factory methods:
+ * - Built-in: [HighlightTheme.atomOneDark] (one representative bundled theme)
+ * - [HighlightTheme.fromAsset] — any highlight.js CSS saved in `assets/`
  * - [HighlightTheme.fromCss] — Material 3–inspired inline CSS
  * - [HighlightTheme.fromColorMap] — Material 3–inspired precomputed color map (dark variant)
  */
 @Composable
 internal fun ThemeCreationSection() {
-    val context = LocalContext.current.applicationContext
-
-    // Built-in themes — use @Composable helpers that resolve LocalContext internally
-    val tomorrowTheme = rememberTomorrowTheme()
-    val tomorrowNightTheme = rememberTomorrowNightTheme()
-    val atomOneLightTheme = rememberAtomOneLightTheme()
+    // Built-in theme — @Composable helper resolves LocalContext internally
     val atomOneDarkTheme = rememberAtomOneDarkTheme()
-
-    // fromAsset() — GitHub themes bundled in the sample app's assets/
-    val githubTheme = remember(context) { HighlightTheme.fromAsset(context, "themes/github.css", "github") }
-    val githubDarkTheme = remember(context) { HighlightTheme.fromAsset(context, "themes/github-dark.css", "github-dark") }
 
     // fromCss() — Material 3–inspired inline CSS string
     val material3LightTheme =
@@ -125,32 +114,16 @@ internal fun ThemeCreationSection() {
     Column(
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        // ── Built-in themes ────────────────────────────────────────────────
-        SubSectionHeader("Built-in: HighlightTheme.tomorrow() — light")
-        SyntaxHighlightedCode(
-            code = KOTLIN_SNIPPET,
-            language = "kotlin",
-            modifier = Modifier.fillMaxWidth(),
-            theme = tomorrowTheme,
+        // ── Built-in theme ─────────────────────────────────────────────────
+        SubSectionHeader("Built-in themes")
+        Text(
+            text =
+                "The library bundles 4 ready-to-use themes: atomOneDark, atomOneLight, " +
+                    "tomorrow, and tomorrowNight. No extra assets needed — just call the " +
+                    "corresponding factory function. Here is atomOneDark as an example:",
+            style = MaterialTheme.typography.bodySmall,
+            modifier = Modifier.padding(horizontal = 4.dp),
         )
-
-        SubSectionHeader("Built-in: HighlightTheme.tomorrowNight() — dark")
-        SyntaxHighlightedCode(
-            code = KOTLIN_SNIPPET,
-            language = "kotlin",
-            modifier = Modifier.fillMaxWidth(),
-            theme = tomorrowNightTheme,
-        )
-
-        SubSectionHeader("Built-in: HighlightTheme.atomOneLight() — light")
-        SyntaxHighlightedCode(
-            code = KOTLIN_SNIPPET,
-            language = "kotlin",
-            modifier = Modifier.fillMaxWidth(),
-            theme = atomOneLightTheme,
-        )
-
-        SubSectionHeader("Built-in: HighlightTheme.atomOneDark() — dark")
         SyntaxHighlightedCode(
             code = KOTLIN_SNIPPET,
             language = "kotlin",
@@ -161,26 +134,26 @@ internal fun ThemeCreationSection() {
         HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
 
         // ── fromAsset() ────────────────────────────────────────────────────
-        SubSectionHeader("fromAsset(): GitHub light (themes/github.css)")
-        SyntaxHighlightedCode(
-            code = KOTLIN_SNIPPET,
-            language = "kotlin",
-            modifier = Modifier.fillMaxWidth(),
-            theme = githubTheme,
+        SubSectionHeader("fromAsset(): load any CSS theme from assets/")
+        Text(
+            text =
+                "Save any highlight.js-compatible CSS file anywhere under your app's assets/ " +
+                    "directory and load it at runtime with HighlightTheme.fromAsset(). " +
+                    "The code block below shows you exactly how to do it:",
+            style = MaterialTheme.typography.bodySmall,
+            modifier = Modifier.padding(horizontal = 4.dp),
         )
-
-        SubSectionHeader("fromAsset(): GitHub dark (themes/github-dark.css)")
         SyntaxHighlightedCode(
-            code = KOTLIN_SNIPPET,
+            code = FROM_ASSET_SNIPPET,
             language = "kotlin",
             modifier = Modifier.fillMaxWidth(),
-            theme = githubDarkTheme,
+            theme = atomOneDarkTheme,
         )
 
         HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
 
         // ── fromCss() ──────────────────────────────────────────────────────
-        SubSectionHeader("fromCss(): Material 3 light (inline CSS)")
+        SubSectionHeader("fromCss(): Material 3 light (inline CSS string)")
         SyntaxHighlightedCode(
             code = KOTLIN_SNIPPET,
             language = "kotlin",
@@ -191,7 +164,7 @@ internal fun ThemeCreationSection() {
         HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
 
         // ── fromColorMap() ─────────────────────────────────────────────────
-        SubSectionHeader("fromColorMap(): Material 3 dark (precomputed map)")
+        SubSectionHeader("fromColorMap(): Material 3 dark (precomputed SpanStyle map)")
         SyntaxHighlightedCode(
             code = KOTLIN_SNIPPET,
             language = "kotlin",
