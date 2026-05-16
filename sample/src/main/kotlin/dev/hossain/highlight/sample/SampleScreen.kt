@@ -15,6 +15,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.PrimaryScrollableTabRow
@@ -93,6 +94,7 @@ fun SampleScreen() {
     var isDark by rememberSaveable { mutableStateOf(true) }
     var showThemeMenu by remember { mutableStateOf(false) }
     var activeTabIndex by rememberSaveable { mutableIntStateOf(0) }
+    var showStylingSheet by remember { mutableStateOf(false) }
 
     // Shared copy handler: copies to clipboard and shows a snackbar confirmation.
     val onCopyClick: (String) -> Unit =
@@ -129,6 +131,7 @@ fun SampleScreen() {
 
     var selectedThemeIndex by rememberSaveable { mutableIntStateOf(2) } // Atom One
     val activePair = themePairs[selectedThemeIndex.coerceIn(themePairs.indices)]
+    val tabs = DemoTab.all
 
     HighlightThemeProvider(
         lightHighlightTheme = activePair.light,
@@ -137,6 +140,20 @@ fun SampleScreen() {
     ) {
         Scaffold(
             snackbarHost = { SnackbarHost(snackbarHostState) },
+            floatingActionButton = {
+                if (tabs[activeTabIndex.coerceIn(tabs.indices)] == DemoTab.Styling) {
+                    ExtendedFloatingActionButton(
+                        onClick = { showStylingSheet = true },
+                        icon = {
+                            Icon(
+                                imageVector = ImageVector.vectorResource(R.drawable.tune_24dp),
+                                contentDescription = null,
+                            )
+                        },
+                        text = { Text("Customize Style") },
+                    )
+                }
+            },
             topBar = {
                 TopAppBar(
                     title = { Text("Highlight Demo") },
@@ -197,7 +214,6 @@ fun SampleScreen() {
                         .padding(top = innerPadding.calculateTopPadding())
                         .consumeWindowInsets(innerPadding),
             ) {
-                val tabs = DemoTab.all
                 val selectedTabIndex = activeTabIndex.coerceIn(tabs.indices)
                 PrimaryScrollableTabRow(selectedTabIndex = selectedTabIndex) {
                     tabs.forEachIndexed { index, tab ->
@@ -244,7 +260,7 @@ fun SampleScreen() {
                         }
 
                         DemoTab.Styling -> {
-                            item { StylingSection() }
+                            item { StylingSection(showSheet = showStylingSheet, onDismissSheet = { showStylingSheet = false }) }
                         }
 
                         DemoTab.Typography -> {
