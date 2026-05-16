@@ -10,8 +10,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Slider
@@ -26,10 +27,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import dev.hossain.highlight.sample.KOTLIN_SNIPPET
+import dev.hossain.highlight.sample.R
 import dev.hossain.highlight.ui.CodeBlockStyle
 import dev.hossain.highlight.ui.SyntaxHighlightedCode
 
@@ -83,11 +86,14 @@ internal fun StylingSection() {
         )
 
         // ── Open sheet button ─────────────────────────────────────────────────
-        FilledTonalButton(
+        FilledTonalIconButton(
             onClick = { showSheet = true },
             modifier = Modifier.align(Alignment.CenterHorizontally),
         ) {
-            Text("⚙\uFE0F Customize Style")
+            Icon(
+                painter = painterResource(R.drawable.tune_24dp),
+                contentDescription = "Customize style",
+            )
         }
     }
 
