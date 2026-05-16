@@ -1,9 +1,9 @@
-# Copilot Instructions — android-compose-highlight
+# Copilot Instructions - android-compose-highlight
 
 ## Build, test, and lint commands
 
 ```bash
-# Lint (ktlint via kotlinter) — must pass before commit
+# Lint (ktlint via kotlinter) - must pass before commit
 ./gradlew lintKotlin
 
 # Auto-fix formatting
@@ -37,7 +37,7 @@
 
 ## Architecture
 
-The library has two layers — `engine/` (internal) and `ui/` (public):
+The library has two layers - `engine/` (internal) and `ui/` (public):
 
 ```
 SyntaxHighlightedCode   ← primary public composable
@@ -60,7 +60,7 @@ HighlightThemeProvider  ← creates ONE shared HighlightEngine for its subtree
 3. `ThemeParser` lazily parses a Highlight.js CSS file into a `Map<String, SpanStyle>` (selector → style), cached per `HighlightTheme` instance.
 4. `HtmlToAnnotatedString` uses jsoup to walk the HTML and applies the theme's `SpanStyle` map to produce a Compose `AnnotatedString`.
 
-**Shared engine via `HighlightThemeProvider`:** The provider creates a single `HighlightEngine` (one hidden WebView) for its entire subtree and exposes it via the internal `LocalHighlightEngine` CompositionLocal. `rememberHighlightEngine()` reads it when inside the provider — no extra WebView is created. Outside the provider, `rememberHighlightEngine()` creates a standalone engine that it destroys itself via `DisposableEffect`. This means N code blocks inside a provider share 1 WebView instead of N.
+**Shared engine via `HighlightThemeProvider`:** The provider creates a single `HighlightEngine` (one hidden WebView) for its entire subtree and exposes it via the internal `LocalHighlightEngine` CompositionLocal. `rememberHighlightEngine()` reads it when inside the provider - no extra WebView is created. Outside the provider, `rememberHighlightEngine()` creates a standalone engine that it destroys itself via `DisposableEffect`. This means N code blocks inside a provider share 1 WebView instead of N.
 
 **Why `https://appassets.androidplatform.net`:** `WebViewAssetLoader` intercepts requests to this reserved fake domain and maps `/assets/` to the app's `assets/` folder. This is required because `file://` URLs block `<script>` execution via Same-Origin Policy.
 
@@ -70,9 +70,9 @@ HighlightThemeProvider  ← creates ONE shared HighlightEngine for its subtree
 
 **`android.util.Log` is banned from the library.** Any `Log.*` call in code paths executed by JVM unit tests causes `RuntimeException: Method d in android.util.Log not mocked`. Remove all debug logging before committing.
 
-**All `HighlightEngine` results use `Result<T>`.** Never throw from public engine methods; wrap failures in `Result.failure(HighlightException(...))`. `HighlightException` is a sealed class — add new variants there rather than throwing raw exceptions.
+**All `HighlightEngine` results use `Result<T>`.** Never throw from public engine methods; wrap failures in `Result.failure(HighlightException(...))`. `HighlightException` is a sealed class - add new variants there rather than throwing raw exceptions.
 
-**Always use `applicationContext`.** Never pass an Activity `Context` to `HighlightEngine` or `HighlightTheme` factory functions — both hold the context beyond the Activity's lifecycle (the engine in `WebViewManager`, the theme in its `colorMapProvider` lambda). Always call `context.applicationContext` at the call site.
+**Always use `applicationContext`.** Never pass an Activity `Context` to `HighlightEngine` or `HighlightTheme` factory functions - both hold the context beyond the Activity's lifecycle (the engine in `WebViewManager`, the theme in its `colorMapProvider` lambda). Always call `context.applicationContext` at the call site.
 
 **WebView must run on the Main thread.** `WebViewManager.initialize()` and `destroy()` dispatch to `Dispatchers.Main` and `Handler(Looper.getMainLooper())` respectively. Never call WebView APIs off the Main thread.
 
@@ -84,7 +84,7 @@ HighlightThemeProvider  ← creates ONE shared HighlightEngine for its subtree
 
 **Formatting:** ktlint via `org.jmailen.kotlinter`. The `.editorconfig` suppresses the function-naming rule for `@Composable`-annotated functions (`ktlint_function_naming_ignore_when_annotated_with = Composable`). Run `./gradlew formatKotlin` before committing.
 
-**JVM unit tests vs instrumented tests:** `src/test/` contains JVM tests (fast, no device needed). Use `ThemeParser.parse(cssString)` for theme tests and call `unescapeJsString(...)` directly for unescape tests — both work without Android mocks. Use [Google Truth](https://github.com/google/truth) (`com.google.truth:truth`) for assertions in new tests. `src/androidTest/` contains instrumented tests (`HighlightEngineTest`) and microbenchmarks (`benchmark/`) that require a connected device and use `BenchmarkRule`.
+**JVM unit tests vs instrumented tests:** `src/test/` contains JVM tests (fast, no device needed). Use `ThemeParser.parse(cssString)` for theme tests and call `unescapeJsString(...)` directly for unescape tests - both work without Android mocks. Use [Google Truth](https://github.com/google/truth) (`com.google.truth:truth`) for assertions in new tests. `src/androidTest/` contains instrumented tests (`HighlightEngineTest`) and microbenchmarks (`benchmark/`) that require a connected device and use `BenchmarkRule`.
 
 **Asset path convention:** All library assets live under `assets/compose-highlight/` to avoid collisions when the library is consumed. CSS themes go in `assets/compose-highlight/themes/`.
 
@@ -92,9 +92,9 @@ HighlightThemeProvider  ← creates ONE shared HighlightEngine for its subtree
 
 **KDoc is required on all public API.** Dokka API docs are generated from KDoc and published to GitHub Pages (`.github/workflows/docs.yml`). Every public class, function, and property in `ui/` and the public `engine/` classes must have KDoc. Include at least one usage example (triple-backtick code block) on non-trivial classes and composables. Internal classes do not need KDoc but benefit from it.
 
-**Git workflow — always create new commits.** Never use `git commit --amend`, `git push --force`, `git push --force-with-lease`, or similar rewriting operations. Always create a new commit for any changes. This keeps commit history clean, preserves attribution, and prevents accidental data loss. If changes are needed after pushing, create a new commit with a descriptive message (e.g., "fix: address code review feedback in X").
+**Git workflow - always create new commits.** Never use `git commit --amend`, `git push --force`, `git push --force-with-lease`, or similar rewriting operations. Always create a new commit for any changes. This keeps commit history clean, preserves attribution, and prevents accidental data loss. If changes are needed after pushing, create a new commit with a descriptive message (e.g., "fix: address code review feedback in X").
 
-**Before every commit — verify stability.** Run the following three tasks and ensure they all pass:
+**Before every commit - verify stability.** Run the following three tasks and ensure they all pass:
 ```bash
 ./gradlew formatKotlin                          # auto-fix formatting
 ./gradlew :compose-highlight:assembleDebug :sample:assembleDebug  # both must build
@@ -104,24 +104,26 @@ Do not commit if any of these fail.
 
 **Git tags must not use a `v` prefix.** Use `0.3.0`, not `v0.3.0`. Maven Central uses the tag as the dependency version (via `-PVERSION_NAME=<tag>` in the publish workflow), so the version string consumers write in their `build.gradle.kts` matches the tag exactly.
 
-**Before tagging a release — verify all version references are updated:**
-- `README.md` — dependency snippet must reference the new version
-- `compose-highlight/build.gradle.kts` — `version` in the `mavenPublishing` coordinates block (used for local `publishToMavenLocal`; the publish workflow overrides this with `-PVERSION_NAME=<tag>`, but keep it in sync)
-- `CHANGELOG.md` — rename `[Unreleased]` to `[X.Y.Z] - YYYY-MM-DD` with the release date
-- `sample/build.gradle.kts` — `versionName` must match the release version (e.g. `"0.6.0"`); `versionCode` must be incremented (use the major+minor version number, e.g. version `0.6.0` → `versionCode = 6`)
+**Before tagging a release - verify all version references are updated:**
+- `README.md` - dependency snippet must reference the new version
+- `compose-highlight/build.gradle.kts` - `version` in the `mavenPublishing` coordinates block (used for local `publishToMavenLocal`; the publish workflow overrides this with `-PVERSION_NAME=<tag>`, but keep it in sync)
+- `CHANGELOG.md` - rename `[Unreleased]` to `[X.Y.Z] - YYYY-MM-DD` with the release date
+- `sample/build.gradle.kts` - `versionName` must match the release version (e.g. `"0.6.0"`); `versionCode` must be incremented (use the major+minor version number, e.g. version `0.6.0` → `versionCode = 6`)
 
 Only create the git tag after all of the above are committed and pushed.
 
-**Publishing to Maven Central is a manual two-step workflow — it is NOT triggered automatically by pushing a tag.** After tagging:
+**Publishing to Maven Central is a manual two-step workflow - it is NOT triggered automatically by pushing a tag.** After tagging:
 1. Manually trigger the publish GitHub Actions workflow in **dry-run mode** first and verify it passes.
 2. Only if the dry run succeeds, trigger the workflow again **without dry-run** to actually publish to Maven Central.
 
-Never tell the user "the publish workflow will trigger automatically" — it won't.
+Never tell the user "the publish workflow will trigger automatically" - it won't.
 
 **Dependency coordinates (Maven Central):**
 ```
 dev.hossain:compose-highlight:<version>
 ```
 
-**Updating bundled highlight.js themes in the sample app** — to refresh the 256 `.min.css` theme files under `sample/src/main/assets/themes/` (e.g. when upgrading highlight.js), follow the steps in [`docs/updating-hljs-themes.md`](../docs/updating-hljs-themes.md).
+**Updating bundled highlight.js themes in the sample app** - to refresh the 256 `.min.css` theme files under `sample/src/main/assets/themes/` (e.g. when upgrading highlight.js), follow the steps in [`docs/updating-hljs-themes.md`](../docs/updating-hljs-themes.md).
+
+**Writing style - never use the em dash `-` character** in commit messages, code comments, KDoc, CHANGELOG entries, or any other text. Use a regular hyphen/minus `-` instead.
 
