@@ -113,6 +113,9 @@ class HighlightTheme private constructor(
          *
          * The provided [context] is defensively normalized to `applicationContext` before being
          * retained by the lazy theme provider.
+         *
+         * @param context Any [Context]; normalized to `applicationContext` internally.
+         * @return A [HighlightTheme] backed by the bundled `tomorrow.css`.
          */
         fun tomorrow(context: Context): HighlightTheme {
             val appContext = context.applicationContext
@@ -127,6 +130,9 @@ class HighlightTheme private constructor(
          *
          * The provided [context] is defensively normalized to `applicationContext` before being
          * retained by the lazy theme provider.
+         *
+         * @param context Any [Context]; normalized to `applicationContext` internally.
+         * @return A [HighlightTheme] backed by the bundled `tomorrow-night.css`.
          */
         fun tomorrowNight(context: Context): HighlightTheme {
             val appContext = context.applicationContext
@@ -141,6 +147,9 @@ class HighlightTheme private constructor(
          *
          * The provided [context] is defensively normalized to `applicationContext` before being
          * retained by the lazy theme provider.
+         *
+         * @param context Any [Context]; normalized to `applicationContext` internally.
+         * @return A [HighlightTheme] backed by the bundled `atom-one-dark.css`.
          */
         fun atomOneDark(context: Context): HighlightTheme {
             val appContext = context.applicationContext
@@ -155,6 +164,9 @@ class HighlightTheme private constructor(
          *
          * The provided [context] is defensively normalized to `applicationContext` before being
          * retained by the lazy theme provider.
+         *
+         * @param context Any [Context]; normalized to `applicationContext` internally.
+         * @return A [HighlightTheme] backed by the bundled `atom-one-light.css`.
          */
         fun atomOneLight(context: Context): HighlightTheme {
             val appContext = context.applicationContext
@@ -189,6 +201,10 @@ class HighlightTheme private constructor(
          *   parseable color rules (e.g. it is empty or uses only unsupported CSS properties).
          * @throws java.io.IOException if the asset file cannot be opened (missing or unreadable).
          *   This exception is also thrown lazily, on first use of the theme.
+         * @param context Any [Context]; normalized to `applicationContext` internally.
+         * @param assetPath Path within `assets/` to the Highlight.js CSS file (e.g. `"themes/github.css"`).
+         * @param name Display name for the theme.
+         * @return A [HighlightTheme] whose color map is lazily parsed from [assetPath].
          */
         fun fromAsset(
             context: Context,
@@ -218,6 +234,10 @@ class HighlightTheme private constructor(
          *     name    = "my-runtime-theme",
          * )
          * ```
+         *
+         * @param cssText Raw Highlight.js-compatible CSS text.
+         * @param name Display name for the theme.
+         * @return A [HighlightTheme] whose color map is lazily parsed from [cssText].
          */
         fun fromCss(
             cssText: String,
@@ -257,6 +277,7 @@ class HighlightTheme private constructor(
          * @param colorMap Map of hljs class name → [SpanStyle].
          * @param backgroundColor Optional explicit background color. If null, derived from `colorMap["hljs"]`.
          * @param defaultTextColor Optional explicit default text color. If null, derived from `colorMap["hljs"]`.
+         * @return A [HighlightTheme] backed by the provided [colorMap].
          */
         fun fromColorMap(
             name: String,
