@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
@@ -27,7 +28,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -55,6 +58,7 @@ internal fun StylingSection() {
     var showLineNumbers by remember { mutableStateOf(true) }
     var showLanguageLabel by remember { mutableStateOf(true) }
     var showCopyButton by remember { mutableStateOf(true) }
+    var useCustomCopyIcon by remember { mutableStateOf(false) }
 
     // ── Bottom sheet ─────────────────────────────────────────────────────────
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
@@ -83,6 +87,19 @@ internal fun StylingSection() {
             showLineNumbers = showLineNumbers,
             showLanguageLabel = showLanguageLabel,
             showCopyButton = showCopyButton,
+            copyButtonIcon =
+                if (useCustomCopyIcon) {
+                    { tint ->
+                        Icon(
+                            imageVector = ImageVector.vectorResource(R.drawable.content_copy_24dp),
+                            contentDescription = "Copy code",
+                            tint = tint,
+                            modifier = Modifier.size(16.dp),
+                        )
+                    }
+                } else {
+                    null
+                },
         )
 
         // ── Open sheet button ─────────────────────────────────────────────────
@@ -124,6 +141,7 @@ internal fun StylingSection() {
                 ToggleRow("Show line numbers", showLineNumbers) { showLineNumbers = it }
                 ToggleRow("Show language label", showLanguageLabel) { showLanguageLabel = it }
                 ToggleRow("Show copy button", showCopyButton) { showCopyButton = it }
+                ToggleRow("Custom copy icon", useCustomCopyIcon) { useCustomCopyIcon = it }
 
                 Spacer(Modifier.height(8.dp))
                 HorizontalDivider()
