@@ -147,19 +147,35 @@ fun SyntaxHighlightedCode(
     copyButtonContentDescription: String = "Copy code",
     onHighlightComplete: ((HighlightResult) -> Unit)? = null,
 ) {
+    // Remember derived colors and text styles keyed on theme and style so they are only
+    // recomputed when the theme or style actually changes, not on every recomposition.
     val backgroundColor =
-        theme.backgroundColor.takeIf { it != Color.Unspecified }
-            ?: Color(0xFF1E1E1E)
+        remember(theme, style) {
+            theme.backgroundColor.takeIf { it != Color.Unspecified }
+                ?: Color(0xFF1E1E1E)
+        }
     val textColor =
-        theme.defaultTextColor.takeIf { it != Color.Unspecified }
-            ?: Color(0xFFCCCCCC)
+        remember(theme, style) {
+            theme.defaultTextColor.takeIf { it != Color.Unspecified }
+                ?: Color(0xFFCCCCCC)
+        }
     val lineNumberColor =
-        style.lineNumberColor.takeIf { it != Color.Unspecified }
-            ?: textColor.copy(alpha = 0.4f)
+        remember(theme, style) {
+            style.lineNumberColor.takeIf { it != Color.Unspecified }
+                ?: (theme.defaultTextColor.takeIf { it != Color.Unspecified } ?: Color(0xFFCCCCCC)).copy(alpha = 0.4f)
+        }
 
     // Apply the theme's foreground color on top of the caller-supplied text style.
-    val themedCodeStyle = style.textStyle.copy(color = textColor)
-    val themedLineNumStyle = style.textStyle.copy(color = lineNumberColor)
+    val themedCodeStyle = remember(theme, style) { style.textStyle.copy(color = textColor) }
+    val themedLineNumStyle = remember(theme, style) { style.textStyle.copy(color = lineNumberColor) }
+    val languageLabelStyle =
+        remember(theme, style) {
+            style.textStyle.copy(
+                color = textColor.copy(alpha = 0.6f),
+                fontSize = 12.sp,
+                lineHeight = TextUnit.Unspecified,
+            )
+        }
 
     // In Android Studio Preview, WebView cannot be created. Render a themed fallback
     // (using the active theme's background and text colors) so that @Preview composables
@@ -201,12 +217,7 @@ fun SyntaxHighlightedCode(
                     if (showLanguageLabel && language.isNotBlank()) {
                         Text(
                             text = language,
-                            style =
-                                style.textStyle.copy(
-                                    color = textColor.copy(alpha = 0.6f),
-                                    fontSize = 12.sp,
-                                    lineHeight = TextUnit.Unspecified,
-                                ),
+                            style = languageLabelStyle,
                         )
                     }
                     Spacer(modifier = Modifier.weight(1f))
