@@ -2,6 +2,7 @@ package dev.hossain.highlight.sample.sections
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -17,11 +18,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import dev.hossain.highlight.engine.HighlightResult
@@ -138,6 +141,42 @@ internal fun CallbacksSection() {
                 modifier = Modifier.padding(top = 4.dp),
             )
         }
+        HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+
+        // languageLabelContent rich custom slot demo
+        SubSectionHeader("languageLabelContent — rich custom label")
+        Text(
+            text = "The slot accepts any @Composable — icon, bold text, metadata badges, like counts, etc.",
+            style = TextStyle(fontSize = 13.sp),
+        )
+        SyntaxHighlightedCode(
+            code = KOTLIN_SNIPPET,
+            language = "kotlin",
+            modifier = Modifier.fillMaxWidth(),
+            languageLabelContent = {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    Icon(
+                        imageVector = ImageVector.vectorResource(R.drawable.content_copy_24dp),
+                        contentDescription = null,
+                        modifier = Modifier.size(12.dp),
+                    )
+                    Text(
+                        text = "Kotlin",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                    )
+                    Text(
+                        text = "⭐ 42 likes",
+                        fontSize = 11.sp,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                    )
+                }
+            },
+        )
+
         HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
 
         // copyButtonContent custom slot demo
