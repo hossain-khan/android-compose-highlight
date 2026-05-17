@@ -146,7 +146,7 @@ internal fun CallbacksSection() {
         // languageLabelContent rich custom slot demo
         SubSectionHeader("languageLabelContent — rich custom label")
         Text(
-            text = "The slot accepts any @Composable — icon, bold text, metadata badges, like counts, etc.",
+            text = "The slot accepts any @Composable — here is an example with a custom label, icon, and metadata badge.",
             style = TextStyle(fontSize = 13.sp),
         )
         SyntaxHighlightedCode(
