@@ -40,6 +40,7 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import dev.hossain.highlight.engine.HighlightTimings
 import dev.hossain.highlight.sample.CodeSample
 import dev.hossain.highlight.sample.R
 import dev.hossain.highlight.sample.loadCodeSamples
@@ -49,14 +50,17 @@ import dev.hossain.highlight.ui.rememberAtomOneDarkTheme
 import dev.hossain.highlight.ui.rememberAtomOneLightTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlin.time.Duration
 
 /** Timing and size metrics captured for a single code block after highlighting completes. */
 internal data class HighlightMetrics(
     val language: String,
-    val highlightMs: Long,
     val charCount: Int,
     val lineCount: Int,
-)
+    val timings: HighlightTimings,
+) {
+    val highlightMs: Long get() = timings.total.inWholeMilliseconds
+}
 
 /**
  * Performance benchmark screen that renders every loaded code sample in a scrollable list and
@@ -175,9 +179,9 @@ fun PerfScreen() {
                                     metricsMap[sample.displayLabel] =
                                         HighlightMetrics(
                                             language = sample.language,
-                                            highlightMs = result.durationMs,
                                             charCount = sample.code.length,
                                             lineCount = sample.code.lines().size,
+                                            timings = result.timings,
                                         )
                                 },
                             )
@@ -271,8 +275,9 @@ private fun SummaryRow(
 /**
  * Metric card shown below each code block.
  *
- * Displays highlight time (ms), line count, and char count. Shows a "pending" state while the
- * highlight is in progress.
+ * Top row shows total highlight time, line count, and char count.
+ * Below the divider, a per-stage pipeline breakdown is shown using [HighlightTimings]:
+ * JS bridge, HTML parse, tree walk, and theme parse (only when non-zero - first call only).
  */
 @Composable
 private fun PerfMetricCard(metrics: HighlightMetrics?) {
@@ -288,31 +293,62 @@ private fun PerfMetricCard(metrics: HighlightMetrics?) {
                     },
             ),
     ) {
-        Row(
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 12.dp, vertical = 8.dp),
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            if (metrics != null) {
-                MetricChip(
-                    icon = ImageVector.vectorResource(R.drawable.timer_24dp),
-                    value = "${metrics.highlightMs} ms",
-                    label = "highlight",
+        if (metrics != null) {
+            Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
+                // Top row: total time, lines, chars
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    MetricChip(
+                        icon = ImageVector.vectorResource(R.drawable.timer_24dp),
+                        value = "${metrics.highlightMs} ms",
+                        label = "total",
+                    )
+                    MetricChip(
+                        icon = ImageVector.vectorResource(R.drawable.format_line_spacing_24dp),
+                        value = "${metrics.lineCount}",
+                        label = "lines",
+                    )
+                    MetricChip(
+                        icon = ImageVector.vectorResource(R.drawable.type_specimen_24dp),
+                        value = "${metrics.charCount}",
+                        label = "chars",
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(6.dp))
+                HorizontalDivider(color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.15f))
+                Spacer(modifier = Modifier.height(6.dp))
+
+                // Pipeline breakdown
+                Text(
+                    text = "Pipeline breakdown",
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.6f),
+                    modifier = Modifier.padding(bottom = 4.dp),
                 )
-                MetricChip(
-                    icon = ImageVector.vectorResource(R.drawable.format_line_spacing_24dp),
-                    value = "${metrics.lineCount}",
-                    label = "lines",
-                )
-                MetricChip(
-                    icon = ImageVector.vectorResource(R.drawable.type_specimen_24dp),
-                    value = "${metrics.charCount}",
-                    label = "chars",
-                )
-            } else {
+                PipelineRow(label = "JS bridge", duration = metrics.timings.jsBridge)
+                PipelineRow(label = "JSON unescape", duration = metrics.timings.jsonUnescape)
+                PipelineRow(label = "HTML parse", duration = metrics.timings.htmlParse)
+                PipelineRow(label = "Tree walk", duration = metrics.timings.treeWalk)
+                if (metrics.timings.themeParse > Duration.ZERO) {
+                    PipelineRow(
+                        label = "Theme parse (first use)",
+                        duration = metrics.timings.themeParse,
+                        highlight = true,
+                    )
+                }
+            }
+        } else {
+            Row(
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 12.dp, vertical = 8.dp),
+            ) {
                 Text(
                     text = "Highlighting…",
                     fontSize = 11.sp,
@@ -320,6 +356,34 @@ private fun PerfMetricCard(metrics: HighlightMetrics?) {
                 )
             }
         }
+    }
+}
+
+/** Single row in the pipeline breakdown table. */
+@Composable
+private fun PipelineRow(
+    label: String,
+    duration: Duration,
+    highlight: Boolean = false,
+) {
+    val ms = duration.inWholeMilliseconds
+    val ns = duration.inWholeNanoseconds
+    val valueText = if (ms > 0) "$ms ms" else "$ns ns"
+    val color =
+        if (highlight) {
+            MaterialTheme.colorScheme.tertiary
+        } else {
+            MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.8f)
+        }
+    Row(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(vertical = 1.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+    ) {
+        Text(text = label, fontSize = 11.sp, color = color)
+        Text(text = valueText, fontSize = 11.sp, fontWeight = FontWeight.Medium, color = color)
     }
 }
 
