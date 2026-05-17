@@ -7,6 +7,23 @@ import androidx.compose.ui.text.font.FontWeight
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 
+/**
+ * JVM unit tests for [ThemeParser.parse] using inline CSS strings (no Android context required).
+ *
+ * These tests cover the core parsing logic and edge cases:
+ * - Basic hex color parsing (`#rrggbb`, 3-digit `#rgb`, 4-digit `#rgba`, 8-digit `#aarrggbb`)
+ * - `rgb()` and `rgba()` color values including decimal alpha (e.g. `rgba(149,165,166,.8)`)
+ * - CSS named colors (e.g. `color: red`)
+ * - `font-weight: bold` / `700` and `font-style: italic`
+ * - Comma-separated selector lists (e.g. `.hljs-keyword, .hljs-type`)
+ * - Compound dot-joined selectors (e.g. `.hljs-title.function_`)
+ * - Descendant selectors with two `.hljs-*` tokens skipped (e.g. `.hljs-meta .hljs-keyword`)
+ * - Descendant selectors with non-hljs HTML elements skipped (e.g. `.hljs mark`, `.hljs a`)
+ * - Pseudo-class / pseudo-element selectors skipped (e.g. `.hljs::selection`, `.hljs-link:hover`)
+ * - `@media` and other at-rules stripped before parsing
+ * - SpanStyle merge: multiple rules targeting the same selector accumulate properties
+ *   (e.g. background set in rule 1 is preserved when rule 2 adds color)
+ */
 class ThemeParserTest {
     // CSS sampled from tomorrow.css (Base16 Tomorrow light theme)
     private val tomorrowCssSample =

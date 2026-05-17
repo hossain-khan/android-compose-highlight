@@ -21,7 +21,7 @@ import org.robolectric.annotation.Config
  */
 @RunWith(AndroidJUnit4::class)
 @Config(sdk = [30])
-class ThemeParserMoreThemesTest {
+class ThemeParserMoreThemes1Test {
     private val context get() = InstrumentationRegistry.getInstrumentation().targetContext
 
     // ── monokai-sublime ────────────────────────────────────────────────────────────────────────────
