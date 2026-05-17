@@ -172,7 +172,9 @@ internal fun CallbacksSection() {
                     Text(
                         text = "42 likes",
                         fontSize = 11.sp,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                        color =
+                            androidx.compose.material3.LocalContentColor.current
+                                .copy(alpha = 0.6f),
                     )
                 }
             },
