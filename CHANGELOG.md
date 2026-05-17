@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.19.0] - 2026-05-17
+
 ### Changed (Breaking)
 - **`SyntaxHighlightedCode` - slot API hardening** - replaced boolean visibility flags and partial
   slot parameters with full composable slots:
