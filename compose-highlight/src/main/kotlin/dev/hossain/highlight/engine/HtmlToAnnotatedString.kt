@@ -6,6 +6,8 @@ import androidx.compose.ui.text.SpanStyle
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
 import org.jsoup.nodes.TextNode
+import kotlin.time.Duration
+import kotlin.time.measureTimedValue
 
 /**
  * Converts Highlight.js HTML output into a Compose [AnnotatedString].
@@ -28,10 +30,25 @@ object HtmlToAnnotatedString {
     fun convert(
         html: String,
         colorMap: Map<String, SpanStyle>,
-    ): AnnotatedString {
-        if (html.isBlank()) return AnnotatedString("")
+    ): AnnotatedString = convertTimed(html, colorMap).annotated
 
-        val doc = Jsoup.parseBodyFragment(html)
+    /**
+     * Converts highlighted HTML to [AnnotatedString] with per-stage timing data.
+     *
+     * Measures time separately for the jsoup parse pass and the DOM tree walk,
+     * so [HighlightEngine] can populate [HighlightTimings] fields.
+     *
+     * @param html HTML fragment output from highlight.js (not a full document)
+     * @param colorMap Map of hljs class names to [SpanStyle], from [ThemeParser]
+     * @return [TimedConvertResult] with the [AnnotatedString] and per-stage durations
+     */
+    internal fun convertTimed(
+        html: String,
+        colorMap: Map<String, SpanStyle>,
+    ): TimedConvertResult {
+        if (html.isBlank()) return TimedConvertResult(AnnotatedString(""), Duration.ZERO, Duration.ZERO)
+
+        val (doc, htmlParseDuration) = measureTimedValue { Jsoup.parseBodyFragment(html) }
         val body = doc.body()
 
         // Apply the .hljs base text color across the entire string so that plain-text tokens
@@ -39,16 +56,18 @@ object HtmlToAnnotatedString {
         val baseTextColor = colorMap["hljs"]?.color?.takeIf { it != Color.Unspecified }
         val baseStyle = baseTextColor?.let { SpanStyle(color = it) }
 
-        val result =
-            buildAnnotatedString {
-                if (baseStyle != null) pushStyle(baseStyle)
-                body.childNodes().forEach { node ->
-                    walkNode(node, colorMap, this)
+        val (result, treeWalkDuration) =
+            measureTimedValue {
+                buildAnnotatedString {
+                    if (baseStyle != null) pushStyle(baseStyle)
+                    body.childNodes().forEach { node ->
+                        walkNode(node, colorMap, this)
+                    }
+                    if (baseStyle != null) pop()
                 }
-                if (baseStyle != null) pop()
             }
 
-        return result
+        return TimedConvertResult(result, htmlParseDuration, treeWalkDuration)
     }
 
     /**
@@ -72,9 +91,36 @@ object HtmlToAnnotatedString {
         lightColorMap: Map<String, SpanStyle>,
         darkColorMap: Map<String, SpanStyle>,
     ): Pair<AnnotatedString, AnnotatedString> {
-        if (html.isBlank()) return Pair(AnnotatedString(""), AnnotatedString(""))
+        val timed = convertBothThemesTimed(html, lightColorMap, darkColorMap)
+        return Pair(timed.light, timed.dark)
+    }
 
-        val doc = Jsoup.parseBodyFragment(html)
+    /**
+     * Converts highlighted HTML to two [AnnotatedString] values with per-stage timing data.
+     *
+     * Semantically equivalent to [convertBothThemes] but also returns timing for the shared
+     * jsoup parse and the combined dual-theme tree walk.
+     *
+     * @param html HTML fragment output from highlight.js (not a full document)
+     * @param lightColorMap Color map for the light theme, from [ThemeParser]
+     * @param darkColorMap Color map for the dark theme, from [ThemeParser]
+     * @return [TimedConvertBothResult] with both [AnnotatedString] values and per-stage durations
+     */
+    internal fun convertBothThemesTimed(
+        html: String,
+        lightColorMap: Map<String, SpanStyle>,
+        darkColorMap: Map<String, SpanStyle>,
+    ): TimedConvertBothResult {
+        if (html.isBlank()) {
+            return TimedConvertBothResult(
+                light = AnnotatedString(""),
+                dark = AnnotatedString(""),
+                htmlParseDuration = Duration.ZERO,
+                treeWalkDuration = Duration.ZERO,
+            )
+        }
+
+        val (doc, htmlParseDuration) = measureTimedValue { Jsoup.parseBodyFragment(html) }
         val body = doc.body()
 
         // Each builder gets its own independent base text color from its own color map.
@@ -85,17 +131,25 @@ object HtmlToAnnotatedString {
         val lightBuilder = AnnotatedString.Builder()
         val darkBuilder = AnnotatedString.Builder()
 
-        if (lightBaseStyle != null) lightBuilder.pushStyle(lightBaseStyle)
-        if (darkBaseStyle != null) darkBuilder.pushStyle(darkBaseStyle)
+        val (_, treeWalkDuration) =
+            measureTimedValue {
+                if (lightBaseStyle != null) lightBuilder.pushStyle(lightBaseStyle)
+                if (darkBaseStyle != null) darkBuilder.pushStyle(darkBaseStyle)
 
-        body.childNodes().forEach { node ->
-            walkNodeBothThemes(node, lightColorMap, darkColorMap, lightBuilder, darkBuilder)
-        }
+                body.childNodes().forEach { node ->
+                    walkNodeBothThemes(node, lightColorMap, darkColorMap, lightBuilder, darkBuilder)
+                }
 
-        if (lightBaseStyle != null) lightBuilder.pop()
-        if (darkBaseStyle != null) darkBuilder.pop()
+                if (lightBaseStyle != null) lightBuilder.pop()
+                if (darkBaseStyle != null) darkBuilder.pop()
+            }
 
-        return Pair(lightBuilder.toAnnotatedString(), darkBuilder.toAnnotatedString())
+        return TimedConvertBothResult(
+            light = lightBuilder.toAnnotatedString(),
+            dark = darkBuilder.toAnnotatedString(),
+            htmlParseDuration = htmlParseDuration,
+            treeWalkDuration = treeWalkDuration,
+        )
     }
 
     private fun walkNode(
@@ -224,6 +278,31 @@ object HtmlToAnnotatedString {
         return classes.firstNotNullOfOrNull { colorMap[it] }
     }
 }
+
+/**
+ * Internal result type for [HtmlToAnnotatedString.convertTimed].
+ *
+ * Carries the converted [AnnotatedString] alongside per-stage [Duration] values so
+ * [HighlightEngine] can wire them into [HighlightTimings] without a second parse pass.
+ */
+internal data class TimedConvertResult(
+    val annotated: AnnotatedString,
+    val htmlParseDuration: Duration,
+    val treeWalkDuration: Duration,
+)
+
+/**
+ * Internal result type for [HtmlToAnnotatedString.convertBothThemesTimed].
+ *
+ * Carries both light and dark [AnnotatedString] values alongside shared per-stage
+ * [Duration] values (the parse and tree walk are performed once for both themes).
+ */
+internal data class TimedConvertBothResult(
+    val light: AnnotatedString,
+    val dark: AnnotatedString,
+    val htmlParseDuration: Duration,
+    val treeWalkDuration: Duration,
+)
 
 // Extension to use buildAnnotatedString pattern without Compose runtime
 private fun buildAnnotatedString(block: AnnotatedString.Builder.() -> Unit): AnnotatedString {

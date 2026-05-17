@@ -6,8 +6,9 @@ import androidx.compose.ui.text.AnnotatedString
  * Result of a successful [HighlightEngine.highlight] call.
  *
  * Provides richer observability than a bare [AnnotatedString]: callers can inspect
- * whether highlighting actually produced tokens ([spanCount] > 0), and measure pure
- * highlight time ([durationMs]) without coroutine-scheduling overhead.
+ * whether highlighting actually produced tokens ([spanCount] > 0), measure pure
+ * highlight time ([durationMs]) without coroutine-scheduling overhead, and drill into
+ * per-layer timing via [timings].
  *
  * ## Usage
  *
@@ -24,6 +25,13 @@ import androidx.compose.ui.text.AnnotatedString
  *
  *     // Log pure engine time (excludes coroutine scheduling overhead)
  *     log("Highlighted in ${result.durationMs} ms")
+ *
+ *     // Drill into per-layer timing
+ *     log("JS bridge:    ${result.timings.jsBridge}")
+ *     log("JSON unescape:${result.timings.jsonUnescape}")
+ *     log("HTML parse:   ${result.timings.htmlParse}")
+ *     log("Tree walk:    ${result.timings.treeWalk}")
+ *     log("Theme parse:  ${result.timings.themeParse}")  // non-zero on first call only
  * }
  * ```
  *
@@ -37,6 +45,7 @@ import androidx.compose.ui.text.AnnotatedString
  *         metricsMap[result.language] = HighlightMetrics(
  *             spanCount = result.spanCount,
  *             durationMs = result.durationMs,
+ *             jsBridgeMs = result.timings.jsBridge.inWholeMilliseconds,
  *         )
  *     },
  * )
@@ -50,11 +59,15 @@ import androidx.compose.ui.text.AnnotatedString
  *   (e.g. `"kotlin"`, `"python"`).
  * @property durationMs Pure highlight time in milliseconds — from the start of the
  *   [HighlightEngine.highlight] call through HTML conversion. Excludes coroutine
- *   scheduling overhead that the caller would observe.
+ *   scheduling overhead that the caller would observe. Equals
+ *   `timings.total.inWholeMilliseconds`.
+ * @property timings Per-layer timing breakdown for this highlight call. Always populated.
+ *   See [HighlightTimings] for the full stage breakdown.
  */
 data class HighlightResult(
     val annotated: AnnotatedString,
     val spanCount: Int,
     val language: String,
     val durationMs: Long,
+    val timings: HighlightTimings,
 )

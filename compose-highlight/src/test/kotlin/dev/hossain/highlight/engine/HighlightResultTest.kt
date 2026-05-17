@@ -3,9 +3,19 @@ package dev.hossain.highlight.engine
 import androidx.compose.ui.text.AnnotatedString
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
+import kotlin.time.Duration
 
 class HighlightResultTest {
     private val sampleAnnotated = AnnotatedString("fun hello() = \"world\"")
+    private val zeroTimings =
+        HighlightTimings(
+            jsBridge = Duration.ZERO,
+            jsonUnescape = Duration.ZERO,
+            htmlParse = Duration.ZERO,
+            treeWalk = Duration.ZERO,
+            themeParse = Duration.ZERO,
+            total = Duration.ZERO,
+        )
 
     // ── Construction ─────────────────────────────────────────────────────────
 
@@ -17,12 +27,14 @@ class HighlightResultTest {
                 spanCount = 5,
                 language = "kotlin",
                 durationMs = 42L,
+                timings = zeroTimings,
             )
 
         assertThat(result.annotated).isEqualTo(sampleAnnotated)
         assertThat(result.spanCount).isEqualTo(5)
         assertThat(result.language).isEqualTo("kotlin")
         assertThat(result.durationMs).isEqualTo(42L)
+        assertThat(result.timings).isEqualTo(zeroTimings)
     }
 
     // ── spanCount semantics ───────────────────────────────────────────────────
@@ -35,6 +47,7 @@ class HighlightResultTest {
                 spanCount = 0,
                 language = "not-a-real-language",
                 durationMs = 10L,
+                timings = zeroTimings,
             )
 
         assertThat(result.spanCount).isEqualTo(0)
@@ -48,6 +61,7 @@ class HighlightResultTest {
                 spanCount = 3,
                 language = "kotlin",
                 durationMs = 20L,
+                timings = zeroTimings,
             )
 
         assertThat(result.spanCount).isGreaterThan(0)
@@ -63,6 +77,7 @@ class HighlightResultTest {
                 spanCount = 2,
                 language = "python",
                 durationMs = 15L,
+                timings = zeroTimings,
             )
 
         assertThat(result.language).isEqualTo("python")
@@ -70,8 +85,8 @@ class HighlightResultTest {
 
     @Test
     fun `language field is case-sensitive`() {
-        val lower = HighlightResult(sampleAnnotated, 1, "kotlin", 1L)
-        val upper = HighlightResult(sampleAnnotated, 1, "Kotlin", 1L)
+        val lower = HighlightResult(sampleAnnotated, 1, "kotlin", 1L, zeroTimings)
+        val upper = HighlightResult(sampleAnnotated, 1, "Kotlin", 1L, zeroTimings)
 
         assertThat(lower.language).isNotEqualTo(upper.language)
     }
@@ -80,7 +95,7 @@ class HighlightResultTest {
 
     @Test
     fun `durationMs of zero is valid`() {
-        val result = HighlightResult(sampleAnnotated, 0, "plaintext", durationMs = 0L)
+        val result = HighlightResult(sampleAnnotated, 0, "plaintext", durationMs = 0L, timings = zeroTimings)
 
         assertThat(result.durationMs).isEqualTo(0L)
     }
@@ -88,56 +103,92 @@ class HighlightResultTest {
     @Test
     fun `durationMs stores large values without overflow`() {
         val large = 100_000L
-        val result = HighlightResult(sampleAnnotated, 1, "kotlin", durationMs = large)
+        val result = HighlightResult(sampleAnnotated, 1, "kotlin", durationMs = large, timings = zeroTimings)
 
         assertThat(result.durationMs).isEqualTo(large)
+    }
+
+    // ── timings field ─────────────────────────────────────────────────────────
+
+    @Test
+    fun `timings field is stored as-is`() {
+        val timings =
+            HighlightTimings(
+                jsBridge = Duration.parse("45ms"),
+                jsonUnescape = Duration.parse("1ms"),
+                htmlParse = Duration.parse("3ms"),
+                treeWalk = Duration.parse("2ms"),
+                themeParse = Duration.parse("10ms"),
+                total = Duration.parse("61ms"),
+            )
+        val result =
+            HighlightResult(
+                annotated = sampleAnnotated,
+                spanCount = 5,
+                language = "kotlin",
+                durationMs = 61L,
+                timings = timings,
+            )
+
+        assertThat(result.timings).isEqualTo(timings)
+        assertThat(result.timings.jsBridge).isEqualTo(Duration.parse("45ms"))
+        assertThat(result.timings.total).isEqualTo(Duration.parse("61ms"))
     }
 
     // ── data class contracts ─────────────────────────────────────────────────
 
     @Test
     fun `equals is true for identical instances`() {
-        val a = HighlightResult(sampleAnnotated, 5, "kotlin", 42L)
-        val b = HighlightResult(sampleAnnotated, 5, "kotlin", 42L)
+        val a = HighlightResult(sampleAnnotated, 5, "kotlin", 42L, zeroTimings)
+        val b = HighlightResult(sampleAnnotated, 5, "kotlin", 42L, zeroTimings)
 
         assertThat(a).isEqualTo(b)
     }
 
     @Test
     fun `equals is false when spanCount differs`() {
-        val a = HighlightResult(sampleAnnotated, 5, "kotlin", 42L)
-        val b = HighlightResult(sampleAnnotated, 0, "kotlin", 42L)
+        val a = HighlightResult(sampleAnnotated, 5, "kotlin", 42L, zeroTimings)
+        val b = HighlightResult(sampleAnnotated, 0, "kotlin", 42L, zeroTimings)
 
         assertThat(a).isNotEqualTo(b)
     }
 
     @Test
     fun `equals is false when language differs`() {
-        val a = HighlightResult(sampleAnnotated, 5, "kotlin", 42L)
-        val b = HighlightResult(sampleAnnotated, 5, "python", 42L)
+        val a = HighlightResult(sampleAnnotated, 5, "kotlin", 42L, zeroTimings)
+        val b = HighlightResult(sampleAnnotated, 5, "python", 42L, zeroTimings)
 
         assertThat(a).isNotEqualTo(b)
     }
 
     @Test
     fun `equals is false when durationMs differs`() {
-        val a = HighlightResult(sampleAnnotated, 5, "kotlin", 10L)
-        val b = HighlightResult(sampleAnnotated, 5, "kotlin", 99L)
+        val a = HighlightResult(sampleAnnotated, 5, "kotlin", 10L, zeroTimings)
+        val b = HighlightResult(sampleAnnotated, 5, "kotlin", 99L, zeroTimings)
+
+        assertThat(a).isNotEqualTo(b)
+    }
+
+    @Test
+    fun `equals is false when timings differ`() {
+        val otherTimings = zeroTimings.copy(jsBridge = Duration.parse("5ms"))
+        val a = HighlightResult(sampleAnnotated, 5, "kotlin", 42L, zeroTimings)
+        val b = HighlightResult(sampleAnnotated, 5, "kotlin", 42L, otherTimings)
 
         assertThat(a).isNotEqualTo(b)
     }
 
     @Test
     fun `hashCode is equal for equal instances`() {
-        val a = HighlightResult(sampleAnnotated, 5, "kotlin", 42L)
-        val b = HighlightResult(sampleAnnotated, 5, "kotlin", 42L)
+        val a = HighlightResult(sampleAnnotated, 5, "kotlin", 42L, zeroTimings)
+        val b = HighlightResult(sampleAnnotated, 5, "kotlin", 42L, zeroTimings)
 
         assertThat(a.hashCode()).isEqualTo(b.hashCode())
     }
 
     @Test
     fun `copy preserves all fields when no override`() {
-        val original = HighlightResult(sampleAnnotated, 5, "kotlin", 42L)
+        val original = HighlightResult(sampleAnnotated, 5, "kotlin", 42L, zeroTimings)
         val copy = original.copy()
 
         assertThat(copy).isEqualTo(original)
@@ -145,7 +196,7 @@ class HighlightResultTest {
 
     @Test
     fun `copy can override spanCount`() {
-        val original = HighlightResult(sampleAnnotated, 5, "kotlin", 42L)
+        val original = HighlightResult(sampleAnnotated, 5, "kotlin", 42L, zeroTimings)
         val updated = original.copy(spanCount = 0)
 
         assertThat(updated.spanCount).isEqualTo(0)
@@ -155,7 +206,7 @@ class HighlightResultTest {
 
     @Test
     fun `copy can override language`() {
-        val original = HighlightResult(sampleAnnotated, 5, "kotlin", 42L)
+        val original = HighlightResult(sampleAnnotated, 5, "kotlin", 42L, zeroTimings)
         val updated = original.copy(language = "python")
 
         assertThat(updated.language).isEqualTo("python")
@@ -164,7 +215,7 @@ class HighlightResultTest {
 
     @Test
     fun `toString contains field values`() {
-        val result = HighlightResult(sampleAnnotated, 3, "kotlin", 55L)
+        val result = HighlightResult(sampleAnnotated, 3, "kotlin", 55L, zeroTimings)
         val str = result.toString()
 
         assertThat(str).contains("spanCount=3")
