@@ -158,18 +158,19 @@ internal fun CallbacksSection() {
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
-                    Icon(
-                        imageVector = ImageVector.vectorResource(R.drawable.content_copy_24dp),
-                        contentDescription = null,
-                        modifier = Modifier.size(12.dp),
-                    )
                     Text(
                         text = "Kotlin",
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
                     )
+                    Icon(
+                        imageVector = ImageVector.vectorResource(R.drawable.star_24dp),
+                        contentDescription = null,
+                        modifier = Modifier.size(12.dp),
+                        tint = MaterialTheme.colorScheme.primary,
+                    )
                     Text(
-                        text = "⭐ 42 likes",
+                        text = "42 likes",
                         fontSize = 11.sp,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                     )
