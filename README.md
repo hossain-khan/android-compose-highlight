@@ -52,7 +52,7 @@ Add the [dependency](https://central.sonatype.com/artifact/dev.hossain/compose-h
 
 ```kotlin
 dependencies {
-    implementation("dev.hossain:compose-highlight:0.17.1")
+    implementation("dev.hossain:compose-highlight:0.17.2")
 }
 ```
 
