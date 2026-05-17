@@ -97,7 +97,7 @@ fun PerfScreen() {
         Scaffold(
             topBar = {
                 TopAppBar(
-                    title = { Text("⚡ Perf Benchmark") },
+                    title = { Text("Perf Benchmark") },
                     navigationIcon = {
                         IconButton(onClick = { (context as? Activity)?.finish() }) {
                             Icon(
