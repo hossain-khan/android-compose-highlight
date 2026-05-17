@@ -141,5 +141,16 @@ internal fun TogglesSection() {
             modifier = Modifier.fillMaxWidth(),
             copyButtonContent = null,
         )
+
+        HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+
+        SubSectionHeader("languageLabelContent=null + copyButtonContent=null (header row hidden)")
+        SyntaxHighlightedCode(
+            code = KOTLIN_SNIPPET,
+            language = "kotlin",
+            modifier = Modifier.fillMaxWidth(),
+            languageLabelContent = null,
+            copyButtonContent = null,
+        )
     }
 }
