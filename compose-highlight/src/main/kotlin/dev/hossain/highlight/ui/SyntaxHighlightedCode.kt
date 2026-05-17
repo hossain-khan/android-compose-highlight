@@ -12,11 +12,10 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.selection.SelectionContainer
-import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -29,12 +28,9 @@ import androidx.compose.ui.platform.ClipEntry
 import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import dev.hossain.highlight.engine.HighlightResult
@@ -76,18 +72,31 @@ import kotlinx.coroutines.launch
  * )
  * ```
  *
- * ## Custom styling
+ * ## Custom copy button slot
  *
  * ```kotlin
  * SyntaxHighlightedCode(
- *     code     = jsonSnippet,
+ *     code = snippet,
+ *     language = "kotlin",
+ *     copyButtonContent = { onClick ->
+ *         IconButton(onClick = onClick) {
+ *             Icon(
+ *                 imageVector = ImageVector.vectorResource(R.drawable.content_copy_24dp),
+ *                 contentDescription = "Copy",
+ *             )
+ *         }
+ *     },
+ * )
+ * ```
+ *
+ * ## Hide header elements
+ *
+ * ```kotlin
+ * SyntaxHighlightedCode(
+ *     code = jsonSnippet,
  *     language = "json",
- *     style    = CodeBlockStyle(
- *         shape     = RoundedCornerShape(4.dp),
- *         padding   = PaddingValues(8.dp),
- *         textStyle = SyntaxHighlightedCodeDefaults.codeTextStyle.copy(fontSize = 15.sp),
- *     ),
- *     showCopyButton = false,
+ *     languageLabelContent = null,   // hide the language badge
+ *     copyButtonContent    = null,   // hide the copy button
  * )
  * ```
  *
@@ -101,32 +110,26 @@ import kotlinx.coroutines.launch
  *   Use [CodeBlockStyle.textStyle] to override typography (font family, size, line height).
  *   See [SyntaxHighlightedCodeDefaults] for the default values.
  * @param showLineNumbers Whether to show a line-number gutter on the left.
- * @param showLanguageLabel Whether to show the language badge in the header.
- * @param showCopyButton Whether to show the copy-to-clipboard button.
+ * @param languageLabelContent Optional composable content for the language badge in the header.
+ *   `null` hides the badge entirely. The default shows [language] in a dimmed style derived from
+ *   the active theme. Renders inside a [Surface] whose [LocalContentColor] is the theme foreground
+ *   — use `LocalContentColor.current` inside your slot to inherit it automatically.
+ *   Use [SyntaxHighlightedCodeDefaults.LanguageLabel] as a starting point for customisation.
+ *   Wrap your lambda in `remember` if it captures an unstable value.
+ * @param copyButtonContent Optional composable slot for the copy button in the header. `null`
+ *   hides the button entirely. The slot receives an `onClick` action pre-wired to copy [code] to
+ *   the system clipboard (or call [onCopyClick] if provided) — pass it to your button's `onClick`.
+ *   The default uses [SyntaxHighlightedCodeDefaults.CopyButton].
+ *   ```kotlin
+ *   copyButtonContent = { onClick ->
+ *       TextButton(onClick = onClick) { Text("Copy") }
+ *   }
+ *   ```
+ *   Wrap your lambda in `remember` if it captures unstable values.
  * @param onCopyClick Optional custom copy handler. If `null`, copies to the system clipboard.
  *   This callback is your signal that a copy occurred — use it to show your own feedback
  *   (e.g. a `Snackbar`, `Toast`, or animated indicator). The library does not show any
  *   built-in "Copied!" confirmation.
- * @param copyButtonIcon Optional composable slot that replaces the default `⧉` copy icon.
- *   Receives the recommended `tint` [Color] derived from the active theme so the icon blends
- *   naturally with the code block background. Only used when [showCopyButton] is `true`.
- *   Example:
- *   ```kotlin
- *   SyntaxHighlightedCode(
- *       code = snippet,
- *       language = "kotlin",
- *       copyButtonIcon = { tint ->
- *           Icon(
- *               imageVector = ImageVector.vectorResource(R.drawable.content_copy_24dp),
- *               contentDescription = "Copy",
- *               tint = tint,
- *           )
- *       },
- *   )
- *   ```
- * @param copyButtonContentDescription The content description for the copy button, used by
- *   accessibility services like TalkBack. Defaults to `"Copy code"`. Provide a localized string
- *   for non-English users.
  * @param onHighlightComplete Optional callback invoked with a [HighlightResult] when highlighting
  *   succeeds. Use [HighlightResult.durationMs] for timing, [HighlightResult.spanCount] to detect
  *   silent failures (0 = no tokens produced), and [HighlightResult.language] to confirm the
@@ -140,11 +143,23 @@ fun SyntaxHighlightedCode(
     theme: HighlightTheme = LocalHighlightTheme.current,
     style: CodeBlockStyle = CodeBlockStyle.Default,
     showLineNumbers: Boolean = false,
-    showLanguageLabel: Boolean = true,
-    showCopyButton: Boolean = true,
+    languageLabelContent: (@Composable () -> Unit)? =
+        if (language.isNotBlank()) {
+            {
+                SyntaxHighlightedCodeDefaults.LanguageLabel(
+                    language = language,
+                    color =
+                        LocalContentColor.current.copy(alpha = 0.6f),
+                    fontSize = 12.sp,
+                )
+            }
+        } else {
+            null
+        },
+    copyButtonContent: (@Composable (onClick: () -> Unit) -> Unit)? = { onClick ->
+        SyntaxHighlightedCodeDefaults.CopyButton(onClick = onClick)
+    },
     onCopyClick: ((String) -> Unit)? = null,
-    copyButtonIcon: (@Composable (tint: Color) -> Unit)? = null,
-    copyButtonContentDescription: String = "Copy code",
     onHighlightComplete: ((HighlightResult) -> Unit)? = null,
 ) {
     // Remember derived colors and text styles keyed on theme and style so they are only
@@ -168,14 +183,6 @@ fun SyntaxHighlightedCode(
     // Apply the theme's foreground color on top of the caller-supplied text style.
     val themedCodeStyle = remember(theme, style) { style.textStyle.copy(color = textColor) }
     val themedLineNumStyle = remember(theme, style) { style.textStyle.copy(color = lineNumberColor) }
-    val languageLabelStyle =
-        remember(theme, style) {
-            style.textStyle.copy(
-                color = textColor.copy(alpha = 0.6f),
-                fontSize = 12.sp,
-                lineHeight = TextUnit.Unspecified,
-            )
-        }
 
     // In Android Studio Preview, WebView cannot be created. Render a themed fallback
     // (using the active theme's background and text colors) so that @Preview composables
@@ -185,6 +192,7 @@ fun SyntaxHighlightedCode(
             modifier = modifier.testTag("syntax-highlighted-code"),
             shape = style.shape,
             color = backgroundColor,
+            contentColor = textColor,
         ) {
             Text(
                 text = code,
@@ -203,10 +211,11 @@ fun SyntaxHighlightedCode(
         modifier = modifier.testTag("syntax-highlighted-code"),
         shape = style.shape,
         color = backgroundColor,
+        contentColor = textColor,
     ) {
         Column {
             // Header: language badge + copy button
-            if (showLanguageLabel || showCopyButton) {
+            if (languageLabelContent != null || copyButtonContent != null) {
                 Row(
                     modifier =
                         Modifier
@@ -214,32 +223,21 @@ fun SyntaxHighlightedCode(
                             .padding(style.headerPadding),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    if (showLanguageLabel && language.isNotBlank()) {
-                        Text(
-                            text = language,
-                            style = languageLabelStyle,
-                        )
-                    }
+                    languageLabelContent?.invoke()
                     Spacer(modifier = Modifier.weight(1f))
-                    if (showCopyButton) {
-                        CopyButton(
-                            size = style.copyButtonSize,
-                            tint = textColor.copy(alpha = 0.7f),
-                            customIcon = copyButtonIcon,
-                            contentDescription = copyButtonContentDescription,
-                            onClick = {
-                                val handler = onCopyClick
-                                if (handler != null) {
-                                    handler(code)
-                                } else {
-                                    scope.launch {
-                                        clipboard.setClipEntry(
-                                            ClipEntry(ClipData.newPlainText("code", code)),
-                                        )
-                                    }
+                    if (copyButtonContent != null) {
+                        copyButtonContent {
+                            val handler = onCopyClick
+                            if (handler != null) {
+                                handler(code)
+                            } else {
+                                scope.launch {
+                                    clipboard.setClipEntry(
+                                        ClipEntry(ClipData.newPlainText("code", code)),
+                                    )
                                 }
-                            },
-                        )
+                            }
+                        }
                     }
                 }
             }
@@ -281,13 +279,14 @@ private fun LineNumberedCode(
     codeTextStyle: TextStyle,
     lineNumTextStyle: TextStyle,
     style: CodeBlockStyle,
+    modifier: Modifier = Modifier,
 ) {
     // Count lines from the text that will actually be rendered so line numbers always align.
     // Memoized to avoid recomputing on every recomposition when the rendered text is unchanged.
     val lineCount = remember(highlighted?.text, code) { (highlighted?.text ?: code).lines().size }
     val lineNumbers = remember(lineCount) { (1..lineCount).joinToString("\n") }
 
-    Row(modifier = Modifier.padding(style.padding)) {
+    Row(modifier = modifier.padding(style.padding)) {
         // Line number gutter — rendered as a single Text to share the same line-height
         // behaviour as the code Text, keeping numbers and code visually aligned.
         Text(
@@ -302,30 +301,6 @@ private fun LineNumberedCode(
             Text(text = highlighted, style = codeTextStyle)
         } else {
             Text(text = code, style = codeTextStyle)
-        }
-    }
-}
-
-@Composable
-private fun CopyButton(
-    size: androidx.compose.ui.unit.Dp,
-    tint: Color,
-    customIcon: (@Composable (tint: Color) -> Unit)?,
-    contentDescription: String,
-    onClick: () -> Unit,
-) {
-    IconButton(
-        onClick = onClick,
-        modifier = Modifier.size(size).semantics { this.contentDescription = contentDescription },
-    ) {
-        if (customIcon != null) {
-            customIcon(tint)
-        } else {
-            // Default: simple text icon — no bundled icon dependency
-            Text(
-                text = "⧉",
-                style = TextStyle(color = tint, fontSize = 16.sp),
-            )
         }
     }
 }

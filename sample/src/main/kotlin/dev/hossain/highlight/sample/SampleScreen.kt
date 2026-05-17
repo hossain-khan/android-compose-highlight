@@ -54,6 +54,7 @@ import dev.hossain.highlight.sample.sections.TogglesSection
 import dev.hossain.highlight.sample.sections.TypographySection
 import dev.hossain.highlight.ui.HighlightThemeProvider
 import dev.hossain.highlight.ui.SyntaxHighlightedCode
+import dev.hossain.highlight.ui.SyntaxHighlightedCodeDefaults
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -247,12 +248,10 @@ fun SampleScreen() {
                                         modifier = Modifier.fillMaxWidth(),
                                         showLineNumbers = sample.language == "python",
                                         onCopyClick = onCopyClick,
-                                        copyButtonIcon = { tint ->
-                                            Icon(
-                                                imageVector = ImageVector.vectorResource(R.drawable.content_copy_24dp),
-                                                modifier = Modifier.size(16.dp),
+                                        copyButtonContent = { onClick ->
+                                            SyntaxHighlightedCodeDefaults.CopyButton(
+                                                onClick = onClick,
                                                 contentDescription = "Copy code",
-                                                tint = tint,
                                             )
                                         },
                                     )

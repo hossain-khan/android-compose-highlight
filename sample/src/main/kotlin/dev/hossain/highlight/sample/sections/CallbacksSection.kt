@@ -140,19 +140,20 @@ internal fun CallbacksSection() {
         }
         HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
 
-        // copyButtonIcon custom slot demo
-        SubSectionHeader("copyButtonIcon — custom vector icon")
+        // copyButtonContent custom slot demo
+        SubSectionHeader("copyButtonContent — custom vector icon")
         SyntaxHighlightedCode(
             code = KOTLIN_SNIPPET,
             language = "kotlin",
             modifier = Modifier.fillMaxWidth(),
-            copyButtonIcon = { tint ->
-                Icon(
-                    imageVector = ImageVector.vectorResource(R.drawable.content_copy_24dp),
-                    modifier = Modifier.size(16.dp),
-                    contentDescription = "Copy code",
-                    tint = tint,
-                )
+            copyButtonContent = { onClick ->
+                androidx.compose.material3.IconButton(onClick = onClick) {
+                    Icon(
+                        imageVector = ImageVector.vectorResource(R.drawable.content_copy_24dp),
+                        modifier = Modifier.size(16.dp),
+                        contentDescription = "Copy code",
+                    )
+                }
             },
         )
     }

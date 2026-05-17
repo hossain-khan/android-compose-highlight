@@ -13,67 +13,64 @@ import dev.hossain.highlight.sample.PYTHON_SNIPPET
 import dev.hossain.highlight.ui.SyntaxHighlightedCode
 
 /**
- * Demonstrates every [SyntaxHighlightedCode] boolean flag combination:
- * - `showLineNumbers` × `showLanguageLabel` (2×2)
- * - `showCopyButton` on/off
+ * Demonstrates every [SyntaxHighlightedCode] visibility option:
+ * - `showLineNumbers` × `languageLabelContent` (2×2)
+ * - `copyButtonContent` on/off
  */
 @Composable
 internal fun TogglesSection() {
     Column(
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        SubSectionHeader("showLineNumbers=false, showLanguageLabel=true (defaults)")
+        SubSectionHeader("showLineNumbers=false, languageLabelContent=default")
         SyntaxHighlightedCode(
             code = PYTHON_SNIPPET,
             language = "python",
             modifier = Modifier.fillMaxWidth(),
             showLineNumbers = false,
-            showLanguageLabel = true,
         )
 
-        SubSectionHeader("showLineNumbers=true, showLanguageLabel=true")
+        SubSectionHeader("showLineNumbers=true, languageLabelContent=default")
         SyntaxHighlightedCode(
             code = PYTHON_SNIPPET,
             language = "python",
             modifier = Modifier.fillMaxWidth(),
             showLineNumbers = true,
-            showLanguageLabel = true,
         )
 
-        SubSectionHeader("showLineNumbers=false, showLanguageLabel=false")
+        SubSectionHeader("showLineNumbers=false, languageLabelContent=null (hidden)")
         SyntaxHighlightedCode(
             code = PYTHON_SNIPPET,
             language = "python",
             modifier = Modifier.fillMaxWidth(),
             showLineNumbers = false,
-            showLanguageLabel = false,
+            languageLabelContent = null,
         )
 
-        SubSectionHeader("showLineNumbers=true, showLanguageLabel=false")
+        SubSectionHeader("showLineNumbers=true, languageLabelContent=null (hidden)")
         SyntaxHighlightedCode(
             code = PYTHON_SNIPPET,
             language = "python",
             modifier = Modifier.fillMaxWidth(),
             showLineNumbers = true,
-            showLanguageLabel = false,
+            languageLabelContent = null,
         )
 
         HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
 
-        SubSectionHeader("showCopyButton=true (default)")
+        SubSectionHeader("copyButtonContent=default")
         SyntaxHighlightedCode(
             code = KOTLIN_SNIPPET,
             language = "kotlin",
             modifier = Modifier.fillMaxWidth(),
-            showCopyButton = true,
         )
 
-        SubSectionHeader("showCopyButton=false")
+        SubSectionHeader("copyButtonContent=null (hidden)")
         SyntaxHighlightedCode(
             code = KOTLIN_SNIPPET,
             language = "kotlin",
             modifier = Modifier.fillMaxWidth(),
-            showCopyButton = false,
+            copyButtonContent = null,
         )
     }
 }

@@ -4,6 +4,31 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Changed (Breaking)
+- **`SyntaxHighlightedCode` - slot API hardening** - replaced boolean visibility flags and partial
+  slot parameters with full composable slots:
+  - `showLanguageLabel: Boolean` removed; replaced by `languageLabelContent: (@Composable () -> Unit)?`
+    (`null` = hide, non-null = custom content; default shows language identifier in dimmed style).
+  - `showCopyButton: Boolean`, `copyButtonIcon: (@Composable (tint: Color) -> Unit)?`, and
+    `copyButtonContentDescription: String` removed; replaced by
+    `copyButtonContent: (@Composable (onClick: () -> Unit) -> Unit)?`
+    (`null` = hide; slot receives a pre-wired `onClick` action; default uses
+    `SyntaxHighlightedCodeDefaults.CopyButton`).
+  - `Surface` now explicitly sets `contentColor = textColor` so `LocalContentColor.current` resolves
+    correctly inside both slots.
+
+### Added
+- **`SyntaxHighlightedCodeDefaults.CopyButton`** - public composable helper that renders the
+  default `⧉` copy icon inside an `IconButton`. Accepts `onClick`, `tint`, `contentDescription`,
+  and `size` parameters so callers can compose on top of the default look.
+- **`SyntaxHighlightedCodeDefaults.LanguageLabel`** - public composable helper that renders
+  the language badge. Accepts `language`, `color`, and `fontSize` parameters. Useful for
+  toggling visibility at runtime without reconstructing the full default style.
+
+### Fixed
+- **Private `LineNumberedCode` composable** - now accepts `modifier: Modifier = Modifier` and
+  applies it to the root `Row`, consistent with Compose modifier conventions.
+
 ## [0.18.0] - 2026-05-16
 
 ### Added
