@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -130,7 +131,7 @@ object SyntaxHighlightedCodeDefaults {
                     .size(size)
                     .semantics { this.contentDescription = contentDescription },
         ) {
-            androidx.compose.material3.Text(
+            Text(
                 text = "⧉",
                 style = TextStyle(color = tint, fontSize = 16.sp),
             )
@@ -170,7 +171,7 @@ object SyntaxHighlightedCodeDefaults {
         fontSize: TextUnit = 12.sp,
     ) {
         if (language.isNotBlank()) {
-            androidx.compose.material3.Text(
+            Text(
                 text = language,
                 style =
                     TextStyle(
