@@ -14,6 +14,9 @@ import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
+import kotlin.time.Duration
+import kotlin.time.TimeSource
+import kotlin.time.measureTimedValue
 
 /**
  * Core engine that manages the hidden WebView and executes Highlight.js highlighting.
@@ -190,13 +193,14 @@ class HighlightEngine(
             val webView = manager.getReadyWebView()
 
             mutex.withLock {
-                val start = System.nanoTime()
                 withTimeout(HighlightException.TIMEOUT_SECONDS * 1000L) {
                     executeJs(webView, code, language)
-                }.map { html ->
+                }.map { jsResult ->
                     HtmlHighlightResult(
-                        html = html,
-                        durationMs = (System.nanoTime() - start) / 1_000_000L,
+                        html = jsResult.html,
+                        durationMs = jsResult.jsBridgeDuration.inWholeMilliseconds,
+                        jsBridgeDuration = jsResult.jsBridgeDuration,
+                        jsonUnescapeDuration = jsResult.jsonUnescapeDuration,
                     )
                 }
             }
@@ -229,16 +233,27 @@ class HighlightEngine(
         language: String,
         theme: HighlightTheme,
     ): Result<HighlightResult> {
-        val start = System.nanoTime()
+        val totalStart = TimeSource.Monotonic.markNow()
         return highlightToHtml(code, language).map { htmlResult ->
             try {
-                val annotated = HtmlToAnnotatedString.convert(htmlResult.html, theme.colorMap)
-                val durationMs = (System.nanoTime() - start) / 1_000_000L
+                val colorMap = theme.colorMap
+                val themeParseD = theme.consumeParseDuration()
+                val convertResult = HtmlToAnnotatedString.convertTimed(htmlResult.html, colorMap)
+                val totalDuration = totalStart.elapsedNow()
                 HighlightResult(
-                    annotated = annotated,
-                    spanCount = annotated.spanStyles.size,
+                    annotated = convertResult.annotated,
+                    spanCount = convertResult.annotated.spanStyles.size,
                     language = language,
-                    durationMs = durationMs,
+                    durationMs = totalDuration.inWholeMilliseconds,
+                    timings =
+                        HighlightTimings(
+                            jsBridge = htmlResult.jsBridgeDuration,
+                            jsonUnescape = htmlResult.jsonUnescapeDuration,
+                            htmlParse = convertResult.htmlParseDuration,
+                            treeWalk = convertResult.treeWalkDuration,
+                            themeParse = themeParseD,
+                            total = totalDuration,
+                        ),
                 )
             } catch (e: Exception) {
                 throw HighlightException.HtmlParseFailed(e)
@@ -278,19 +293,33 @@ class HighlightEngine(
         lightTheme: HighlightTheme,
         darkTheme: HighlightTheme,
     ): Result<ThemedHighlightResult> {
-        val start = System.nanoTime()
+        val totalStart = TimeSource.Monotonic.markNow()
         return highlightToHtml(code, language).map { htmlResult ->
             try {
-                val (light, dark) =
-                    HtmlToAnnotatedString.convertBothThemes(
+                val lightColorMap = lightTheme.colorMap
+                val lightThemeParseD = lightTheme.consumeParseDuration()
+                val darkColorMap = darkTheme.colorMap
+                val darkThemeParseD = darkTheme.consumeParseDuration()
+                val convertResult =
+                    HtmlToAnnotatedString.convertBothThemesTimed(
                         htmlResult.html,
-                        lightTheme.colorMap,
-                        darkTheme.colorMap,
+                        lightColorMap,
+                        darkColorMap,
                     )
+                val totalDuration = totalStart.elapsedNow()
                 ThemedHighlightResult(
-                    light = light,
-                    dark = dark,
-                    durationMs = (System.nanoTime() - start) / 1_000_000L,
+                    light = convertResult.light,
+                    dark = convertResult.dark,
+                    durationMs = totalDuration.inWholeMilliseconds,
+                    timings =
+                        HighlightTimings(
+                            jsBridge = htmlResult.jsBridgeDuration,
+                            jsonUnescape = htmlResult.jsonUnescapeDuration,
+                            htmlParse = convertResult.htmlParseDuration,
+                            treeWalk = convertResult.treeWalkDuration,
+                            themeParse = lightThemeParseD + darkThemeParseD,
+                            total = totalDuration,
+                        ),
                 )
             } catch (e: Exception) {
                 throw HighlightException.HtmlParseFailed(e)
@@ -431,17 +460,19 @@ class HighlightEngine(
     }
 
     /**
-     * Executes the highlight JS call and returns the resulting HTML.
+     * Executes the highlight JS call and returns the resulting HTML with timing data.
      *
      * String escaping is delegated to [escapeForJs]; see that function for the full escape order.
      *
      * The JS callback returns a JSON-encoded string — parsed by [unescapeJsString].
+     * Returns a [JsResult] containing the HTML, the JS bridge round-trip duration, and the
+     * JSON unescape duration.
      */
     private suspend fun executeJs(
         webView: WebView,
         code: String,
         language: String,
-    ): Result<String> {
+    ): Result<JsResult> {
         val escaped = escapeForJs(code)
         val escapedLang = escapeForJs(language)
 
@@ -449,7 +480,9 @@ class HighlightEngine(
 
         return withContext(Dispatchers.Main) {
             suspendCancellableCoroutine { continuation ->
+                val jsStart = TimeSource.Monotonic.markNow()
                 webView.evaluateJavascript(js) { rawResult ->
+                    val jsBridgeDuration = jsStart.elapsedNow()
                     if (rawResult == null || rawResult == "null") {
                         continuation.resumeWithException(
                             HighlightException.JsExecutionFailed(RuntimeException("JS returned null")),
@@ -457,8 +490,8 @@ class HighlightEngine(
                         return@evaluateJavascript
                     }
                     // The result is a JSON-encoded string — strip surrounding quotes and unescape
-                    val html = unescapeJsString(rawResult)
-                    continuation.resume(Result.success(html))
+                    val (html, jsonUnescapeDuration) = measureTimedValue { unescapeJsString(rawResult) }
+                    continuation.resume(Result.success(JsResult(html, jsBridgeDuration, jsonUnescapeDuration)))
                 }
             }
         }
@@ -619,9 +652,22 @@ internal fun escapeForJs(str: String): String =
  * @property durationMs Pure highlight time in milliseconds — covers the JS call and a single
  *   HTML conversion pass (light and dark outputs are produced together in one pass). Excludes
  *   coroutine-scheduling overhead.
+ * @property timings Per-layer timing breakdown for this highlight call. Always populated.
+ *   See [HighlightTimings] for the full stage breakdown.
  */
 data class ThemedHighlightResult(
     val light: AnnotatedString,
     val dark: AnnotatedString,
     val durationMs: Long,
+    val timings: HighlightTimings,
+)
+
+/**
+ * Internal result of [HighlightEngine.executeJs]: the unescaped HTML string together with
+ * per-stage timing data measured inside the JS callback.
+ */
+private data class JsResult(
+    val html: String,
+    val jsBridgeDuration: Duration,
+    val jsonUnescapeDuration: Duration,
 )

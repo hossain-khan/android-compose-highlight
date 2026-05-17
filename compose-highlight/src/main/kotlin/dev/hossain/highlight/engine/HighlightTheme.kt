@@ -4,6 +4,8 @@ import android.content.Context
 import androidx.compose.runtime.Stable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.SpanStyle
+import kotlin.time.Duration
+import kotlin.time.measureTimedValue
 
 /**
  * Represents a syntax highlighting theme backed by a Highlight.js CSS file.
@@ -88,7 +90,31 @@ class HighlightTheme private constructor(
     private val colorMapProvider: () -> Map<String, SpanStyle>,
 ) {
     /** Lazily-parsed map of hljs class names → [SpanStyle]. Cached forever. */
-    val colorMap: Map<String, SpanStyle> by lazy { colorMapProvider() }
+    val colorMap: Map<String, SpanStyle> by lazy {
+        val (map, duration) = measureTimedValue { colorMapProvider() }
+        themeParseDuration = duration
+        map
+    }
+
+    /**
+     * Time taken to parse the theme CSS on first access of [colorMap].
+     * Set to [Duration.ZERO] after being consumed by [consumeParseDuration].
+     * [Duration.ZERO] on subsequent [colorMap] accesses (cached).
+     */
+    @Volatile
+    internal var themeParseDuration: Duration = Duration.ZERO
+
+    /**
+     * Returns the recorded [themeParseDuration] and resets it to [Duration.ZERO].
+     *
+     * Called by [HighlightEngine] after accessing [colorMap] so that only the first
+     * call reports a non-zero theme-parse time and all subsequent calls report zero.
+     */
+    internal fun consumeParseDuration(): Duration {
+        val d = themeParseDuration
+        themeParseDuration = Duration.ZERO
+        return d
+    }
 
     /** Background color from the `.hljs` CSS rule. Unspecified if not present in theme. */
     val backgroundColor: Color by lazy {

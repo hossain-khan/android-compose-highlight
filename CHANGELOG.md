@@ -4,6 +4,23 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+- **`HighlightTimings` data class** - Per-layer timing breakdown for a single highlight call.
+  Each field is a `kotlin.time.Duration` measured via `measureTimedValue` at each pipeline stage:
+  - `jsBridge` - `evaluateJavascript()` round-trip into WebView running highlight.js
+  - `jsonUnescape` - `unescapeJsString()` character-by-character pass over the returned JSON string
+  - `htmlParse` - `Jsoup.parseBodyFragment()` - HTML to DOM
+  - `treeWalk` - DOM node walk and `SpanStyle` lookup from theme color map
+  - `themeParse` - `ThemeParser.parse()` - first-use only; `Duration.ZERO` on cache hits
+  - `total` - end-to-end time for the full highlight call
+- **`HighlightResult.timings`** - `HighlightTimings` field on `HighlightResult`; always populated.
+  Existing `durationMs` is preserved (equals `timings.total.inWholeMilliseconds`).
+- **`ThemedHighlightResult.timings`** - `HighlightTimings` field on `ThemedHighlightResult`; always
+  populated. `themeParse` covers both light and dark theme parse times combined.
+- **`HtmlHighlightResult.jsBridgeDuration` / `jsonUnescapeDuration`** - `Duration` fields on
+  `HtmlHighlightResult` exposing JS bridge and JSON unescape timings directly for callers that
+  use `highlightToHtml()`. Default to `Duration.ZERO` if not populated (backwards compatible).
+
 ## [0.17.2] - 2026-05-16
 
 ### Fixed
