@@ -369,4 +369,31 @@ class ThemeParserTest {
         assertThat(result["hljs-string"]?.color).isEqualTo(Color(0xFF718c00))
         assertThat(result["hljs-number"]?.color).isEqualTo(Color(0xFFf5871f))
     }
+
+    // ── descendant non-hljs selector regression ────────────────────────────────────────────────────
+
+    @Test
+    fun `parse descendant selector with non-hljs element does not overwrite base entry`() {
+        // agate has: .hljs { background:#333 } then later .hljs mark { background:#555 }
+        // Before the whitespace-check fix, .hljs mark was treated as a standalone .hljs rule
+        // and overwrote the real background with #555555.
+        val css =
+            ".hljs{background:#333;color:#fff}" +
+                ".hljs-keyword{color:#fcc28c}" +
+                ".hljs mark{background:#555;color:inherit}"
+        val result = ThemeParser.parse(css)
+        // Real background must survive - .hljs mark must not overwrite it
+        assertThat(result["hljs"]?.background).isEqualTo(Color(0xFF333333))
+        assertThat(result["hljs"]?.color).isEqualTo(Color(0xFFffffff))
+    }
+
+    @Test
+    fun `parse descendant selector with non-hljs anchor does not affect base entry`() {
+        // Some themes have .hljs a { color: inherit } for link styling inside code blocks
+        val css =
+            ".hljs{background:#fff;color:#000}" +
+                ".hljs a{color:inherit}"
+        val result = ThemeParser.parse(css)
+        assertThat(result["hljs"]?.color).isEqualTo(Color(0xFF000000))
+    }
 }

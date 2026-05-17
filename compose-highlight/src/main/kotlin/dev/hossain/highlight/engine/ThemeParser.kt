@@ -118,6 +118,11 @@ object ThemeParser {
                 // with the selection-highlight color instead of the real background color.
                 if (trimmed.contains("::") || trimmed.contains(Regex(""":(?!:)[a-z]"""))) return@forEach
 
+                // Skip descendant/combinator selectors - any selector containing whitespace
+                // is context-specific (e.g. `.hljs mark`, `.hljs a`, `.hljs-meta .hljs-keyword`)
+                // and must not overwrite a standalone class entry.
+                if (trimmed.contains(" ")) return@forEach
+
                 val matches = selectorPattern.findAll(trimmed).toList()
 
                 // Skip context-specific descendant selectors entirely.

@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+### Fixed
+- **`ThemeParser` - descendant selector with non-hljs element leakage** - selectors like
+  `.hljs mark { background:#555 }` and `.hljs a { color:inherit }` were not filtered as
+  descendant rules because only selectors with two or more `.hljs-*` tokens were skipped.
+  A selector containing any whitespace is now unconditionally skipped, since whitespace
+  always indicates a descendant/combinator relationship that is context-specific. Without
+  this fix, `.hljs mark { background:#555 }` in the `agate` theme overwrote the real `.hljs`
+  background (`#333333`) with the mark-highlight color (`#555555`).
+
 ## [0.17.1] - 2026-05-16
 
 ### Fixed
