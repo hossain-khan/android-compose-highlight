@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Fixed
+- **`ThemeParser` - split rules for same selector lost earlier properties** - themes that
+  define a selector in multiple CSS rules (e.g. `nord` sets `.hljs { background }` and then
+  `.hljs { color }` separately) caused the second rule to silently overwrite the first, losing
+  the background color. Rules for the same selector are now merged: later explicit values win,
+  but earlier values for unset properties are preserved.
 - **`ThemeParser` - descendant selector with non-hljs element leakage** - selectors like
   `.hljs mark { background:#555 }` and `.hljs a { color:inherit }` were not filtered as
   descendant rules because only selectors with two or more `.hljs-*` tokens were skipped.

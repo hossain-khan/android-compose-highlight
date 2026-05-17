@@ -132,18 +132,41 @@ object ThemeParser {
 
                 matches.forEach { selectorMatch ->
                     val raw = selectorMatch.value.trimStart('.')
-                    result[raw] = spanStyle
+                    // Merge with any existing entry so that split rules for the same selector
+                    // accumulate correctly (e.g. a theme may set `background` in one rule and
+                    // `color` in a separate rule for `.hljs`; both values must be retained).
+                    // Later-rule values take precedence over earlier ones (CSS cascade).
+                    result[raw] = mergeSpanStyle(result[raw], spanStyle)
                     // Also store under the primary class for compound selectors
                     // e.g. "hljs-title.function_" → also store "hljs-title" as fallback
                     val primary = raw.substringBefore('.')
                     if (primary != raw && !result.containsKey(primary)) {
-                        result[primary] = spanStyle
+                        result[primary] = mergeSpanStyle(result[primary], spanStyle)
                     }
                 }
             }
         }
 
         return result
+    }
+
+    /**
+     * Merges two [SpanStyle] instances, with [incoming] taking precedence over [existing].
+     * Values that are [Color.Unspecified] or null in [incoming] fall back to [existing].
+     * This allows multiple CSS rules targeting the same selector to accumulate correctly
+     * instead of the last rule silently discarding properties set by earlier rules.
+     */
+    private fun mergeSpanStyle(
+        existing: SpanStyle?,
+        incoming: SpanStyle,
+    ): SpanStyle {
+        if (existing == null) return incoming
+        return SpanStyle(
+            color = if (incoming.color != Color.Unspecified) incoming.color else existing.color,
+            fontWeight = incoming.fontWeight ?: existing.fontWeight,
+            fontStyle = incoming.fontStyle ?: existing.fontStyle,
+            background = if (incoming.background != Color.Unspecified) incoming.background else existing.background,
+        )
     }
 
     private fun parseDeclarations(declarations: String): SpanStyle? {

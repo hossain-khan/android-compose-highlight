@@ -396,4 +396,36 @@ class ThemeParserTest {
         val result = ThemeParser.parse(css)
         assertThat(result["hljs"]?.color).isEqualTo(Color(0xFF000000))
     }
+
+    @Test
+    fun `parse split rules for same selector merges SpanStyle preserving earlier properties`() {
+        // e.g. nord theme: .hljs{background:#2e3440} followed by .hljs,.hljs-subst{color:#d8dee9}
+        // Without merge, the second rule would overwrite result["hljs"], losing the background.
+        val css =
+            ".hljs{background:#2e3440}" +
+                ".hljs,.hljs-subst{color:#d8dee9}"
+        val result = ThemeParser.parse(css)
+        assertThat(result["hljs"]?.background).isEqualTo(Color(0xFF2E3440))
+        assertThat(result["hljs"]?.color).isEqualTo(Color(0xFFD8DEE9))
+    }
+
+    @Test
+    fun `parse later rule overrides earlier rule for same property`() {
+        // A later explicit color overrides an earlier color for the same key.
+        val css =
+            ".hljs-keyword{color:#aabbcc}" +
+                ".hljs-keyword{color:#112233}"
+        val result = ThemeParser.parse(css)
+        assertThat(result["hljs-keyword"]?.color).isEqualTo(Color(0xFF112233))
+    }
+
+    @Test
+    fun `parse split rules accumulate font-weight and color independently`() {
+        val css =
+            ".hljs-title{color:#78bb65}" +
+                ".hljs-title{font-weight:700}"
+        val result = ThemeParser.parse(css)
+        assertThat(result["hljs-title"]?.color).isEqualTo(Color(0xFF78BB65))
+        assertThat(result["hljs-title"]?.fontWeight).isEqualTo(FontWeight.Bold)
+    }
 }
