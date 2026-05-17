@@ -56,6 +56,8 @@ dependencies {
 }
 ```
 
+ℹ️ This brings about `0.5 MB` to your existing app, see [analysis details](https://hossain.dev/posts/syntax-highlighting-on-android-highlight-js-native-compose-engine/#apk-size-impact) and [benchmark](#sample-results-pixel-9-pro-xl-debuggable-build) data.
+
 ---
 
 ## Engine-Only Usage
@@ -286,16 +288,6 @@ Run on your target device to get accurate numbers. Results are printed in logcat
 > **Key insight from profiling:** `ThemeParser` and `HtmlToAnnotatedString` are cheap (sub-millisecond to a few ms). The dominant cost is the WebView JS round-trip, which runs off the UI thread and is cached per `rememberHighlightedCode` call. Even large real-world files (~150–200 lines) complete in under 20 ms.
 
 ---
-
-## Development Tools
-
-### Memory Leak Detection (Sample App)
-
-The sample app includes [LeakCanary](https://square.github.io/leakcanary/) (`com.squareup.leakcanary:leakcanary-android`) as a `debugImplementation` dependency. LeakCanary installs itself automatically via a `ContentProvider` — no code changes are needed. When a memory leak is detected in a debug build, a notification appears and a heap-dump analysis is shown.
-
----
-
-
 
 ## Requirements
 
