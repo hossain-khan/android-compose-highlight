@@ -41,7 +41,7 @@ HighlightThemeProvider(
 
 | Sample App | Customizations |
 | ---- | ----- |
-| <video src="https://github.com/user-attachments/assets/10617b72-9b7c-413b-92b5-a939a34ad6af"> | <video src="https://github.com/user-attachments/assets/e97ec831-5531-43d3-8e23-e55498b326c9"> |
+| <video src="https://github.com/user-attachments/assets/9521cb13-ff32-4a5b-956e-4e620bbee4d1"> | <video src="https://github.com/user-attachments/assets/02a71e4d-6ada-4008-99c0-f642c618d778"> |
 
 
 ---
