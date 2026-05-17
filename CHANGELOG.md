@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.18.0] - 2026-05-16
+
 ### Added
 - **`HighlightTimings` data class** - Per-layer timing breakdown for a single highlight call.
   Each field is a `kotlin.time.Duration` measured via `measureTimedValue` at each pipeline stage:
