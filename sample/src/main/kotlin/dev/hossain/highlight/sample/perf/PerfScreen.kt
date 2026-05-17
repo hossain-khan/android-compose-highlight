@@ -107,7 +107,7 @@ fun PerfScreen() {
                         }
                     },
                     actions = {
-                        // Light/dark toggle — also resets the benchmark since theme affects timing
+                        // Light/dark toggle - also resets the benchmark since theme affects timing
                         IconButton(onClick = {
                             isDark = !isDark
                             metricsMap.clear()

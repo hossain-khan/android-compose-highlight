@@ -28,9 +28,9 @@ import dev.hossain.highlight.ui.rememberHighlightEngine
 
 /**
  * Demonstrates [SyntaxHighlightedCode] event callbacks:
- * - `onHighlightComplete` — shows full [HighlightResult] (duration, span count, language).
- * - `onCopyClick` — custom copy handler with inline feedback.
- * - `rememberHighlightEngine().isInitialized` — shows engine warm-up state.
+ * - `onHighlightComplete` - shows full [HighlightResult] (duration, span count, language).
+ * - `onCopyClick` - custom copy handler with inline feedback.
+ * - `rememberHighlightEngine().isInitialized` - shows engine warm-up state.
  */
 @Composable
 internal fun CallbacksSection() {
@@ -40,7 +40,7 @@ internal fun CallbacksSection() {
         // onHighlightComplete: show full HighlightResult fields
         var highlightResult by remember { mutableStateOf<HighlightResult?>(null) }
 
-        SubSectionHeader("onHighlightComplete — full HighlightResult")
+        SubSectionHeader("onHighlightComplete - full HighlightResult")
         SyntaxHighlightedCode(
             code = KOTLIN_SNIPPET,
             language = "kotlin",
@@ -113,13 +113,13 @@ internal fun CallbacksSection() {
         // onCopyClick custom handler demo
         var customCopyMessage by remember { mutableStateOf("") }
 
-        SubSectionHeader("onCopyClick — custom copy handler")
+        SubSectionHeader("onCopyClick - custom copy handler")
         SyntaxHighlightedCode(
             code = PYTHON_SNIPPET,
             language = "python",
             modifier = Modifier.fillMaxWidth(),
             onCopyClick = { code ->
-                customCopyMessage = "📋 Custom handler received ${code.length} chars — not sent to clipboard!"
+                customCopyMessage = "📋 Custom handler received ${code.length} chars - not sent to clipboard!"
             },
         )
         if (customCopyMessage.isNotEmpty()) {

@@ -23,7 +23,7 @@ internal data class CodeSample(
  * The prefix is stripped for the display label. The file extension is mapped to
  * a Highlight.js language identifier via [extensionToLanguage].
  *
- * Adding a new sample only requires dropping a file into `assets/samples/` —
+ * Adding a new sample only requires dropping a file into `assets/samples/` -
  * no Kotlin changes needed.
  */
 internal fun loadCodeSamples(context: Context): List<CodeSample> =
@@ -73,7 +73,7 @@ internal data class ThemePair(
     val dark: HighlightTheme,
 )
 
-// Short snippets used in demo sections (not loaded from assets — intentionally inline).
+// Short snippets used in demo sections (not loaded from assets - intentionally inline).
 internal val KOTLIN_SNIPPET =
     """
 data class User(val name: String, val age: Int)
@@ -103,7 +103,7 @@ httpApiClient.get("/users")
     """.trimIndent()
 
 /**
- * Kotlin snippet demonstrating [HighlightTheme.fromAsset] — intentionally shown
+ * Kotlin snippet demonstrating [HighlightTheme.fromAsset] - intentionally shown
  * inside a [dev.hossain.highlight.ui.SyntaxHighlightedCode] block so the demo
  * highlights its own loading code ("eat your own dog food").
  */

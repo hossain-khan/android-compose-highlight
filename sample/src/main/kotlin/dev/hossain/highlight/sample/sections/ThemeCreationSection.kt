@@ -67,16 +67,16 @@ private val MATERIAL3_LIGHT_CSS =
 /**
  * Demonstrates all four [HighlightTheme] factory methods:
  * - Built-in: [HighlightTheme.atomOneDark] (one representative bundled theme)
- * - [HighlightTheme.fromAsset] — any highlight.js CSS saved in `assets/`
- * - [HighlightTheme.fromCss] — Material 3–inspired inline CSS
- * - [HighlightTheme.fromColorMap] — Material 3–inspired precomputed color map (dark variant)
+ * - [HighlightTheme.fromAsset] - any highlight.js CSS saved in `assets/`
+ * - [HighlightTheme.fromCss] - Material 3–inspired inline CSS
+ * - [HighlightTheme.fromColorMap] - Material 3–inspired precomputed color map (dark variant)
  */
 @Composable
 internal fun ThemeCreationSection() {
-    // Built-in theme — @Composable helper resolves LocalContext internally
+    // Built-in theme - @Composable helper resolves LocalContext internally
     val atomOneDarkTheme = rememberAtomOneDarkTheme()
 
-    // fromCss() — Material 3–inspired inline CSS string
+    // fromCss() - Material 3–inspired inline CSS string
     val material3LightTheme =
         remember {
             HighlightTheme.fromCss(
@@ -85,7 +85,7 @@ internal fun ThemeCreationSection() {
             )
         }
 
-    // fromColorMap() — Material 3–inspired precomputed dark color map
+    // fromColorMap() - Material 3–inspired precomputed dark color map
     val material3DarkTheme =
         remember {
             HighlightTheme.fromColorMap(
@@ -119,7 +119,7 @@ internal fun ThemeCreationSection() {
         Text(
             text =
                 "The library bundles 4 ready-to-use themes: atomOneDark, atomOneLight, " +
-                    "tomorrow, and tomorrowNight. No extra assets needed — just call the " +
+                    "tomorrow, and tomorrowNight. No extra assets needed - just call the " +
                     "corresponding factory function. Here is atomOneDark as an example:",
             style = MaterialTheme.typography.bodySmall,
             modifier = Modifier.padding(horizontal = 4.dp),

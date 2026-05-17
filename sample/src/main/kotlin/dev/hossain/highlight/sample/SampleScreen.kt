@@ -69,7 +69,7 @@ import kotlinx.coroutines.withContext
  * - **Light/Dark toggle**: switches between the light and dark variant of the selected theme.
  *
  * The GitHub themes are loaded from the sample app's own assets via [HighlightTheme.fromAsset],
- * showcasing that library users can bundle any Highlight.js CSS and use it as a theme — they are
+ * showcasing that library users can bundle any Highlight.js CSS and use it as a theme - they are
  * not limited to the built-in options.
  *
  * Sections are organized into tabs:
@@ -109,7 +109,7 @@ fun SampleScreen() {
             }
         }
 
-    // All available theme pairs — GitHub uses fromAsset() to demonstrate custom themes.
+    // All available theme pairs - GitHub uses fromAsset() to demonstrate custom themes.
     val themePairs =
         remember(context) {
             listOf(

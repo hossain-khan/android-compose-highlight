@@ -80,7 +80,7 @@ internal fun EngineInfoSection() {
         }
 
         // ── Language count badge ──────────────────────────────────────────
-        SubSectionHeader("Supported languages — hljs.listLanguages()")
+        SubSectionHeader("Supported languages - hljs.listLanguages()")
         Surface(
             modifier = Modifier.fillMaxWidth(),
             color = MaterialTheme.colorScheme.secondaryContainer,

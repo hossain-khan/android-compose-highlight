@@ -39,7 +39,7 @@ import dev.hossain.highlight.ui.SyntaxHighlightedCode
 import dev.hossain.highlight.ui.SyntaxHighlightedCodeDefaults
 
 /**
- * Interactive styling demo — a single live [SyntaxHighlightedCode] block whose [CodeBlockStyle]
+ * Interactive styling demo - a single live [SyntaxHighlightedCode] block whose [CodeBlockStyle]
  * and visibility flags are controlled via a [ModalBottomSheet].
  *
  * The sheet is opened externally (via the [Scaffold] FAB in [SampleScreen]) by passing
@@ -69,7 +69,7 @@ internal fun StylingSection(
 
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
 
-    // Build style from current state — recomputed on every state change so the
+    // Build style from current state - recomputed on every state change so the
     // code block behind the sheet updates live.
     val style =
         remember(cornerRadius, contentPadding, headerPadding, lineNumberWidth, copyButtonSize) {

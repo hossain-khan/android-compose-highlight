@@ -26,8 +26,8 @@ import dev.hossain.highlight.ui.SyntaxHighlightedCodeDefaults
 
 /**
  * Demonstrates every [SyntaxHighlightedCode] visibility option:
- * - `languageLabelContent` — default, null (hidden), and rich custom slot
- * - `copyButtonContent` — default, null (hidden), and custom vector icon
+ * - `languageLabelContent` - default, null (hidden), and rich custom slot
+ * - `copyButtonContent` - default, null (hidden), and custom vector icon
  * - `showLineNumbers` × `languageLabelContent` (2×2)
  */
 @Composable
@@ -35,9 +35,9 @@ internal fun TogglesSection() {
     Column(
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        SubSectionHeader("languageLabelContent — rich custom label")
+        SubSectionHeader("languageLabelContent - rich custom label")
         androidx.compose.material3.Text(
-            text = "The slot accepts any @Composable — here is an example with a custom label, icon, and metadata badge.",
+            text = "The slot accepts any @Composable - here is an example with a custom label, icon, and metadata badge.",
             style =
                 androidx.compose.ui.text
                     .TextStyle(fontSize = 13.sp),
@@ -73,7 +73,7 @@ internal fun TogglesSection() {
 
         HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
 
-        SubSectionHeader("copyButtonContent — custom vector icon")
+        SubSectionHeader("copyButtonContent - custom vector icon")
         SyntaxHighlightedCode(
             code = KOTLIN_SNIPPET,
             language = "kotlin",
