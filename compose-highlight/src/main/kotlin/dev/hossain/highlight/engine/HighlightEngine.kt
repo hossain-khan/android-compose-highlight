@@ -236,8 +236,7 @@ class HighlightEngine(
         val totalStart = TimeSource.Monotonic.markNow()
         return highlightToHtml(code, language).map { htmlResult ->
             try {
-                val colorMap = theme.colorMap
-                val themeParseD = theme.consumeParseDuration()
+                val (colorMap, themeParseD) = theme.timedColorMap()
                 val convertResult = HtmlToAnnotatedString.convertTimed(htmlResult.html, colorMap)
                 val totalDuration = totalStart.elapsedNow()
                 HighlightResult(
@@ -296,10 +295,8 @@ class HighlightEngine(
         val totalStart = TimeSource.Monotonic.markNow()
         return highlightToHtml(code, language).map { htmlResult ->
             try {
-                val lightColorMap = lightTheme.colorMap
-                val lightThemeParseD = lightTheme.consumeParseDuration()
-                val darkColorMap = darkTheme.colorMap
-                val darkThemeParseD = darkTheme.consumeParseDuration()
+                val (lightColorMap, lightThemeParseD) = lightTheme.timedColorMap()
+                val (darkColorMap, darkThemeParseD) = darkTheme.timedColorMap()
                 val convertResult =
                     HtmlToAnnotatedString.convertBothThemesTimed(
                         htmlResult.html,

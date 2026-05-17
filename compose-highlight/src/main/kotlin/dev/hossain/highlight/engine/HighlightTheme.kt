@@ -90,31 +90,34 @@ class HighlightTheme private constructor(
     private val colorMapProvider: () -> Map<String, SpanStyle>,
 ) {
     /** Lazily-parsed map of hljs class names → [SpanStyle]. Cached forever. */
-    val colorMap: Map<String, SpanStyle> by lazy {
-        val (map, duration) = measureTimedValue { colorMapProvider() }
-        themeParseDuration = duration
-        map
-    }
+    val colorMap: Map<String, SpanStyle> by lazy { colorMapProvider() }
 
     /**
-     * Time taken to parse the theme CSS on first access of [colorMap].
-     * Set to [Duration.ZERO] after being consumed by [consumeParseDuration].
-     * [Duration.ZERO] on subsequent [colorMap] accesses (cached).
+     * Tracks whether [colorMap] has been initialized (lazy block has run).
+     * Used by [timedColorMap] to report [Duration.ZERO] on repeated calls.
      */
     @Volatile
-    internal var themeParseDuration: Duration = Duration.ZERO
+    private var colorMapInitialized = false
 
     /**
-     * Returns the recorded [themeParseDuration] and resets it to [Duration.ZERO].
+     * Returns [colorMap] together with the time taken to initialize it.
      *
-     * Called by [HighlightEngine] after accessing [colorMap] so that only the first
-     * call reports a non-zero theme-parse time and all subsequent calls report zero.
+     * Called exclusively by [HighlightEngine] so that theme-parse timing is
+     * only attributed to an actual highlight call, not to incidental accesses of
+     * [colorMap], [backgroundColor], or [defaultTextColor] from other callers.
+     *
+     * On the first call the CSS provider runs inside [measureTimedValue] and the
+     * real parse duration is returned. On all subsequent calls the cached map is
+     * returned with [Duration.ZERO].
      */
-    internal fun consumeParseDuration(): Duration {
-        val d = themeParseDuration
-        themeParseDuration = Duration.ZERO
-        return d
-    }
+    internal fun timedColorMap(): Pair<Map<String, SpanStyle>, Duration> =
+        if (colorMapInitialized) {
+            colorMap to Duration.ZERO
+        } else {
+            val (map, duration) = measureTimedValue { colorMap }
+            colorMapInitialized = true
+            map to duration
+        }
 
     /** Background color from the `.hljs` CSS rule. Unspecified if not present in theme. */
     val backgroundColor: Color by lazy {

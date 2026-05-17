@@ -31,7 +31,7 @@ import kotlin.time.Duration
  *     println("HTML parse:   ${t.htmlParse}")        // e.g. "3ms"
  *     println("Tree walk:    ${t.treeWalk}")         // e.g. "2ms"
  *     println("Theme parse:  ${t.themeParse}")       // non-zero on first call only
- *     println("Total:        ${t.total}")            // sum of all stages
+ *     println("Total:        ${t.total}")            // full elapsed wall-clock time
  *     // Or get raw numbers:
  *     val jsBridgeMs = t.jsBridge.inWholeMilliseconds
  *     val treeWalkNs = t.treeWalk.inWholeNanoseconds
@@ -49,9 +49,11 @@ import kotlin.time.Duration
  * @property themeParse Time for [ThemeParser.parse] - CSS parsing on first use of a
  *   [HighlightTheme]. [Duration.ZERO] on all subsequent calls for the same theme instance
  *   because the color map is lazily computed and cached.
- * @property total End-to-end time for the full [HighlightEngine.highlight] call, covering
- *   all stages above. Equals `timings.total.inWholeMilliseconds` rounded to
- *   [HighlightResult.durationMs].
+ * @property total Full elapsed wall-clock time for the [HighlightEngine.highlight] call.
+ *   Measured end-to-end and includes overhead not captured by the individual stage fields
+ *   (WebView initialization wait, mutex queuing, dispatcher hops). Use this for overall
+ *   latency; use the individual stage fields to identify which layer is the bottleneck.
+ *   Equals [HighlightResult.durationMs] converted to [Duration].
  */
 data class HighlightTimings(
     val jsBridge: Duration,
