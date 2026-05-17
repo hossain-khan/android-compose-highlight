@@ -4,10 +4,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -18,8 +16,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
@@ -27,15 +23,14 @@ import androidx.compose.ui.unit.sp
 import dev.hossain.highlight.engine.HighlightResult
 import dev.hossain.highlight.sample.KOTLIN_SNIPPET
 import dev.hossain.highlight.sample.PYTHON_SNIPPET
-import dev.hossain.highlight.sample.R
 import dev.hossain.highlight.ui.SyntaxHighlightedCode
 import dev.hossain.highlight.ui.rememberHighlightEngine
 
 /**
  * Demonstrates [SyntaxHighlightedCode] event callbacks:
- * - `onHighlightComplete` — shows full [HighlightResult] (duration, span count, language).
- * - `onCopyClick` — custom copy handler with inline feedback.
- * - `rememberHighlightEngine().isInitialized` — shows engine warm-up state.
+ * - `onHighlightComplete` - shows full [HighlightResult] (duration, span count, language).
+ * - `onCopyClick` - custom copy handler with inline feedback.
+ * - `rememberHighlightEngine().isInitialized` - shows engine warm-up state.
  */
 @Composable
 internal fun CallbacksSection() {
@@ -45,7 +40,7 @@ internal fun CallbacksSection() {
         // onHighlightComplete: show full HighlightResult fields
         var highlightResult by remember { mutableStateOf<HighlightResult?>(null) }
 
-        SubSectionHeader("onHighlightComplete — full HighlightResult")
+        SubSectionHeader("onHighlightComplete - full HighlightResult")
         SyntaxHighlightedCode(
             code = KOTLIN_SNIPPET,
             language = "kotlin",
@@ -118,13 +113,13 @@ internal fun CallbacksSection() {
         // onCopyClick custom handler demo
         var customCopyMessage by remember { mutableStateOf("") }
 
-        SubSectionHeader("onCopyClick — custom copy handler")
+        SubSectionHeader("onCopyClick - custom copy handler")
         SyntaxHighlightedCode(
             code = PYTHON_SNIPPET,
             language = "python",
             modifier = Modifier.fillMaxWidth(),
             onCopyClick = { code ->
-                customCopyMessage = "📋 Custom handler received ${code.length} chars — not sent to clipboard!"
+                customCopyMessage = "📋 Custom handler received ${code.length} chars - not sent to clipboard!"
             },
         )
         if (customCopyMessage.isNotEmpty()) {
@@ -138,22 +133,5 @@ internal fun CallbacksSection() {
                 modifier = Modifier.padding(top = 4.dp),
             )
         }
-        HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
-
-        // copyButtonIcon custom slot demo
-        SubSectionHeader("copyButtonIcon — custom vector icon")
-        SyntaxHighlightedCode(
-            code = KOTLIN_SNIPPET,
-            language = "kotlin",
-            modifier = Modifier.fillMaxWidth(),
-            copyButtonIcon = { tint ->
-                Icon(
-                    imageVector = ImageVector.vectorResource(R.drawable.content_copy_24dp),
-                    modifier = Modifier.size(16.dp),
-                    contentDescription = "Copy code",
-                    tint = tint,
-                )
-            },
-        )
     }
 }

@@ -28,14 +28,14 @@ internal fun TypographySection() {
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         // Font size variants
-        SubSectionHeader("textStyle — fontSize = 13.sp (default)")
+        SubSectionHeader("textStyle - fontSize = 13.sp (default)")
         SyntaxHighlightedCode(
             code = PYTHON_SNIPPET,
             language = "python",
             modifier = Modifier.fillMaxWidth(),
         )
 
-        SubSectionHeader("textStyle — fontSize = 15.sp")
+        SubSectionHeader("textStyle - fontSize = 15.sp")
         SyntaxHighlightedCode(
             code = PYTHON_SNIPPET,
             language = "python",
@@ -46,7 +46,7 @@ internal fun TypographySection() {
                 ),
         )
 
-        SubSectionHeader("textStyle — fontSize = 18.sp")
+        SubSectionHeader("textStyle - fontSize = 18.sp")
         SyntaxHighlightedCode(
             code = PYTHON_SNIPPET,
             language = "python",
@@ -60,14 +60,14 @@ internal fun TypographySection() {
         HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
 
         // Line height variants
-        SubSectionHeader("textStyle — lineHeight = 20.sp (default)")
+        SubSectionHeader("textStyle - lineHeight = 20.sp (default)")
         SyntaxHighlightedCode(
             code = KOTLIN_SNIPPET,
             language = "kotlin",
             modifier = Modifier.fillMaxWidth(),
         )
 
-        SubSectionHeader("textStyle — lineHeight = 28.sp (spacious)")
+        SubSectionHeader("textStyle - lineHeight = 28.sp (spacious)")
         SyntaxHighlightedCode(
             code = KOTLIN_SNIPPET,
             language = "kotlin",
@@ -81,14 +81,14 @@ internal fun TypographySection() {
         HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
 
         // Font family variants
-        SubSectionHeader("textStyle — fontFamily = FontFamily.Monospace (default)")
+        SubSectionHeader("textStyle - fontFamily = FontFamily.Monospace (default)")
         SyntaxHighlightedCode(
             code = KOTLIN_SNIPPET,
             language = "kotlin",
             modifier = Modifier.fillMaxWidth(),
         )
 
-        SubSectionHeader("textStyle — fontFamily = FontFamily.Serif")
+        SubSectionHeader("textStyle - fontFamily = FontFamily.Serif")
         SyntaxHighlightedCode(
             code = KOTLIN_SNIPPET,
             language = "kotlin",
@@ -99,7 +99,7 @@ internal fun TypographySection() {
                 ),
         )
 
-        SubSectionHeader("textStyle — fontFamily = FontFamily.SansSerif")
+        SubSectionHeader("textStyle - fontFamily = FontFamily.SansSerif")
         SyntaxHighlightedCode(
             code = KOTLIN_SNIPPET,
             language = "kotlin",

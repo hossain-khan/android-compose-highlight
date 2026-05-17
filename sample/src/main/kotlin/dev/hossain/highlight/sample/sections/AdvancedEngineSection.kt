@@ -57,15 +57,15 @@ private val LightCodeText = Color(0xFF333333)
  * initial load completes. The duration of the single JS call is shown below the code block.
  *
  * Also demonstrates:
- * - Silent failure detection via [HighlightResult.spanCount] — an unsupported language
+ * - Silent failure detection via [HighlightResult.spanCount] - an unsupported language
  *   produces 0 spans instead of throwing, displayed with an error-coloured card.
- * - Raw [dev.hossain.highlight.engine.HighlightEngine.highlightToHtml] pipeline — shows the
+ * - Raw [dev.hossain.highlight.engine.HighlightEngine.highlightToHtml] pipeline - shows the
  *   `<span class="hljs-*">` HTML string before any theme colour is applied.
- * - Pre-warming via [dev.hossain.highlight.engine.HighlightEngine.initialize] — measures
+ * - Pre-warming via [dev.hossain.highlight.engine.HighlightEngine.initialize] - measures
  *   WebView warm-up time with a button-triggered call.
- * - Direct [dev.hossain.highlight.engine.HighlightEngine.highlight] call — full pipeline in a
+ * - Direct [dev.hossain.highlight.engine.HighlightEngine.highlight] call - full pipeline in a
  *   single suspend call, showing [HighlightResult] metrics.
- * - [dev.hossain.highlight.engine.HighlightException] error handling — catches and displays
+ * - [dev.hossain.highlight.engine.HighlightException] error handling - catches and displays
  *   sealed class subtypes in an error-coloured card.
  *
  * @param isDark Whether the global light/dark toggle (from the top-bar button) is currently dark.
@@ -94,7 +94,7 @@ internal fun AdvancedEngineSection(isDark: Boolean) {
         Text(
             text =
                 "Highlights once for both light and dark in a single JS call. " +
-                    "Flip the toggle below — switching is instant after the initial load.",
+                    "Flip the toggle below - switching is instant after the initial load.",
             style = TextStyle(fontSize = 13.sp),
         )
 
@@ -142,7 +142,7 @@ internal fun AdvancedEngineSection(isDark: Boolean) {
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Duration metric — read directly from the result state, no separate variable needed
+        // Duration metric - read directly from the result state, no separate variable needed
         result?.let { r ->
             Text(
                 text = "⏱ Both themes highlighted in ${r.durationMs}ms (single JS call)",
@@ -245,7 +245,7 @@ internal fun AdvancedEngineSection(isDark: Boolean) {
         HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
 
         // Pre-warming demo
-        SubSectionHeader("Pre-warming — engine.initialize()")
+        SubSectionHeader("Pre-warming - engine.initialize()")
         Text(
             text =
                 "Calling initialize() warms up the hidden WebView before the first highlight. " +
@@ -301,10 +301,10 @@ internal fun AdvancedEngineSection(isDark: Boolean) {
         HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
 
         // Direct engine.highlight() call demo
-        SubSectionHeader("Direct call — engine.highlight()")
+        SubSectionHeader("Direct call - engine.highlight()")
         Text(
             text =
-                "Use engine.highlight() directly when you need highlighting outside a composable — " +
+                "Use engine.highlight() directly when you need highlighting outside a composable - " +
                     "for example, in a ViewModel or background coroutine. " +
                     "Returns a HighlightResult with the AnnotatedString, span count, and timing.",
             style = TextStyle(fontSize = 13.sp),
@@ -361,7 +361,7 @@ internal fun AdvancedEngineSection(isDark: Boolean) {
         HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
 
         // HighlightException error handling demo
-        SubSectionHeader("Error handling — HighlightException")
+        SubSectionHeader("Error handling - HighlightException")
         Text(
             text =
                 "Engine methods return Result<T> and wrap failures in HighlightException subtypes. " +
@@ -373,7 +373,7 @@ internal fun AdvancedEngineSection(isDark: Boolean) {
         var caughtException by remember { mutableStateOf<HighlightException?>(null) }
         Button(onClick = {
             errorScope.launch {
-                // Use a theme pointing to a non-existent asset — colorMap access throws IOException,
+                // Use a theme pointing to a non-existent asset - colorMap access throws IOException,
                 // which is wrapped in HighlightException.HtmlParseFailed by the engine.
                 val brokenTheme =
                     HighlightTheme.fromAsset(
@@ -430,7 +430,7 @@ internal fun AdvancedEngineSection(isDark: Boolean) {
         HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
 
         // Comparison note
-        SubSectionHeader("For comparison — standard SyntaxHighlightedCode (re-highlights on toggle)")
+        SubSectionHeader("For comparison - standard SyntaxHighlightedCode (re-highlights on toggle)")
         Text(
             text =
                 "The block below uses the global theme from HighlightThemeProvider. " +

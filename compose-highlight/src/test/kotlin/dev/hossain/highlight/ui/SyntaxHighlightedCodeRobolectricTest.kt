@@ -61,14 +61,14 @@ class SyntaxHighlightedCodeRobolectricTest {
     }
 
     @Test
-    fun hidesLanguageLabelWhenFlagIsFalse() {
+    fun hidesLanguageLabelWhenContentIsNull() {
         composeTestRule.setContent {
             CompositionLocalProvider(LocalInspectionMode provides true) {
                 HighlightThemeProvider {
                     SyntaxHighlightedCode(
                         code = "val x = 42",
                         language = "kotlin",
-                        showLanguageLabel = false,
+                        languageLabelContent = null,
                     )
                 }
             }
@@ -80,14 +80,14 @@ class SyntaxHighlightedCodeRobolectricTest {
     }
 
     @Test
-    fun hidesCopyButtonWhenFlagIsFalse() {
+    fun hidesCopyButtonWhenContentIsNull() {
         composeTestRule.setContent {
             CompositionLocalProvider(LocalInspectionMode provides true) {
                 HighlightThemeProvider {
                     SyntaxHighlightedCode(
                         code = "val x = 42",
                         language = "kotlin",
-                        showCopyButton = false,
+                        copyButtonContent = null,
                     )
                 }
             }
@@ -108,7 +108,6 @@ class SyntaxHighlightedCodeRobolectricTest {
                 SyntaxHighlightedCode(
                     code = "val x = 42",
                     language = "kotlin",
-                    showCopyButton = true,
                 )
             }
         }
@@ -125,8 +124,12 @@ class SyntaxHighlightedCodeRobolectricTest {
                 SyntaxHighlightedCode(
                     code = "x = 1",
                     language = "python",
-                    showCopyButton = true,
-                    copyButtonContentDescription = "Copiar código",
+                    copyButtonContent = { onClick ->
+                        SyntaxHighlightedCodeDefaults.CopyButton(
+                            onClick = onClick,
+                            contentDescription = "Copiar código",
+                        )
+                    },
                 )
             }
         }
@@ -144,7 +147,6 @@ class SyntaxHighlightedCodeRobolectricTest {
                 SyntaxHighlightedCode(
                     code = "val x = 42",
                     language = "kotlin",
-                    showCopyButton = true,
                     onCopyClick = { copiedCode = it },
                 )
             }

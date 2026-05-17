@@ -54,6 +54,7 @@ import dev.hossain.highlight.sample.sections.TogglesSection
 import dev.hossain.highlight.sample.sections.TypographySection
 import dev.hossain.highlight.ui.HighlightThemeProvider
 import dev.hossain.highlight.ui.SyntaxHighlightedCode
+import dev.hossain.highlight.ui.SyntaxHighlightedCodeDefaults
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -68,7 +69,7 @@ import kotlinx.coroutines.withContext
  * - **Light/Dark toggle**: switches between the light and dark variant of the selected theme.
  *
  * The GitHub themes are loaded from the sample app's own assets via [HighlightTheme.fromAsset],
- * showcasing that library users can bundle any Highlight.js CSS and use it as a theme — they are
+ * showcasing that library users can bundle any Highlight.js CSS and use it as a theme - they are
  * not limited to the built-in options.
  *
  * Sections are organized into tabs:
@@ -108,7 +109,7 @@ fun SampleScreen() {
             }
         }
 
-    // All available theme pairs — GitHub uses fromAsset() to demonstrate custom themes.
+    // All available theme pairs - GitHub uses fromAsset() to demonstrate custom themes.
     val themePairs =
         remember(context) {
             listOf(
@@ -247,12 +248,10 @@ fun SampleScreen() {
                                         modifier = Modifier.fillMaxWidth(),
                                         showLineNumbers = sample.language == "python",
                                         onCopyClick = onCopyClick,
-                                        copyButtonIcon = { tint ->
-                                            Icon(
-                                                imageVector = ImageVector.vectorResource(R.drawable.content_copy_24dp),
-                                                modifier = Modifier.size(16.dp),
+                                        copyButtonContent = { onClick ->
+                                            SyntaxHighlightedCodeDefaults.CopyButton(
+                                                onClick = onClick,
                                                 contentDescription = "Copy code",
-                                                tint = tint,
                                             )
                                         },
                                     )

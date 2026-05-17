@@ -50,7 +50,6 @@ class SyntaxHighlightedCodeTest {
                 SyntaxHighlightedCode(
                     code = "val x = 1",
                     language = "kotlin",
-                    showLanguageLabel = true,
                 )
             }
         }
@@ -64,7 +63,7 @@ class SyntaxHighlightedCodeTest {
                 SyntaxHighlightedCode(
                     code = "val x = 1",
                     language = "kotlin",
-                    showLanguageLabel = false,
+                    languageLabelContent = null,
                 )
             }
         }
@@ -79,7 +78,6 @@ class SyntaxHighlightedCodeTest {
                 SyntaxHighlightedCode(
                     code = sampleCode,
                     language = "python",
-                    showCopyButton = true,
                     onCopyClick = { copyCalled = true },
                 )
             }
@@ -149,7 +147,6 @@ class SyntaxHighlightedCodeTest {
                 SyntaxHighlightedCode(
                     code = sampleCode,
                     language = "kotlin",
-                    showCopyButton = true,
                 )
             }
         }
@@ -183,7 +180,6 @@ class SyntaxHighlightedCodeTest {
                 SyntaxHighlightedCode(
                     code = sampleCode,
                     language = "python",
-                    showCopyButton = true,
                     onCopyClick = { copyCalled = true },
                 )
             }

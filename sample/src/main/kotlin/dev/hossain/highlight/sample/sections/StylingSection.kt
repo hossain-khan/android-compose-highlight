@@ -36,9 +36,10 @@ import dev.hossain.highlight.sample.KOTLIN_SNIPPET
 import dev.hossain.highlight.sample.R
 import dev.hossain.highlight.ui.CodeBlockStyle
 import dev.hossain.highlight.ui.SyntaxHighlightedCode
+import dev.hossain.highlight.ui.SyntaxHighlightedCodeDefaults
 
 /**
- * Interactive styling demo — a single live [SyntaxHighlightedCode] block whose [CodeBlockStyle]
+ * Interactive styling demo - a single live [SyntaxHighlightedCode] block whose [CodeBlockStyle]
  * and visibility flags are controlled via a [ModalBottomSheet].
  *
  * The sheet is opened externally (via the [Scaffold] FAB in [SampleScreen]) by passing
@@ -68,7 +69,7 @@ internal fun StylingSection(
 
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
 
-    // Build style from current state — recomputed on every state change so the
+    // Build style from current state - recomputed on every state change so the
     // code block behind the sheet updates live.
     val style =
         remember(cornerRadius, contentPadding, headerPadding, lineNumberWidth, copyButtonSize) {
@@ -94,20 +95,27 @@ internal fun StylingSection(
         modifier = Modifier.fillMaxWidth(),
         style = style,
         showLineNumbers = showLineNumbers,
-        showLanguageLabel = showLanguageLabel,
-        showCopyButton = showCopyButton,
-        copyButtonIcon =
-            if (useCustomCopyIcon) {
-                { tint ->
-                    Icon(
-                        imageVector = ImageVector.vectorResource(R.drawable.content_copy_24dp),
-                        contentDescription = "Copy code",
-                        tint = tint,
-                        modifier = Modifier.size(16.dp),
-                    )
-                }
+        languageLabelContent =
+            if (showLanguageLabel) {
+                { SyntaxHighlightedCodeDefaults.LanguageLabel("kotlin") }
             } else {
                 null
+            },
+        copyButtonContent =
+            if (!showCopyButton) {
+                null
+            } else if (useCustomCopyIcon) {
+                { onClick ->
+                    androidx.compose.material3.IconButton(onClick = onClick) {
+                        Icon(
+                            imageVector = ImageVector.vectorResource(R.drawable.content_copy_24dp),
+                            contentDescription = "Copy code",
+                            modifier = Modifier.size(16.dp),
+                        )
+                    }
+                }
+            } else {
+                { onClick -> SyntaxHighlightedCodeDefaults.CopyButton(onClick = onClick) }
             },
     )
 
