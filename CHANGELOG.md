@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.17.2] - 2026-05-16
+
 ### Fixed
 - **`ThemeParser` - split rules for same selector lost earlier properties** - themes that
   define a selector in multiple CSS rules (e.g. `nord` sets `.hljs { background }` and then
