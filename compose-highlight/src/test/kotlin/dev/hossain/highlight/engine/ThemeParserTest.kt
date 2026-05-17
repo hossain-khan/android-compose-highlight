@@ -7,6 +7,23 @@ import androidx.compose.ui.text.font.FontWeight
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 
+/**
+ * JVM unit tests for [ThemeParser.parse] using inline CSS strings (no Android context required).
+ *
+ * These tests cover the core parsing logic and edge cases:
+ * - Basic hex color parsing (`#rrggbb`, 3-digit `#rgb`, 4-digit `#rgba`, 8-digit `#aarrggbb`)
+ * - `rgb()` and `rgba()` color values including decimal alpha (e.g. `rgba(149,165,166,.8)`)
+ * - CSS named colors (e.g. `color: red`)
+ * - `font-weight: bold` / `700` and `font-style: italic`
+ * - Comma-separated selector lists (e.g. `.hljs-keyword, .hljs-type`)
+ * - Compound dot-joined selectors (e.g. `.hljs-title.function_`)
+ * - Descendant selectors with two `.hljs-*` tokens skipped (e.g. `.hljs-meta .hljs-keyword`)
+ * - Descendant selectors with non-hljs HTML elements skipped (e.g. `.hljs mark`, `.hljs a`)
+ * - Pseudo-class / pseudo-element selectors skipped (e.g. `.hljs::selection`, `.hljs-link:hover`)
+ * - `@media` and other at-rules stripped before parsing
+ * - SpanStyle merge: multiple rules targeting the same selector accumulate properties
+ *   (e.g. background set in rule 1 is preserved when rule 2 adds color)
+ */
 class ThemeParserTest {
     // CSS sampled from tomorrow.css (Base16 Tomorrow light theme)
     private val tomorrowCssSample =
@@ -368,5 +385,64 @@ class ThemeParserTest {
         val result = ThemeParser.parse(css)
         assertThat(result["hljs-string"]?.color).isEqualTo(Color(0xFF718c00))
         assertThat(result["hljs-number"]?.color).isEqualTo(Color(0xFFf5871f))
+    }
+
+    // ── descendant non-hljs selector regression ────────────────────────────────────────────────────
+
+    @Test
+    fun `parse descendant selector with non-hljs element does not overwrite base entry`() {
+        // agate has: .hljs { background:#333 } then later .hljs mark { background:#555 }
+        // Before the whitespace-check fix, .hljs mark was treated as a standalone .hljs rule
+        // and overwrote the real background with #555555.
+        val css =
+            ".hljs{background:#333;color:#fff}" +
+                ".hljs-keyword{color:#fcc28c}" +
+                ".hljs mark{background:#555;color:inherit}"
+        val result = ThemeParser.parse(css)
+        // Real background must survive - .hljs mark must not overwrite it
+        assertThat(result["hljs"]?.background).isEqualTo(Color(0xFF333333))
+        assertThat(result["hljs"]?.color).isEqualTo(Color(0xFFffffff))
+    }
+
+    @Test
+    fun `parse descendant selector with non-hljs anchor does not affect base entry`() {
+        // Some themes have .hljs a { color: inherit } for link styling inside code blocks
+        val css =
+            ".hljs{background:#fff;color:#000}" +
+                ".hljs a{color:inherit}"
+        val result = ThemeParser.parse(css)
+        assertThat(result["hljs"]?.color).isEqualTo(Color(0xFF000000))
+    }
+
+    @Test
+    fun `parse split rules for same selector merges SpanStyle preserving earlier properties`() {
+        // e.g. nord theme: .hljs{background:#2e3440} followed by .hljs,.hljs-subst{color:#d8dee9}
+        // Without merge, the second rule would overwrite result["hljs"], losing the background.
+        val css =
+            ".hljs{background:#2e3440}" +
+                ".hljs,.hljs-subst{color:#d8dee9}"
+        val result = ThemeParser.parse(css)
+        assertThat(result["hljs"]?.background).isEqualTo(Color(0xFF2E3440))
+        assertThat(result["hljs"]?.color).isEqualTo(Color(0xFFD8DEE9))
+    }
+
+    @Test
+    fun `parse later rule overrides earlier rule for same property`() {
+        // A later explicit color overrides an earlier color for the same key.
+        val css =
+            ".hljs-keyword{color:#aabbcc}" +
+                ".hljs-keyword{color:#112233}"
+        val result = ThemeParser.parse(css)
+        assertThat(result["hljs-keyword"]?.color).isEqualTo(Color(0xFF112233))
+    }
+
+    @Test
+    fun `parse split rules accumulate font-weight and color independently`() {
+        val css =
+            ".hljs-title{color:#78bb65}" +
+                ".hljs-title{font-weight:700}"
+        val result = ThemeParser.parse(css)
+        assertThat(result["hljs-title"]?.color).isEqualTo(Color(0xFF78BB65))
+        assertThat(result["hljs-title"]?.fontWeight).isEqualTo(FontWeight.Bold)
     }
 }
