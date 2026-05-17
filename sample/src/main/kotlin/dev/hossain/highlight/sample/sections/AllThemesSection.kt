@@ -75,7 +75,9 @@ internal fun AllThemesSection() {
 
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Text(
-            text = "Browse all ${allThemeNames.size} bundled highlight.js themes - select one to live-preview it.",
+            text =
+                "Browse all ${allThemeNames.size} highlight.js themes added in this sample app assets " +
+                    "for preview - select one to live-preview it.",
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )

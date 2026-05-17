@@ -46,14 +46,14 @@ internal fun TypographySection() {
                 ),
         )
 
-        SubSectionHeader("textStyle - fontSize = 18.sp")
+        SubSectionHeader("textStyle - fontSize = 20.sp")
         SyntaxHighlightedCode(
             code = PYTHON_SNIPPET,
             language = "python",
             modifier = Modifier.fillMaxWidth(),
             style =
                 CodeBlockStyle(
-                    textStyle = SyntaxHighlightedCodeDefaults.codeTextStyle.copy(fontSize = 18.sp),
+                    textStyle = SyntaxHighlightedCodeDefaults.codeTextStyle.copy(fontSize = 20.sp),
                 ),
         )
 

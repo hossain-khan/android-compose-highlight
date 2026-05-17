@@ -53,18 +53,18 @@ internal fun TogglesSection() {
                 ) {
                     androidx.compose.material3.Text(
                         text = "Kotlin",
-                        fontSize = 12.sp,
+                        fontSize = 14.sp,
                         fontWeight = FontWeight.Bold,
                     )
                     Icon(
-                        imageVector = ImageVector.vectorResource(R.drawable.star_24dp),
+                        imageVector = ImageVector.vectorResource(R.drawable.stars_2_24dp),
                         contentDescription = null,
-                        modifier = Modifier.size(12.dp),
+                        modifier = Modifier.size(14.dp),
                         tint = MaterialTheme.colorScheme.primary,
                     )
                     androidx.compose.material3.Text(
                         text = "42 likes",
-                        fontSize = 11.sp,
+                        fontSize = 12.sp,
                         color = LocalContentColor.current.copy(alpha = 0.6f),
                     )
                 }
