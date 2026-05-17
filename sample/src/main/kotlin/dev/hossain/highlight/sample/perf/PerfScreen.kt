@@ -367,8 +367,15 @@ private fun PipelineRow(
     highlight: Boolean = false,
 ) {
     val ms = duration.inWholeMilliseconds
-    val ns = duration.inWholeNanoseconds
-    val valueText = if (ms > 0) "$ms ms" else "$ns ns"
+    val us = duration.inWholeMicroseconds
+    val msRounded = (us + 500) / 1000
+    val approxMs = if (msRounded > 0) "~${msRounded}ms" else "<1ms"
+    val valueText =
+        when {
+            ms >= 1 -> "$ms ms"
+            us >= 1 -> "${us}µs ($approxMs)"
+            else -> "${duration.inWholeNanoseconds} ns"
+        }
     val color =
         if (highlight) {
             MaterialTheme.colorScheme.tertiary
