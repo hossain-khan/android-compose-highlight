@@ -60,21 +60,24 @@ The workflow maps these to `ORG_GRADLE_PROJECT_*` environment variables that the
 
 ### Step 1 — Bump the version
 
-Update `VERSION_NAME` in [`gradle.properties`](gradle.properties):
-```properties
-VERSION_NAME=0.12.0
+Use the release script to update all version references atomically:
+```bash
+./scripts/prepare-release.sh 0.18.0
 ```
 
-Also update these per the [project conventions](README.md#releasing):
-- `CHANGELOG.md` — rename `[Unreleased]` to `[0.12.0] - YYYY-MM-DD`
-- `compose-highlight/build.gradle.kts` — `version` in the `mavenPublishing` coordinates block
-- `sample/build.gradle.kts` — `versionName` and `versionCode`
-- `README.md` — dependency snippet version
+This updates `gradle.properties`, `README.md`, `sample/build.gradle.kts` (versionName + versionCode),
+and `CHANGELOG.md` (`[Unreleased]` -> `[0.18.0] - YYYY-MM-DD`) in one step.
+
+Then verify everything builds and tests pass:
+```bash
+./gradlew formatKotlin :compose-highlight:assembleDebug :sample:assembleDebug :compose-highlight:test
+```
 
 Commit, push, and create the git tag:
 ```bash
-git tag 0.12.0
-git push origin 0.12.0
+git add -A && git commit -m "chore: prepare release 0.18.0"
+git push
+git tag 0.18.0 && git push origin 0.18.0
 ```
 
 ### Step 2 — Dry run (recommended)

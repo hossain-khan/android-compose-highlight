@@ -104,7 +104,11 @@ Highlights code and returns a `State<AnnotatedString?>`. Re-runs automatically w
 val highlighted by rememberHighlightedCode(
     code     = snippet,
     language = "kotlin",
-    onHighlightComplete = { result -> Log.d("Perf", "Highlighted in ${result.durationMs}ms") },
+        onHighlightComplete = { result ->
+            // result.timings exposes per-stage Duration fields: jsBridge, htmlParse, treeWalk, etc.
+            Log.d("Perf", "Highlighted in ${result.durationMs}ms " +
+                "(JS: ${result.timings.jsBridge.inWholeMilliseconds}ms)")
+        },
 )
 Text(text = highlighted ?: AnnotatedString(snippet))
 ```
@@ -129,7 +133,11 @@ val result by rememberHighlightedCodeBothThemes(
     language   = "kotlin",
     lightTheme = rememberTomorrowTheme(),
     darkTheme  = rememberTomorrowNightTheme(),
-    onHighlightComplete = { result -> Log.d("Perf", "Both themes in ${result.durationMs}ms") },
+    onHighlightComplete = { result ->
+        // result.timings exposes per-stage Duration fields: jsBridge, htmlParse, treeWalk, etc.
+        Log.d("Perf", "Both themes in ${result.durationMs}ms " +
+            "(JS: ${result.timings.jsBridge.inWholeMilliseconds}ms)")
+    },
 )
 Text(text = (if (isDark) result?.dark else result?.light) ?: AnnotatedString(snippet))
 ```

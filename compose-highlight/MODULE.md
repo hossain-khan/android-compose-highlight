@@ -55,7 +55,8 @@ val result = engine.highlight(
 result.onSuccess { r ->
     // r.annotated   — AnnotatedString ready for Text()
     // r.spanCount   — 0 signals a silent failure (unsupported language / empty input)
-    // r.durationMs  — JS round-trip time in ms
+    // r.durationMs  — total JS pipeline time in ms (equals r.timings.total.inWholeMilliseconds)
+    // r.timings     — per-stage Duration breakdown (jsBridge, htmlParse, treeWalk, etc.)
     // r.language    — the language identifier that was requested
 }
 
@@ -112,7 +113,7 @@ val themed = engine.highlightBothThemes(
 themed.onSuccess { result ->
     // ThemedHighlightResult — both variants pre-computed, no extra JS call
     val displayString = if (isDark) result.dark else result.light
-    // result.durationMs — JS round-trip time for the single highlight pass
+    // result.durationMs — total pipeline time in ms; result.timings has per-stage breakdown
 }
 ```
 
@@ -124,7 +125,10 @@ HighlightThemeProvider(lightHighlightTheme = ..., darkHighlightTheme = ...) {
     val result by rememberHighlightedCodeBothThemes(
         code     = sourceCode,
         language = "kotlin",
-        onHighlightComplete = { r -> log("done in ${r.durationMs} ms") },
+        onHighlightComplete = { r ->
+            // r.timings has per-stage Duration fields: jsBridge, htmlParse, treeWalk, etc.
+            log("done in ${r.durationMs} ms (JS: ${r.timings.jsBridge.inWholeMilliseconds}ms)")
+        },
     )
     val text = if (isSystemInDarkTheme()) result?.dark else result?.light
     if (text != null) Text(text)
