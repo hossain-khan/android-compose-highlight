@@ -15,7 +15,7 @@ android {
     compileSdk = 36
 
     defaultConfig {
-        minSdk = 24
+        minSdk = 24 // required by androidx.webkit
         testInstrumentationRunner = "androidx.benchmark.junit4.AndroidBenchmarkRunner"
         testInstrumentationRunnerArguments["androidx.benchmark.suppressErrors"] =
             "DEBUGGABLE,EMULATOR,LOW-BATTERY,UNLOCKED"
