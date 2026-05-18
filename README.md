@@ -272,7 +272,7 @@ Run on your target device to get accurate numbers. Results are printed in logcat
 
 ## Requirements
 
-- Android minSdk 24+
+- Android minSdk 24+ (required by [AndroidX WebKit](https://developer.android.com/jetpack/androidx/releases/webkit))
 - Kotlin 2.x
 - Jetpack Compose (BOM 2026.05+)
 
