@@ -4,7 +4,6 @@
 
 A Jetpack Compose library for beautiful syntax highlighting — powered by [Highlight.js](https://highlightjs.org/) running in a hidden WebView, converting tokenised HTML output to native Compose `AnnotatedString`. No custom lexers, no bundled grammars to maintain: just drop in the library and highlight any of 190+ languages.
 
----
 
 ## Quick Start
 
@@ -38,8 +37,6 @@ HighlightThemeProvider(
 | <video src="https://github.com/user-attachments/assets/9521cb13-ff32-4a5b-956e-4e620bbee4d1"> | <video src="https://github.com/user-attachments/assets/02a71e4d-6ada-4008-99c0-f642c618d778"> |
 
 
----
-
 ## Setup
 
 Add the [dependency](https://central.sonatype.com/artifact/dev.hossain/compose-highlight) in your module's `build.gradle.kts`:
@@ -52,7 +49,6 @@ dependencies {
 
 ℹ️ This brings about `0.5 MB` to your existing app, see [analysis details](https://hossain.dev/posts/syntax-highlighting-on-android-highlight-js-native-compose-engine/#apk-size-impact) and [benchmark](#sample-results-pixel-9-pro-xl-debuggable-build) data.
 
----
 
 ## Engine-Only Usage
 
@@ -88,7 +84,6 @@ themed.onSuccess { (light, dark) ->
 }
 ```
 
----
 
 ## Composable Helpers
 
@@ -138,7 +133,6 @@ val result by rememberHighlightedCodeBothThemes(
 Text(text = (if (isDark) result?.dark else result?.light) ?: AnnotatedString(snippet))
 ```
 
----
 
 ## Custom Themes
 
@@ -171,7 +165,6 @@ val theme = HighlightTheme.fromColorMap(
 
 Community themes are available at [highlightjs/highlight.js/src/styles](https://github.com/highlightjs/highlight.js/tree/main/src/styles).
 
----
 
 ## `SyntaxHighlightedCode` API
 
@@ -193,8 +186,6 @@ SyntaxHighlightedCode(
     ),
 )
 ```
-
----
 
 ## Architecture
 
@@ -234,8 +225,6 @@ class MyApp : Application() {
 Requires `androidx.webkit:webkit:1.16+` (already a transitive dependency of this library).
 
 For full design details see [`docs/prd-compose-syntax-highlight.md`](docs/prd-compose-syntax-highlight.md).
-
----
 
 ## Benchmarks
 
@@ -280,8 +269,6 @@ Run on your target device to get accurate numbers. Results are printed in logcat
 | `highlightLargeTypeScriptZodCoreToHtml` (~200 lines) | 17.6 ms | 11.3 ms | 22.6 ms |
 
 > **Key insight from profiling:** `ThemeParser` and `HtmlToAnnotatedString` are cheap (sub-millisecond to a few ms). The dominant cost is the WebView JS round-trip, which runs off the UI thread and is cached per `rememberHighlightedCode` call. Even large real-world files (~150–200 lines) complete in under 20 ms.
-
----
 
 ## Requirements
 
