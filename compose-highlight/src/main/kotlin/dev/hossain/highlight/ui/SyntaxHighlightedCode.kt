@@ -57,8 +57,8 @@ private val DefaultCopyButtonSentinel: (@Composable (onClick: () -> Unit) -> Uni
  *
  * ```kotlin
  * HighlightThemeProvider(
- *     lightHighlightTheme = HighlightTheme.tomorrow(LocalContext.current.applicationContext),
- *     darkHighlightTheme  = HighlightTheme.atomOneDark(LocalContext.current.applicationContext),
+ *     lightHighlightTheme = rememberTomorrowTheme(),
+ *     darkHighlightTheme  = rememberAtomOneDarkTheme(),
  * ) {
  *     SyntaxHighlightedCode(
  *         code            = """fun greet(name: String) = "Hello, ${'$'}name!"""",
@@ -74,7 +74,7 @@ private val DefaultCopyButtonSentinel: (@Composable (onClick: () -> Unit) -> Uni
  * SyntaxHighlightedCode(
  *     code     = "SELECT * FROM users WHERE active = 1",
  *     language = "sql",
- *     theme    = HighlightTheme.tomorrow(LocalContext.current.applicationContext),
+ *     theme    = rememberTomorrowTheme(),
  * )
  * ```
  *
