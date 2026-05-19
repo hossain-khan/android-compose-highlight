@@ -73,10 +73,17 @@ Then verify everything builds and tests pass:
 ./gradlew formatKotlin :compose-highlight:assembleDebug :sample:assembleDebug :compose-highlight:test
 ```
 
-Commit, push, and create the git tag:
+Create a release branch, commit, push, and open a PR (direct pushes to `main` are blocked):
 ```bash
+git checkout -b release/0.18.0
 git add -A && git commit -m "chore: prepare release 0.18.0"
-git push
+git push -u origin release/0.18.0
+gh pr create --title "chore: prepare release 0.18.0" --base main
+```
+
+After the PR is merged, pull `main` and create the git tag:
+```bash
+git checkout main && git pull
 git tag 0.18.0 && git push origin 0.18.0
 ```
 
