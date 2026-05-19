@@ -37,6 +37,12 @@ import dev.hossain.highlight.engine.HighlightResult
 import dev.hossain.highlight.engine.HighlightTheme
 import kotlinx.coroutines.launch
 
+// Sentinel used to detect when the caller did not supply a custom copyButtonContent.
+// This allows the composable body to resolve the default CopyButton with the correct
+// size from CodeBlockStyle.copyButtonSize, which cannot be referenced in a parameter
+// default value (Kotlin does not allow forward references to other parameters).
+private val DefaultCopyButtonSentinel: (@Composable (onClick: () -> Unit) -> Unit) = { }
+
 /**
  * Displays syntax-highlighted code in a styled block.
  *
@@ -156,9 +162,7 @@ fun SyntaxHighlightedCode(
         } else {
             null
         },
-    copyButtonContent: (@Composable (onClick: () -> Unit) -> Unit)? = { onClick ->
-        SyntaxHighlightedCodeDefaults.CopyButton(onClick = onClick)
-    },
+    copyButtonContent: (@Composable (onClick: () -> Unit) -> Unit)? = DefaultCopyButtonSentinel,
     onCopyClick: ((String) -> Unit)? = null,
     onHighlightComplete: ((HighlightResult) -> Unit)? = null,
 ) {
@@ -184,6 +188,19 @@ fun SyntaxHighlightedCode(
     val themedCodeStyle = remember(theme, style) { style.textStyle.copy(color = textColor) }
     val themedLineNumStyle = remember(theme, style) { style.textStyle.copy(color = lineNumberColor) }
 
+    // Resolve the effective copy button: when the caller used the default (sentinel),
+    // substitute a real lambda that forwards style.copyButtonSize so the CodeBlockStyle
+    // property actually takes effect.
+    val effectiveCopyButton: (@Composable (onClick: () -> Unit) -> Unit)? =
+        when {
+            copyButtonContent === DefaultCopyButtonSentinel -> {
+                { onClick -> SyntaxHighlightedCodeDefaults.CopyButton(onClick = onClick, size = style.copyButtonSize) }
+            }
+
+            else -> {
+                copyButtonContent
+            }
+        }
     // In Android Studio Preview, WebView cannot be created. Render a themed fallback
     // (using the active theme's background and text colors) so that @Preview composables
     // work without crashing.
@@ -215,7 +232,7 @@ fun SyntaxHighlightedCode(
     ) {
         Column {
             // Header: language badge + copy button
-            if (languageLabelContent != null || copyButtonContent != null) {
+            if (languageLabelContent != null || effectiveCopyButton != null) {
                 Row(
                     modifier =
                         Modifier
@@ -225,8 +242,8 @@ fun SyntaxHighlightedCode(
                 ) {
                     languageLabelContent?.invoke()
                     Spacer(modifier = Modifier.weight(1f))
-                    if (copyButtonContent != null) {
-                        copyButtonContent {
+                    if (effectiveCopyButton != null) {
+                        effectiveCopyButton {
                             val handler = onCopyClick
                             if (handler != null) {
                                 handler(code)
