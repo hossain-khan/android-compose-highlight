@@ -35,6 +35,8 @@ nav = [
 # ── Theme ──────────────────────────────────────────────────────────────────────
 [project.theme]
 language = "en"
+logo     = "assets/images/logo.png"
+favicon  = "assets/images/favicon.png"
 features = [
     "content.code.annotate",
     "content.code.copy",
