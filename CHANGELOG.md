@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.19.1] - 2026-05-18
+
 ### Fixed
 - **`CodeBlockStyle.copyButtonSize` now takes effect on the default copy button** - previously
   the value was stored in `CodeBlockStyle` but never forwarded to `SyntaxHighlightedCodeDefaults.CopyButton`,

@@ -117,7 +117,20 @@ This script updates all four required files in one step:
 
 Never update these files manually one-by-one - always use the script to avoid missing files.
 
-Only create the git tag after all of the above are committed and pushed.
+After running the script, create a release branch, run all checks, commit, push, and open a PR into `main` (direct pushes to `main` are blocked by branch protection):
+```bash
+git checkout -b release/<new-version>
+./gradlew formatKotlin :compose-highlight:assembleDebug :sample:assembleDebug :compose-highlight:test
+git add -A && git commit -m "chore: prepare release <new-version>"
+git push -u origin release/<new-version>
+gh pr create --title "chore: prepare release <new-version>" --base main
+```
+
+Only create the git tag **after the release PR is merged** and `main` is pulled:
+```bash
+git checkout main && git pull
+git tag <new-version> && git push origin <new-version>
+```
 
 **Publishing to Maven Central is a manual two-step workflow - it is NOT triggered automatically by pushing a tag.** After tagging:
 1. Manually trigger the publish GitHub Actions workflow in **dry-run mode** first and verify it passes.
