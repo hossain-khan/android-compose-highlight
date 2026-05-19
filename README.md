@@ -11,7 +11,7 @@ Wrap your screen (or root composable) in `HighlightThemeProvider`, then place `S
 
 ```kotlin
 HighlightThemeProvider(
-    // Uses budled theme, or load CSS theme from assets, or use your custom style map
+    // Uses bundled theme, or load CSS theme from assets, or use your custom style map
     lightHighlightTheme = rememberTomorrowTheme(),
     darkHighlightTheme  = rememberAtomOneDarkTheme(),
 ) {
@@ -95,6 +95,7 @@ Highlights code and returns a `State<AnnotatedString?>`. Re-runs automatically w
 val highlighted by rememberHighlightedCode(
     code     = snippet,
     language = "kotlin",
+    theme    = rememberTomorrowTheme(),
         onHighlightComplete = { result ->
             // result.timings exposes per-stage Duration fields: jsBridge, htmlParse, treeWalk, etc.
             Log.d("Perf", "Highlighted in ${result.durationMs}ms " +
@@ -168,7 +169,7 @@ Community themes are available at [highlightjs/highlight.js/src/styles](https://
 
 ## `SyntaxHighlightedCode` API
 
-See [`SyntaxHighlightedCode` docs](https://hossain-khan.github.io/android-compose-highlight/compose-highlight/dev.hossain.highlight.ui/-syntax-highlighted-code.html) for usage. 
+See [`SyntaxHighlightedCode` docs](https://hossain-khan.github.io/android-compose-highlight/compose-highlight/dev.hossain.highlight.ui/-syntax-highlighted-code.html) for usage.
 
 Font family, size, and line height are controlled via `CodeBlockStyle.textStyle`. Start from
 [`SyntaxHighlightedCodeDefaults.codeTextStyle`](https://hossain-khan.github.io/android-compose-highlight/compose-highlight/dev.hossain.highlight.ui/-syntax-highlighted-code-defaults/) and override just the properties you need.
@@ -184,6 +185,52 @@ SyntaxHighlightedCode(
             fontFamily = FontFamily.Serif,
         ),
     ),
+)
+```
+
+### Header slots
+
+The header row (language badge + copy button) is fully customizable via composable slots:
+
+```kotlin
+// Hide the language label or copy button
+SyntaxHighlightedCode(
+    code = snippet,
+    language = "kotlin",
+    languageLabelContent = null,  // hide the badge
+    copyButtonContent    = null,  // hide the copy button
+)
+
+// Custom language label
+SyntaxHighlightedCode(
+    code = snippet,
+    language = "kotlin",
+    languageLabelContent = {
+        Text("Kotlin", fontWeight = FontWeight.Bold)
+    },
+)
+
+// Custom copy button
+SyntaxHighlightedCode(
+    code = snippet,
+    language = "kotlin",
+    copyButtonContent = { onClick ->
+        IconButton(onClick = onClick) {
+            Icon(Icons.Default.ContentCopy, contentDescription = "Copy")
+        }
+    },
+)
+```
+
+### Copy button size
+
+Control the default copy button size via `CodeBlockStyle.copyButtonSize`:
+
+```kotlin
+SyntaxHighlightedCode(
+    code  = snippet,
+    language = "kotlin",
+    style = CodeBlockStyle(copyButtonSize = 48.dp),
 )
 ```
 
