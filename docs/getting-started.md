@@ -61,6 +61,8 @@ The composable shows unstyled monospace text immediately and fades in highlighte
 ### Show line numbers
 
 ```kotlin
+import dev.hossain.highlight.ui.SyntaxHighlightedCode
+
 SyntaxHighlightedCode(
     code            = snippet,
     language        = "kotlin",
@@ -72,6 +74,7 @@ SyntaxHighlightedCode(
 
 ```kotlin
 import dev.hossain.highlight.ui.CodeBlockStyle
+import dev.hossain.highlight.ui.SyntaxHighlightedCode
 import dev.hossain.highlight.ui.SyntaxHighlightedCodeDefaults
 
 SyntaxHighlightedCode(
@@ -86,6 +89,8 @@ SyntaxHighlightedCode(
 ### Hide header elements
 
 ```kotlin
+import dev.hossain.highlight.ui.SyntaxHighlightedCode
+
 SyntaxHighlightedCode(
     code                 = snippet,
     language             = "kotlin",

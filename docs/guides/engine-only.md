@@ -10,6 +10,9 @@ Use `HighlightEngine` directly when you need to:
 ## ViewModel example
 
 ```kotlin
+import dev.hossain.highlight.engine.HighlightEngine
+import dev.hossain.highlight.engine.HighlightTheme
+
 class CodeViewModel(application: Application) : AndroidViewModel(application) {
     private val engine = HighlightEngine(application.applicationContext)
 
@@ -37,13 +40,15 @@ class CodeViewModel(application: Application) : AndroidViewModel(application) {
 ## Using the result in Compose
 
 ```kotlin
+import dev.hossain.highlight.ui.SyntaxHighlightedCodeDefaults
+
 @Composable
 fun CodeScreen(viewModel: CodeViewModel = viewModel()) {
     val highlighted by viewModel.highlighted.collectAsState()
 
     SelectionContainer {
         Text(
-            text  = highlighted ?: AnnotatedString("loading…"),
+            text  = highlighted ?: AnnotatedString("loading..."),
             style = SyntaxHighlightedCodeDefaults.codeTextStyle,
         )
     }
@@ -78,6 +83,8 @@ engine.highlightJsVersion().onSuccess { version ->
 All suspend methods return `Result<T>`. Failures are wrapped in `HighlightException`:
 
 ```kotlin
+import dev.hossain.highlight.engine.HighlightException
+
 engine.highlight(code, language, theme)
     .onSuccess { result -> /* use result.annotated */ }
     .onFailure { error ->

@@ -16,6 +16,10 @@ The color map is lazily initialized and cached — CSS parsing happens at most o
 Always use the `remember*` helpers inside composables so the CSS is not re-parsed on every recomposition:
 
 ```kotlin
+import dev.hossain.highlight.ui.HighlightThemeProvider
+import dev.hossain.highlight.ui.rememberTomorrowNightTheme
+import dev.hossain.highlight.ui.rememberTomorrowTheme
+
 HighlightThemeProvider(
     lightHighlightTheme = rememberTomorrowTheme(),
     darkHighlightTheme  = rememberTomorrowNightTheme(),
@@ -27,6 +31,9 @@ HighlightThemeProvider(
 Drop any [Highlight.js CSS theme](https://github.com/highlightjs/highlight.js/tree/main/src/styles) into `src/main/assets/themes/` and load it at runtime:
 
 ```kotlin
+import dev.hossain.highlight.engine.HighlightTheme
+import dev.hossain.highlight.ui.HighlightThemeProvider
+
 // src/main/assets/themes/github.css  <- place the CSS here
 val theme = HighlightTheme.fromAsset(
     context   = context,
@@ -42,6 +49,8 @@ HighlightThemeProvider(lightHighlightTheme = theme) { ... }
 ## Custom theme from raw CSS
 
 ```kotlin
+import dev.hossain.highlight.engine.HighlightTheme
+
 val css = // ... fetch from network or build programmatically
 val theme = HighlightTheme.fromCss(
     cssText = css,
@@ -54,6 +63,8 @@ val theme = HighlightTheme.fromCss(
 For full control — e.g. deriving colors from Material 3 dynamic color:
 
 ```kotlin
+import dev.hossain.highlight.engine.HighlightTheme
+
 val colorMap = mapOf(
     "hljs"          to SpanStyle(color = Color(0xFF24292E), background = Color(0xFFFFFFFF)),
     "hljs-keyword"  to SpanStyle(color = Color(0xFFD73A49), fontWeight = FontWeight.Bold),

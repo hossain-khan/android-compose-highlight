@@ -5,6 +5,8 @@
 ## Enable line numbers
 
 ```kotlin
+import dev.hossain.highlight.ui.SyntaxHighlightedCode
+
 SyntaxHighlightedCode(
     code            = snippet,
     language        = "kotlin",
@@ -17,6 +19,9 @@ SyntaxHighlightedCode(
 The default gutter is `32.dp` wide. Increase it for snippets with many lines:
 
 ```kotlin
+import dev.hossain.highlight.ui.CodeBlockStyle
+import dev.hossain.highlight.ui.SyntaxHighlightedCode
+
 SyntaxHighlightedCode(
     code            = snippet,
     language        = "kotlin",
@@ -43,6 +48,8 @@ When `lineNumberColor` is `Color.Unspecified` (the default), the line numbers in
 For long snippets, pair with a `verticalScroll` modifier:
 
 ```kotlin
+import dev.hossain.highlight.ui.SyntaxHighlightedCode
+
 SyntaxHighlightedCode(
     code            = longSnippet,
     language        = "kotlin",

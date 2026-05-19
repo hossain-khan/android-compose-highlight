@@ -16,6 +16,11 @@
 Pass a light and dark theme to `HighlightThemeProvider`. It picks the right one based on the system `isSystemInDarkTheme()` value:
 
 ```kotlin
+import dev.hossain.highlight.ui.HighlightThemeProvider
+import dev.hossain.highlight.ui.SyntaxHighlightedCode
+import dev.hossain.highlight.ui.rememberTomorrowNightTheme
+import dev.hossain.highlight.ui.rememberTomorrowTheme
+
 HighlightThemeProvider(
     lightHighlightTheme = rememberTomorrowTheme(),
     darkHighlightTheme  = rememberTomorrowNightTheme(),
@@ -27,6 +32,9 @@ HighlightThemeProvider(
 ## Force a specific theme
 
 ```kotlin
+import dev.hossain.highlight.ui.HighlightThemeProvider
+import dev.hossain.highlight.ui.rememberAtomOneLightTheme
+
 HighlightThemeProvider(
     darkTheme           = false,  // always use the light theme
     lightHighlightTheme = rememberAtomOneLightTheme(),
@@ -41,6 +49,9 @@ HighlightThemeProvider(
 3. Load it with `HighlightTheme.fromAsset()`:
 
 ```kotlin
+import dev.hossain.highlight.engine.HighlightTheme
+import dev.hossain.highlight.ui.HighlightThemeProvider
+
 val theme = HighlightTheme.fromAsset(
     context   = LocalContext.current.applicationContext,
     assetPath = "themes/github-dark.css",
@@ -57,6 +68,8 @@ HighlightThemeProvider(darkHighlightTheme = theme) { ... }
 Useful when the CSS is fetched remotely or generated at runtime:
 
 ```kotlin
+import dev.hossain.highlight.engine.HighlightTheme
+
 val rawCss = // ... network fetch or string resource
 val theme = HighlightTheme.fromCss(cssText = rawCss, name = "remote-theme")
 ```
@@ -66,6 +79,8 @@ val theme = HighlightTheme.fromCss(cssText = rawCss, name = "remote-theme")
 Maximum flexibility — derive colors from Material 3 dynamic color, user palettes, or brand colors:
 
 ```kotlin
+import dev.hossain.highlight.engine.HighlightTheme
+
 val lightColors = MaterialTheme.colorScheme
 val theme = HighlightTheme.fromColorMap(
     name             = "material-dynamic-light",
@@ -85,6 +100,9 @@ val theme = HighlightTheme.fromColorMap(
 For one-off use — pass the theme directly:
 
 ```kotlin
+import dev.hossain.highlight.ui.SyntaxHighlightedCode
+import dev.hossain.highlight.ui.rememberTomorrowTheme
+
 val theme = rememberTomorrowTheme()
 SyntaxHighlightedCode(
     code     = snippet,
@@ -100,6 +118,8 @@ This creates a standalone `HighlightEngine` with its own WebView. Use `Highlight
 For zero-latency theme switching, tokenize once and apply both color maps. Use `produceState` to keep the work off the UI thread:
 
 ```kotlin
+import dev.hossain.highlight.ui.rememberHighlightEngine
+
 val engine = rememberHighlightEngine()
 val fallback = remember(code) { AnnotatedString(code) }
 val (lightAnnotated, darkAnnotated) by produceState(fallback to fallback, code) {

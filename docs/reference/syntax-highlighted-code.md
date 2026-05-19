@@ -7,6 +7,10 @@ Shows unstyled monospace code immediately while async highlighting runs, then fa
 ## Signature
 
 ```kotlin
+import dev.hossain.highlight.engine.HighlightResult
+import dev.hossain.highlight.engine.HighlightTheme
+import dev.hossain.highlight.ui.CodeBlockStyle
+
 @Composable
 fun SyntaxHighlightedCode(
     code: String,
@@ -42,6 +46,11 @@ fun SyntaxHighlightedCode(
 ### With `HighlightThemeProvider` (recommended)
 
 ```kotlin
+import dev.hossain.highlight.ui.HighlightThemeProvider
+import dev.hossain.highlight.ui.SyntaxHighlightedCode
+import dev.hossain.highlight.ui.rememberTomorrowNightTheme
+import dev.hossain.highlight.ui.rememberTomorrowTheme
+
 HighlightThemeProvider(
     lightHighlightTheme = rememberTomorrowTheme(),
     darkHighlightTheme  = rememberTomorrowNightTheme(),
@@ -57,6 +66,9 @@ HighlightThemeProvider(
 ### With an explicit theme
 
 ```kotlin
+import dev.hossain.highlight.ui.SyntaxHighlightedCode
+import dev.hossain.highlight.ui.rememberTomorrowTheme
+
 SyntaxHighlightedCode(
     code     = "SELECT * FROM users WHERE active = 1",
     language = "sql",
@@ -67,6 +79,8 @@ SyntaxHighlightedCode(
 ### Hide header elements
 
 ```kotlin
+import dev.hossain.highlight.ui.SyntaxHighlightedCode
+
 SyntaxHighlightedCode(
     code                 = snippet,
     language             = "json",
@@ -78,6 +92,8 @@ SyntaxHighlightedCode(
 ### Custom copy button
 
 ```kotlin
+import dev.hossain.highlight.ui.SyntaxHighlightedCode
+
 SyntaxHighlightedCode(
     code = snippet,
     language = "kotlin",
@@ -92,6 +108,8 @@ SyntaxHighlightedCode(
 ### Custom language label
 
 ```kotlin
+import dev.hossain.highlight.ui.SyntaxHighlightedCode
+
 SyntaxHighlightedCode(
     code = snippet,
     language = "kotlin",
@@ -108,6 +126,8 @@ SyntaxHighlightedCode(
 ### Timing callback
 
 ```kotlin
+import dev.hossain.highlight.ui.SyntaxHighlightedCode
+
 SyntaxHighlightedCode(
     code     = snippet,
     language = "kotlin",
@@ -124,6 +144,10 @@ SyntaxHighlightedCode(
 Provides a `HighlightTheme` and a shared `HighlightEngine` to all `SyntaxHighlightedCode` composables in its subtree.
 
 ```kotlin
+import dev.hossain.highlight.engine.HighlightTheme
+import dev.hossain.highlight.ui.rememberTomorrowNightTheme
+import dev.hossain.highlight.ui.rememberTomorrowTheme
+
 @Composable
 fun HighlightThemeProvider(
     darkTheme: Boolean = isSystemInDarkTheme(),
@@ -138,6 +162,10 @@ Creates **one shared WebView** for the entire subtree. Screens with multiple `Sy
 ### Force a specific theme mode
 
 ```kotlin
+import dev.hossain.highlight.ui.HighlightThemeProvider
+import dev.hossain.highlight.ui.rememberTomorrowNightTheme
+import dev.hossain.highlight.ui.rememberTomorrowTheme
+
 HighlightThemeProvider(
     darkTheme           = userPrefersDark,
     lightHighlightTheme = rememberTomorrowTheme(),

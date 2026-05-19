@@ -26,6 +26,9 @@ All suspend methods return `Result<T>` — never throw. Wrap failures in `Highli
 ## Usage in a ViewModel
 
 ```kotlin
+import dev.hossain.highlight.engine.HighlightEngine
+import dev.hossain.highlight.engine.HighlightTheme
+
 class CodeViewModel(application: Application) : AndroidViewModel(application) {
     private val engine = HighlightEngine(application)
 
@@ -51,6 +54,9 @@ class CodeViewModel(application: Application) : AndroidViewModel(application) {
 ## Usage in Compose (lower-level)
 
 ```kotlin
+import dev.hossain.highlight.ui.rememberHighlightEngine
+import dev.hossain.highlight.ui.rememberTomorrowTheme
+
 @Composable
 fun MyCodeBlock(code: String) {
     val engine = rememberHighlightEngine()
@@ -69,6 +75,9 @@ fun MyCodeBlock(code: String) {
 Tokenizes once, applies two color maps — theme switching has zero extra latency:
 
 ```kotlin
+import dev.hossain.highlight.ui.rememberTomorrowNightTheme
+import dev.hossain.highlight.ui.rememberTomorrowTheme
+
 engine.highlightBothThemes(
     code       = sourceCode,
     language   = "typescript",

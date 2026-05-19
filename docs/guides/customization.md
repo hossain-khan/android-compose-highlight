@@ -5,6 +5,8 @@
 The language label is a composable slot — replace it with any `@Composable`:
 
 ```kotlin
+import dev.hossain.highlight.ui.SyntaxHighlightedCode
+
 SyntaxHighlightedCode(
     code     = snippet,
     language = "kotlin",
@@ -24,6 +26,8 @@ SyntaxHighlightedCode(
 Pass `null` to hide the label entirely:
 
 ```kotlin
+import dev.hossain.highlight.ui.SyntaxHighlightedCode
+
 SyntaxHighlightedCode(code = snippet, language = "kotlin", languageLabelContent = null)
 ```
 
@@ -32,6 +36,8 @@ SyntaxHighlightedCode(code = snippet, language = "kotlin", languageLabelContent 
 ### Custom icon
 
 ```kotlin
+import dev.hossain.highlight.ui.SyntaxHighlightedCode
+
 SyntaxHighlightedCode(
     code     = snippet,
     language = "kotlin",
@@ -46,12 +52,16 @@ SyntaxHighlightedCode(
 ### Hide copy button
 
 ```kotlin
+import dev.hossain.highlight.ui.SyntaxHighlightedCode
+
 SyntaxHighlightedCode(code = snippet, language = "kotlin", copyButtonContent = null)
 ```
 
 ### Custom copy feedback (Snackbar, Toast, etc.)
 
 ```kotlin
+import dev.hossain.highlight.ui.SyntaxHighlightedCode
+
 val snackbarHostState = remember { SnackbarHostState() }
 val scope             = rememberCoroutineScope()
 
@@ -70,6 +80,9 @@ SyntaxHighlightedCode(
 ### Adjust copy button touch target
 
 ```kotlin
+import dev.hossain.highlight.ui.CodeBlockStyle
+import dev.hossain.highlight.ui.SyntaxHighlightedCode
+
 SyntaxHighlightedCode(
     code     = snippet,
     language = "kotlin",
@@ -80,6 +93,9 @@ SyntaxHighlightedCode(
 ## Block shape and padding
 
 ```kotlin
+import dev.hossain.highlight.ui.CodeBlockStyle
+import dev.hossain.highlight.ui.SyntaxHighlightedCode
+
 SyntaxHighlightedCode(
     code     = snippet,
     language = "kotlin",
@@ -94,6 +110,10 @@ SyntaxHighlightedCode(
 ## Custom font
 
 ```kotlin
+import dev.hossain.highlight.ui.CodeBlockStyle
+import dev.hossain.highlight.ui.SyntaxHighlightedCode
+import dev.hossain.highlight.ui.SyntaxHighlightedCodeDefaults
+
 val firaCode = FontFamily(Font(R.font.fira_code))
 
 SyntaxHighlightedCode(
@@ -111,6 +131,9 @@ SyntaxHighlightedCode(
 ## Line number styling
 
 ```kotlin
+import dev.hossain.highlight.ui.CodeBlockStyle
+import dev.hossain.highlight.ui.SyntaxHighlightedCode
+
 SyntaxHighlightedCode(
     code            = snippet,
     language        = "kotlin",
@@ -127,6 +150,8 @@ SyntaxHighlightedCode(
 Apply any modifier to the outer container:
 
 ```kotlin
+import dev.hossain.highlight.ui.SyntaxHighlightedCode
+
 SyntaxHighlightedCode(
     code     = snippet,
     language = "kotlin",
@@ -142,6 +167,9 @@ SyntaxHighlightedCode(
 The code text is fully selectable (via `SelectionContainer`) and the copy button uses `contentDescription` for accessibility. To provide a localized description:
 
 ```kotlin
+import dev.hossain.highlight.ui.SyntaxHighlightedCode
+import dev.hossain.highlight.ui.SyntaxHighlightedCodeDefaults
+
 SyntaxHighlightedCode(
     code     = snippet,
     language = "kotlin",
