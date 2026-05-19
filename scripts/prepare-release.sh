@@ -13,8 +13,16 @@
 #
 # After running, verify the diff with `git diff`, then:
 #   ./gradlew formatKotlin :compose-highlight:assembleDebug :sample:assembleDebug :compose-highlight:test
+#   git checkout -b release/<version>
 #   git add -A && git commit -m "chore: prepare release <version>"
-#   git push && git tag <version> && git push origin <version>
+#   git push -u origin release/<version>
+#   gh pr create --title "chore: prepare release <version>" --base main
+#
+# After the PR is merged:
+#   git checkout main && git pull
+#   git tag <version> && git push origin <version>
+#
+# Then trigger the publish workflow manually (dry run first, then real).
 
 set -euo pipefail
 
@@ -65,6 +73,17 @@ echo ""
 echo "Done. Verify with: git diff"
 echo ""
 echo "Next steps:"
-echo "  ./gradlew formatKotlin :compose-highlight:assembleDebug :sample:assembleDebug :compose-highlight:test"
-echo "  git add -A && git commit -m \"chore: prepare release $NEW_VERSION\""
-echo "  git push && git tag $NEW_VERSION && git push origin $NEW_VERSION"
+echo "  1. Run checks:"
+echo "     ./gradlew formatKotlin :compose-highlight:assembleDebug :sample:assembleDebug :compose-highlight:test"
+echo ""
+echo "  2. Create a release branch, commit, push, and open a PR:"
+echo "     git checkout -b release/$NEW_VERSION"
+echo "     git add -A && git commit -m \"chore: prepare release $NEW_VERSION\""
+echo "     git push -u origin release/$NEW_VERSION"
+echo "     gh pr create --title \"chore: prepare release $NEW_VERSION\" --base main"
+echo ""
+echo "  3. After the PR is merged, pull main and create the git tag:"
+echo "     git checkout main && git pull"
+echo "     git tag $NEW_VERSION && git push origin $NEW_VERSION"
+echo ""
+echo "  4. Trigger the publish workflow manually (dry run first, then real)."
