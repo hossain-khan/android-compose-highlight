@@ -1,0 +1,137 @@
+# Performance
+
+## Shared WebView via `HighlightThemeProvider`
+
+The most impactful optimization is wrapping your content in `HighlightThemeProvider`. Without it, every `SyntaxHighlightedCode` creates its own hidden WebView:
+
+| Setup | WebViews | Warm-up cost |
+|---|---|---|
+| No provider — 3 blocks | 3 | ~600 ms |
+| With provider — 3 blocks | 1 | ~200 ms |
+
+```kotlin
+// Wrap once, high up in your composition tree
+HighlightThemeProvider(
+    lightHighlightTheme = rememberTomorrowTheme(),
+    darkHighlightTheme  = rememberTomorrowNightTheme(),
+) {
+    LazyColumn {
+        items(snippets) { snippet ->
+            SyntaxHighlightedCode(code = snippet.code, language = snippet.lang)
+        }
+    }
+}
+```
+
+## Pre-warming the WebView
+
+The WebView initializes lazily on the first `highlight()` call. To hide that cost, warm it up during app start:
+
+```kotlin
+// Application.onCreate() — pre-warm the Android WebView renderer process
+class MyApp : Application() {
+    override fun onCreate() {
+        super.onCreate()
+        runCatching {
+            WebViewCompat.startUpWebView(
+                applicationContext,
+                WebViewStartUpConfig.Builder(mainExecutor).build(),
+                WebViewOutcomeReceiver { /* no-op */ },
+            )
+        }
+    }
+}
+```
+
+Requires `androidx.webkit:webkit:1.16+` (a transitive dependency of this library).
+
+## Pre-warming via `HighlightEngine`
+
+When using `HighlightEngine` directly in a ViewModel, call `initialize()` on a background coroutine before you need the first highlight:
+
+```kotlin
+class CodeViewModel(application: Application) : AndroidViewModel(application) {
+    private val engine = HighlightEngine(application)
+
+    init {
+        viewModelScope.launch {
+            engine.initialize()  // warm-up on launch
+        }
+    }
+
+    suspend fun highlight(code: String, language: String, theme: HighlightTheme) =
+        engine.highlight(code, language, theme).getOrNull()?.annotated
+
+    override fun onCleared() { engine.destroy() }
+}
+```
+
+## Highlight both themes for instant switching
+
+Tokenization is the slow part. Running it twice for light + dark wastes time. Use `highlightBothThemes` to tokenize once and produce both variants:
+
+```kotlin
+val result = engine.highlightBothThemes(
+    code       = sourceCode,
+    language   = "kotlin",
+    lightTheme = rememberTomorrowTheme(),
+    darkTheme  = rememberTomorrowNightTheme(),
+)
+// Switch instantly at the call site — no re-highlighting needed
+val annotated = if (isDark) result.dark else result.light
+```
+
+Inside Compose, use `rememberHighlightedCodeBothThemes(code, language)`.
+
+## Timing callbacks
+
+Monitor per-stage latency with `onHighlightComplete`:
+
+```kotlin
+SyntaxHighlightedCode(
+    code     = snippet,
+    language = "kotlin",
+    onHighlightComplete = { result ->
+        Log.d("HighlightPerf",
+            "total=${result.durationMs}ms, " +
+            "js=${result.timings.jsBridgeMs}ms, " +
+            "parse=${result.timings.htmlParseMs}ms, " +
+            "spans=${result.spanCount}")
+    },
+)
+```
+
+`HighlightTimings` has individual fields for each pipeline stage:
+
+| Field | Description |
+|---|---|
+| `jsBridgeMs` | WebView JS evaluation |
+| `jsonUnescapeMs` | JS string unescaping |
+| `htmlParseMs` | jsoup HTML parsing |
+| `treeWalkMs` | Span tree walk |
+| `themeParseMs` | CSS → SpanStyle (first call only) |
+| `totalMs` | Sum of all above |
+
+## Typical latencies (Pixel 6, release build)
+
+| Stage | First call | Subsequent calls |
+|---|---|---|
+| WebView warm-up | ~150-200 ms | 0 ms |
+| JS evaluation | ~20-50 ms | ~5-15 ms |
+| HTML parse + span walk | ~2-5 ms | ~2-5 ms |
+| Theme CSS parse | ~10-20 ms (once) | 0 ms (cached) |
+
+## `isInitialized` state flow
+
+Observe engine readiness reactively — for example to show a loading indicator:
+
+```kotlin
+val engine       = rememberHighlightEngine()
+val isReady by engine.isInitialized.collectAsState()
+
+if (!isReady) {
+    CircularProgressIndicator()
+} else {
+    SyntaxHighlightedCode(code = snippet, language = "kotlin")
+}
+```

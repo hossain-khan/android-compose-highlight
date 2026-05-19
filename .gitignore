@@ -34,8 +34,13 @@ google-services.json
 *.hprof
 .DS_Store
 
-# Generated API documentation (built by Dokka, deployed via GitHub Pages)
+# Generated API documentation (built by Dokka, included in Zensical site build)
 docs/api/
+resources/api/
+
+# Zensical docs build output
+site/
+.cache/
 gradle/gradle-daemon-jvm.properties
 *.salive
 build_log.txt

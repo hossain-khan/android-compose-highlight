@@ -271,7 +271,7 @@ class MyApp : Application() {
 
 Requires `androidx.webkit:webkit:1.16+` (already a transitive dependency of this library).
 
-For full design details see [`docs/prd-compose-syntax-highlight.md`](docs/prd-compose-syntax-highlight.md).
+For full design details see [`resources/prd-compose-syntax-highlight.md`](resources/prd-compose-syntax-highlight.md).
 
 ## Benchmarks
 

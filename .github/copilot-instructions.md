@@ -143,7 +143,7 @@ Never tell the user "the publish workflow will trigger automatically" - it won't
 dev.hossain:compose-highlight:<version>
 ```
 
-**Updating bundled highlight.js themes in the sample app** - to refresh the 256 `.min.css` theme files under `sample/src/main/assets/themes/` (e.g. when upgrading highlight.js), follow the steps in [`docs/updating-hljs-themes.md`](../docs/updating-hljs-themes.md).
+**Updating bundled highlight.js themes in the sample app** - to refresh the 256 `.min.css` theme files under `sample/src/main/assets/themes/` (e.g. when upgrading highlight.js), follow the steps in [`resources/updating-hljs-themes.md`](../resources/updating-hljs-themes.md).
 
 **Writing style - never use the em dash `-` character** in commit messages, code comments, KDoc, CHANGELOG entries, or any other text. Use a regular hyphen/minus `-` instead.
 
