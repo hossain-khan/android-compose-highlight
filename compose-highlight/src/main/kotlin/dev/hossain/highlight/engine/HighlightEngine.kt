@@ -3,6 +3,8 @@ package dev.hossain.highlight.engine
 import android.content.Context
 import android.webkit.WebView
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import dev.hossain.highlight.ui.rememberHighlightEngine
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.TimeoutCancellationException
