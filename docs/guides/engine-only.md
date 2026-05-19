@@ -85,7 +85,7 @@ engine.highlight(code, language, theme)
             when (error) {
                 is HighlightException.WebViewInitFailed -> /* WebView failed to initialize */
                 is HighlightException.JsExecutionFailed -> /* JS evaluation error */
-                is HighlightException.ThemeNotFound     -> /* asset CSS file not found */
+                is HighlightException.ThemeNotFound     -> /* theme CSS found but contains no parseable color rules */
                 is HighlightException.HtmlParseFailed   -> /* jsoup parse error */
                 is HighlightException.Timeout           -> /* timed out waiting for WebView */
             }
