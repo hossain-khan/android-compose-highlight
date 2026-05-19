@@ -16,7 +16,7 @@ Check [Maven Central](https://search.maven.org/artifact/dev.hossain/compose-high
 
 ## 2. Wrap your screen in `HighlightThemeProvider`
 
-Place `HighlightThemeProvider` once near the root of your composition — inside `setContent {}` or at the top of your screen composable. It creates **one shared WebView** for the entire subtree and automatically selects the light or dark theme based on the system setting.
+Place `HighlightThemeProvider` once near the root of your composition - inside `setContent {}` or at the top of your screen composable. It creates **one shared WebView** for the entire subtree and automatically selects the light or dark theme based on the system setting.
 
 ```kotlin
 import dev.hossain.highlight.ui.HighlightThemeProvider

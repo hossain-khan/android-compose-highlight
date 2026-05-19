@@ -78,7 +78,9 @@ val result = engine.highlightBothThemes(
     darkTheme  = rememberTomorrowNightTheme(),
 )
 // Switch instantly at the call site — no re-highlighting needed
-val annotated = if (isDark) result.dark else result.light
+result.onSuccess { themed ->
+    val annotated = if (isDark) themed.dark else themed.light
+}
 ```
 
 Inside Compose, use `rememberHighlightedCodeBothThemes(code, language)`.
@@ -94,8 +96,8 @@ SyntaxHighlightedCode(
     onHighlightComplete = { result ->
         Log.d("HighlightPerf",
             "total=${result.durationMs}ms, " +
-            "js=${result.timings.jsBridgeMs}ms, " +
-            "parse=${result.timings.htmlParseMs}ms, " +
+            "js=${result.timings.jsBridge.inWholeMilliseconds}ms, " +
+            "parse=${result.timings.htmlParse.inWholeMilliseconds}ms, " +
             "spans=${result.spanCount}")
     },
 )
@@ -103,14 +105,16 @@ SyntaxHighlightedCode(
 
 `HighlightTimings` has individual fields for each pipeline stage:
 
-| Field | Description |
-|---|---|
-| `jsBridgeMs` | WebView JS evaluation |
-| `jsonUnescapeMs` | JS string unescaping |
-| `htmlParseMs` | jsoup HTML parsing |
-| `treeWalkMs` | Span tree walk |
-| `themeParseMs` | CSS → SpanStyle (first call only) |
-| `totalMs` | Sum of all above |
+| Field | Type | Description |
+|---|---|---|
+| `jsBridge` | `Duration` | WebView JS evaluation |
+| `jsonUnescape` | `Duration` | JS string unescaping |
+| `htmlParse` | `Duration` | jsoup HTML parsing |
+| `treeWalk` | `Duration` | Span tree walk |
+| `themeParse` | `Duration` | CSS to SpanStyle (first call only; `Duration.ZERO` on cache hits) |
+| `total` | `Duration` | Full elapsed wall-clock time |
+
+Use `.inWholeMilliseconds` to get a `Long`, or `.inWholeNanoseconds` for finer granularity.
 
 ## Typical latencies (Pixel 6, release build)
 

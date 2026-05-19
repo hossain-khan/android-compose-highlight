@@ -2,7 +2,7 @@
 
 **Jetpack Compose syntax highlighting powered by [Highlight.js](https://highlightjs.org/).**
 
-Renders beautifully colored, selectable, copy-able code blocks in any Compose UI — with light/dark theme support, line numbers, and full customization of the header slots.
+Renders beautifully colored, selectable, copyable code blocks in any Compose UI - with light/dark theme support, line numbers, and full customization of the header slots.
 
 [![Maven Central](https://img.shields.io/maven-central/v/dev.hossain/compose-highlight.svg)](https://search.maven.org/artifact/dev.hossain/compose-highlight)
 [![License](https://img.shields.io/github/license/hossain-khan/android-compose-highlight)](https://github.com/hossain-khan/android-compose-highlight/blob/main/LICENSE)

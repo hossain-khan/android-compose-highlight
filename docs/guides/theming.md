@@ -97,22 +97,20 @@ This creates a standalone `HighlightEngine` with its own WebView. Use `Highlight
 
 ## Highlight both themes simultaneously
 
-For zero-latency theme switching, tokenize once and apply both color maps:
+For zero-latency theme switching, tokenize once and apply both color maps. Use `produceState` to keep the work off the UI thread:
 
 ```kotlin
 val engine = rememberHighlightEngine()
-val (lightAnnotated, darkAnnotated) = remember(code) {
-    runBlocking {
-        engine.highlightBothThemes(
-            code       = code,
-            language   = "kotlin",
-            lightTheme = lightTheme,
-            darkTheme  = darkTheme,
-        ).getOrNull()?.let { it.light to it.dark }
-            ?: (AnnotatedString(code) to AnnotatedString(code))
-    }
+val fallback = remember(code) { AnnotatedString(code) }
+val (lightAnnotated, darkAnnotated) by produceState(fallback to fallback, code) {
+    engine.highlightBothThemes(
+        code       = code,
+        language   = "kotlin",
+        lightTheme = lightTheme,
+        darkTheme  = darkTheme,
+    ).onSuccess { value = it.light to it.dark }
 }
 // Switch between lightAnnotated and darkAnnotated instantly
 ```
 
-See [`rememberHighlightedCodeBothThemes`](../reference/highlight-engine.md) for the composable version.
+See [`rememberHighlightedCodeBothThemes`](../reference/highlight-engine.md) for the ready-made composable helper.

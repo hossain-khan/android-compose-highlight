@@ -15,7 +15,7 @@ The engine holds a hidden WebView resource. Always call `destroy()` when done. I
 | `suspend initialize()` | Warms up the WebView. Optional — `highlight()` also initializes on first call |
 | `suspend highlight(code, language, theme)` | Full pipeline: tokenize, apply theme, return `AnnotatedString` |
 | `suspend highlightBothThemes(code, language, lightTheme, darkTheme)` | Highlight once, produce both light and dark `AnnotatedString` |
-| `suspend highlightToHtml(code, language)` | Returns raw HTML with `<span class="hljs-*">` tokens |
+| `suspend highlightToHtml(code, language)` | Returns `Result<HtmlHighlightResult>` (access `.html` for the HTML string, `.jsBridgeDuration` and `.jsonUnescapeDuration` for timing) |
 | `suspend supportedLanguages()` | Returns the list of languages the bundled Highlight.js supports |
 | `suspend highlightJsVersion()` | Returns the bundled Highlight.js version string |
 | `fun destroy()` | Releases the WebView and clears caches |

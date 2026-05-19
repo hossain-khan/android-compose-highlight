@@ -55,8 +55,9 @@ fun CodeScreen(viewModel: CodeViewModel = viewModel()) {
 Get the raw Highlight.js HTML tokens for custom rendering pipelines:
 
 ```kotlin
-engine.highlightToHtml("val x = 42", "kotlin").onSuccess { html ->
-    // html: "<span class=\"hljs-keyword\">val</span> x = <span class=\"hljs-number\">42</span>"
+engine.highlightToHtml("val x = 42", "kotlin").onSuccess { result ->
+    // result.html: "<span class=\"hljs-keyword\">val</span> x = <span class=\"hljs-number\">42</span>"
+    Log.d("HTML", result.html)
 }
 ```
 
@@ -82,10 +83,11 @@ engine.highlight(code, language, theme)
     .onFailure { error ->
         if (error is HighlightException) {
             when (error) {
-                is HighlightException.EngineNotInitialized -> /* retry after init */
-                is HighlightException.HighlightFailed      -> /* unsupported language? */
-                is HighlightException.WebViewUnavailable   -> /* WebView not available */
-                else                                        -> /* unexpected error */
+                is HighlightException.WebViewInitFailed -> /* WebView failed to initialize */
+                is HighlightException.JsExecutionFailed -> /* JS evaluation error */
+                is HighlightException.ThemeNotFound     -> /* asset CSS file not found */
+                is HighlightException.HtmlParseFailed   -> /* jsoup parse error */
+                is HighlightException.Timeout           -> /* timed out waiting for WebView */
             }
         }
     }
