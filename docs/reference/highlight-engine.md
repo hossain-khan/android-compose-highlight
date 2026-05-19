@@ -13,8 +13,8 @@ The engine holds a hidden WebView resource. Always call `destroy()` when done. I
 | Method | Description |
 |---|---|
 | `suspend initialize()` | Warms up the WebView. Optional — `highlight()` also initializes on first call |
-| `suspend highlight(code, language, theme)` | Full pipeline: tokenize, apply theme, return `AnnotatedString` |
-| `suspend highlightBothThemes(code, language, lightTheme, darkTheme)` | Highlight once, produce both light and dark `AnnotatedString` |
+| `suspend highlight(code, language, theme)` | Full pipeline: tokenize, apply theme, return `Result<HighlightResult>` (access `.annotated` for the `AnnotatedString`) |
+| `suspend highlightBothThemes(code, language, lightTheme, darkTheme)` | Highlight once, return `Result<ThemedHighlightResult>` (access `.light` and `.dark` for the `AnnotatedString` variants) |
 | `suspend highlightToHtml(code, language)` | Returns `Result<HtmlHighlightResult>` (access `.html` for the HTML string, `.jsBridgeDuration` and `.jsonUnescapeDuration` for timing) |
 | `suspend supportedLanguages()` | Returns the list of languages the bundled Highlight.js supports |
 | `suspend highlightJsVersion()` | Returns the bundled Highlight.js version string |
@@ -87,7 +87,18 @@ engine.highlightBothThemes(
 | `spanCount` | Number of style spans. `0` = silent failure (unsupported language or empty code) |
 | `language` | The language identifier that was highlighted |
 | `durationMs` | Total wall-clock time in milliseconds |
-| `timings` | Per-stage `HighlightTimings` (jsBridge, jsonUnescape, htmlParse, treeWalk, themeParse) |
+| `timings` | Per-stage `HighlightTimings` (jsBridge, jsonUnescape, htmlParse, treeWalk, themeParse, total) |
+
+## `ThemedHighlightResult`
+
+Returned by `highlightBothThemes()`. Holds both light and dark variants produced from a single JS tokenization pass.
+
+| Property | Description |
+|---|---|
+| `light` | Syntax-highlighted `AnnotatedString` styled with the light theme |
+| `dark` | Syntax-highlighted `AnnotatedString` styled with the dark theme |
+| `durationMs` | Total wall-clock time in milliseconds for the full highlight call |
+| `timings` | Per-stage `HighlightTimings` breakdown (same fields as `HighlightResult.timings`) |
 
 ## `rememberHighlightEngine`
 
