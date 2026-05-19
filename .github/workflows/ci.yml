@@ -16,17 +16,32 @@ jobs:
       code: ${{ steps.filter.outputs.code }}
     steps:
       - uses: actions/checkout@v6.0.2
-      - uses: dorny/paths-filter@v3
-        id: filter
         with:
-          filters: |
-            code:
-              - 'compose-highlight/**'
-              - 'sample/**'
-              - 'gradle/**'
-              - '*.kts'
-              - 'gradle.properties'
-              - '.github/workflows/ci.yml'
+          fetch-depth: 0
+      - name: Check for code changes
+        id: filter
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            CHANGED=$(git diff --name-only origin/${{ github.base_ref }}...HEAD)
+          else
+            CHANGED=$(git diff --name-only HEAD^1 HEAD 2>/dev/null || git diff --name-only HEAD)
+          fi
+          echo "Changed files:"
+          echo "$CHANGED"
+          CODE_CHANGED=false
+          while IFS= read -r file; do
+            if [[ "$file" == compose-highlight/* || \
+                  "$file" == sample/* || \
+                  "$file" == gradle/* || \
+                  "$file" == *.kts || \
+                  "$file" == "gradle.properties" || \
+                  "$file" == ".github/workflows/ci.yml" ]]; then
+              CODE_CHANGED=true
+              break
+            fi
+          done <<< "$CHANGED"
+          echo "code=$CODE_CHANGED" >> "$GITHUB_OUTPUT"
+          echo "Code changed: $CODE_CHANGED"
 
   skip:
     name: Build & Test
