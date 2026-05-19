@@ -1,6 +1,6 @@
 # ── Site metadata ──────────────────────────────────────────────────────────────
 [project]
-site_name        = "compose-highlight"
+site_name        = "Highlight"
 site_description = "Jetpack Compose syntax highlighting library powered by Highlight.js"
 site_author      = "Hossain Khan"
 site_url         = "https://hossain-khan.github.io/android-compose-highlight/"
