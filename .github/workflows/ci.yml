@@ -6,9 +6,41 @@ on:
   pull_request:
     branches: [ main ]
 
+# Skip the full build when only docs, assets, scripts, or repo config files change.
+# The `skip` job runs instead and satisfies the required branch protection check.
 jobs:
+  changes:
+    name: Detect changed paths
+    runs-on: ubuntu-latest
+    outputs:
+      code: ${{ steps.filter.outputs.code }}
+    steps:
+      - uses: actions/checkout@v6.0.2
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            code:
+              - 'compose-highlight/**'
+              - 'sample/**'
+              - 'gradle/**'
+              - '*.kts'
+              - 'gradle.properties'
+              - '.github/workflows/ci.yml'
+
+  skip:
+    name: Build & Test
+    needs: changes
+    if: needs.changes.outputs.code == 'false'
+    runs-on: ubuntu-latest
+    steps:
+      - name: No code changes - skipping build
+        run: echo "Only non-code files changed. Skipping build and test."
+
   build-and-test:
     name: Build & Test
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
 
     steps:
