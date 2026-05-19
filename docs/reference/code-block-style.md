@@ -22,16 +22,24 @@ The default `textStyle` is `SyntaxHighlightedCodeDefaults.codeTextStyle`: monosp
 ## Presets
 
 ```kotlin
-// Standard — rounded corners, 16 dp padding
+import dev.hossain.highlight.ui.CodeBlockStyle
+
+// Standard - rounded corners, 16 dp padding
 CodeBlockStyle.Default
 
-// Compact — reduced padding for space-constrained layouts
+// Compact - reduced padding for space-constrained layouts
 CodeBlockStyle.Compact
 ```
 
 ## Custom style
 
 ```kotlin
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.unit.dp
+import dev.hossain.highlight.ui.CodeBlockStyle
+import dev.hossain.highlight.ui.SyntaxHighlightedCode
+
 val myStyle = CodeBlockStyle(
     shape           = RoundedCornerShape(4.dp),
     padding         = PaddingValues(8.dp),
@@ -45,6 +53,12 @@ SyntaxHighlightedCode(code = snippet, language = "bash", style = myStyle)
 ## Custom typography
 
 ```kotlin
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.unit.sp
+import dev.hossain.highlight.ui.CodeBlockStyle
+import dev.hossain.highlight.ui.SyntaxHighlightedCode
+import dev.hossain.highlight.ui.SyntaxHighlightedCodeDefaults
+
 SyntaxHighlightedCode(
     code     = snippet,
     language = "kotlin",
@@ -61,6 +75,10 @@ SyntaxHighlightedCode(
 ## Copy button size
 
 ```kotlin
+import androidx.compose.ui.unit.dp
+import dev.hossain.highlight.ui.CodeBlockStyle
+import dev.hossain.highlight.ui.SyntaxHighlightedCode
+
 SyntaxHighlightedCode(
     code  = snippet,
     language = "kotlin",
@@ -71,6 +89,11 @@ SyntaxHighlightedCode(
 Wrap inline styles in `remember` to avoid unnecessary recompositions:
 
 ```kotlin
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.runtime.remember
+import androidx.compose.ui.unit.dp
+import dev.hossain.highlight.ui.CodeBlockStyle
+
 val myStyle = remember { CodeBlockStyle(padding = PaddingValues(8.dp)) }
 ```
 
@@ -94,6 +117,10 @@ Object providing default constants and helper composables.
 ### Using `CopyButton` with custom accessibility label
 
 ```kotlin
+import androidx.compose.ui.res.stringResource
+import dev.hossain.highlight.ui.SyntaxHighlightedCode
+import dev.hossain.highlight.ui.SyntaxHighlightedCodeDefaults
+
 SyntaxHighlightedCode(
     code = snippet,
     language = "kotlin",
@@ -109,6 +136,13 @@ SyntaxHighlightedCode(
 ### Toggling the language label at runtime
 
 ```kotlin
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import dev.hossain.highlight.ui.SyntaxHighlightedCode
+import dev.hossain.highlight.ui.SyntaxHighlightedCodeDefaults
+
 var showLabel by remember { mutableStateOf(true) }
 
 SyntaxHighlightedCode(

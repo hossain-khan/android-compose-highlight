@@ -10,6 +10,13 @@ The most impactful optimization is wrapping your content in `HighlightThemeProvi
 | With provider — 3 blocks | 1 | ~200 ms |
 
 ```kotlin
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import dev.hossain.highlight.ui.HighlightThemeProvider
+import dev.hossain.highlight.ui.SyntaxHighlightedCode
+import dev.hossain.highlight.ui.rememberTomorrowNightTheme
+import dev.hossain.highlight.ui.rememberTomorrowTheme
+
 // Wrap once, high up in your composition tree
 HighlightThemeProvider(
     lightHighlightTheme = rememberTomorrowTheme(),
@@ -28,7 +35,11 @@ HighlightThemeProvider(
 The WebView initializes lazily on the first `highlight()` call. To hide that cost, warm it up during app start:
 
 ```kotlin
-// Application.onCreate() — pre-warm the Android WebView renderer process
+import androidx.webkit.WebViewCompat
+import androidx.webkit.WebViewOutcomeReceiver
+import androidx.webkit.WebViewStartUpConfig
+
+// Application.onCreate() - pre-warm the Android WebView renderer process
 class MyApp : Application() {
     override fun onCreate() {
         super.onCreate()
@@ -50,6 +61,12 @@ Requires `androidx.webkit:webkit:1.16+` (a transitive dependency of this library
 When using `HighlightEngine` directly in a ViewModel, call `initialize()` on a background coroutine before you need the first highlight:
 
 ```kotlin
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.viewModelScope
+import dev.hossain.highlight.engine.HighlightEngine
+import dev.hossain.highlight.engine.HighlightTheme
+import kotlinx.coroutines.launch
+
 class CodeViewModel(application: Application) : AndroidViewModel(application) {
     private val engine = HighlightEngine(application)
 
@@ -71,13 +88,16 @@ class CodeViewModel(application: Application) : AndroidViewModel(application) {
 Tokenization is the slow part. Running it twice for light + dark wastes time. Use `highlightBothThemes` to tokenize once and produce both variants:
 
 ```kotlin
+import dev.hossain.highlight.ui.rememberTomorrowNightTheme
+import dev.hossain.highlight.ui.rememberTomorrowTheme
+
 val result = engine.highlightBothThemes(
     code       = sourceCode,
     language   = "kotlin",
     lightTheme = rememberTomorrowTheme(),
     darkTheme  = rememberTomorrowNightTheme(),
 )
-// Switch instantly at the call site — no re-highlighting needed
+// Switch instantly at the call site - no re-highlighting needed
 result.onSuccess { themed ->
     val annotated = if (isDark) themed.dark else themed.light
 }
@@ -90,6 +110,9 @@ Inside Compose, use `rememberHighlightedCodeBothThemes(code, language)`.
 Monitor per-stage latency with `onHighlightComplete`:
 
 ```kotlin
+import android.util.Log
+import dev.hossain.highlight.ui.SyntaxHighlightedCode
+
 SyntaxHighlightedCode(
     code     = snippet,
     language = "kotlin",
@@ -130,6 +153,12 @@ Use `.inWholeMilliseconds` to get a `Long`, or `.inWholeNanoseconds` for finer g
 Observe engine readiness reactively — for example to show a loading indicator:
 
 ```kotlin
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import dev.hossain.highlight.ui.SyntaxHighlightedCode
+import dev.hossain.highlight.ui.rememberHighlightEngine
+
 val engine       = rememberHighlightEngine()
 val isReady by engine.isInitialized.collectAsState()
 
