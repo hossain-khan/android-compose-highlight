@@ -63,10 +63,6 @@ val theme = HighlightTheme.fromCss(
 For full control — e.g. deriving colors from Material 3 dynamic color:
 
 ```kotlin
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.font.FontStyle
-import androidx.compose.ui.text.font.FontWeight
 import dev.hossain.highlight.engine.HighlightTheme
 
 val colorMap = mapOf(

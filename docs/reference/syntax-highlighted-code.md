@@ -7,8 +7,6 @@ Shows unstyled monospace code immediately while async highlighting runs, then fa
 ## Signature
 
 ```kotlin
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
 import dev.hossain.highlight.engine.HighlightResult
 import dev.hossain.highlight.engine.HighlightTheme
 import dev.hossain.highlight.ui.CodeBlockStyle
@@ -94,10 +92,6 @@ SyntaxHighlightedCode(
 ### Custom copy button
 
 ```kotlin
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ContentCopy
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import dev.hossain.highlight.ui.SyntaxHighlightedCode
 
 SyntaxHighlightedCode(
@@ -114,19 +108,6 @@ SyntaxHighlightedCode(
 ### Custom language label
 
 ```kotlin
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Text
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import dev.hossain.highlight.ui.SyntaxHighlightedCode
 
 SyntaxHighlightedCode(
@@ -145,7 +126,6 @@ SyntaxHighlightedCode(
 ### Timing callback
 
 ```kotlin
-import android.util.Log
 import dev.hossain.highlight.ui.SyntaxHighlightedCode
 
 SyntaxHighlightedCode(
@@ -164,7 +144,6 @@ SyntaxHighlightedCode(
 Provides a `HighlightTheme` and a shared `HighlightEngine` to all `SyntaxHighlightedCode` composables in its subtree.
 
 ```kotlin
-import androidx.compose.runtime.Composable
 import dev.hossain.highlight.engine.HighlightTheme
 import dev.hossain.highlight.ui.rememberTomorrowNightTheme
 import dev.hossain.highlight.ui.rememberTomorrowTheme

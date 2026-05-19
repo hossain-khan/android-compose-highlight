@@ -10,15 +10,8 @@ Use `HighlightEngine` directly when you need to:
 ## ViewModel example
 
 ```kotlin
-import androidx.compose.ui.text.AnnotatedString
-import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.viewModelScope
 import dev.hossain.highlight.engine.HighlightEngine
 import dev.hossain.highlight.engine.HighlightTheme
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.launch
 
 class CodeViewModel(application: Application) : AndroidViewModel(application) {
     private val engine = HighlightEngine(application.applicationContext)
@@ -47,13 +40,6 @@ class CodeViewModel(application: Application) : AndroidViewModel(application) {
 ## Using the result in Compose
 
 ```kotlin
-import androidx.compose.foundation.text.selection.SelectionContainer
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.ui.text.AnnotatedString
-import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.hossain.highlight.ui.SyntaxHighlightedCodeDefaults
 
 @Composable
@@ -74,8 +60,6 @@ fun CodeScreen(viewModel: CodeViewModel = viewModel()) {
 Get the raw Highlight.js HTML tokens for custom rendering pipelines:
 
 ```kotlin
-import android.util.Log
-
 engine.highlightToHtml("val x = 42", "kotlin").onSuccess { result ->
     // result.html: "<span class=\"hljs-keyword\">val</span> x = <span class=\"hljs-number\">42</span>"
     Log.d("HTML", result.html)
@@ -85,8 +69,6 @@ engine.highlightToHtml("val x = 42", "kotlin").onSuccess { result ->
 ## Querying engine metadata
 
 ```kotlin
-import android.util.Log
-
 engine.supportedLanguages().onSuccess { languages ->
     Log.d("Engine", "Supports ${languages.size} languages")
 }

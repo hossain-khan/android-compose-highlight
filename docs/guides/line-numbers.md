@@ -19,8 +19,6 @@ SyntaxHighlightedCode(
 The default gutter is `32.dp` wide. Increase it for snippets with many lines:
 
 ```kotlin
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
 import dev.hossain.highlight.ui.CodeBlockStyle
 import dev.hossain.highlight.ui.SyntaxHighlightedCode
 
@@ -50,12 +48,6 @@ When `lineNumberColor` is `Color.Unspecified` (the default), the line numbers in
 For long snippets, pair with a `verticalScroll` modifier:
 
 ```kotlin
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import dev.hossain.highlight.ui.SyntaxHighlightedCode
 
 SyntaxHighlightedCode(

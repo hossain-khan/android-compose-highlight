@@ -26,12 +26,8 @@ All suspend methods return `Result<T>` — never throw. Wrap failures in `Highli
 ## Usage in a ViewModel
 
 ```kotlin
-import androidx.compose.ui.text.AnnotatedString
-import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.viewModelScope
 import dev.hossain.highlight.engine.HighlightEngine
 import dev.hossain.highlight.engine.HighlightTheme
-import kotlinx.coroutines.launch
 
 class CodeViewModel(application: Application) : AndroidViewModel(application) {
     private val engine = HighlightEngine(application)
@@ -58,14 +54,6 @@ class CodeViewModel(application: Application) : AndroidViewModel(application) {
 ## Usage in Compose (lower-level)
 
 ```kotlin
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.text.AnnotatedString
 import dev.hossain.highlight.ui.rememberHighlightEngine
 import dev.hossain.highlight.ui.rememberTomorrowTheme
 

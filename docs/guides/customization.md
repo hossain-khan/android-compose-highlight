@@ -5,14 +5,6 @@
 The language label is a composable slot — replace it with any `@Composable`:
 
 ```kotlin
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Text
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import dev.hossain.highlight.ui.SyntaxHighlightedCode
 
 SyntaxHighlightedCode(
@@ -44,10 +36,6 @@ SyntaxHighlightedCode(code = snippet, language = "kotlin", languageLabelContent 
 ### Custom icon
 
 ```kotlin
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ContentCopy
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import dev.hossain.highlight.ui.SyntaxHighlightedCode
 
 SyntaxHighlightedCode(
@@ -72,11 +60,7 @@ SyntaxHighlightedCode(code = snippet, language = "kotlin", copyButtonContent = n
 ### Custom copy feedback (Snackbar, Toast, etc.)
 
 ```kotlin
-import androidx.compose.material3.SnackbarHostState
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import dev.hossain.highlight.ui.SyntaxHighlightedCode
-import kotlinx.coroutines.launch
 
 val snackbarHostState = remember { SnackbarHostState() }
 val scope             = rememberCoroutineScope()
@@ -96,7 +80,6 @@ SyntaxHighlightedCode(
 ### Adjust copy button touch target
 
 ```kotlin
-import androidx.compose.ui.unit.dp
 import dev.hossain.highlight.ui.CodeBlockStyle
 import dev.hossain.highlight.ui.SyntaxHighlightedCode
 
@@ -110,9 +93,6 @@ SyntaxHighlightedCode(
 ## Block shape and padding
 
 ```kotlin
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.ui.unit.dp
 import dev.hossain.highlight.ui.CodeBlockStyle
 import dev.hossain.highlight.ui.SyntaxHighlightedCode
 
@@ -130,9 +110,6 @@ SyntaxHighlightedCode(
 ## Custom font
 
 ```kotlin
-import androidx.compose.ui.text.font.Font
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.unit.sp
 import dev.hossain.highlight.ui.CodeBlockStyle
 import dev.hossain.highlight.ui.SyntaxHighlightedCode
 import dev.hossain.highlight.ui.SyntaxHighlightedCodeDefaults
@@ -154,8 +131,6 @@ SyntaxHighlightedCode(
 ## Line number styling
 
 ```kotlin
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
 import dev.hossain.highlight.ui.CodeBlockStyle
 import dev.hossain.highlight.ui.SyntaxHighlightedCode
 
@@ -175,12 +150,6 @@ SyntaxHighlightedCode(
 Apply any modifier to the outer container:
 
 ```kotlin
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import dev.hossain.highlight.ui.SyntaxHighlightedCode
 
 SyntaxHighlightedCode(
@@ -198,7 +167,6 @@ SyntaxHighlightedCode(
 The code text is fully selectable (via `SelectionContainer`) and the copy button uses `contentDescription` for accessibility. To provide a localized description:
 
 ```kotlin
-import androidx.compose.ui.res.stringResource
 import dev.hossain.highlight.ui.SyntaxHighlightedCode
 import dev.hossain.highlight.ui.SyntaxHighlightedCodeDefaults
 

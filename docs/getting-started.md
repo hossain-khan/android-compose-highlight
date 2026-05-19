@@ -73,7 +73,6 @@ SyntaxHighlightedCode(
 ### Custom font size
 
 ```kotlin
-import androidx.compose.ui.unit.sp
 import dev.hossain.highlight.ui.CodeBlockStyle
 import dev.hossain.highlight.ui.SyntaxHighlightedCode
 import dev.hossain.highlight.ui.SyntaxHighlightedCodeDefaults
@@ -107,10 +106,6 @@ SyntaxHighlightedCode(
 The hidden WebView initializes lazily on the first highlight call. To reduce first-call latency, pre-warm the WebView renderer process in `Application.onCreate()`:
 
 ```kotlin
-import androidx.webkit.WebViewCompat
-import androidx.webkit.WebViewOutcomeReceiver
-import androidx.webkit.WebViewStartUpConfig
-
 class MyApp : Application() {
     override fun onCreate() {
         super.onCreate()

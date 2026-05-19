@@ -10,8 +10,6 @@ The most impactful optimization is wrapping your content in `HighlightThemeProvi
 | With provider — 3 blocks | 1 | ~200 ms |
 
 ```kotlin
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import dev.hossain.highlight.ui.HighlightThemeProvider
 import dev.hossain.highlight.ui.SyntaxHighlightedCode
 import dev.hossain.highlight.ui.rememberTomorrowNightTheme
@@ -35,10 +33,6 @@ HighlightThemeProvider(
 The WebView initializes lazily on the first `highlight()` call. To hide that cost, warm it up during app start:
 
 ```kotlin
-import androidx.webkit.WebViewCompat
-import androidx.webkit.WebViewOutcomeReceiver
-import androidx.webkit.WebViewStartUpConfig
-
 // Application.onCreate() - pre-warm the Android WebView renderer process
 class MyApp : Application() {
     override fun onCreate() {
@@ -61,11 +55,8 @@ Requires `androidx.webkit:webkit:1.16+` (a transitive dependency of this library
 When using `HighlightEngine` directly in a ViewModel, call `initialize()` on a background coroutine before you need the first highlight:
 
 ```kotlin
-import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.viewModelScope
 import dev.hossain.highlight.engine.HighlightEngine
 import dev.hossain.highlight.engine.HighlightTheme
-import kotlinx.coroutines.launch
 
 class CodeViewModel(application: Application) : AndroidViewModel(application) {
     private val engine = HighlightEngine(application)
@@ -110,7 +101,6 @@ Inside Compose, use `rememberHighlightedCodeBothThemes(code, language)`.
 Monitor per-stage latency with `onHighlightComplete`:
 
 ```kotlin
-import android.util.Log
 import dev.hossain.highlight.ui.SyntaxHighlightedCode
 
 SyntaxHighlightedCode(
@@ -153,9 +143,6 @@ Use `.inWholeMilliseconds` to get a `Long`, or `.inWholeNanoseconds` for finer g
 Observe engine readiness reactively — for example to show a loading indicator:
 
 ```kotlin
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import dev.hossain.highlight.ui.SyntaxHighlightedCode
 import dev.hossain.highlight.ui.rememberHighlightEngine
 

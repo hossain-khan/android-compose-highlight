@@ -49,7 +49,6 @@ HighlightThemeProvider(
 3. Load it with `HighlightTheme.fromAsset()`:
 
 ```kotlin
-import androidx.compose.ui.platform.LocalContext
 import dev.hossain.highlight.engine.HighlightTheme
 import dev.hossain.highlight.ui.HighlightThemeProvider
 
@@ -80,10 +79,6 @@ val theme = HighlightTheme.fromCss(cssText = rawCss, name = "remote-theme")
 Maximum flexibility — derive colors from Material 3 dynamic color, user palettes, or brand colors:
 
 ```kotlin
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.font.FontStyle
-import androidx.compose.ui.text.font.FontWeight
 import dev.hossain.highlight.engine.HighlightTheme
 
 val lightColors = MaterialTheme.colorScheme
@@ -123,10 +118,6 @@ This creates a standalone `HighlightEngine` with its own WebView. Use `Highlight
 For zero-latency theme switching, tokenize once and apply both color maps. Use `produceState` to keep the work off the UI thread:
 
 ```kotlin
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.produceState
-import androidx.compose.runtime.remember
-import androidx.compose.ui.text.AnnotatedString
 import dev.hossain.highlight.ui.rememberHighlightEngine
 
 val engine = rememberHighlightEngine()
