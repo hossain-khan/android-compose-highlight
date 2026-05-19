@@ -65,6 +65,7 @@ internal fun StylingSection(
     var showLineNumbers by remember { mutableStateOf(true) }
     var showLanguageLabel by remember { mutableStateOf(true) }
     var showCopyButton by remember { mutableStateOf(true) }
+    var useCustomLanguageLabel by remember { mutableStateOf(false) }
     var useCustomCopyIcon by remember { mutableStateOf(false) }
 
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
@@ -96,10 +97,25 @@ internal fun StylingSection(
         style = style,
         showLineNumbers = showLineNumbers,
         languageLabelContent =
-            if (showLanguageLabel) {
-                { SyntaxHighlightedCodeDefaults.LanguageLabel("kotlin") }
-            } else {
+            if (!showLanguageLabel) {
                 null
+            } else if (useCustomLanguageLabel) {
+                {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    ) {
+                        Text(text = "Kotlin", style = MaterialTheme.typography.labelMedium)
+                        Icon(
+                            imageVector = ImageVector.vectorResource(R.drawable.stars_2_24dp),
+                            contentDescription = null,
+                            modifier = Modifier.size(12.dp),
+                            tint = MaterialTheme.colorScheme.primary,
+                        )
+                    }
+                }
+            } else {
+                { SyntaxHighlightedCodeDefaults.LanguageLabel("kotlin") }
             },
         copyButtonContent =
             if (!showCopyButton) {
@@ -146,6 +162,7 @@ internal fun StylingSection(
                 SheetSectionLabel("Visibility")
                 ToggleRow("Show line numbers", showLineNumbers) { showLineNumbers = it }
                 ToggleRow("Show language label", showLanguageLabel) { showLanguageLabel = it }
+                ToggleRow("Custom language label", useCustomLanguageLabel) { useCustomLanguageLabel = it }
                 ToggleRow("Show copy button", showCopyButton) { showCopyButton = it }
                 ToggleRow("Custom copy icon", useCustomCopyIcon) { useCustomCopyIcon = it }
 
