@@ -133,7 +133,7 @@ object SyntaxHighlightedCodeDefaults {
         ) {
             Text(
                 text = "⧉",
-                style = TextStyle(color = tint, fontSize = 16.sp),
+                style = TextStyle(color = tint, fontSize = (size.value * 0.5f).sp),
             )
         }
     }

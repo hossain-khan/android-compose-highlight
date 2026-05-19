@@ -106,16 +106,19 @@ internal fun StylingSection(
                 null
             } else if (useCustomCopyIcon) {
                 { onClick ->
-                    androidx.compose.material3.IconButton(onClick = onClick) {
+                    androidx.compose.material3.IconButton(
+                        onClick = onClick,
+                        modifier = Modifier.size(style.copyButtonSize),
+                    ) {
                         Icon(
                             imageVector = ImageVector.vectorResource(R.drawable.content_copy_24dp),
                             contentDescription = "Copy code",
-                            modifier = Modifier.size(16.dp),
+                            modifier = Modifier.size(style.copyButtonSize * 0.5f),
                         )
                     }
                 }
             } else {
-                { onClick -> SyntaxHighlightedCodeDefaults.CopyButton(onClick = onClick) }
+                { onClick -> SyntaxHighlightedCodeDefaults.CopyButton(onClick = onClick, size = style.copyButtonSize) }
             },
     )
 
