@@ -1,0 +1,104 @@
+# ── Site metadata ──────────────────────────────────────────────────────────────
+[project]
+site_name        = "compose-highlight"
+site_description = "Jetpack Compose syntax highlighting library powered by Highlight.js"
+site_author      = "Hossain Khan"
+site_url         = "https://hossain-khan.github.io/android-compose-highlight/"
+copyright        = "Copyright &copy; 2026 Hossain Khan"
+docs_dir         = "docs"
+repo_name        = "hossain-khan/android-compose-highlight"
+repo_url         = "https://github.com/hossain-khan/android-compose-highlight"
+edit_uri         = "edit/main/docs/"
+
+# ── Navigation ─────────────────────────────────────────────────────────────────
+nav = [
+  { "Home"            = "index.md" },
+  { "Getting Started" = "getting-started.md" },
+  { "API Reference"   = [
+      "reference/index.md",
+      "reference/syntax-highlighted-code.md",
+      "reference/code-block-style.md",
+      "reference/highlight-theme.md",
+      "reference/highlight-engine.md",
+  ]},
+  { "Guides" = [
+      "guides/theming.md",
+      "guides/customization.md",
+      "guides/line-numbers.md",
+      "guides/performance.md",
+      "guides/engine-only.md",
+  ]},
+  { "Changelog" = "changelog.md" },
+  { "Dokka API Docs" = "https://hossain-khan.github.io/android-compose-highlight/api/" },
+]
+
+# ── Theme ──────────────────────────────────────────────────────────────────────
+[project.theme]
+language = "en"
+features = [
+    "content.code.annotate",
+    "content.code.copy",
+    "content.code.select",
+    "content.action.edit",
+    "content.action.view",
+    "navigation.footer",
+    "navigation.indexes",
+    "navigation.instant",
+    "navigation.path",
+    "navigation.sections",
+    "navigation.top",
+    "navigation.tracking",
+    "search.highlight",
+]
+
+[[project.theme.palette]]
+scheme      = "default"
+toggle.icon = "lucide/sun"
+toggle.name = "Switch to dark mode"
+
+[[project.theme.palette]]
+scheme      = "slate"
+toggle.icon = "lucide/moon"
+toggle.name = "Switch to light mode"
+
+# ── Markdown extensions ────────────────────────────────────────────────────────
+[project.markdown_extensions.abbr]
+[project.markdown_extensions.admonition]
+[project.markdown_extensions.attr_list]
+[project.markdown_extensions.def_list]
+[project.markdown_extensions.footnotes]
+[project.markdown_extensions.md_in_html]
+
+[project.markdown_extensions.toc]
+permalink = true
+
+[project.markdown_extensions.pymdownx.highlight]
+anchor_linenums     = true
+line_spans          = "__span"
+pygments_lang_class = true
+
+[project.markdown_extensions.pymdownx.inlinehilite]
+[project.markdown_extensions.pymdownx.details]
+[project.markdown_extensions.pymdownx.betterem]
+[project.markdown_extensions.pymdownx.caret]
+[project.markdown_extensions.pymdownx.mark]
+[project.markdown_extensions.pymdownx.tilde]
+[project.markdown_extensions.pymdownx.keys]
+[project.markdown_extensions.pymdownx.smartsymbols]
+[project.markdown_extensions.pymdownx.tasklist]
+custom_checkbox = true
+
+[project.markdown_extensions.pymdownx.superfences]
+custom_fences = [
+  { name = "mermaid", class = "mermaid", format = "pymdownx.superfences.fence_code_format" }
+]
+
+[project.markdown_extensions.pymdownx.tabbed]
+alternate_style     = true
+combine_header_slug = true
+
+[project.markdown_extensions.pymdownx.emoji]
+emoji_generator = "zensical.extensions.emoji.to_svg"
+emoji_index     = "zensical.extensions.emoji.twemoji"
+
+[project.markdown_extensions.pymdownx.magiclink]

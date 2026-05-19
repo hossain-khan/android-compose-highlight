@@ -120,7 +120,8 @@ dokka {
         includes.from(layout.projectDirectory.file("MODULE.md"))
     }
     dokkaPublications.html {
-        // Output to docs/api/ so GitHub Pages can serve from the docs/ folder
+        // Output to docs/api/ - Zensical passes non-Markdown files through verbatim,
+        // so this ends up at /api/ on the deployed GitHub Pages site.
         outputDirectory.set(rootDir.resolve("docs/api"))
     }
 }
