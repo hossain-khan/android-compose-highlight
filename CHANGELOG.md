@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Fixed
+- **`CodeBlockStyle.copyButtonSize` now takes effect on the default copy button** - previously
+  the value was stored in `CodeBlockStyle` but never forwarded to `SyntaxHighlightedCodeDefaults.CopyButton`,
+  so changing it had no visible impact. The default button now correctly reads `style.copyButtonSize`.
+- **`SyntaxHighlightedCodeDefaults.CopyButton` - `size` parameter now scales the icon glyph** -
+  previously the `⧉` glyph was rendered at a hardcoded `16.sp` regardless of the `size` argument.
+  Font size is now derived proportionally from `size` (`size * 0.5f`), so the glyph visually
+  scales when `copyButtonSize` is changed via `CodeBlockStyle` or passed directly.
+
 ## [0.19.0] - 2026-05-17
 
 ### Changed (Breaking)
