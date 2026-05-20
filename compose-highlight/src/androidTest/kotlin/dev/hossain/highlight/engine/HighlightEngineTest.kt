@@ -436,11 +436,16 @@ class HighlightEngineTest {
         }
 
     @Test
-    fun highlightAutoDetectedLanguageIsNotNull() =
+    fun highlightAutoDetectedLanguageMayBeNonEmptyForClearInput() =
         runBlocking {
+            // SQL is a strong signal - hljs should detect it. We assert the call succeeds
+            // and detectedLanguage is a non-empty string (hljs recognised something).
             val result = engine.highlightAuto("SELECT id, name FROM users WHERE active = 1", lightTheme)
             assertTrue(result.isSuccess)
-            assertNotNull("detectedLanguage must not be null", result.getOrThrow().detectedLanguage)
+            assertTrue(
+                "Expected hljs to detect a language for clear SQL input",
+                result.getOrThrow().detectedLanguage.isNotEmpty(),
+            )
         }
 
     @Test

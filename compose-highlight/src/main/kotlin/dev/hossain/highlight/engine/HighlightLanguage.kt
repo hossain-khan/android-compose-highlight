@@ -129,5 +129,5 @@ public object HighlightLanguage {
      * @return Highlight.js language name such as `"kotlin"`, or `null` if the extension is not
      *   recognised.
      */
-    fun fromExtension(extension: String): String? = extensionMap[extension.lowercase()]
+    fun fromExtension(extension: String): String? = extensionMap[extension.lowercase(java.util.Locale.ROOT)]
 }
