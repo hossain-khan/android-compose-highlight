@@ -17,6 +17,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -84,6 +85,22 @@ internal fun LanguageDiscoverabilitySection(
     var autoResult by remember { mutableStateOf<AutoHighlightResult?>(null) }
     var autoError by remember { mutableStateOf<String?>(null) }
     var autoRunning by remember { mutableStateOf(false) }
+    var hasAutoRun by remember { mutableStateOf(false) }
+
+    // Re-run auto-highlight when the theme changes so the cached result stays in sync.
+    LaunchedEffect(theme) {
+        if (!hasAutoRun) return@LaunchedEffect
+        autoRunning = true
+        autoResult = null
+        autoError = null
+        engine
+            .highlightAuto(PYTHON_SNIPPET, theme)
+            .onSuccess { result ->
+                autoResult = result
+                onAutoResultReady?.invoke()
+            }.onFailure { error -> autoError = error.message ?: "Error" }
+        autoRunning = false
+    }
 
     Column(
         modifier = modifier,
@@ -289,6 +306,7 @@ internal fun LanguageDiscoverabilitySection(
             enabled = !autoRunning,
             onClick = {
                 scope.launch {
+                    hasAutoRun = true
                     autoRunning = true
                     autoResult = null
                     autoError = null
