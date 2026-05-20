@@ -9,6 +9,12 @@ docs_dir         = "docs"
 repo_name        = "hossain-khan/android-compose-highlight"
 repo_url         = "https://github.com/hossain-khan/android-compose-highlight"
 edit_uri         = "edit/main/docs/"
+extra_css        = ["stylesheets/shiki-kotlin.css"]
+
+[[project.extra_javascript]]
+path = "javascripts/shiki-kotlin.js"
+type = "module"
+async = true
 
 # ── Navigation ─────────────────────────────────────────────────────────────────
 nav = [

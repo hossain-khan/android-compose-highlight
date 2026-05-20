@@ -1,0 +1,17 @@
+/* Shiki-highlighted Kotlin code blocks */
+
+/* Ensure Shiki's line spans render as blocks so blank lines are visible */
+pre[data-shiki] code .line {
+  display: block;
+  min-height: 1.45em;
+}
+
+/* Light mode: use --shiki-light colors on spans */
+[data-md-color-scheme="default"] pre[data-shiki] span {
+  color: var(--shiki-light) !important;
+}
+
+/* Dark mode: use --shiki-dark colors on spans */
+[data-md-color-scheme="slate"] pre[data-shiki] span {
+  color: var(--shiki-dark) !important;
+}
