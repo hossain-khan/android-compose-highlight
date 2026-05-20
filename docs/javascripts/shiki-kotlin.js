@@ -1,5 +1,8 @@
 import { codeToHtml } from 'https://esm.sh/shiki@4.1.0'
 
+// Finds Kotlin code blocks rendered by Pygments and re-highlights them with Shiki.
+// Only swaps inner <code> content - preserves the <pre> and wrapper <div> so that
+// Zensical's copy buttons, positioning, and background styling remain intact.
 async function highlightKotlinBlocks() {
   const wrappers = document.querySelectorAll(
     'div.language-kotlin.highlight, div.language-kt.highlight'
