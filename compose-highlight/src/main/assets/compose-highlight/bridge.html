@@ -18,6 +18,18 @@ function listLanguages() {
   return hljs.listLanguages();
 }
 
+// https://highlightjs.readthedocs.io/en/latest/api.html#highlightauto
+function highlightAuto(code) {
+  const result = hljs.highlightAuto(code);
+  return JSON.stringify({ html: result.value, language: result.language || "" });
+}
+
+// https://highlightjs.readthedocs.io/en/latest/api.html#getlanguage
+function getLanguage(nameOrAlias) {
+  const lang = hljs.getLanguage(nameOrAlias);
+  return lang ? JSON.stringify({ name: lang.name, aliases: lang.aliases || [] }) : null;
+}
+
 // https://highlightjs.readthedocs.io/en/latest/api.html#versionstring
 function hljsVersion() {
   return hljs.versionString;

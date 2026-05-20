@@ -326,13 +326,6 @@ class HighlightEngine(
         }
     }
 
-    /** Releases the WebView resources and clears all internal caches (languages, version). */
-    fun destroy() {
-        cachedLanguages = null
-        cachedVersion = null
-        manager.destroy()
-    }
-
     /**
      * Returns the list of language identifiers supported by the bundled Highlight.js.
      *
@@ -459,6 +452,132 @@ class HighlightEngine(
     }
 
     /**
+     * Returns metadata for a Highlight.js language name or alias.
+     *
+     * This is useful when you want to validate a user-supplied language string or resolve an alias
+     * such as `"kt"` to Highlight.js metadata.
+     *
+     * ```kotlin
+     * engine.getLanguage("js").onSuccess { info ->
+     *     if (info != null) {
+     *         println("${'$'}{info.name}: ${'$'}{info.aliases}")
+     *     }
+     * }
+     * ```
+     *
+     * @param nameOrAlias Highlight.js language name or alias to look up.
+     * @return [Result.success] with [HighlightLanguageInfo] when found, `null` when Highlight.js
+     *   does not know the language, or [Result.failure] with a [HighlightException] on error.
+     */
+    suspend fun getLanguage(nameOrAlias: String): Result<HighlightLanguageInfo?> =
+        withEngineErrorHandling {
+            manager.initialize()
+            val webView = manager.getReadyWebView()
+            val escapedNameOrAlias = escapeForJs(nameOrAlias)
+            mutex.withLock {
+                withTimeout(HighlightException.TIMEOUT_SECONDS * 1000L) {
+                    withContext(Dispatchers.Main) {
+                        suspendCancellableCoroutine { continuation ->
+                            webView.evaluateJavascript("getLanguage('$escapedNameOrAlias')") { rawResult ->
+                                if (!continuation.isActive) return@evaluateJavascript
+                                if (rawResult == null || rawResult == "null") {
+                                    continuation.resume(Result.success(null))
+                                    return@evaluateJavascript
+                                }
+                                try {
+                                    val json = org.json.JSONObject(unescapeJsString(rawResult))
+                                    val aliasesJson = json.optJSONArray("aliases")
+                                    val aliases =
+                                        buildList {
+                                            if (aliasesJson != null) {
+                                                for (index in 0 until aliasesJson.length()) {
+                                                    add(aliasesJson.getString(index))
+                                                }
+                                            }
+                                        }
+                                    continuation.resume(
+                                        Result.success(
+                                            HighlightLanguageInfo(
+                                                name = json.getString("name"),
+                                                aliases = aliases,
+                                            ),
+                                        ),
+                                    )
+                                } catch (e: Exception) {
+                                    continuation.resumeWithException(HighlightException.JsExecutionFailed(e))
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+    /**
+     * Highlights [code] with Highlight.js automatic language detection.
+     *
+     * This is convenient when the language is not known ahead of time, but it is typically slower
+     * and less accurate than passing an explicit language to [highlight].
+     *
+     * ```kotlin
+     * engine.highlightAuto(code, theme).onSuccess { result ->
+     *     println("Detected: ${'$'}{result.detectedLanguage}")
+     *     render(result.annotated)
+     * }
+     * ```
+     *
+     * @param code The source code to highlight.
+     * @param theme The [HighlightTheme] whose colour map will be applied.
+     * @return [Result] wrapping an [AutoHighlightResult], or [Result.failure] with a
+     *   [HighlightException] on error.
+     */
+    suspend fun highlightAuto(
+        code: String,
+        theme: HighlightTheme,
+    ): Result<AutoHighlightResult> {
+        val totalStart = TimeSource.Monotonic.markNow()
+        return withEngineErrorHandling {
+            manager.initialize()
+            val webView = manager.getReadyWebView()
+            mutex.withLock {
+                withTimeout(HighlightException.TIMEOUT_SECONDS * 1000L) {
+                    executeJsAuto(webView, code)
+                }.map { jsResult ->
+                    try {
+                        val (colorMap, themeParseD) = theme.timedColorMap()
+                        val convertResult = HtmlToAnnotatedString.convertTimed(jsResult.html, colorMap)
+                        val totalDuration = totalStart.elapsedNow()
+                        AutoHighlightResult(
+                            annotated = convertResult.annotated,
+                            detectedLanguage = jsResult.detectedLanguage,
+                            spanCount = convertResult.annotated.spanStyles.size,
+                            durationMs = totalDuration.inWholeMilliseconds,
+                            timings =
+                                HighlightTimings(
+                                    jsBridge = jsResult.jsBridgeDuration,
+                                    jsonUnescape = jsResult.jsonUnescapeDuration,
+                                    htmlParse = convertResult.htmlParseDuration,
+                                    treeWalk = convertResult.treeWalkDuration,
+                                    themeParse = themeParseD,
+                                    total = totalDuration,
+                                ),
+                        )
+                    } catch (e: Exception) {
+                        throw HighlightException.HtmlParseFailed(e)
+                    }
+                }
+            }
+        }
+    }
+
+    /** Releases the WebView resources and clears all internal caches (languages, version). */
+    fun destroy() {
+        cachedLanguages = null
+        cachedVersion = null
+        manager.destroy()
+    }
+
+    /**
      * Executes the highlight JS call and returns the resulting HTML with timing data.
      *
      * String escaping is delegated to [escapeForJs]; see that function for the full escape order.
@@ -491,6 +610,49 @@ class HighlightEngine(
                     // The result is a JSON-encoded string — strip surrounding quotes and unescape
                     val (html, jsonUnescapeDuration) = measureTimedValue { unescapeJsString(rawResult) }
                     continuation.resume(Result.success(JsResult(html, jsBridgeDuration, jsonUnescapeDuration)))
+                }
+            }
+        }
+    }
+
+    /**
+     * Executes the auto-detect highlight JS call and returns the resulting HTML with timing data.
+     */
+    private suspend fun executeJsAuto(
+        webView: WebView,
+        code: String,
+    ): Result<AutoJsResult> {
+        val escaped = escapeForJs(code)
+        val js = "(function() { return highlightAuto('$escaped'); })()"
+
+        return withContext(Dispatchers.Main) {
+            suspendCancellableCoroutine { continuation ->
+                val jsStart = TimeSource.Monotonic.markNow()
+                webView.evaluateJavascript(js) { rawResult ->
+                    val jsBridgeDuration = jsStart.elapsedNow()
+                    if (rawResult == null || rawResult == "null") {
+                        continuation.resumeWithException(
+                            HighlightException.JsExecutionFailed(RuntimeException("JS returned null")),
+                        )
+                        return@evaluateJavascript
+                    }
+                    try {
+                        val (jsonString, jsonUnescapeDuration) =
+                            measureTimedValue { unescapeJsString(rawResult) }
+                        val json = org.json.JSONObject(jsonString)
+                        continuation.resume(
+                            Result.success(
+                                AutoJsResult(
+                                    html = json.getString("html"),
+                                    detectedLanguage = json.optString("language"),
+                                    jsBridgeDuration = jsBridgeDuration,
+                                    jsonUnescapeDuration = jsonUnescapeDuration,
+                                ),
+                            ),
+                        )
+                    } catch (e: Exception) {
+                        continuation.resumeWithException(HighlightException.JsExecutionFailed(e))
+                    }
                 }
             }
         }
@@ -659,6 +821,17 @@ data class ThemedHighlightResult(
     val dark: AnnotatedString,
     val durationMs: Long,
     val timings: HighlightTimings,
+)
+
+/**
+ * Internal result of [HighlightEngine.executeJsAuto]: the unescaped HTML string, detected
+ * language, and per-stage timing data measured inside the JS callback.
+ */
+private data class AutoJsResult(
+    val html: String,
+    val detectedLanguage: String,
+    val jsBridgeDuration: Duration,
+    val jsonUnescapeDuration: Duration,
 )
 
 /**
