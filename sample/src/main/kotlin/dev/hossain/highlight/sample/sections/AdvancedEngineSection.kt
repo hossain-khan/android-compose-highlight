@@ -36,11 +36,10 @@ import dev.hossain.highlight.engine.HighlightException
 import dev.hossain.highlight.engine.HighlightResult
 import dev.hossain.highlight.engine.HighlightTheme
 import dev.hossain.highlight.sample.KOTLIN_SNIPPET
+import dev.hossain.highlight.ui.LocalHighlightTheme
 import dev.hossain.highlight.ui.SyntaxHighlightedCode
 import dev.hossain.highlight.ui.rememberHighlightEngine
 import dev.hossain.highlight.ui.rememberHighlightedCodeBothThemes
-import dev.hossain.highlight.ui.rememberTomorrowNightTheme
-import dev.hossain.highlight.ui.rememberTomorrowTheme
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
@@ -68,13 +67,16 @@ private val LightCodeText = Color(0xFF333333)
  * - [dev.hossain.highlight.engine.HighlightException] error handling - catches and displays
  *   sealed class subtypes in an error-coloured card.
  *
+ * @param lightTheme The light theme from the active theme pair selected via the theme chooser.
+ * @param darkTheme The dark theme from the active theme pair selected via the theme chooser.
  * @param isDark Whether the global light/dark toggle (from the top-bar button) is currently dark.
  */
 @Composable
-internal fun AdvancedEngineSection(isDark: Boolean) {
-    val lightTheme = rememberTomorrowTheme()
-    val darkTheme = rememberTomorrowNightTheme()
-
+internal fun AdvancedEngineSection(
+    lightTheme: HighlightTheme,
+    darkTheme: HighlightTheme,
+    isDark: Boolean,
+) {
     var useDark by remember(isDark) { mutableStateOf(isDark) }
 
     val result by
@@ -309,10 +311,10 @@ internal fun AdvancedEngineSection(isDark: Boolean) {
                     "Returns a HighlightResult with the AnnotatedString, span count, and timing.",
             style = TextStyle(fontSize = 13.sp),
         )
-        val directTheme = rememberTomorrowNightTheme()
+        val directTheme = LocalHighlightTheme.current
         val directEngine = rememberHighlightEngine()
         var directResult by remember { mutableStateOf<HighlightResult?>(null) }
-        LaunchedEffect(Unit) {
+        LaunchedEffect(directTheme) {
             directEngine
                 .highlight(KOTLIN_SNIPPET, "kotlin", directTheme)
                 .onSuccess { directResult = it }
