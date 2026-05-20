@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -47,6 +48,7 @@ import dev.hossain.highlight.sample.sections.AdvancedEngineSection
 import dev.hossain.highlight.sample.sections.AllThemesSection
 import dev.hossain.highlight.sample.sections.CallbacksSection
 import dev.hossain.highlight.sample.sections.EngineInfoSection
+import dev.hossain.highlight.sample.sections.LanguageDiscoverabilitySection
 import dev.hossain.highlight.sample.sections.SectionHeader
 import dev.hossain.highlight.sample.sections.StylingSection
 import dev.hossain.highlight.sample.sections.ThemeCreationSection
@@ -97,6 +99,7 @@ fun SampleScreen() {
     var showThemeMenu by remember { mutableStateOf(false) }
     var activeTabIndex by rememberSaveable { mutableIntStateOf(0) }
     var showStylingSheet by remember { mutableStateOf(false) }
+    val listState = rememberLazyListState()
 
     // Shared copy handler: copies to clipboard and shows a snackbar confirmation.
     val onCopyClick: (String) -> Unit =
@@ -227,6 +230,7 @@ fun SampleScreen() {
                     }
                 }
                 LazyColumn(
+                    state = listState,
                     modifier = Modifier.fillMaxSize(),
                     contentPadding =
                         PaddingValues(
@@ -238,6 +242,10 @@ fun SampleScreen() {
                     verticalArrangement = Arrangement.spacedBy(16.dp),
                 ) {
                     when (tabs[selectedTabIndex]) {
+                        DemoTab.LanguageDiscoverability -> {
+                            item { LanguageDiscoverabilitySection() }
+                        }
+
                         DemoTab.Languages -> {
                             codeSamples.forEach { sample ->
                                 item(key = sample.displayLabel) {
