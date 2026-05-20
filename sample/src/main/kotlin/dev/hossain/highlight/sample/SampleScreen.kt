@@ -292,7 +292,13 @@ fun SampleScreen() {
                         }
 
                         DemoTab.Advanced -> {
-                            item { AdvancedEngineSection(isDark = isDark) }
+                            item {
+                                AdvancedEngineSection(
+                                    lightTheme = activePair.light,
+                                    darkTheme = activePair.dark,
+                                    isDark = isDark,
+                                )
+                            }
                         }
 
                         DemoTab.Engine -> {
