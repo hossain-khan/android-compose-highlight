@@ -44,11 +44,11 @@ jobs:
           BRIDGE_FILE="compose-highlight/src/main/assets/compose-highlight/bridge.html"
           WEBVIEW_FILE="compose-highlight/src/main/kotlin/dev/hossain/highlight/engine/WebViewManager.kt"
 
-          grep -q '<script src="highlight.min.js"></script>' "$BRIDGE_FILE"
+          grep -Eiq "<script[^>]*src=[\"']highlight\\.min\\.js[\"'][^>]*>" "$BRIDGE_FILE"
           grep -Eq 'function[[:space:]]+highlightCode[[:space:]]*\(' "$BRIDGE_FILE"
           grep -Eq 'function[[:space:]]+listLanguages[[:space:]]*\(' "$BRIDGE_FILE"
           grep -Eq 'function[[:space:]]+hljsVersion[[:space:]]*\(' "$BRIDGE_FILE"
-          grep -q 'getElementById("code")' "$BRIDGE_FILE"
+          grep -Eq "getElementById[[:space:]]*\([[:space:]]*['\"]code['\"][[:space:]]*\)|querySelector[[:space:]]*\([[:space:]]*['\"]#code['\"][[:space:]]*\)" "$BRIDGE_FILE"
 
           grep -q 'https://appassets.androidplatform.net/assets/compose-highlight/bridge.html' "$WEBVIEW_FILE"
 
