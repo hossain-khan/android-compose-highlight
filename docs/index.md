@@ -40,20 +40,20 @@ That's it. `HighlightThemeProvider` automatically picks Tomorrow (light) or Tomo
 
 ## Key features
 
-- **180+ languages** — every language Highlight.js supports
-- **Light + dark themes** — automatic system-mode switching, or manual override
-- **Built-in themes** — Tomorrow, Tomorrow Night, Atom One Dark, Atom One Light
-- **Custom themes** — load any Highlight.js CSS from `assets/`, raw CSS string, or a `Map<String, SpanStyle>`
-- **Slots** — replace the language badge and copy button with any composable
-- **Line numbers** — optional gutter with configurable width and color
-- **Copy to clipboard** — built-in, with an `onCopyClick` callback for custom feedback
-- **Performance** — one hidden WebView shared across all code blocks via `HighlightThemeProvider`
+- **180+ languages** - every language Highlight.js supports
+- **Light + dark themes** - automatic system-mode switching, or manual override
+- **Built-in themes** - Tomorrow, Tomorrow Night, Atom One Dark, Atom One Light
+- **Custom themes** - load any Highlight.js CSS from `assets/`, raw CSS string, or a `Map<String, SpanStyle>`
+- **Slots** - replace the language badge and copy button with any composable
+- **Line numbers** - optional gutter with configurable width and color
+- **Copy to clipboard** - built-in, with an `onCopyClick` callback for custom feedback
+- **Performance** - one hidden WebView shared across all code blocks via `HighlightThemeProvider`
 
 ---
 
 ## Next steps
 
-- [Getting Started](getting-started.md) — full setup walkthrough
-- [API Reference](reference/index.md) — all public classes and functions
-- [Guides](guides/theming.md) — theming, customization, line numbers, performance
-- [Changelog](changelog.md) — release history
+- [Getting Started](getting-started.md) - full setup walkthrough
+- [API Reference](reference/index.md) - all public classes and functions
+- [Guides](guides/theming.md) - theming, customization, line numbers, performance
+- [Changelog](changelog.md) - release history

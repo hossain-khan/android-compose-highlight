@@ -17,7 +17,7 @@ Visual style configuration for `SyntaxHighlightedCode`.
 The default `textStyle` is `SyntaxHighlightedCodeDefaults.codeTextStyle`: monospace font, 13 sp size, 20 sp line height.
 
 !!! note
-    The theme's foreground color is applied on top of `textStyle.color` at render time — any explicit `color` you set here is overridden by the active `HighlightTheme`.
+    The theme's foreground color is applied on top of `textStyle.color` at render time - any explicit `color` you set here is overridden by the active `HighlightTheme`.
 
 ## Presets
 

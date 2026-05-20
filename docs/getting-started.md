@@ -52,7 +52,7 @@ SyntaxHighlightedCode(
 )
 ```
 
-The composable shows unstyled monospace text immediately and fades in highlighted colors once the WebView finishes processing — no visible flicker.
+The composable shows unstyled monospace text immediately and fades in highlighted colors once the WebView finishes processing - no visible flicker.
 
 ---
 
@@ -126,7 +126,7 @@ Requires `androidx.webkit:webkit:1.16+` (already a transitive dependency of this
 
 ## Next steps
 
-- [Theming guide](guides/theming.md) — built-in themes, custom CSS, dynamic colors
-- [Customization guide](guides/customization.md) — custom language label and copy button slots
-- [Performance guide](guides/performance.md) — shared engine, warm-up, timing callbacks
-- [API reference](reference/index.md) — full parameter documentation
+- [Theming guide](guides/theming.md) - built-in themes, custom CSS, dynamic colors
+- [Customization guide](guides/customization.md) - custom language label and copy button slots
+- [Performance guide](guides/performance.md) - shared engine, warm-up, timing callbacks
+- [API reference](reference/index.md) - full parameter documentation

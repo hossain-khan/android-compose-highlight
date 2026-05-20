@@ -2,7 +2,7 @@
 
 The core engine that manages the hidden WebView and executes Highlight.js highlighting.
 
-For most use cases, use `SyntaxHighlightedCode` inside a `HighlightThemeProvider` — it handles the engine lifecycle automatically. Use `HighlightEngine` directly only when you need lower-level control, such as highlighting in a ViewModel or outside of Compose.
+For most use cases, use `SyntaxHighlightedCode` inside a `HighlightThemeProvider` - it handles the engine lifecycle automatically. Use `HighlightEngine` directly only when you need lower-level control, such as highlighting in a ViewModel or outside of Compose.
 
 ## Lifecycle
 
@@ -12,7 +12,7 @@ The engine holds a hidden WebView resource. Always call `destroy()` when done. I
 
 | Method | Description |
 |---|---|
-| `suspend initialize()` | Warms up the WebView. Optional — `highlight()` also initializes on first call |
+| `suspend initialize()` | Warms up the WebView. Optional - `highlight()` also initializes on first call |
 | `suspend highlight(code, language, theme)` | Full pipeline: tokenize, apply theme, return `Result<HighlightResult>` (access `.annotated` for the `AnnotatedString`) |
 | `suspend highlightBothThemes(code, language, lightTheme, darkTheme)` | Highlight once, return `Result<ThemedHighlightResult>` (access `.light` and `.dark` for the `AnnotatedString` variants) |
 | `suspend highlightToHtml(code, language)` | Returns `Result<HtmlHighlightResult>` (access `.html` for the HTML string, `.jsBridgeDuration` and `.jsonUnescapeDuration` for timing) |
@@ -21,7 +21,7 @@ The engine holds a hidden WebView resource. Always call `destroy()` when done. I
 | `fun destroy()` | Releases the WebView and clears caches |
 | `val isInitialized: StateFlow<Boolean>` | Observe WebView readiness reactively |
 
-All suspend methods return `Result<T>` — never throw. Wrap failures in `HighlightException`.
+All suspend methods return `Result<T>` - never throw. Wrap failures in `HighlightException`.
 
 ## Usage in a ViewModel
 
@@ -72,7 +72,7 @@ fun MyCodeBlock(code: String) {
 
 ## Highlight both themes (instant switching)
 
-Tokenizes once, applies two color maps — theme switching has zero extra latency:
+Tokenizes once, applies two color maps - theme switching has zero extra latency:
 
 ```kotlin
 import dev.hossain.highlight.ui.rememberTomorrowNightTheme

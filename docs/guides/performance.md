@@ -6,8 +6,8 @@ The most impactful optimization is wrapping your content in `HighlightThemeProvi
 
 | Setup | WebViews | Warm-up cost |
 |---|---|---|
-| No provider — 3 blocks | 3 | ~600 ms |
-| With provider — 3 blocks | 1 | ~200 ms |
+| No provider - 3 blocks | 3 | ~600 ms |
+| With provider - 3 blocks | 1 | ~200 ms |
 
 ```kotlin
 import dev.hossain.highlight.ui.HighlightThemeProvider
@@ -140,7 +140,7 @@ Use `.inWholeMilliseconds` to get a `Long`, or `.inWholeNanoseconds` for finer g
 
 ## `isInitialized` state flow
 
-Observe engine readiness reactively — for example to show a loading indicator:
+Observe engine readiness reactively - for example to show a loading indicator:
 
 ```kotlin
 import dev.hossain.highlight.ui.SyntaxHighlightedCode

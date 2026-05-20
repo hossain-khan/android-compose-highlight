@@ -61,7 +61,7 @@ HighlightThemeProvider(darkHighlightTheme = theme) { ... }
 ```
 
 !!! note
-    Always call `context.applicationContext` — never pass an Activity context to `HighlightTheme` factories, as the theme is retained beyond the Activity's lifecycle.
+    Always call `context.applicationContext` - never pass an Activity context to `HighlightTheme` factories, as the theme is retained beyond the Activity's lifecycle.
 
 ## Custom theme from raw CSS
 
@@ -76,7 +76,7 @@ val theme = HighlightTheme.fromCss(cssText = rawCss, name = "remote-theme")
 
 ## Custom theme from a color map
 
-Maximum flexibility — derive colors from Material 3 dynamic color, user palettes, or brand colors:
+Maximum flexibility - derive colors from Material 3 dynamic color, user palettes, or brand colors:
 
 ```kotlin
 import dev.hossain.highlight.engine.HighlightTheme
@@ -97,7 +97,7 @@ val theme = HighlightTheme.fromColorMap(
 
 ## Providing a theme without `HighlightThemeProvider`
 
-For one-off use — pass the theme directly:
+For one-off use - pass the theme directly:
 
 ```kotlin
 import dev.hossain.highlight.ui.SyntaxHighlightedCode

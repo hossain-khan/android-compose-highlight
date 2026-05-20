@@ -2,7 +2,7 @@
 
 Represents a syntax highlighting theme backed by a Highlight.js CSS file.
 
-The color map is lazily initialized and cached — CSS parsing happens at most once per theme instance.
+The color map is lazily initialized and cached - CSS parsing happens at most once per theme instance.
 
 ## Built-in themes
 
@@ -44,7 +44,7 @@ HighlightThemeProvider(lightHighlightTheme = theme) { ... }
 ```
 
 !!! note
-    `fromAsset()` is lazy — CSS parsing happens on first use, not at factory-call time.
+    `fromAsset()` is lazy - CSS parsing happens on first use, not at factory-call time.
 
 ## Custom theme from raw CSS
 
@@ -60,7 +60,7 @@ val theme = HighlightTheme.fromCss(
 
 ## Custom theme from a color map
 
-For full control — e.g. deriving colors from Material 3 dynamic color:
+For full control - e.g. deriving colors from Material 3 dynamic color:
 
 ```kotlin
 import dev.hossain.highlight.engine.HighlightTheme
@@ -81,7 +81,7 @@ val theme = HighlightTheme.fromColorMap(
 
 ## Theme identity
 
-`HighlightTheme` uses `name` for `equals()` and `hashCode()`. Compose APIs (`remember`, `LaunchedEffect`) detect theme changes by name. **Names must be unique** — do not create two themes with different content but the same name.
+`HighlightTheme` uses `name` for `equals()` and `hashCode()`. Compose APIs (`remember`, `LaunchedEffect`) detect theme changes by name. **Names must be unique** - do not create two themes with different content but the same name.
 
 ## Properties
 
