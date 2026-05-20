@@ -1,0 +1,56 @@
+name: Bridge Validation
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - compose-highlight/src/main/assets/compose-highlight/bridge.html
+      - compose-highlight/src/main/assets/compose-highlight/highlight.min.js
+      - compose-highlight/src/main/kotlin/dev/hossain/highlight/engine/WebViewManager.kt
+      - .github/workflows/bridge-validation.yml
+  pull_request:
+    branches: [ main ]
+    paths:
+      - compose-highlight/src/main/assets/compose-highlight/bridge.html
+      - compose-highlight/src/main/assets/compose-highlight/highlight.min.js
+      - compose-highlight/src/main/kotlin/dev/hossain/highlight/engine/WebViewManager.kt
+      - .github/workflows/bridge-validation.yml
+
+permissions:
+  contents: read
+
+jobs:
+  validate-bridge:
+    name: Validate Bridge HTML
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6.0.2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6.4.0
+        with:
+          node-version: 24
+
+      - name: Validate bridge.html syntax
+        run: |
+          npx --yes htmlhint@1.6.3 \
+            --rules 'doctype-first:true,tag-pair:true,tagname-lowercase:true,attr-lowercase:true,attr-value-double-quotes:true,id-unique:true,src-not-empty:true,title-require:false' \
+            compose-highlight/src/main/assets/compose-highlight/bridge.html
+
+      - name: Validate bridge API contract
+        run: |
+          BRIDGE_FILE="compose-highlight/src/main/assets/compose-highlight/bridge.html"
+          WEBVIEW_FILE="compose-highlight/src/main/kotlin/dev/hossain/highlight/engine/WebViewManager.kt"
+
+          grep -q '<script src="highlight.min.js"></script>' "$BRIDGE_FILE"
+          grep -Eq 'function[[:space:]]+highlightCode[[:space:]]*\(' "$BRIDGE_FILE"
+          grep -Eq 'function[[:space:]]+listLanguages[[:space:]]*\(' "$BRIDGE_FILE"
+          grep -Eq 'function[[:space:]]+hljsVersion[[:space:]]*\(' "$BRIDGE_FILE"
+          grep -q 'getElementById("code")' "$BRIDGE_FILE"
+
+          grep -q 'https://appassets.androidplatform.net/assets/compose-highlight/bridge.html' "$WEBVIEW_FILE"
+
+      - name: Bridge validation passed
+        run: echo "bridge.html contract and syntax checks passed"

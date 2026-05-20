@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+- **Bridge validation workflow** - added `.github/workflows/bridge-validation.yml` to validate
+  `compose-highlight/src/main/assets/compose-highlight/bridge.html` in CI. The workflow runs
+  HTML syntax checks and enforces the JS bridge contract (`highlightCode`, `listLanguages`,
+  `hljsVersion`) plus the expected WebView `bridge.html` load URL.
+
 ## [0.19.1] - 2026-05-18
 
 ### Fixed
