@@ -60,8 +60,8 @@ class HighlightLanguageTest {
     }
 
     @Test
-    fun `fromExtension returns groovy for gradle`() {
-        assertThat(HighlightLanguage.fromExtension("gradle")).isEqualTo("groovy")
+    fun `fromExtension returns gradle for gradle`() {
+        assertThat(HighlightLanguage.fromExtension("gradle")).isEqualTo("gradle")
     }
 
     @Test
