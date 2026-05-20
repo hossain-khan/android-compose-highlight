@@ -245,7 +245,6 @@ fun SampleScreen() {
                         DemoTab.LanguageDiscoverability -> {
                             item {
                                 LanguageDiscoverabilitySection(
-                                    isDark = isDark,
                                     onAutoResultReady = {
                                         langDiscoverListState.animateScrollToItem(Int.MAX_VALUE)
                                     },

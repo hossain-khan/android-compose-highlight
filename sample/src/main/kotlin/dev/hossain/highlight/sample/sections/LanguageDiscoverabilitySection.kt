@@ -30,9 +30,8 @@ import androidx.compose.ui.unit.sp
 import dev.hossain.highlight.engine.AutoHighlightResult
 import dev.hossain.highlight.engine.HighlightLanguage
 import dev.hossain.highlight.engine.HighlightLanguageInfo
+import dev.hossain.highlight.ui.LocalHighlightTheme
 import dev.hossain.highlight.ui.rememberHighlightEngine
-import dev.hossain.highlight.ui.rememberTomorrowNightTheme
-import dev.hossain.highlight.ui.rememberTomorrowTheme
 import kotlinx.coroutines.launch
 
 private val PYTHON_SNIPPET =
@@ -64,12 +63,11 @@ private val LANGUAGE_CHIPS = listOf("kotlin", "ts", "cr", "py", "glsl", "pgsql")
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun LanguageDiscoverabilitySection(
-    isDark: Boolean = true,
     onAutoResultReady: (suspend () -> Unit)? = null,
     modifier: Modifier = Modifier,
 ) {
     val engine = rememberHighlightEngine()
-    val theme = if (isDark) rememberTomorrowNightTheme() else rememberTomorrowTheme()
+    val theme = LocalHighlightTheme.current
     val scope = rememberCoroutineScope()
 
     var extensionInput by remember { mutableStateOf("kt") }
