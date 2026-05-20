@@ -102,6 +102,6 @@ engine.highlight(code, language, theme)
 
 ## Important rules
 
-- Always pass `applicationContext` — never an Activity context. The engine retains the context beyond Activity lifecycle.
+- Always pass `applicationContext` - never an Activity context. The engine retains the context beyond Activity lifecycle.
 - Always call `destroy()` to release the WebView when done. Use `rememberHighlightEngine()` in Compose for automatic lifecycle management.
-- `HighlightEngine` is safe to call from any coroutine — all WebView operations are automatically dispatched to the Main thread internally.
+- `HighlightEngine` is safe to call from any coroutine - all WebView operations are automatically dispatched to the Main thread internally.

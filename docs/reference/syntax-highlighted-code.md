@@ -2,7 +2,7 @@
 
 The primary public composable. Displays syntax-highlighted code in a styled block.
 
-Shows unstyled monospace code immediately while async highlighting runs, then fades in the highlighted version when ready — no visible flicker.
+Shows unstyled monospace code immediately while async highlighting runs, then fades in the highlighted version when ready - no visible flicker.
 
 ## Signature
 
@@ -34,7 +34,7 @@ fun SyntaxHighlightedCode(
 | `language` | `String` | - | Highlight.js language identifier (e.g. `"kotlin"`, `"python"`) |
 | `modifier` | `Modifier` | `Modifier` | Modifier for the outer container |
 | `theme` | `HighlightTheme` | `LocalHighlightTheme.current` | Theme to use. Throws if no `HighlightThemeProvider` is present and no explicit theme is passed |
-| `style` | `CodeBlockStyle` | `CodeBlockStyle.Default` | Visual style — shape, padding, font, copy button size |
+| `style` | `CodeBlockStyle` | `CodeBlockStyle.Default` | Visual style - shape, padding, font, copy button size |
 | `showLineNumbers` | `Boolean` | `false` | Whether to show a line-number gutter |
 | `languageLabelContent` | `(@Composable () -> Unit)?` | Default badge | Header language badge slot. `null` hides it |
 | `copyButtonContent` | `(@Composable (onClick: () -> Unit) -> Unit)?` | Default button | Header copy button slot. `null` hides it |
@@ -157,7 +157,7 @@ fun HighlightThemeProvider(
 )
 ```
 
-Creates **one shared WebView** for the entire subtree. Screens with multiple `SyntaxHighlightedCode` blocks share this single WebView instead of creating one per block — saving ~200 ms warm-up time and ~2-4 MB RAM per extra block.
+Creates **one shared WebView** for the entire subtree. Screens with multiple `SyntaxHighlightedCode` blocks share this single WebView instead of creating one per block - saving ~200 ms warm-up time and ~2-4 MB RAM per extra block.
 
 ### Force a specific theme mode
 

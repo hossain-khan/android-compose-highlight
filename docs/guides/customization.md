@@ -2,7 +2,7 @@
 
 ## Language label
 
-The language label is a composable slot — replace it with any `@Composable`:
+The language label is a composable slot - replace it with any `@Composable`:
 
 ```kotlin
 import dev.hossain.highlight.ui.SyntaxHighlightedCode
