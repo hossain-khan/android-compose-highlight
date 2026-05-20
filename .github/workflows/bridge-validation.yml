@@ -35,7 +35,7 @@ jobs:
 
       - name: Validate bridge.html syntax
         run: |
-          npx --yes htmlhint@1.6.3 \
+          npx --yes htmlhint@1.9.2 \
             --rules 'doctype-first:true,tag-pair:true,tagname-lowercase:true,attr-lowercase:true,attr-value-double-quotes:true,id-unique:true,src-not-empty:true,title-require:false' \
             compose-highlight/src/main/assets/compose-highlight/bridge.html
 
