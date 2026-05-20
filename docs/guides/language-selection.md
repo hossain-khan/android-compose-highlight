@@ -12,7 +12,7 @@ SyntaxHighlightedCode(code = snippet, language = "typescript")
 SyntaxHighlightedCode(code = snippet, language = "sql")
 ```
 
-For a full list of supported language names, call `engine.supportedLanguages()` at runtime or see the [HighlightLanguage reference](../reference/highlight-language.md).
+For a full list of supported language identifiers, call `engine.supportedLanguages()` at runtime. For the extension-to-language mapping, see the [HighlightLanguage reference](../reference/highlight-language.md).
 
 ---
 

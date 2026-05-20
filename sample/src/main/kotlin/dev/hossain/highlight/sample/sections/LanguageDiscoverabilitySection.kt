@@ -75,7 +75,7 @@ internal fun LanguageDiscoverabilitySection(modifier: Modifier = Modifier) {
     var extensionInput by remember { mutableStateOf("kt") }
     val resolvedLanguage =
         remember(extensionInput) {
-            HighlightLanguage.fromExtension(extensionInput.trim())
+            HighlightLanguage.fromExtension(extensionInput.trim().trimStart('.'))
         }
 
     var langInput by remember { mutableStateOf("kotlin") }
@@ -92,13 +92,13 @@ internal fun LanguageDiscoverabilitySection(modifier: Modifier = Modifier) {
         autoRunning = true
         autoResult = null
         autoError = null
-        engine
-            .highlightAuto(PYTHON_SNIPPET, theme)
-            .onSuccess { result -> autoResult = result }
-            .onFailure { error -> autoError = error.message ?: "Error" }
-        autoRunning = false
-        if (autoResult != null) {
-            bringIntoViewRequester.bringIntoView()
+        try {
+            engine
+                .highlightAuto(PYTHON_SNIPPET, theme)
+                .onSuccess { result -> autoResult = result }
+                .onFailure { error -> autoError = error.message ?: "Error" }
+        } finally {
+            autoRunning = false
         }
     }
 
@@ -106,6 +106,13 @@ internal fun LanguageDiscoverabilitySection(modifier: Modifier = Modifier) {
     LaunchedEffect(theme) {
         if (!hasAutoRun) return@LaunchedEffect
         runAutoHighlight()
+    }
+
+    // Bring the result into view after recomposition has attached the requester to the layout.
+    LaunchedEffect(autoResult) {
+        if (autoResult != null) {
+            bringIntoViewRequester.bringIntoView()
+        }
     }
 
     Column(
