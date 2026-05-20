@@ -31,18 +31,25 @@ import dev.hossain.highlight.engine.AutoHighlightResult
 import dev.hossain.highlight.engine.HighlightLanguage
 import dev.hossain.highlight.engine.HighlightLanguageInfo
 import dev.hossain.highlight.ui.rememberHighlightEngine
+import dev.hossain.highlight.ui.rememberTomorrowNightTheme
 import dev.hossain.highlight.ui.rememberTomorrowTheme
 import kotlinx.coroutines.launch
 
 private val PYTHON_SNIPPET =
     """
-def fibonacci(n: int) -> list[int]:
-    result = [0, 1]
-    while len(result) < n:
-        result.append(result[-1] + result[-2])
-    return result[:n]
+import json
+from pathlib import Path
 
-print(fibonacci(10))
+class Config:
+    def __init__(self, path: str):
+        self.path = Path(path)
+
+    def load(self) -> dict:
+        with open(self.path) as f:
+            return json.load(f)
+
+config = Config("settings.json")
+print(config.load())
     """.trimIndent()
 
 private val EXTENSION_CHIPS = listOf("kt", "py", "rs", "ts", "sql", "wat", "elm", "nix", "pro")
@@ -56,9 +63,12 @@ private val LANGUAGE_CHIPS = listOf("kotlin", "ts", "cr", "py", "glsl", "pgsql")
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-internal fun LanguageDiscoverabilitySection(modifier: Modifier = Modifier) {
+internal fun LanguageDiscoverabilitySection(
+    isDark: Boolean = true,
+    modifier: Modifier = Modifier,
+) {
     val engine = rememberHighlightEngine()
-    val theme = rememberTomorrowTheme()
+    val theme = if (isDark) rememberTomorrowNightTheme() else rememberTomorrowTheme()
     val scope = rememberCoroutineScope()
 
     var extensionInput by remember { mutableStateOf("kt") }

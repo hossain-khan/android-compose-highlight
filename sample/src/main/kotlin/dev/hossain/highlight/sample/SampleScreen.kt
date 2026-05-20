@@ -240,7 +240,7 @@ fun SampleScreen() {
                 ) {
                     when (tabs[selectedTabIndex]) {
                         DemoTab.LanguageDiscoverability -> {
-                            item { LanguageDiscoverabilitySection() }
+                            item { LanguageDiscoverabilitySection(isDark = isDark) }
                         }
 
                         DemoTab.Languages -> {
