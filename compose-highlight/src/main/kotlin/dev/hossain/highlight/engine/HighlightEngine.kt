@@ -480,7 +480,13 @@ class HighlightEngine(
                         suspendCancellableCoroutine { continuation ->
                             webView.evaluateJavascript("getLanguage('$escapedNameOrAlias')") { rawResult ->
                                 if (!continuation.isActive) return@evaluateJavascript
-                                if (rawResult == null || rawResult == "null") {
+                                if (rawResult == null) {
+                                    continuation.resumeWithException(
+                                        HighlightException.JsExecutionFailed(RuntimeException("evaluateJavascript returned null")),
+                                    )
+                                    return@evaluateJavascript
+                                }
+                                if (rawResult == "null") {
                                     continuation.resume(Result.success(null))
                                     return@evaluateJavascript
                                 }
@@ -630,6 +636,7 @@ class HighlightEngine(
                 val jsStart = TimeSource.Monotonic.markNow()
                 webView.evaluateJavascript(js) { rawResult ->
                     val jsBridgeDuration = jsStart.elapsedNow()
+                    if (!continuation.isActive) return@evaluateJavascript
                     if (rawResult == null || rawResult == "null") {
                         continuation.resumeWithException(
                             HighlightException.JsExecutionFailed(RuntimeException("JS returned null")),
