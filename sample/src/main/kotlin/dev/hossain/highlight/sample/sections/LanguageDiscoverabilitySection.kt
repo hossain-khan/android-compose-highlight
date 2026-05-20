@@ -1,5 +1,6 @@
 package dev.hossain.highlight.sample.sections
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -8,6 +9,8 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.FilterChip
@@ -61,15 +64,13 @@ private val LANGUAGE_CHIPS = listOf("kotlin", "ts", "cr", "py", "glsl", "pgsql")
  * - [dev.hossain.highlight.engine.HighlightEngine.getLanguage] for language metadata lookup
  * - [dev.hossain.highlight.engine.HighlightEngine.highlightAuto] for auto-detection
  */
-@OptIn(ExperimentalLayoutApi::class)
+@OptIn(ExperimentalLayoutApi::class, ExperimentalFoundationApi::class)
 @Composable
-internal fun LanguageDiscoverabilitySection(
-    onAutoResultReady: (suspend () -> Unit)? = null,
-    modifier: Modifier = Modifier,
-) {
+internal fun LanguageDiscoverabilitySection(modifier: Modifier = Modifier) {
     val engine = rememberHighlightEngine()
     val theme = LocalHighlightTheme.current
     val scope = rememberCoroutineScope()
+    val bringIntoViewRequester = remember { BringIntoViewRequester() }
 
     var extensionInput by remember { mutableStateOf("kt") }
     val resolvedLanguage =
@@ -87,19 +88,24 @@ internal fun LanguageDiscoverabilitySection(
     var autoRunning by remember { mutableStateOf(false) }
     var hasAutoRun by remember { mutableStateOf(false) }
 
-    // Re-run auto-highlight when the theme changes so the cached result stays in sync.
-    LaunchedEffect(theme) {
-        if (!hasAutoRun) return@LaunchedEffect
+    suspend fun runAutoHighlight() {
         autoRunning = true
         autoResult = null
         autoError = null
         engine
             .highlightAuto(PYTHON_SNIPPET, theme)
-            .onSuccess { result ->
-                autoResult = result
-                onAutoResultReady?.invoke()
-            }.onFailure { error -> autoError = error.message ?: "Error" }
+            .onSuccess { result -> autoResult = result }
+            .onFailure { error -> autoError = error.message ?: "Error" }
         autoRunning = false
+        if (autoResult != null) {
+            bringIntoViewRequester.bringIntoView()
+        }
+    }
+
+    // Re-run when the active theme changes so the cached result stays in sync.
+    LaunchedEffect(theme) {
+        if (!hasAutoRun) return@LaunchedEffect
+        runAutoHighlight()
     }
 
     Column(
@@ -307,16 +313,7 @@ internal fun LanguageDiscoverabilitySection(
             onClick = {
                 scope.launch {
                     hasAutoRun = true
-                    autoRunning = true
-                    autoResult = null
-                    autoError = null
-                    engine
-                        .highlightAuto(PYTHON_SNIPPET, theme)
-                        .onSuccess { result ->
-                            autoResult = result
-                            onAutoResultReady?.invoke()
-                        }.onFailure { error -> autoError = error.message ?: "Error" }
-                    autoRunning = false
+                    runAutoHighlight()
                 }
             },
         ) {
@@ -325,7 +322,7 @@ internal fun LanguageDiscoverabilitySection(
 
         autoResult?.let { result ->
             Surface(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().bringIntoViewRequester(bringIntoViewRequester),
                 shape = RoundedCornerShape(8.dp),
                 color = theme.backgroundColor,
             ) {
