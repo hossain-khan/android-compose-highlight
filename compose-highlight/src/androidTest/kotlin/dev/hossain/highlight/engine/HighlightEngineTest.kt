@@ -356,4 +356,106 @@ class HighlightEngineTest {
             val second = engine.highlightJsVersion().getOrThrow()
             assertThat(second).isEqualTo(first)
         }
+
+    // ── getLanguage() ─────────────────────────────────────────────────────────
+
+    @Test
+    fun getLanguageReturnsSuccessForKnownAlias() =
+        runBlocking {
+            val result = engine.getLanguage("kt")
+            assertTrue("Expected success for 'kt'", result.isSuccess)
+        }
+
+    @Test
+    fun getLanguageReturnsNonNullForKnownAlias() =
+        runBlocking {
+            val info = engine.getLanguage("kt").getOrThrow()
+            assertNotNull("Expected non-null HighlightLanguageInfo for 'kt'", info)
+        }
+
+    @Test
+    fun getLanguageReturnsExpectedNameForKotlinAlias() =
+        runBlocking {
+            val info = engine.getLanguage("kt").getOrThrow()
+            assertThat(info!!.name).isEqualTo("Kotlin")
+        }
+
+    @Test
+    fun getLanguageAliasesContainsKtForKotlin() =
+        runBlocking {
+            val info = engine.getLanguage("kotlin").getOrThrow()
+            assertNotNull(info)
+            assertThat(info!!.aliases).contains("kt")
+        }
+
+    @Test
+    fun getLanguageReturnsNullForUnknownLanguage() =
+        runBlocking {
+            val result = engine.getLanguage("not-a-real-language-xyz")
+            assertTrue("Expected success", result.isSuccess)
+            assertThat(result.getOrThrow()).isNull()
+        }
+
+    @Test
+    fun getLanguageByPrimaryNameReturnsNonNull() =
+        runBlocking {
+            val info = engine.getLanguage("python").getOrThrow()
+            assertNotNull("Expected non-null for primary name 'python'", info)
+            assertThat(info!!.name).isEqualTo("Python")
+        }
+
+    // ── highlightAuto() ───────────────────────────────────────────────────────
+
+    @Test
+    fun highlightAutoReturnsSuccessForKotlinCode() =
+        runBlocking {
+            val result = engine.highlightAuto("fun hello(): String = \"world\"", lightTheme)
+            assertTrue("Expected success", result.isSuccess)
+        }
+
+    @Test
+    fun highlightAutoAnnotatedTextContainsCode() =
+        runBlocking {
+            val result = engine.highlightAuto("fun hello(): String = \"world\"", lightTheme)
+            assertTrue(result.isSuccess)
+            assertThat(result.getOrThrow().annotated.text).contains("hello")
+        }
+
+    @Test
+    fun highlightAutoAnnotatedTextIsNonEmpty() =
+        runBlocking {
+            val result = engine.highlightAuto("def foo(): pass", lightTheme)
+            assertTrue(result.isSuccess)
+            assertTrue(
+                "Expected non-empty annotated text",
+                result
+                    .getOrThrow()
+                    .annotated.text
+                    .isNotEmpty(),
+            )
+        }
+
+    @Test
+    fun highlightAutoDetectedLanguageMayBeNonEmptyForClearInput() =
+        runBlocking {
+            // SQL is a strong signal - hljs should detect it. We assert the call succeeds
+            // and detectedLanguage is a non-empty string (hljs recognised something).
+            val result = engine.highlightAuto("SELECT id, name FROM users WHERE active = 1", lightTheme)
+            assertTrue(result.isSuccess)
+            assertTrue(
+                "Expected hljs to detect a language for clear SQL input",
+                result.getOrThrow().detectedLanguage.isNotEmpty(),
+            )
+        }
+
+    @Test
+    fun highlightAutoDurationMsIsNonNegative() =
+        runBlocking {
+            val result = engine.highlightAuto("val x = 42", lightTheme)
+            assertTrue(result.isSuccess)
+            assertTrue(
+                "Expected durationMs >= 0",
+                result.getOrThrow().durationMs >= 0L,
+            )
+        }
 }
