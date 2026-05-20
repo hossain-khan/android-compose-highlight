@@ -10,6 +10,9 @@ This section documents the public API of `compose-highlight`.
 | [`SyntaxHighlightedCodeDefaults`](code-block-style.md#syntaxhighlightedcodedefaults) | Default constants and helper composables (`CopyButton`, `LanguageLabel`) |
 | [`HighlightTheme`](highlight-theme.md) | Theme model backed by a Highlight.js CSS file |
 | [`HighlightEngine`](highlight-engine.md) | Lower-level engine for custom highlighting pipelines |
+| [`HighlightLanguage`](highlight-language.md) | Maps file extensions to Highlight.js language identifiers |
+| [`HighlightLanguageInfo`](highlight-engine.md#highlightlanguageinfo) | Metadata returned by `HighlightEngine.getLanguage()` |
+| [`AutoHighlightResult`](highlight-engine.md#autohighlightresult) | Result type returned by `HighlightEngine.highlightAuto()` |
 | `rememberHighlightedCode` | Composable helper - highlights code and returns an `AnnotatedString` state |
 | `rememberHighlightedCodeBothThemes` | Highlights once, produces light + dark variants |
 | `rememberHighlightEngine` | Returns the shared or standalone `HighlightEngine` for the current composition |

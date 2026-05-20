@@ -18,6 +18,8 @@ The engine holds a hidden WebView resource. Always call `destroy()` when done. I
 | `suspend highlightToHtml(code, language)` | Returns `Result<HtmlHighlightResult>` (access `.html` for the HTML string, `.jsBridgeDuration` and `.jsonUnescapeDuration` for timing) |
 | `suspend supportedLanguages()` | Returns the list of languages the bundled Highlight.js supports |
 | `suspend highlightJsVersion()` | Returns the bundled Highlight.js version string |
+| `suspend getLanguage(nameOrAlias)` | Returns `Result<HighlightLanguageInfo?>` - null success means language not recognized |
+| `suspend highlightAuto(code, theme)` | Auto-detect language and highlight, returns `Result<AutoHighlightResult>` |
 | `fun destroy()` | Releases the WebView and clears caches |
 | `val isInitialized: StateFlow<Boolean>` | Observe WebView readiness reactively |
 
@@ -108,6 +110,63 @@ Returned by `highlightBothThemes()`. Holds both light and dark variants produced
 | `dark` | Syntax-highlighted `AnnotatedString` styled with the dark theme |
 | `durationMs` | Total wall-clock time in milliseconds for the full highlight call |
 | `timings` | Per-stage `HighlightTimings` breakdown (same fields as `HighlightResult.timings`) |
+
+## `HighlightLanguageInfo`
+
+Returned by `getLanguage()`. Contains the human-readable display name and registered aliases for a language.
+
+| Property | Description |
+|---|---|
+| `name` | Human-readable display name (e.g. `"Kotlin"`, `"Python"`) - not the language identifier |
+| `aliases` | Registered Highlight.js aliases (e.g. `["kt", "kts"]`) |
+
+```kotlin
+engine.getLanguage("kt").onSuccess { info ->
+    if (info != null) {
+        println("Name: ${info.name}")       // "Kotlin"
+        println("Aliases: ${info.aliases}") // [kt, kts]
+    } else {
+        println("Language not found")
+    }
+}
+```
+
+## `AutoHighlightResult`
+
+Returned by `highlightAuto()`. Contains the highlighted output and the language hljs detected.
+
+| Property | Description |
+|---|---|
+| `annotated` | The highlighted `AnnotatedString` |
+| `detectedLanguage` | Language hljs guessed (may be an empty string if detection failed) |
+| `spanCount` | Number of style spans applied |
+| `durationMs` | Total wall-clock time in milliseconds |
+| `timings` | Per-stage `HighlightTimings` breakdown |
+
+## Language lookup and auto-detection
+
+### `getLanguage()`
+
+```kotlin
+// Check if a language is recognized and inspect its aliases
+engine.getLanguage("ts").onSuccess { info ->
+    if (info != null) {
+        // info.name    = "TypeScript"
+        // info.aliases = [ts, tsx, mts, cts]
+    }
+}
+```
+
+### `highlightAuto()`
+
+Use when the language is unknown - hljs will attempt to detect it:
+
+```kotlin
+engine.highlightAuto(code, theme).onSuccess { result ->
+    val language = result.detectedLanguage // e.g. "python" or "" if undetected
+    Text(text = result.annotated)
+}
+```
 
 ## `rememberHighlightEngine`
 

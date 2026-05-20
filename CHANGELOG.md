@@ -10,6 +10,7 @@ All notable changes to this project will be documented in this file.
 - `HighlightEngine.getLanguage()` - looks up a language by name or alias via `hljs.getLanguage()`, returns `HighlightLanguageInfo` (name + aliases list) or null if not found
 - `AutoHighlightResult` data class - result of `highlightAuto()` with `detectedLanguage`, `annotated`, `spanCount`, `durationMs`, and `timings`
 - `HighlightLanguageInfo` data class - result of `getLanguage()` with `name` and `aliases`
+- Documentation and sample app demos for the language discoverability APIs, including a new language selection guide, `HighlightLanguage` reference, and interactive sample tab covering `fromExtension()`, `getLanguage()`, and `highlightAuto()`
 - **Bridge validation workflow** - added `.github/workflows/bridge-validation.yml` to validate
   `compose-highlight/src/main/assets/compose-highlight/bridge.html` in CI. The workflow runs
   HTML syntax checks and enforces the JS bridge contract (`highlightCode`, `listLanguages`,

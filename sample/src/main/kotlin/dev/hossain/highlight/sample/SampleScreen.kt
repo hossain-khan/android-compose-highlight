@@ -47,6 +47,7 @@ import dev.hossain.highlight.sample.sections.AdvancedEngineSection
 import dev.hossain.highlight.sample.sections.AllThemesSection
 import dev.hossain.highlight.sample.sections.CallbacksSection
 import dev.hossain.highlight.sample.sections.EngineInfoSection
+import dev.hossain.highlight.sample.sections.LanguageDiscoverabilitySection
 import dev.hossain.highlight.sample.sections.SectionHeader
 import dev.hossain.highlight.sample.sections.StylingSection
 import dev.hossain.highlight.sample.sections.ThemeCreationSection
@@ -238,6 +239,10 @@ fun SampleScreen() {
                     verticalArrangement = Arrangement.spacedBy(16.dp),
                 ) {
                     when (tabs[selectedTabIndex]) {
+                        DemoTab.LanguageDiscoverability -> {
+                            item { LanguageDiscoverabilitySection() }
+                        }
+
                         DemoTab.Languages -> {
                             codeSamples.forEach { sample ->
                                 item(key = sample.displayLabel) {

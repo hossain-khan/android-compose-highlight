@@ -129,4 +129,5 @@ Requires `androidx.webkit:webkit:1.16+` (already a transitive dependency of this
 - [Theming guide](guides/theming.md) - built-in themes, custom CSS, dynamic colors
 - [Customization guide](guides/customization.md) - custom language label and copy button slots
 - [Performance guide](guides/performance.md) - shared engine, warm-up, timing callbacks
+- [Language selection guide](guides/language-selection.md) - resolve language from file extensions, validate names, auto-detect
 - [API reference](reference/index.md) - full parameter documentation

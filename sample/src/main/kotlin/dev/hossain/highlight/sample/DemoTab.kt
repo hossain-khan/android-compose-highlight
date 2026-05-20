@@ -12,6 +12,8 @@ import dev.hossain.highlight.sample.sections.TypographySection
 internal sealed class DemoTab(
     val title: String,
 ) {
+    data object LanguageDiscoverability : DemoTab("Lang Discover")
+
     data object Languages : DemoTab("Languages")
 
     data object Styling : DemoTab("Styling")
@@ -31,6 +33,8 @@ internal sealed class DemoTab(
     data object Engine : DemoTab("Engine")
 
     companion object {
-        val all by lazy { listOf(Languages, Styling, Typography, Toggles, Callbacks, Themes, AllThemes, Advanced, Engine) }
+        val all by lazy {
+            listOf(LanguageDiscoverability, Languages, Styling, Typography, Toggles, Callbacks, Themes, AllThemes, Advanced, Engine)
+        }
     }
 }
