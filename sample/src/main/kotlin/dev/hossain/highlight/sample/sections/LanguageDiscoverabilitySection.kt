@@ -65,6 +65,7 @@ private val LANGUAGE_CHIPS = listOf("kotlin", "ts", "cr", "py", "glsl", "pgsql")
 @Composable
 internal fun LanguageDiscoverabilitySection(
     isDark: Boolean = true,
+    onAutoResultReady: (suspend () -> Unit)? = null,
     modifier: Modifier = Modifier,
 ) {
     val engine = rememberHighlightEngine()
@@ -295,8 +296,10 @@ internal fun LanguageDiscoverabilitySection(
                     autoError = null
                     engine
                         .highlightAuto(PYTHON_SNIPPET, theme)
-                        .onSuccess { result -> autoResult = result }
-                        .onFailure { error -> autoError = error.message ?: "Error" }
+                        .onSuccess { result ->
+                            autoResult = result
+                            onAutoResultReady?.invoke()
+                        }.onFailure { error -> autoError = error.message ?: "Error" }
                     autoRunning = false
                 }
             },

@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -98,6 +99,7 @@ fun SampleScreen() {
     var showThemeMenu by remember { mutableStateOf(false) }
     var activeTabIndex by rememberSaveable { mutableIntStateOf(0) }
     var showStylingSheet by remember { mutableStateOf(false) }
+    val langDiscoverListState = rememberLazyListState()
 
     // Shared copy handler: copies to clipboard and shows a snackbar confirmation.
     val onCopyClick: (String) -> Unit =
@@ -228,6 +230,7 @@ fun SampleScreen() {
                     }
                 }
                 LazyColumn(
+                    state = langDiscoverListState,
                     modifier = Modifier.fillMaxSize(),
                     contentPadding =
                         PaddingValues(
@@ -240,7 +243,14 @@ fun SampleScreen() {
                 ) {
                     when (tabs[selectedTabIndex]) {
                         DemoTab.LanguageDiscoverability -> {
-                            item { LanguageDiscoverabilitySection(isDark = isDark) }
+                            item {
+                                LanguageDiscoverabilitySection(
+                                    isDark = isDark,
+                                    onAutoResultReady = {
+                                        langDiscoverListState.animateScrollToItem(Int.MAX_VALUE)
+                                    },
+                                )
+                            }
                         }
 
                         DemoTab.Languages -> {
