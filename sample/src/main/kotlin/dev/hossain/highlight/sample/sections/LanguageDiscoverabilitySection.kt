@@ -73,9 +73,10 @@ internal fun LanguageDiscoverabilitySection(modifier: Modifier = Modifier) {
     val bringIntoViewRequester = remember { BringIntoViewRequester() }
 
     var extensionInput by remember { mutableStateOf("kt") }
+    val normalizedExtension = extensionInput.trim().trimStart('.')
     val resolvedLanguage =
-        remember(extensionInput) {
-            HighlightLanguage.fromExtension(extensionInput.trim().trimStart('.'))
+        remember(normalizedExtension) {
+            HighlightLanguage.fromExtension(normalizedExtension)
         }
 
     var langInput by remember { mutableStateOf("kotlin") }
@@ -158,9 +159,9 @@ internal fun LanguageDiscoverabilitySection(modifier: Modifier = Modifier) {
             Text(
                 text =
                     if (resolvedLanguage != null) {
-                        "fromExtension(\"${extensionInput.trim()}\") = \"$resolvedLanguage\""
+                        "fromExtension(\"$normalizedExtension\") = \"$resolvedLanguage\""
                     } else {
-                        "fromExtension(\"${extensionInput.trim()}\") = null  (not recognized)"
+                        "fromExtension(\"$normalizedExtension\") = null  (not recognized)"
                     },
                 modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
                 style =

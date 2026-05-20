@@ -1,6 +1,6 @@
 # Language Selection
 
-Highlight.js requires a language identifier to tokenize code. This guide covers three helpers to make language selection easier.
+Highlight.js requires a language identifier to tokenize code. This guide covers four options for language selection, including three helper APIs.
 
 ## Option 1 - Pass the language name directly
 
