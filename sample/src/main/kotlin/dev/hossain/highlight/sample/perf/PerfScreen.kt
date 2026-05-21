@@ -11,11 +11,14 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -40,6 +43,7 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import dev.hossain.highlight.engine.HighlightTheme
 import dev.hossain.highlight.engine.HighlightTimings
 import dev.hossain.highlight.sample.CodeSample
 import dev.hossain.highlight.sample.R
@@ -78,6 +82,11 @@ fun PerfScreen() {
         value = withContext(Dispatchers.IO) { loadCodeSamples(context) }
     }
     var isDark by remember { mutableStateOf(true) }
+    var useProvider by remember { mutableStateOf(true) }
+
+    val lightTheme = rememberAtomOneLightTheme()
+    val darkTheme = rememberAtomOneDarkTheme()
+    val activeTheme = if (isDark) darkTheme else lightTheme
 
     val metricsMap = remember { mutableStateMapOf<String, HighlightMetrics>() }
     var runId by remember { mutableIntStateOf(0) }
@@ -89,10 +98,11 @@ fun PerfScreen() {
         heapSnapshotKb = (rt.totalMemory() - rt.freeMemory()) / 1024
     }
 
-    HighlightThemeProvider(
-        lightHighlightTheme = rememberAtomOneLightTheme(),
-        darkHighlightTheme = rememberAtomOneDarkTheme(),
-        darkTheme = isDark,
+    MaybeUseHighlightProvider(
+        useProvider = useProvider,
+        lightTheme = lightTheme,
+        darkTheme = darkTheme,
+        isDark = isDark,
     ) {
         Scaffold(
             topBar = {
@@ -157,6 +167,13 @@ fun PerfScreen() {
                         metricsMap = metricsMap,
                         totalSamples = codeSamples.size,
                         heapSnapshotKb = heapSnapshotKb,
+                        useProvider = useProvider,
+                        onToggleProvider = {
+                            useProvider = !useProvider
+                            metricsMap.clear()
+                            heapSnapshotKb = null
+                            runId++
+                        },
                     )
                 }
 
@@ -173,6 +190,9 @@ fun PerfScreen() {
                             SyntaxHighlightedCode(
                                 code = sample.code,
                                 language = sample.language,
+                                // Always pass theme explicitly - avoids LocalHighlightTheme.current
+                                // throwing when useProvider is false (no provider in the tree).
+                                theme = activeTheme,
                                 modifier = Modifier.fillMaxWidth(),
                                 showLineNumbers = true,
                                 onHighlightComplete = { result ->
@@ -200,14 +220,16 @@ fun PerfScreen() {
 /**
  * Sticky summary card shown at the top of the list.
  *
- * Displays: completed/total count, avg/min/max highlight time, and heap snapshot once all blocks
- * have completed.
+ * Displays: engine mode toggle, completed/total count, avg/min/max highlight time, and heap
+ * snapshot once all blocks have completed.
  */
 @Composable
 private fun SummaryHeader(
     metricsMap: Map<String, HighlightMetrics>,
     totalSamples: Int,
     heapSnapshotKb: Long?,
+    useProvider: Boolean,
+    onToggleProvider: () -> Unit,
 ) {
     val completed = metricsMap.size
     val times = metricsMap.values.map { it.highlightMs }
@@ -217,17 +239,44 @@ private fun SummaryHeader(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
-            Text(
-                text = "Benchmark Summary",
-                fontWeight = FontWeight.Bold,
-                fontSize = 14.sp,
-                color = MaterialTheme.colorScheme.onPrimaryContainer,
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = "Benchmark Summary",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 14.sp,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                )
+                FilledTonalButton(
+                    onClick = onToggleProvider,
+                ) {
+                    Icon(
+                        imageVector =
+                            ImageVector.vectorResource(
+                                if (useProvider) R.drawable.hub_24dp else R.drawable.call_split_24dp,
+                            ),
+                        contentDescription = null,
+                        modifier = Modifier.size(16.dp),
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        text = if (useProvider) "Provider: On" else "Provider: Off",
+                        fontSize = 12.sp,
+                    )
+                }
+            }
             Spacer(modifier = Modifier.height(6.dp))
             HorizontalDivider(color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.2f))
             Spacer(modifier = Modifier.height(6.dp))
 
             SummaryRow(label = "Completed", value = "$completed / $totalSamples blocks")
+            SummaryRow(
+                label = "Engine mode",
+                value = if (useProvider) "Shared - 1 WebView" else "Standalone - up to $totalSamples WebViews",
+            )
 
             if (times.isNotEmpty()) {
                 SummaryRow(label = "Avg time", value = "${times.average().toLong()} ms")
@@ -418,5 +467,38 @@ private fun MetricChip(
             fontSize = 10.sp,
             color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.6f),
         )
+    }
+}
+
+/**
+ * Benchmark helper that conditionally wraps [content] in a [HighlightThemeProvider].
+ *
+ * When [useProvider] is true, all [SyntaxHighlightedCode] blocks in [content] share a single
+ * [HighlightEngine][dev.hossain.highlight.engine.HighlightEngine] (1 hidden WebView). When
+ * false, each block creates its own standalone engine, which is the "no provider" baseline used
+ * to validate the WebView sharing cost documented in [HighlightThemeProvider]'s KDoc (~37 ms
+ * extra avg latency and ~1-2 MB heap per extra standalone engine).
+ *
+ * This composable exists solely to make the provider vs. no-provider cost visible and
+ * measurable inside [PerfScreen] - it should not be used outside of the benchmark screen.
+ */
+@Composable
+private fun MaybeUseHighlightProvider(
+    useProvider: Boolean,
+    lightTheme: HighlightTheme,
+    darkTheme: HighlightTheme,
+    isDark: Boolean,
+    content: @Composable () -> Unit,
+) {
+    if (useProvider) {
+        HighlightThemeProvider(
+            lightHighlightTheme = lightTheme,
+            darkHighlightTheme = darkTheme,
+            darkTheme = isDark,
+            content = content,
+        )
+    } else {
+        // No provider - each SyntaxHighlightedCode creates its own engine (1 WebView per block).
+        content()
     }
 }
