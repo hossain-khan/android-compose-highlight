@@ -26,6 +26,8 @@ render.experimental.xml
 # Keystore files
 *.jks
 *.keystore
+# Allow the debug keystore used for signing sample release builds in CI
+!keystore/debug.keystore
 
 # Google Services (e.g. APIs or Firebase)
 google-services.json

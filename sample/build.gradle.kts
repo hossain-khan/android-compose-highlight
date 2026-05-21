@@ -17,10 +17,24 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    signingConfigs {
+        // Debug keystore used to sign release builds in CI. This is intentionally
+        // hardcoded because this is a sample app, not a production release.
+        // Never hardcode credentials for production keystores - use secrets instead.
+        create("debugKeystore") {
+            storeFile = rootProject.file("keystore/debug.keystore")
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+        }
+    }
+
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            signingConfig = signingConfigs.getByName("debugKeystore")
         }
         create("benchmark") {
             initWith(getByName("release"))
