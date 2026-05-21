@@ -18,6 +18,9 @@ android {
     }
 
     signingConfigs {
+        // Debug keystore used to sign release builds in CI. This is intentionally
+        // hardcoded because this is a sample app, not a production release.
+        // Never hardcode credentials for production keystores - use secrets instead.
         create("debugKeystore") {
             storeFile = rootProject.file("keystore/debug.keystore")
             storePassword = "android"
