@@ -4,7 +4,6 @@ import dev.hossain.highlight.sample.sections.AdvancedEngineSection
 import dev.hossain.highlight.sample.sections.AllThemesSection
 import dev.hossain.highlight.sample.sections.CallbacksSection
 import dev.hossain.highlight.sample.sections.EngineInfoSection
-import dev.hossain.highlight.sample.sections.PlaceholderSection
 import dev.hossain.highlight.sample.sections.StylingSection
 import dev.hossain.highlight.sample.sections.ThemeCreationSection
 import dev.hossain.highlight.sample.sections.TogglesSection

@@ -12,6 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import dev.hossain.highlight.sample.KOTLIN_SNIPPET
@@ -22,6 +23,7 @@ import dev.hossain.highlight.ui.SyntaxHighlightedCode
  * Demonstrates the `placeholder` slot of [SyntaxHighlightedCode]:
  * - Null placeholder (default) - shows raw code while loading.
  * - Dimmed text placeholder - renders the raw code at reduced opacity while loading.
+ * - Italic loading label placeholder - shows a simple status label while loading.
  */
 @Composable
 internal fun PlaceholderSection() {
@@ -53,7 +55,6 @@ internal fun PlaceholderSection() {
             placeholder = { rawCode ->
                 Text(
                     text = rawCode,
-                    modifier = Modifier.padding(12.dp),
                     style =
                         TextStyle(
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f),
@@ -78,12 +79,12 @@ internal fun PlaceholderSection() {
             placeholder = { _ ->
                 Text(
                     text = "Highlighting...",
-                    modifier = Modifier.padding(12.dp),
                     style =
                         TextStyle(
                             color = Color.Gray,
                             fontFamily = FontFamily.Monospace,
                             fontSize = 13.sp,
+                            fontStyle = FontStyle.Italic,
                         ),
                 )
             },

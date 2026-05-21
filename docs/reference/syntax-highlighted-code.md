@@ -144,6 +144,7 @@ SyntaxHighlightedCode(
 ### Custom placeholder while loading
 
 ```kotlin
+import androidx.compose.material3.Text
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
 import dev.hossain.highlight.ui.SyntaxHighlightedCode

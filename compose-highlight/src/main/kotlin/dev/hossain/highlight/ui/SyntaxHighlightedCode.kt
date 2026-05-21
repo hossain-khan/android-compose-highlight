@@ -19,8 +19,13 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -269,7 +274,22 @@ fun SyntaxHighlightedCode(
         return
     }
 
-    val highlightedState = rememberHighlightedCode(code, language, theme, onHighlightComplete, onError)
+    val latestOnError = rememberUpdatedState(onError)
+    var highlightFailed by remember(code, language, theme) { mutableStateOf(false) }
+    LaunchedEffect(code, language, theme) {
+        highlightFailed = false
+    }
+    val highlightedState =
+        rememberHighlightedCode(
+            code = code,
+            language = language,
+            theme = theme,
+            onHighlightComplete = onHighlightComplete,
+            onError = { error ->
+                highlightFailed = true
+                latestOnError.value?.invoke(error)
+            },
+        )
     val clipboard = LocalClipboard.current
     val scope = rememberCoroutineScope()
 
@@ -315,25 +335,25 @@ fun SyntaxHighlightedCode(
                     transitionSpec = { fadeIn() togetherWith fadeOut() },
                     label = "syntax-highlight-fade",
                 ) { highlighted ->
-                    if (highlighted == null && placeholder != null) {
-                        placeholder(code)
-                    } else {
-                        SelectionContainer {
-                            if (showLineNumbers) {
-                                LineNumberedCode(
-                                    code = code,
-                                    highlighted = highlighted,
-                                    codeTextStyle = themedCodeStyle,
-                                    lineNumTextStyle = themedLineNumStyle,
-                                    style = style,
-                                )
-                            } else {
-                                Text(
-                                    text = highlighted ?: AnnotatedString(code),
-                                    modifier = Modifier.padding(style.padding),
-                                    style = themedCodeStyle,
-                                )
+                    SelectionContainer {
+                        if (highlighted == null && placeholder != null && !highlightFailed) {
+                            Box(modifier = Modifier.padding(style.padding)) {
+                                placeholder(code)
                             }
+                        } else if (showLineNumbers) {
+                            LineNumberedCode(
+                                code = code,
+                                highlighted = highlighted,
+                                codeTextStyle = themedCodeStyle,
+                                lineNumTextStyle = themedLineNumStyle,
+                                style = style,
+                            )
+                        } else {
+                            Text(
+                                text = highlighted ?: AnnotatedString(code),
+                                modifier = Modifier.padding(style.padding),
+                                style = themedCodeStyle,
+                            )
                         }
                     }
                 }

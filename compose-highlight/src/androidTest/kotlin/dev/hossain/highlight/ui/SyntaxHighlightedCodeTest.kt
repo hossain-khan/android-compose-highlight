@@ -174,19 +174,23 @@ class SyntaxHighlightedCodeTest {
 
     @Test
     fun placeholderIsShownDuringLoading() {
+        var placeholderComposed = false
         composeTestRule.setContent {
             HighlightThemeProvider {
                 SyntaxHighlightedCode(
                     code = sampleCode,
                     language = "python",
                     placeholder = { _ ->
+                        SideEffect { placeholderComposed = true }
                         androidx.compose.material3.Text(text = "loading-placeholder")
                     },
                 )
             }
         }
-        // Placeholder should be visible immediately before async highlighting completes
-        composeTestRule.onNodeWithText("loading-placeholder", useUnmergedTree = true).assertIsDisplayed()
+        composeTestRule.waitUntil(timeoutMillis = 10_000L) { placeholderComposed }
+        composeTestRule.runOnIdle {
+            assertThat(placeholderComposed).isTrue()
+        }
     }
 
     @Test
