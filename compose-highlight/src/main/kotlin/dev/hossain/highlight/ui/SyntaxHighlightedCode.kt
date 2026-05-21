@@ -335,10 +335,12 @@ fun SyntaxHighlightedCode(
                     transitionSpec = { fadeIn() togetherWith fadeOut() },
                     label = "syntax-highlight-fade",
                 ) { highlighted ->
+                    val placeholderContent = placeholder
+                    val shouldShowPlaceholder = highlighted == null && placeholderContent != null && !highlightFailed
                     SelectionContainer {
-                        if (highlighted == null && placeholder != null && !highlightFailed) {
+                        if (shouldShowPlaceholder) {
                             Box(modifier = Modifier.padding(style.padding)) {
-                                placeholder(code)
+                                placeholderContent(code)
                             }
                         } else if (showLineNumbers) {
                             LineNumberedCode(
