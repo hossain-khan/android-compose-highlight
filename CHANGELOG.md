@@ -6,15 +6,9 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 - `HighlightEngine` now implements `java.io.Closeable`. A new `close()` method delegates to
-  `destroy()`, enabling Kotlin's `use {}` pattern and IDE resource-leak inspections for
-  non-Compose usage (e.g. ViewModel). `destroy()` remains available and both methods are
+  `destroy()`, improving IDE resource-leak inspections and explicit cleanup for non-Compose
+  usage (e.g. ViewModel). `destroy()` remains available and both methods are
   idempotent - safe to call multiple times.
-
-  ```kotlin
-  HighlightEngine(context.applicationContext).use { engine ->
-      val result = engine.highlight(code, "kotlin", theme)
-  }
-  ```
 
 - `onError: ((HighlightException) -> Unit)? = null` callback added to `SyntaxHighlightedCode`,
   `rememberHighlightedCode`, and `rememberHighlightedCodeBothThemes`. When highlighting fails

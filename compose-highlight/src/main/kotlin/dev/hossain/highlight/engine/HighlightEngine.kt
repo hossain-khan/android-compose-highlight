@@ -51,11 +51,15 @@ import kotlin.time.measureTimedValue
  *
  * When used inside a Composable, use `rememberHighlightEngine()` which calls [destroy]
  * automatically via `DisposableEffect`. For manual usage (e.g. in a ViewModel), call [close]
- * or [destroy] in `onCleared()`, or use Kotlin's `use {}` pattern for scoped usage:
+ * or [destroy] in `onCleared()`. Since highlighting APIs are `suspend`, prefer coroutine-friendly
+ * `try/finally` cleanup for scoped usage:
  *
  * ```kotlin
- * HighlightEngine(context.applicationContext).use { engine ->
+ * val engine = HighlightEngine(context.applicationContext)
+ * try {
  *     val result = engine.highlight(code, "kotlin", theme)
+ * } finally {
+ *     engine.close()
  * }
  * ```
  *
@@ -609,8 +613,8 @@ class HighlightEngine(
 
     /**
      * Releases the WebView resources by delegating to [destroy]. Implements [Closeable] so this
-     * engine can be used with Kotlin's `use {}` pattern and benefits from IDE resource-leak
-     * inspections. Safe to call multiple times.
+     * engine participates in IDE resource-leak inspections and supports explicit cleanup through
+     * [close]. Safe to call multiple times.
      */
     override fun close() {
         destroy()
