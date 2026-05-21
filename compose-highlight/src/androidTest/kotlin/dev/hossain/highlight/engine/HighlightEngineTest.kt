@@ -164,6 +164,35 @@ class HighlightEngineTest {
     }
 
     @Test
+    fun destroyIsIdempotentDoesNotCrash() {
+        // double destroy() must not throw
+        engine.destroy()
+        engine.destroy()
+    }
+
+    @Test
+    fun closeDoesNotCrash() {
+        // close() can be called without initializing first
+        engine.close()
+    }
+
+    @Test
+    fun closeIsIdempotentDoesNotCrash() {
+        // double close() must not throw
+        engine.close()
+        engine.close()
+    }
+
+    @Test
+    fun engineImplementsCloseable() {
+        // HighlightEngine must implement java.io.Closeable
+        assertTrue(
+            "HighlightEngine should implement Closeable",
+            engine is java.io.Closeable,
+        )
+    }
+
+    @Test
     fun destroyAfterHighlightDoesNotCrash() =
         runBlocking {
             engine.highlightToHtml("print('hello')", "python")
