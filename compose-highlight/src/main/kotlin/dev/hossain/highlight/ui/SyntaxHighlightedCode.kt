@@ -107,6 +107,22 @@ private val DefaultCopyButtonSentinel: (@Composable (onClick: () -> Unit) -> Uni
  * )
  * ```
  *
+ * ## Custom placeholder while loading
+ *
+ * ```kotlin
+ * SyntaxHighlightedCode(
+ *     code = myCode,
+ *     language = "kotlin",
+ *     placeholder = { rawCode ->
+ *         Text(
+ *             text = rawCode,
+ *             color = Color.Gray.copy(alpha = 0.5f),
+ *             fontFamily = FontFamily.Monospace,
+ *         )
+ *     },
+ * )
+ * ```
+ *
  * @param code The source code to display.
  * @param language Highlight.js language identifier (e.g. `"python"`, `"kotlin"`).
  * @param modifier Modifier for the outer container. The composable also applies a
@@ -153,6 +169,24 @@ private val DefaultCopyButtonSentinel: (@Composable (onClick: () -> Unit) -> Uni
  *       },
  *   )
  *   ```
+ * @param placeholder Optional composable rendered while highlighting is in progress (before the
+ *   first highlight result is available). When `null` (default), the raw unstyled code is shown
+ *   until highlighting completes - preserving the existing behavior. The [code] string is passed
+ *   so the placeholder can optionally render it styled differently (e.g., dimmed or with a shimmer
+ *   overlay).
+ *   ```kotlin
+ *   SyntaxHighlightedCode(
+ *       code = myCode,
+ *       language = "kotlin",
+ *       placeholder = { rawCode ->
+ *           Text(
+ *               text = rawCode,
+ *               color = Color.Gray.copy(alpha = 0.5f),
+ *               fontFamily = FontFamily.Monospace,
+ *           )
+ *       },
+ *   )
+ *   ```
  */
 @Composable
 fun SyntaxHighlightedCode(
@@ -179,6 +213,7 @@ fun SyntaxHighlightedCode(
     onCopyClick: ((String) -> Unit)? = null,
     onHighlightComplete: ((HighlightResult) -> Unit)? = null,
     onError: ((HighlightException) -> Unit)? = null,
+    placeholder: (@Composable (code: String) -> Unit)? = null,
 ) {
     // Remember derived colors and text styles keyed on theme and style so they are only
     // recomputed when the theme or style actually changes, not on every recomposition.
@@ -280,21 +315,25 @@ fun SyntaxHighlightedCode(
                     transitionSpec = { fadeIn() togetherWith fadeOut() },
                     label = "syntax-highlight-fade",
                 ) { highlighted ->
-                    SelectionContainer {
-                        if (showLineNumbers) {
-                            LineNumberedCode(
-                                code = code,
-                                highlighted = highlighted,
-                                codeTextStyle = themedCodeStyle,
-                                lineNumTextStyle = themedLineNumStyle,
-                                style = style,
-                            )
-                        } else {
-                            Text(
-                                text = highlighted ?: AnnotatedString(code),
-                                modifier = Modifier.padding(style.padding),
-                                style = themedCodeStyle,
-                            )
+                    if (highlighted == null && placeholder != null) {
+                        placeholder(code)
+                    } else {
+                        SelectionContainer {
+                            if (showLineNumbers) {
+                                LineNumberedCode(
+                                    code = code,
+                                    highlighted = highlighted,
+                                    codeTextStyle = themedCodeStyle,
+                                    lineNumTextStyle = themedLineNumStyle,
+                                    style = style,
+                                )
+                            } else {
+                                Text(
+                                    text = highlighted ?: AnnotatedString(code),
+                                    modifier = Modifier.padding(style.padding),
+                                    style = themedCodeStyle,
+                                )
+                            }
                         }
                     }
                 }

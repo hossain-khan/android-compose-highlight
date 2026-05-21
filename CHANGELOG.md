@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- `placeholder: (@Composable (code: String) -> Unit)? = null` parameter added to
+  `SyntaxHighlightedCode`. When provided, the placeholder composable is rendered while async
+  highlighting is in progress (state is null) and transitions to the highlighted output via
+  `AnimatedContent` once ready. When `null` (default), the existing behavior is preserved - raw
+  unstyled code is shown until highlighting completes. The `code` string is passed to the
+  placeholder so it can optionally display it styled differently (e.g., dimmed or with a shimmer).
+
+  ```kotlin
+  SyntaxHighlightedCode(
+      code = myCode,
+      language = "kotlin",
+      placeholder = { rawCode ->
+          Text(
+              text = rawCode,
+              color = Color.Gray.copy(alpha = 0.5f),
+              fontFamily = FontFamily.Monospace,
+          )
+      },
+  )
+  ```
+
 - `HighlightEngine` now implements `java.io.Closeable`. A new `close()` method delegates to
   `destroy()`, improving IDE resource-leak inspections and explicit cleanup for non-Compose
   usage (e.g. ViewModel). `destroy()` remains available and both methods are

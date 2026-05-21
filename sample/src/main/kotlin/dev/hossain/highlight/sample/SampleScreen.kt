@@ -49,6 +49,7 @@ import dev.hossain.highlight.sample.sections.AllThemesSection
 import dev.hossain.highlight.sample.sections.CallbacksSection
 import dev.hossain.highlight.sample.sections.EngineInfoSection
 import dev.hossain.highlight.sample.sections.LanguageDiscoverabilitySection
+import dev.hossain.highlight.sample.sections.PlaceholderSection
 import dev.hossain.highlight.sample.sections.SectionHeader
 import dev.hossain.highlight.sample.sections.StylingSection
 import dev.hossain.highlight.sample.sections.ThemeCreationSection
@@ -281,6 +282,10 @@ fun SampleScreen() {
 
                         DemoTab.Callbacks -> {
                             item { CallbacksSection() }
+                        }
+
+                        DemoTab.Placeholder -> {
+                            item { PlaceholderSection() }
                         }
 
                         DemoTab.Themes -> {

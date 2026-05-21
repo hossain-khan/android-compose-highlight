@@ -173,6 +173,51 @@ class SyntaxHighlightedCodeTest {
     }
 
     @Test
+    fun placeholderIsShownDuringLoading() {
+        composeTestRule.setContent {
+            HighlightThemeProvider {
+                SyntaxHighlightedCode(
+                    code = sampleCode,
+                    language = "python",
+                    placeholder = { _ ->
+                        androidx.compose.material3.Text(text = "loading-placeholder")
+                    },
+                )
+            }
+        }
+        // Placeholder should be visible immediately before async highlighting completes
+        composeTestRule.onNodeWithText("loading-placeholder", useUnmergedTree = true).assertIsDisplayed()
+    }
+
+    @Test
+    fun placeholderDisappearsAfterHighlightCompletes() {
+        var capturedResult: dev.hossain.highlight.engine.HighlightResult? = null
+
+        composeTestRule.setContent {
+            HighlightThemeProvider(
+                lightHighlightTheme = HighlightTheme.tomorrow(context),
+                darkHighlightTheme = HighlightTheme.tomorrowNight(context),
+            ) {
+                SyntaxHighlightedCode(
+                    code = sampleCode,
+                    language = "python",
+                    placeholder = { _ ->
+                        androidx.compose.material3.Text(text = "loading-placeholder")
+                    },
+                    onHighlightComplete = { result -> capturedResult = result },
+                )
+            }
+        }
+
+        // Wait until highlighting is done
+        composeTestRule.waitUntil(timeoutMillis = 10_000L) { capturedResult != null }
+        composeTestRule.waitForIdle()
+
+        // Placeholder must be gone after highlighting completes
+        composeTestRule.onNodeWithText("loading-placeholder", useUnmergedTree = true).assertDoesNotExist()
+    }
+
+    @Test
     fun copyButtonWithContentDescriptionIsClickable() {
         var copyCalled = false
         composeTestRule.setContent {

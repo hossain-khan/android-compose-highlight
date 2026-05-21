@@ -4,6 +4,7 @@ import dev.hossain.highlight.sample.sections.AdvancedEngineSection
 import dev.hossain.highlight.sample.sections.AllThemesSection
 import dev.hossain.highlight.sample.sections.CallbacksSection
 import dev.hossain.highlight.sample.sections.EngineInfoSection
+import dev.hossain.highlight.sample.sections.PlaceholderSection
 import dev.hossain.highlight.sample.sections.StylingSection
 import dev.hossain.highlight.sample.sections.ThemeCreationSection
 import dev.hossain.highlight.sample.sections.TogglesSection
@@ -24,6 +25,8 @@ internal sealed class DemoTab(
 
     data object Callbacks : DemoTab("Callbacks")
 
+    data object Placeholder : DemoTab("Placeholder")
+
     data object Themes : DemoTab("Themes")
 
     data object AllThemes : DemoTab("All Themes")
@@ -34,7 +37,19 @@ internal sealed class DemoTab(
 
     companion object {
         val all by lazy {
-            listOf(Languages, Styling, Typography, Toggles, Callbacks, Themes, AllThemes, LanguageDiscoverability, Advanced, Engine)
+            listOf(
+                Languages,
+                Styling,
+                Typography,
+                Toggles,
+                Callbacks,
+                Placeholder,
+                Themes,
+                AllThemes,
+                LanguageDiscoverability,
+                Advanced,
+                Engine,
+            )
         }
     }
 }
