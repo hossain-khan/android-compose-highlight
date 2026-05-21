@@ -238,7 +238,8 @@ class HighlightEngine(
         val totalStart = TimeSource.Monotonic.markNow()
         // WebView JS call must stay on Dispatchers.Main (handled inside highlightToHtml).
         val htmlResult = highlightToHtml(code, language).getOrElse { return Result.failure(it) }
-        // Theme parsing and HTML-to-AnnotatedString conversion are pure CPU work - run on Default.
+        // Theme parsing (may include asset I/O on first use) and HTML-to-AnnotatedString conversion
+        // are run off the Main thread on Dispatchers.Default.
         return withContext(Dispatchers.Default) {
             try {
                 val (colorMap, themeParseD) = theme.timedColorMap()
@@ -261,6 +262,8 @@ class HighlightEngine(
                             ),
                     ),
                 )
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 Result.failure(HighlightException.HtmlParseFailed(e))
             }
@@ -302,7 +305,8 @@ class HighlightEngine(
         val totalStart = TimeSource.Monotonic.markNow()
         // WebView JS call must stay on Dispatchers.Main (handled inside highlightToHtml).
         val htmlResult = highlightToHtml(code, language).getOrElse { return Result.failure(it) }
-        // Theme parsing and HTML-to-AnnotatedString conversion are pure CPU work - run on Default.
+        // Theme parsing (may include asset I/O on first use) and HTML-to-AnnotatedString conversion
+        // are run off the Main thread on Dispatchers.Default.
         return withContext(Dispatchers.Default) {
             try {
                 val (lightColorMap, lightThemeParseD) = lightTheme.timedColorMap()
@@ -330,6 +334,8 @@ class HighlightEngine(
                             ),
                     ),
                 )
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 Result.failure(HighlightException.HtmlParseFailed(e))
             }
@@ -563,7 +569,8 @@ class HighlightEngine(
                             executeJsAuto(webView, code)
                         }
                     }.getOrThrow()
-            // Theme parsing and HTML-to-AnnotatedString conversion are pure CPU work - run on Default.
+            // Theme parsing (may include asset I/O on first use) and HTML-to-AnnotatedString
+            // conversion are run off the Main thread on Dispatchers.Default.
             withContext(Dispatchers.Default) {
                 try {
                     val (colorMap, themeParseD) = theme.timedColorMap()
@@ -586,6 +593,8 @@ class HighlightEngine(
                                 ),
                         ),
                     )
+                } catch (e: CancellationException) {
+                    throw e
                 } catch (e: Exception) {
                     Result.failure(HighlightException.HtmlParseFailed(e))
                 }
