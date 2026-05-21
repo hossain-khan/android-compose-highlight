@@ -263,7 +263,7 @@ private fun SummaryHeader(
                     )
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
-                        text = if (useProvider) "Use Provider" else "No Provider",
+                        text = if (useProvider) "Provider: On" else "Provider: Off",
                         fontSize = 12.sp,
                     )
                 }
@@ -275,7 +275,7 @@ private fun SummaryHeader(
             SummaryRow(label = "Completed", value = "$completed / $totalSamples blocks")
             SummaryRow(
                 label = "Engine mode",
-                value = if (useProvider) "Shared - 1 WebView" else "Standalone - $totalSamples WebViews",
+                value = if (useProvider) "Shared - 1 WebView" else "Standalone - up to $totalSamples WebViews",
             )
 
             if (times.isNotEmpty()) {
@@ -476,8 +476,8 @@ private fun MetricChip(
  * When [useProvider] is true, all [SyntaxHighlightedCode] blocks in [content] share a single
  * [HighlightEngine][dev.hossain.highlight.engine.HighlightEngine] (1 hidden WebView). When
  * false, each block creates its own standalone engine, which is the "no provider" baseline used
- * to validate the WebView sharing cost documented in [HighlightThemeProvider]'s KDoc (~200 ms
- * warm-up and ~2-4 MB RAM per block).
+ * to validate the WebView sharing cost documented in [HighlightThemeProvider]'s KDoc (~37 ms
+ * extra avg latency and ~1-2 MB heap per extra standalone engine).
  *
  * This composable exists solely to make the provider vs. no-provider cost visible and
  * measurable inside [PerfScreen] - it should not be used outside of the benchmark screen.

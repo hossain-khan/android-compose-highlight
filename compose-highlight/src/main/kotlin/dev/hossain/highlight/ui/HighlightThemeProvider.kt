@@ -76,7 +76,7 @@ internal val LocalHighlightEngine =
  * subtree and destroyed when this composable leaves the composition. This means all
  * [SyntaxHighlightedCode] blocks inside share one WebView instead of creating one per block.
  * Measured on a Pixel 8 Pro debug build (cold start, 17 blocks): with provider takes ~224 ms
- * total and ~15 MB heap vs ~866 ms and ~34 MB heap without - roughly 4x faster and 55% less RAM.
+ * total and ~15 MB heap vs ~866 ms and ~34 MB heap without - roughly 4x faster and 55% less heap.
  * Each extra standalone engine adds ~37 ms average latency and ~1-2 MB heap while on-screen.
  *
  * **1 provider = 1 WebView.** Place it above all the code blocks you want to share.
