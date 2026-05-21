@@ -74,8 +74,10 @@ internal val LocalHighlightEngine =
  *
  * A single [HighlightEngine] (and thus a single hidden WebView) is created for the entire
  * subtree and destroyed when this composable leaves the composition. This means all
- * [SyntaxHighlightedCode] blocks inside share one WebView instead of creating one per block,
- * saving ~200 ms warm-up time and ~2-4 MB RAM per extra block.
+ * [SyntaxHighlightedCode] blocks inside share one WebView instead of creating one per block.
+ * Measured on a Pixel 8 Pro debug build (cold start, 17 blocks): with provider takes ~224 ms
+ * total and ~15 MB heap vs ~866 ms and ~34 MB heap without - roughly 4x faster and 55% less RAM.
+ * Each extra standalone engine adds ~37 ms average latency and ~1-2 MB heap while on-screen.
  *
  * **1 provider = 1 WebView.** Place it above all the code blocks you want to share.
  *
@@ -99,9 +101,10 @@ internal val LocalHighlightEngine =
  * ## Without a provider
  *
  * Without `HighlightThemeProvider`, each [SyntaxHighlightedCode] (or [rememberHighlightEngine]
- * call) creates its own [HighlightEngine] and hidden WebView. For a screen with 3 code blocks
- * that means 3 WebViews, ~600 ms extra warm-up, and ~6-12 MB extra RAM. Wrapping the screen
- * in a single provider reduces this to 1 WebView regardless of how many blocks are inside.
+ * call) creates its own [HighlightEngine] and hidden WebView. For a screen with 17 code blocks
+ * that measured ~866 ms total highlight time and ~34 MB heap vs ~224 ms and ~15 MB with a
+ * provider (Pixel 8 Pro, cold start, debug build). Wrapping the screen in a single provider
+ * reduces this to 1 WebView regardless of how many blocks are inside.
  *
  * ## Multiple screens
  *

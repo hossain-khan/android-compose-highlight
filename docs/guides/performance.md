@@ -4,10 +4,14 @@
 
 The most impactful optimization is wrapping your content in `HighlightThemeProvider`. Without it, every `SyntaxHighlightedCode` creates its own hidden WebView:
 
-| Setup | WebViews | Warm-up cost |
-|---|---|---|
-| No provider - 3 blocks | 3 | ~600 ms |
-| With provider - 3 blocks | 1 | ~200 ms |
+| Setup | WebViews | Avg per block | Total (17 blocks) | Heap (cold start) |
+|---|---|---|---|---|
+| No provider - 17 blocks | 17 | ~50 ms | ~866 ms | ~34 MB |
+| With provider - 17 blocks | 1 | ~13 ms | ~224 ms | ~15 MB |
+
+Measured on a Pixel 8 Pro, debug build, cold start. With provider is roughly **4x faster** and uses **~55% less heap**.
+
+Each extra standalone engine adds roughly **~37 ms** to average highlight time and **~1-2 MB** of additional heap per engine while the screen is active.
 
 ```kotlin
 import dev.hossain.highlight.ui.HighlightThemeProvider
