@@ -11,11 +11,14 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -114,27 +117,6 @@ fun PerfScreen() {
                         }
                     },
                     actions = {
-                        // Provider toggle - switches between shared engine (1 WebView) and
-                        // standalone engines (1 WebView per block) to measure the cost difference
-                        IconButton(onClick = {
-                            useProvider = !useProvider
-                            metricsMap.clear()
-                            heapSnapshotKb = null
-                            runId++
-                        }) {
-                            Icon(
-                                imageVector =
-                                    ImageVector.vectorResource(
-                                        if (useProvider) R.drawable.speed_24dp else R.drawable.bar_chart_4_bars_24,
-                                    ),
-                                contentDescription =
-                                    if (useProvider) {
-                                        "Switch to standalone engines (no provider)"
-                                    } else {
-                                        "Switch to shared engine (with provider)"
-                                    },
-                            )
-                        }
                         // Light/dark toggle - also resets the benchmark since theme affects timing
                         IconButton(onClick = {
                             isDark = !isDark
@@ -186,6 +168,12 @@ fun PerfScreen() {
                         totalSamples = codeSamples.size,
                         heapSnapshotKb = heapSnapshotKb,
                         useProvider = useProvider,
+                        onToggleProvider = {
+                            useProvider = !useProvider
+                            metricsMap.clear()
+                            heapSnapshotKb = null
+                            runId++
+                        },
                     )
                 }
 
@@ -232,8 +220,8 @@ fun PerfScreen() {
 /**
  * Sticky summary card shown at the top of the list.
  *
- * Displays: engine mode, completed/total count, avg/min/max highlight time, and heap snapshot
- * once all blocks have completed.
+ * Displays: engine mode toggle, completed/total count, avg/min/max highlight time, and heap
+ * snapshot once all blocks have completed.
  */
 @Composable
 private fun SummaryHeader(
@@ -241,6 +229,7 @@ private fun SummaryHeader(
     totalSamples: Int,
     heapSnapshotKb: Long?,
     useProvider: Boolean,
+    onToggleProvider: () -> Unit,
 ) {
     val completed = metricsMap.size
     val times = metricsMap.values.map { it.highlightMs }
@@ -250,12 +239,35 @@ private fun SummaryHeader(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
-            Text(
-                text = "Benchmark Summary",
-                fontWeight = FontWeight.Bold,
-                fontSize = 14.sp,
-                color = MaterialTheme.colorScheme.onPrimaryContainer,
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = "Benchmark Summary",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 14.sp,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                )
+                FilledTonalButton(
+                    onClick = onToggleProvider,
+                ) {
+                    Icon(
+                        imageVector =
+                            ImageVector.vectorResource(
+                                if (useProvider) R.drawable.hub_24dp else R.drawable.call_split_24dp,
+                            ),
+                        contentDescription = null,
+                        modifier = Modifier.size(16.dp),
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        text = if (useProvider) "Use Provider" else "No Provider",
+                        fontSize = 12.sp,
+                    )
+                }
+            }
             Spacer(modifier = Modifier.height(6.dp))
             HorizontalDivider(color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.2f))
             Spacer(modifier = Modifier.height(6.dp))

@@ -1,0 +1,24 @@
+<!--
+  ~ Copyright (C) 2026 The Android Open Source Project
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="960"
+    android:viewportHeight="960">
+  <path
+      android:pathData="M155,885q-35,-35 -35,-85t35,-85q35,-35 85,-35 14,0 26,3t23,8l57,-71q-28,-31 -39,-70t-5,-78l-81,-27q-17,25 -43,40t-58,15q-50,0 -85,-35T0,380q0,-50 35,-85t85,-35q50,0 85,35t35,85v8l81,28q20,-36 53.5,-61t75.5,-32v-87q-39,-11 -64.5,-42.5T360,120q0,-50 35,-85t85,-35q50,0 85,35t35,85q0,42 -26,73.5T510,236v87q42,7 75.5,32t53.5,61l81,-28v-8q0,-50 35,-85t85,-35q50,0 85,35t35,85q0,50 -35,85t-85,35q-32,0 -58.5,-15T739,445l-81,27q6,39 -5,77.5T614,620l57,70q11,-5 23,-7.5t26,-2.5q50,0 85,35t35,85q0,50 -35,85t-85,35q-50,0 -85,-35t-35,-85q0,-20 6.5,-38.5T624,728l-57,-71q-41,23 -87.5,23T392,657l-56,71q11,15 17.5,33.5T360,800q0,50 -35,85t-85,35q-50,0 -85,-35ZM120,420q17,0 28.5,-11.5T160,380q0,-17 -11.5,-28.5T120,340q-17,0 -28.5,11.5T80,380q0,17 11.5,28.5T120,420ZM268.5,828.5Q280,817 280,800t-11.5,-28.5Q257,760 240,760t-28.5,11.5Q200,783 200,800t11.5,28.5Q223,840 240,840t28.5,-11.5ZM508.5,148.5Q520,137 520,120t-11.5,-28.5Q497,80 480,80t-28.5,11.5Q440,103 440,120t11.5,28.5Q463,160 480,160t28.5,-11.5ZM480,600q42,0 71,-29t29,-71q0,-42 -29,-71t-71,-29q-42,0 -71,29t-29,71q0,42 29,71t71,29ZM748.5,828.5Q760,817 760,800t-11.5,-28.5Q737,760 720,760t-28.5,11.5Q680,783 680,800t11.5,28.5Q703,840 720,840t28.5,-11.5ZM868.5,408.5Q880,397 880,380t-11.5,-28.5Q857,340 840,340t-28.5,11.5Q800,363 800,380t11.5,28.5Q823,420 840,420t28.5,-11.5ZM480,120ZM120,380ZM480,500ZM840,380ZM240,800ZM720,800Z"
+      android:fillColor="#e3e3e3"/>
+</vector>
