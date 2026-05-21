@@ -1,0 +1,95 @@
+name: Android Release Build
+
+# Workflow that builds a signed release APK for the sample app.
+# Triggers:
+#   1. When a GitHub release is published - automatically attaches APK to the release.
+#   2. Manually via workflow_dispatch - useful for verifying the workflow works correctly.
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+jobs:
+  build-release-apk:
+    name: Build Release APK
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write  # Required to upload assets to GitHub releases
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6.0.2
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v5.2.0
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v6.1.0
+        with:
+          cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
+
+      - name: Build release APK
+        run: ./gradlew :sample:assembleRelease
+
+      - name: Extract version name
+        id: version
+        run: |
+          VERSION_NAME=$(grep -o 'versionName = "[^"]*"' sample/build.gradle.kts | cut -d'"' -f2)
+          echo "VERSION=$VERSION_NAME" >> "$GITHUB_OUTPUT"
+          echo "Sample app version: $VERSION_NAME"
+
+      - name: Rename APK
+        run: |
+          mkdir -p artifact
+          cp sample/build/outputs/apk/release/sample-release.apk \
+            artifact/highlight-v${{ steps.version.outputs.VERSION }}.apk
+          echo "APK renamed to: highlight-v${{ steps.version.outputs.VERSION }}.apk"
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: highlight-apk
+          path: artifact/highlight-v${{ steps.version.outputs.VERSION }}.apk
+          retention-days: 90
+
+      - name: Attach APK to GitHub Release
+        if: github.event_name == 'release'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          APK_FILE="artifact/highlight-v${{ steps.version.outputs.VERSION }}.apk"
+          APK_NAME="highlight-v${{ steps.version.outputs.VERSION }}.apk"
+
+          echo "Fetching release ID for tag: ${{ github.ref_name }}"
+          RELEASE_ID=$(curl -s \
+            -H "Authorization: Bearer $GITHUB_TOKEN" \
+            "https://api.github.com/repos/${{ github.repository }}/releases/tags/${{ github.ref_name }}" \
+            | jq -r .id)
+
+          if [ "$RELEASE_ID" = "null" ] || [ -z "$RELEASE_ID" ]; then
+            echo "Could not find release for tag ${{ github.ref_name }}"
+            exit 1
+          fi
+          echo "Found release ID: $RELEASE_ID"
+
+          echo "Uploading $APK_NAME to release..."
+          UPLOAD_RESPONSE=$(curl -s -w "%{http_code}" -o upload_response.json \
+            -X POST \
+            -H "Authorization: Bearer $GITHUB_TOKEN" \
+            -H "Content-Type: application/octet-stream" \
+            --data-binary @"$APK_FILE" \
+            "https://uploads.github.com/repos/${{ github.repository }}/releases/$RELEASE_ID/assets?name=$APK_NAME")
+
+          HTTP_CODE="${UPLOAD_RESPONSE: -3}"
+          if [ "$HTTP_CODE" = "201" ]; then
+            DOWNLOAD_URL=$(jq -r .browser_download_url upload_response.json)
+            echo "Successfully attached APK to release: $DOWNLOAD_URL"
+          else
+            echo "Failed to upload APK (HTTP $HTTP_CODE)"
+            cat upload_response.json
+            exit 1
+          fi
