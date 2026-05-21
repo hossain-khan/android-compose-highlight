@@ -40,6 +40,7 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import dev.hossain.highlight.engine.HighlightTheme
 import dev.hossain.highlight.engine.HighlightTimings
 import dev.hossain.highlight.sample.CodeSample
 import dev.hossain.highlight.sample.R
@@ -78,6 +79,11 @@ fun PerfScreen() {
         value = withContext(Dispatchers.IO) { loadCodeSamples(context) }
     }
     var isDark by remember { mutableStateOf(true) }
+    var useProvider by remember { mutableStateOf(true) }
+
+    val lightTheme = rememberAtomOneLightTheme()
+    val darkTheme = rememberAtomOneDarkTheme()
+    val activeTheme = if (isDark) darkTheme else lightTheme
 
     val metricsMap = remember { mutableStateMapOf<String, HighlightMetrics>() }
     var runId by remember { mutableIntStateOf(0) }
@@ -89,10 +95,11 @@ fun PerfScreen() {
         heapSnapshotKb = (rt.totalMemory() - rt.freeMemory()) / 1024
     }
 
-    HighlightThemeProvider(
-        lightHighlightTheme = rememberAtomOneLightTheme(),
-        darkHighlightTheme = rememberAtomOneDarkTheme(),
-        darkTheme = isDark,
+    MaybeUseHighlightProvider(
+        useProvider = useProvider,
+        lightTheme = lightTheme,
+        darkTheme = darkTheme,
+        isDark = isDark,
     ) {
         Scaffold(
             topBar = {
@@ -107,6 +114,27 @@ fun PerfScreen() {
                         }
                     },
                     actions = {
+                        // Provider toggle - switches between shared engine (1 WebView) and
+                        // standalone engines (1 WebView per block) to measure the cost difference
+                        IconButton(onClick = {
+                            useProvider = !useProvider
+                            metricsMap.clear()
+                            heapSnapshotKb = null
+                            runId++
+                        }) {
+                            Icon(
+                                imageVector =
+                                    ImageVector.vectorResource(
+                                        if (useProvider) R.drawable.speed_24dp else R.drawable.bar_chart_4_bars_24,
+                                    ),
+                                contentDescription =
+                                    if (useProvider) {
+                                        "Switch to standalone engines (no provider)"
+                                    } else {
+                                        "Switch to shared engine (with provider)"
+                                    },
+                            )
+                        }
                         // Light/dark toggle - also resets the benchmark since theme affects timing
                         IconButton(onClick = {
                             isDark = !isDark
@@ -157,6 +185,7 @@ fun PerfScreen() {
                         metricsMap = metricsMap,
                         totalSamples = codeSamples.size,
                         heapSnapshotKb = heapSnapshotKb,
+                        useProvider = useProvider,
                     )
                 }
 
@@ -173,6 +202,9 @@ fun PerfScreen() {
                             SyntaxHighlightedCode(
                                 code = sample.code,
                                 language = sample.language,
+                                // Always pass theme explicitly - avoids LocalHighlightTheme.current
+                                // throwing when useProvider is false (no provider in the tree).
+                                theme = activeTheme,
                                 modifier = Modifier.fillMaxWidth(),
                                 showLineNumbers = true,
                                 onHighlightComplete = { result ->
@@ -200,14 +232,15 @@ fun PerfScreen() {
 /**
  * Sticky summary card shown at the top of the list.
  *
- * Displays: completed/total count, avg/min/max highlight time, and heap snapshot once all blocks
- * have completed.
+ * Displays: engine mode, completed/total count, avg/min/max highlight time, and heap snapshot
+ * once all blocks have completed.
  */
 @Composable
 private fun SummaryHeader(
     metricsMap: Map<String, HighlightMetrics>,
     totalSamples: Int,
     heapSnapshotKb: Long?,
+    useProvider: Boolean,
 ) {
     val completed = metricsMap.size
     val times = metricsMap.values.map { it.highlightMs }
@@ -228,6 +261,10 @@ private fun SummaryHeader(
             Spacer(modifier = Modifier.height(6.dp))
 
             SummaryRow(label = "Completed", value = "$completed / $totalSamples blocks")
+            SummaryRow(
+                label = "Engine mode",
+                value = if (useProvider) "Shared - 1 WebView" else "Standalone - $totalSamples WebViews",
+            )
 
             if (times.isNotEmpty()) {
                 SummaryRow(label = "Avg time", value = "${times.average().toLong()} ms")
@@ -418,5 +455,38 @@ private fun MetricChip(
             fontSize = 10.sp,
             color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.6f),
         )
+    }
+}
+
+/**
+ * Benchmark helper that conditionally wraps [content] in a [HighlightThemeProvider].
+ *
+ * When [useProvider] is true, all [SyntaxHighlightedCode] blocks in [content] share a single
+ * [HighlightEngine][dev.hossain.highlight.engine.HighlightEngine] (1 hidden WebView). When
+ * false, each block creates its own standalone engine, which is the "no provider" baseline used
+ * to validate the WebView sharing cost documented in [HighlightThemeProvider]'s KDoc (~200 ms
+ * warm-up and ~2-4 MB RAM per block).
+ *
+ * This composable exists solely to make the provider vs. no-provider cost visible and
+ * measurable inside [PerfScreen] - it should not be used outside of the benchmark screen.
+ */
+@Composable
+private fun MaybeUseHighlightProvider(
+    useProvider: Boolean,
+    lightTheme: HighlightTheme,
+    darkTheme: HighlightTheme,
+    isDark: Boolean,
+    content: @Composable () -> Unit,
+) {
+    if (useProvider) {
+        HighlightThemeProvider(
+            lightHighlightTheme = lightTheme,
+            darkHighlightTheme = darkTheme,
+            darkTheme = isDark,
+            content = content,
+        )
+    } else {
+        // No provider - each SyntaxHighlightedCode creates its own engine (1 WebView per block).
+        content()
     }
 }
