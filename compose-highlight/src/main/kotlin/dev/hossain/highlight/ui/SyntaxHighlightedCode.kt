@@ -33,6 +33,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import dev.hossain.highlight.engine.HighlightException
 import dev.hossain.highlight.engine.HighlightResult
 import dev.hossain.highlight.engine.HighlightTheme
 import kotlinx.coroutines.launch
@@ -140,6 +141,18 @@ private val DefaultCopyButtonSentinel: (@Composable (onClick: () -> Unit) -> Uni
  *   succeeds. Use [HighlightResult.durationMs] for timing, [HighlightResult.spanCount] to detect
  *   silent failures (0 = no tokens produced), and [HighlightResult.language] to confirm the
  *   language that was highlighted. Useful for performance metrics and test harnesses.
+ * @param onError Optional callback invoked with the [HighlightException] when highlighting fails.
+ *   The composable always falls back to plain unstyled text on failure - this callback is purely
+ *   observational and does not affect the rendered output.
+ *   ```kotlin
+ *   SyntaxHighlightedCode(
+ *       code = myCode,
+ *       language = userInput,
+ *       onError = { error ->
+ *           Log.w("Highlight", "Failed: ${error.message}")
+ *       },
+ *   )
+ *   ```
  */
 @Composable
 fun SyntaxHighlightedCode(
@@ -165,6 +178,7 @@ fun SyntaxHighlightedCode(
     copyButtonContent: (@Composable (onClick: () -> Unit) -> Unit)? = DefaultCopyButtonSentinel,
     onCopyClick: ((String) -> Unit)? = null,
     onHighlightComplete: ((HighlightResult) -> Unit)? = null,
+    onError: ((HighlightException) -> Unit)? = null,
 ) {
     // Remember derived colors and text styles keyed on theme and style so they are only
     // recomputed when the theme or style actually changes, not on every recomposition.
@@ -220,7 +234,7 @@ fun SyntaxHighlightedCode(
         return
     }
 
-    val highlightedState = rememberHighlightedCode(code, language, theme, onHighlightComplete)
+    val highlightedState = rememberHighlightedCode(code, language, theme, onHighlightComplete, onError)
     val clipboard = LocalClipboard.current
     val scope = rememberCoroutineScope()
 

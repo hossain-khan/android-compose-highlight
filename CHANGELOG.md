@@ -4,6 +4,23 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+- `onError: ((HighlightException) -> Unit)? = null` callback added to `SyntaxHighlightedCode`,
+  `rememberHighlightedCode`, and `rememberHighlightedCodeBothThemes`. When highlighting fails
+  (timeout, JS error, WebView init failure, or HTML parse failure) the callback receives the typed
+  `HighlightException` subtype. Plain-text fallback behavior is unchanged - `onError` is purely
+  observational. Use it to log failures, record analytics events, or show a snackbar.
+
+  ```kotlin
+  SyntaxHighlightedCode(
+      code = myCode,
+      language = userInput,
+      onError = { error ->
+          Log.w("Highlight", "Failed: ${error.message}")
+      },
+  )
+  ```
+
 ### Performance
 - `HtmlToAnnotatedString.convertTimed()` and theme color map resolution now run on `Dispatchers.Default` instead of the main thread. For large code blocks with hundreds of spans, this eliminates the risk of dropped frames during parsing. WebView JS calls remain on `Dispatchers.Main` as required by Android.
 - `highlightAuto()` now releases the serializing mutex before the CPU-intensive HTML parsing step, allowing other highlight calls to proceed sooner.
