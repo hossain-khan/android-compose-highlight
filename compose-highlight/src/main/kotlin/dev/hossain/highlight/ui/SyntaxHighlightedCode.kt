@@ -234,7 +234,7 @@ fun SyntaxHighlightedCode(
         return
     }
 
-    val highlightedState = rememberHighlightedCode(code, language, theme, onError, onHighlightComplete)
+    val highlightedState = rememberHighlightedCode(code, language, theme, onHighlightComplete, onError)
     val clipboard = LocalClipboard.current
     val scope = rememberCoroutineScope()
 

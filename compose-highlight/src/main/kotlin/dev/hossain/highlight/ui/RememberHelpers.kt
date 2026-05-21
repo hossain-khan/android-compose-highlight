@@ -107,6 +107,8 @@ fun rememberHighlightEngine(): HighlightEngine {
  * @param code The source code to highlight.
  * @param language The Highlight.js language identifier (e.g. `"python"`, `"kotlin"`).
  * @param theme The theme to apply. Defaults to [LocalHighlightTheme].
+ * @param onHighlightComplete Optional callback invoked with a [HighlightResult] when highlighting
+ *   succeeds. Fires after the [State] is updated. Not called on failure.
  * @param onError Optional callback invoked with the [HighlightException] when highlighting fails.
  *   Use this to log failures, show a snackbar, or record analytics. The plain-text fallback
  *   is always displayed regardless of whether this callback is set - it is purely observational.
@@ -126,8 +128,6 @@ fun rememberHighlightEngine(): HighlightEngine {
  *       },
  *   )
  *   ```
- * @param onHighlightComplete Optional callback invoked with a [HighlightResult] when highlighting
- *   succeeds. Fires after the [State] is updated. Not called on failure.
  * @return A [State] holding the highlighted [AnnotatedString], or `null` while loading / on error.
  */
 @Composable
@@ -135,8 +135,8 @@ fun rememberHighlightedCode(
     code: String,
     language: String,
     theme: HighlightTheme = LocalHighlightTheme.current,
-    onError: ((HighlightException) -> Unit)? = null,
     onHighlightComplete: ((HighlightResult) -> Unit)? = null,
+    onError: ((HighlightException) -> Unit)? = null,
 ): State<AnnotatedString?> {
     val engine = rememberHighlightEngine()
     val state = remember(code, language, theme) { mutableStateOf<AnnotatedString?>(null) }
