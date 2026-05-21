@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Performance
+- `HtmlToAnnotatedString.convertTimed()` and theme color map resolution now run on `Dispatchers.Default` instead of the main thread. For large code blocks with hundreds of spans, this eliminates the risk of dropped frames during parsing. WebView JS calls remain on `Dispatchers.Main` as required by Android.
+- `highlightAuto()` now releases the serializing mutex before the CPU-intensive HTML parsing step, allowing other highlight calls to proceed sooner.
+
 ## [0.20.0] - 2026-05-20
 
 ### Added
