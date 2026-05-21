@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Fixed
+- Added jsoup keep rules to `consumer-rules.pro` so consuming apps with R8 minification enabled
+  do not encounter runtime crashes (`ClassNotFoundException`, `NoSuchMethodError`) from stripped
+  or obfuscated jsoup classes. Rules cover `org.jsoup.Jsoup`, `org.jsoup.parser.**`,
+  `org.jsoup.nodes.**`, and `org.jsoup.select.**`.
+
 ## [0.20.0] - 2026-05-20
 
 ### Added
