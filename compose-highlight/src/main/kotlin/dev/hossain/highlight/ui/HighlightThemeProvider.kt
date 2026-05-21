@@ -69,13 +69,15 @@ internal val LocalHighlightEngine =
  * composables in [content].
  *
  * Automatically selects between [lightHighlightTheme] and [darkHighlightTheme] based on
- * the system dark mode setting. Call this once near the root of your composition (e.g. inside
- * your `setContent {}` block or at the top of your screen composable).
+ * the system dark mode setting. Place this at the top of your screen composable (or inside your
+ * `setContent {}` block) so that all code blocks on the screen share the same engine.
  *
  * A single [HighlightEngine] (and thus a single hidden WebView) is created for the entire
- * subtree and destroyed when this composable leaves the composition. This means screens with
- * multiple [SyntaxHighlightedCode] blocks share one WebView instead of creating one per block,
- * saving ~200 ms warm-up time and ~2–4 MB RAM per extra block.
+ * subtree and destroyed when this composable leaves the composition. This means all
+ * [SyntaxHighlightedCode] blocks inside share one WebView instead of creating one per block,
+ * saving ~200 ms warm-up time and ~2-4 MB RAM per extra block.
+ *
+ * **1 provider = 1 WebView.** Place it above all the code blocks you want to share.
  *
  * ## Typical setup
  *
@@ -83,18 +85,39 @@ internal val LocalHighlightEngine =
  * instances stay stable across recompositions:
  *
  * ```kotlin
- * // In MainActivity.kt or your root composable:
+ * // At the top of your screen composable:
  * HighlightThemeProvider(
  *     lightHighlightTheme = rememberTomorrowTheme(),
  *     darkHighlightTheme  = rememberTomorrowNightTheme(),
  * ) {
- *     // All SyntaxHighlightedCode composables inside here will use
- *     // the correct theme automatically.
- *     MyAppContent()
+ *     // All SyntaxHighlightedCode composables inside here share 1 WebView
+ *     // and use the correct theme automatically.
+ *     MyScreenContent()
  * }
  * ```
  *
- * ## Manual override
+ * ## Without a provider
+ *
+ * Without `HighlightThemeProvider`, each [SyntaxHighlightedCode] (or [rememberHighlightEngine]
+ * call) creates its own [HighlightEngine] and hidden WebView. For a screen with 3 code blocks
+ * that means 3 WebViews, ~600 ms extra warm-up, and ~6-12 MB extra RAM. Wrapping the screen
+ * in a single provider reduces this to 1 WebView regardless of how many blocks are inside.
+ *
+ * ## Multiple screens
+ *
+ * For apps with multiple screens, place one provider at the top of each screen composable.
+ * Each screen's engine is automatically destroyed when the screen leaves the composition,
+ * so you never hold a WebView alive for screens not currently shown.
+ *
+ * ```kotlin
+ * // Screen A
+ * HighlightThemeProvider(...) { ScreenAContent() }  // 1 WebView, destroyed when A is gone
+ *
+ * // Screen B
+ * HighlightThemeProvider(...) { ScreenBContent() }  // 1 WebView, destroyed when B is gone
+ * ```
+ *
+ * ## Manual dark/light override
  *
  * Pass `darkTheme = true/false` to force a specific mode regardless of system setting:
  *
@@ -110,7 +133,7 @@ internal val LocalHighlightEngine =
  *
  * The hidden WebView initializes lazily on the first highlight call. If you want to reduce
  * that first-call latency further, you can pre-warm the WebView renderer process by calling
- * `WebViewCompat.startUpWebView()` (androidx.webkit 1.16+) as early as possible — ideally
+ * `WebViewCompat.startUpWebView()` (androidx.webkit 1.16+) as early as possible - ideally
  * in `Application.onCreate()` before any Activity is created:
  *
  * ```kotlin
@@ -118,7 +141,7 @@ internal val LocalHighlightEngine =
  *     override fun onCreate() {
  *         super.onCreate()
  *         // Pre-warm the WebView renderer process so it is ready when the first
- *         // HighlightThemeProvider is composed. Best-effort — safe to ignore failures.
+ *         // HighlightThemeProvider is composed. Best-effort - safe to ignore failures.
  *         runCatching {
  *             WebViewCompat.startUpWebView(
  *                 applicationContext,
@@ -135,7 +158,7 @@ internal val LocalHighlightEngine =
  *   [LocalLightHighlightTheme] to the subtree.
  * @param darkHighlightTheme The theme to use in dark mode. Also provided via
  *   [LocalDarkHighlightTheme] to the subtree.
- * @param content The composable content to which the theme is provided.
+ * @param content The composable content to which the theme and shared engine are provided.
  */
 @Composable
 fun HighlightThemeProvider(
