@@ -241,7 +241,7 @@ class HighlightEngine(
         // Theme parsing (may include asset I/O on first use) and HTML-to-AnnotatedString conversion
         // are run off the Main thread on Dispatchers.Default.
         return withContext(Dispatchers.Default) {
-            try {
+            withHtmlParsingErrorHandling {
                 val (colorMap, themeParseD) = theme.timedColorMap()
                 val convertResult = HtmlToAnnotatedString.convertTimed(htmlResult.html, colorMap)
                 val totalDuration = totalStart.elapsedNow()
@@ -262,10 +262,6 @@ class HighlightEngine(
                             ),
                     ),
                 )
-            } catch (e: CancellationException) {
-                throw e
-            } catch (e: Exception) {
-                Result.failure(HighlightException.HtmlParseFailed(e))
             }
         }
     }
@@ -308,7 +304,7 @@ class HighlightEngine(
         // Theme parsing (may include asset I/O on first use) and HTML-to-AnnotatedString conversion
         // are run off the Main thread on Dispatchers.Default.
         return withContext(Dispatchers.Default) {
-            try {
+            withHtmlParsingErrorHandling {
                 val (lightColorMap, lightThemeParseD) = lightTheme.timedColorMap()
                 val (darkColorMap, darkThemeParseD) = darkTheme.timedColorMap()
                 val convertResult =
@@ -334,10 +330,6 @@ class HighlightEngine(
                             ),
                     ),
                 )
-            } catch (e: CancellationException) {
-                throw e
-            } catch (e: Exception) {
-                Result.failure(HighlightException.HtmlParseFailed(e))
             }
         }
     }
@@ -572,7 +564,7 @@ class HighlightEngine(
             // Theme parsing (may include asset I/O on first use) and HTML-to-AnnotatedString
             // conversion are run off the Main thread on Dispatchers.Default.
             withContext(Dispatchers.Default) {
-                try {
+                withHtmlParsingErrorHandling {
                     val (colorMap, themeParseD) = theme.timedColorMap()
                     val convertResult = HtmlToAnnotatedString.convertTimed(jsResult.html, colorMap)
                     val totalDuration = totalStart.elapsedNow()
@@ -593,10 +585,6 @@ class HighlightEngine(
                                 ),
                         ),
                     )
-                } catch (e: CancellationException) {
-                    throw e
-                } catch (e: Exception) {
-                    Result.failure(HighlightException.HtmlParseFailed(e))
                 }
             }
         }
@@ -716,6 +704,27 @@ internal suspend fun <T> withEngineErrorHandling(block: suspend () -> Result<T>)
         Result.failure(e)
     } catch (e: Exception) {
         Result.failure(HighlightException.JsExecutionFailed(e))
+    }
+
+/**
+ * Executes [block] and maps exceptions from the HTML parsing and theme resolution pipeline to
+ * [Result] failure types, while correctly propagating [CancellationException].
+ *
+ * - [CancellationException] → rethrown (preserves structured concurrency)
+ * - Any other [Exception] → wrapped in [HighlightException.HtmlParseFailed]
+ *
+ * Used by [HighlightEngine.highlight], [HighlightEngine.highlightBothThemes], and
+ * [HighlightEngine.highlightAuto] inside their `withContext(Dispatchers.Default)` blocks to handle
+ * errors from theme resolution and jsoup conversion. Extracted as an internal helper to eliminate
+ * the repeated catch chain and enable direct unit testing without a real WebView.
+ */
+internal suspend fun <T> withHtmlParsingErrorHandling(block: suspend () -> Result<T>): Result<T> =
+    try {
+        block()
+    } catch (e: CancellationException) {
+        throw e
+    } catch (e: Exception) {
+        Result.failure(HighlightException.HtmlParseFailed(e))
     }
 
 /**
