@@ -10,6 +10,7 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
+import dev.hossain.highlight.engine.HighlightException
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -172,6 +173,73 @@ class SyntaxHighlightedCodeRobolectricTest {
         composeTestRule.waitForIdle()
         composeTestRule
             .onNodeWithText("sql")
+            .assertIsDisplayed()
+    }
+
+    // ----- Category 3: onError callback tests -----
+
+    @Test
+    fun onErrorNotCalledInInspectionMode() {
+        // In inspection mode the LaunchedEffect is skipped, so the engine is never called
+        // and onError must never fire.
+        val errors = mutableListOf<HighlightException>()
+        composeTestRule.setContent {
+            CompositionLocalProvider(LocalInspectionMode provides true) {
+                HighlightThemeProvider {
+                    SyntaxHighlightedCode(
+                        code = "val x = 42",
+                        language = "kotlin",
+                        onError = { errors.add(it) },
+                    )
+                }
+            }
+        }
+        composeTestRule.waitForIdle()
+        assertThat(errors).isEmpty()
+    }
+
+    @Test
+    fun onErrorNullDoesNotCrashInInspectionMode() {
+        // Passing onError = null (the default) must not crash.
+        composeTestRule.setContent {
+            CompositionLocalProvider(LocalInspectionMode provides true) {
+                HighlightThemeProvider {
+                    SyntaxHighlightedCode(
+                        code = "val x = 42",
+                        language = "kotlin",
+                        onError = null,
+                    )
+                }
+            }
+        }
+        composeTestRule.waitForIdle()
+        composeTestRule
+            .onNodeWithText("val x = 42")
+            .assertIsDisplayed()
+    }
+
+    @Test
+    fun onErrorCallbackCanBePassedWithoutCrash() {
+        // Verify that providing onError does not prevent plain-text rendering
+        // (inspection mode, so plain-text is shown immediately).
+        var errorCallbackRegistered = false
+        composeTestRule.setContent {
+            CompositionLocalProvider(LocalInspectionMode provides true) {
+                HighlightThemeProvider {
+                    SyntaxHighlightedCode(
+                        code = "print('hello')",
+                        language = "python",
+                        onError = { errorCallbackRegistered = true },
+                    )
+                }
+            }
+        }
+        composeTestRule.waitForIdle()
+        // In inspection mode the engine is never invoked, so the callback is not triggered.
+        assertThat(errorCallbackRegistered).isFalse()
+        // But the plain-text code is still visible.
+        composeTestRule
+            .onNodeWithText("print('hello')")
             .assertIsDisplayed()
     }
 }
