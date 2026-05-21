@@ -6,7 +6,16 @@ For most use cases, use `SyntaxHighlightedCode` inside a `HighlightThemeProvider
 
 ## Lifecycle
 
-The engine holds a hidden WebView resource. Always call `destroy()` when done. Inside Compose, use `rememberHighlightEngine()` which calls `destroy()` automatically via `DisposableEffect`.
+The engine holds a hidden WebView resource and implements `Closeable`. Always call `close()` (or `destroy()`) when done. Inside Compose, use `rememberHighlightEngine()` which calls `destroy()` automatically via `DisposableEffect`. Since highlighting APIs are `suspend`, prefer coroutine-friendly `try/finally` cleanup for scoped usage:
+
+```kotlin
+val engine = HighlightEngine(context.applicationContext)
+try {
+    val result = engine.highlight(code, "kotlin", theme)
+} finally {
+    engine.close()
+}
+```
 
 ## Methods
 
@@ -20,7 +29,8 @@ The engine holds a hidden WebView resource. Always call `destroy()` when done. I
 | `suspend highlightJsVersion()` | Returns the bundled Highlight.js version string |
 | `suspend getLanguage(nameOrAlias)` | Returns `Result<HighlightLanguageInfo?>` - null success means language not recognized |
 | `suspend highlightAuto(code, theme)` | Auto-detect language and highlight, returns `Result<AutoHighlightResult>` |
-| `fun destroy()` | Releases the WebView and clears caches |
+| `fun destroy()` | Releases the WebView and clears caches. Idempotent - safe to call multiple times |
+| `fun close()` | Alias for `destroy()`. Implements `Closeable` for IDE resource-leak inspections and explicit cleanup |
 | `val isInitialized: StateFlow<Boolean>` | Observe WebView readiness reactively |
 
 All suspend methods return `Result<T>` - never throw. Wrap failures in `HighlightException`.
@@ -48,7 +58,7 @@ class CodeViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     override fun onCleared() {
-        engine.destroy()
+        engine.close()
     }
 }
 ```

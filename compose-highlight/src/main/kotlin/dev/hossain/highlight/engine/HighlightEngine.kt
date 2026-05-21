@@ -14,6 +14,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
+import java.io.Closeable
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.time.Duration
@@ -45,9 +46,22 @@ import kotlin.time.measureTimedValue
  *
  * ## Lifecycle
  *
- * The engine holds a hidden WebView resource. Always call [destroy] when the engine is no
- * longer needed. When used inside a Composable, use `rememberHighlightEngine()` which calls
- * [destroy] automatically via `DisposableEffect`.
+ * The engine holds a hidden WebView resource and implements [Closeable] for safe resource
+ * management. Always call [close] (or [destroy]) when the engine is no longer needed.
+ *
+ * When used inside a Composable, use `rememberHighlightEngine()` which calls [destroy]
+ * automatically via `DisposableEffect`. For manual usage (e.g. in a ViewModel), call [close]
+ * or [destroy] in `onCleared()`. Since highlighting APIs are `suspend`, prefer coroutine-friendly
+ * `try/finally` cleanup for scoped usage:
+ *
+ * ```kotlin
+ * val engine = HighlightEngine(context.applicationContext)
+ * try {
+ *     val result = engine.highlight(code, "kotlin", theme)
+ * } finally {
+ *     engine.close()
+ * }
+ * ```
  *
  * ## Composable usage (lower-level)
  *
@@ -91,7 +105,7 @@ import kotlin.time.measureTimedValue
  * }
  *
  * // Release resources when done (e.g. in ViewModel.onCleared())
- * engine.destroy()
+ * engine.destroy() // or engine.close()
  * ```
  *
  * ## Highlight once, render in two themes
@@ -110,7 +124,7 @@ import kotlin.time.measureTimedValue
  */
 class HighlightEngine(
     context: Context,
-) {
+) : Closeable {
     // Use applicationContext to avoid retaining an Activity context in the long-lived WebView.
     private val manager = WebViewManager(context.applicationContext)
 
@@ -595,6 +609,15 @@ class HighlightEngine(
         cachedLanguages = null
         cachedVersion = null
         manager.destroy()
+    }
+
+    /**
+     * Releases the WebView resources by delegating to [destroy]. Implements [Closeable] so this
+     * engine participates in IDE resource-leak inspections and supports explicit cleanup through
+     * [close]. Safe to call multiple times.
+     */
+    override fun close() {
+        destroy()
     }
 
     /**

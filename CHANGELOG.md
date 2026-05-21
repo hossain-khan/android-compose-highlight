@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- `HighlightEngine` now implements `java.io.Closeable`. A new `close()` method delegates to
+  `destroy()`, improving IDE resource-leak inspections and explicit cleanup for non-Compose
+  usage (e.g. ViewModel). `destroy()` remains available and both methods are
+  idempotent - safe to call multiple times.
+
 - `onError: ((HighlightException) -> Unit)? = null` callback added to `SyntaxHighlightedCode`,
   `rememberHighlightedCode`, and `rememberHighlightedCodeBothThemes`. When highlighting fails
   (timeout, JS error, WebView init failure, or HTML parse failure) the callback receives the typed
