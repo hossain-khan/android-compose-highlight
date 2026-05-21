@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.20.0] - 2026-05-20
+
 ### Added
 - `HighlightLanguage.fromExtension(ext)` utility - maps file extensions to Highlight.js language names without a WebView round-trip (e.g. `"kt"` -> `"kotlin"`)
 - `HighlightEngine.highlightAuto()` - highlights code with automatic language detection via `hljs.highlightAuto()`, returns `AutoHighlightResult` with `detectedLanguage`
