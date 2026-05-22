@@ -351,10 +351,16 @@ object ThemeParser {
     private fun parseAlphaComponent(value: String): Int? {
         if (value.endsWith("%")) {
             val pct = value.dropLast(1).toFloatOrNull() ?: return null
+            if (!pct.isFinite()) return null
             return (pct / 100f * 255).toInt().coerceIn(0, 255)
         }
         val f = value.toFloatOrNull() ?: return null
+        if (!f.isFinite()) return null
         // CSS alpha is 0.0-1.0; values > 1 are treated as 0-255 integer
-        return if (f <= 1.0f) (f * 255).roundToInt().coerceIn(0, 255) else f.toInt().coerceIn(0, 255)
+        return if (f <= 1.0f) {
+            (f * 255).roundToInt().coerceIn(0, 255)
+        } else {
+            value.toIntOrNull()?.coerceIn(0, 255)
+        }
     }
 }
