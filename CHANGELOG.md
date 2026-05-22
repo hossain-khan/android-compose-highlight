@@ -5,6 +5,48 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- `CodeBlockStyle` gains two new fields: `fallbackBackgroundColor: Color` (default `Color(0xFF1E1E1E)`)
+  and `fallbackTextColor: Color` (default `Color(0xFFCCCCCC)`). These are used by
+  `SyntaxHighlightedCode` when the active theme's CSS has no `.hljs { background: ... }` or
+  `.hljs { color: ... }` rule. Previously the fallback values were hardcoded inline; they are now
+  configurable via `CodeBlockStyle`. This changes the public `CodeBlockStyle` data class constructor
+  signature and is binary-incompatible for already compiled consumers.
+
+  ```kotlin
+  // Light fallback for a custom light-only theme that has no .hljs base rule
+  SyntaxHighlightedCode(
+      code = snippet,
+      language = "kotlin",
+      style = CodeBlockStyle(
+          fallbackBackgroundColor = Color.White,
+          fallbackTextColor = Color.Black,
+      ),
+  )
+  ```
+
+  Corresponding constants `SyntaxHighlightedCodeDefaults.fallbackBackgroundColor` and
+  `SyntaxHighlightedCodeDefaults.fallbackTextColor` are also exposed.
+
+### Fixed
+- **`ThemeParser` font-weight numeric values** - Previously only `font-weight: bold` and
+  `font-weight: 700` mapped to `FontWeight.Bold`; other numeric values (e.g. `600`, `800`, `900`)
+  were silently ignored. Now any numeric weight >= 600 maps to `FontWeight.Bold` and any numeric
+  weight < 600 maps to `FontWeight.Normal`, matching standard browser bold-threshold behavior. The
+  explicit keywords `bold` and `normal` continue to work as before.
+
+- **`bridge.html` hljs error handling** - `highlightCode`, `highlightAuto`, and `getLanguage` are
+  now wrapped in `try/catch`. `highlightCode` and `highlightAuto` now return a consistent JSON envelope
+  (`{ error: false, html: ... }` on success and `{ error: true, message: ... }` on failure), and
+  `getLanguage` returns either language JSON, `null`, or the same error envelope. `HighlightEngine`
+  parses these responses and surfaces `HighlightException.JsExecutionFailed` with the actual
+  JavaScript error message, replacing the previous opaque `"JS returned null"` error.
+
+- **`HighlightTheme.timedColorMap()` race and attribution fix** - `timedColorMap()` now uses
+  `AtomicBoolean.compareAndSet` around `measureTimedValue` so at most one concurrent caller reports
+  non-zero parse time. If `colorMap` was initialized earlier via incidental access
+  (`backgroundColor` or `defaultTextColor`), `timedColorMap()` now returns `Duration.ZERO` to keep
+  `HighlightTimings.themeParse` attributed only to first-call work performed by `HighlightEngine`.
+
 - `placeholder: (@Composable (code: String) -> Unit)? = null` parameter added to
   `SyntaxHighlightedCode`. When provided, the placeholder composable is rendered while async
   highlighting is in progress (state is null) and transitions to the highlighted output via

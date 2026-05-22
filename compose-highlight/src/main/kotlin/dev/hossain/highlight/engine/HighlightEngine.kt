@@ -514,6 +514,14 @@ class HighlightEngine(
                                 }
                                 try {
                                     val json = org.json.JSONObject(unescapeJsString(rawResult))
+                                    if (json.optBoolean("error")) {
+                                        continuation.resumeWithException(
+                                            HighlightException.JsExecutionFailed(
+                                                RuntimeException("highlight.js error: ${json.optString("message")}"),
+                                            ),
+                                        )
+                                        return@evaluateJavascript
+                                    }
                                     val aliasesJson = json.optJSONArray("aliases")
                                     val aliases =
                                         buildList {
@@ -625,7 +633,7 @@ class HighlightEngine(
      *
      * String escaping is delegated to [escapeForJs]; see that function for the full escape order.
      *
-     * The JS callback returns a JSON-encoded string — parsed by [unescapeJsString].
+     * The JS callback returns a JSON-encoded string - parsed by [unescapeJsString].
      * Returns a [JsResult] containing the HTML, the JS bridge round-trip duration, and the
      * JSON unescape duration.
      */
@@ -644,15 +652,38 @@ class HighlightEngine(
                 val jsStart = TimeSource.Monotonic.markNow()
                 webView.evaluateJavascript(js) { rawResult ->
                     val jsBridgeDuration = jsStart.elapsedNow()
+                    if (!continuation.isActive) return@evaluateJavascript
                     if (rawResult == null || rawResult == "null") {
                         continuation.resumeWithException(
                             HighlightException.JsExecutionFailed(RuntimeException("JS returned null")),
                         )
                         return@evaluateJavascript
                     }
-                    // The result is a JSON-encoded string — strip surrounding quotes and unescape
-                    val (html, jsonUnescapeDuration) = measureTimedValue { unescapeJsString(rawResult) }
-                    continuation.resume(Result.success(JsResult(html, jsBridgeDuration, jsonUnescapeDuration)))
+                    try {
+                        // The result is a JSON-encoded string - strip surrounding quotes and unescape
+                        val (jsonString, jsonUnescapeDuration) =
+                            measureTimedValue { unescapeJsString(rawResult) }
+                        val json = org.json.JSONObject(jsonString)
+                        if (json.optBoolean("error")) {
+                            continuation.resumeWithException(
+                                HighlightException.JsExecutionFailed(
+                                    RuntimeException("highlight.js error: ${json.optString("message")}"),
+                                ),
+                            )
+                            return@evaluateJavascript
+                        }
+                        continuation.resume(
+                            Result.success(
+                                JsResult(
+                                    html = json.getString("html"),
+                                    jsBridgeDuration = jsBridgeDuration,
+                                    jsonUnescapeDuration = jsonUnescapeDuration,
+                                ),
+                            ),
+                        )
+                    } catch (e: Exception) {
+                        continuation.resumeWithException(HighlightException.JsExecutionFailed(e))
+                    }
                 }
             }
         }
@@ -684,6 +715,15 @@ class HighlightEngine(
                         val (jsonString, jsonUnescapeDuration) =
                             measureTimedValue { unescapeJsString(rawResult) }
                         val json = org.json.JSONObject(jsonString)
+                        // Check if the JS bridge returned an error object from the try/catch in bridge.html
+                        if (json.optBoolean("error")) {
+                            continuation.resumeWithException(
+                                HighlightException.JsExecutionFailed(
+                                    RuntimeException("highlight.js error: ${json.optString("message")}"),
+                                ),
+                            )
+                            return@evaluateJavascript
+                        }
                         continuation.resume(
                             Result.success(
                                 AutoJsResult(

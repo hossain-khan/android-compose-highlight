@@ -4,7 +4,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.font.FontWeight
 import com.google.common.truth.Truth.assertThat
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.runBlocking
 import org.junit.Test
+import kotlin.time.Duration
 
 class HighlightThemeTest {
     // Minimal CSS with .hljs base rule plus a keyword rule
@@ -220,5 +225,45 @@ class HighlightThemeTest {
     fun `colorMap returns null for unknown class`() {
         val theme = HighlightTheme.fromCss(sampleCss, "unknown")
         assertThat(theme.colorMap["hljs-does-not-exist"]).isNull()
+    }
+
+    // ── timedColorMap concurrent access ──────────────────────────────────────
+
+    @Test
+    fun `timedColorMap reports non-zero duration at most once under concurrent access`() =
+        runBlocking {
+            val theme = HighlightTheme.fromCss(sampleCss, "concurrency-test")
+            // Launch 10 concurrent timedColorMap calls on a thread pool.
+            val results =
+                (1..10)
+                    .map {
+                        async(Dispatchers.Default) { theme.timedColorMap() }
+                    }.awaitAll()
+            val nonZeroCount = results.count { (_, duration) -> duration != Duration.ZERO }
+            // At most one caller should report the real parse duration.
+            assertThat(nonZeroCount).isAtMost(1)
+        }
+
+    @Test
+    fun `timedColorMap returns Duration ZERO on every call after first initialization`() {
+        val theme = HighlightTheme.fromCss(sampleCss, "zero-after-first")
+        // Trigger initialization
+        theme.timedColorMap()
+        // All subsequent calls must return Duration.ZERO
+        repeat(5) {
+            val (_, duration) = theme.timedColorMap()
+            assertThat(duration).isEqualTo(Duration.ZERO)
+        }
+    }
+
+    @Test
+    fun `timedColorMap returns Duration ZERO when colorMap was initialized incidentally`() {
+        val theme = HighlightTheme.fromCss(sampleCss, "incidental-init")
+        // Simulate incidental access from UI composition before HighlightEngine calls timedColorMap().
+        theme.backgroundColor
+
+        val (_, duration) = theme.timedColorMap()
+
+        assertThat(duration).isEqualTo(Duration.ZERO)
     }
 }
