@@ -140,4 +140,62 @@ class HighlightEngineUnescapeTest {
         val input = "\"\\u003Cdiv\\u003E\\u0026amp;\\u003C/div\\u003E\""
         assertThat(unescapeJsString(input)).isEqualTo("<div>&amp;</div>")
     }
+
+    // ----- Surrogate pair / supplementary Unicode (emoji, characters above U+FFFF) -----
+
+    @Test
+    fun `surrogate pair for grinning face emoji decodes to single emoji character`() {
+        // U+1F600 (😀) is encoded as \uD83D\uDE00 in UTF-16.
+        // evaluateJavascript returns surrogate pairs as two consecutive \uXXXX sequences.
+        val input = "\"\\uD83D\\uDE00\""
+        assertThat(unescapeJsString(input)).isEqualTo("😀")
+    }
+
+    @Test
+    fun `surrogate pair for bug emoji decodes to single emoji character`() {
+        // U+1F41B (🐛) is encoded as \uD83D\uDC1B.
+        val input = "\"\\uD83D\\uDC1B\""
+        assertThat(unescapeJsString(input)).isEqualTo("🐛")
+    }
+
+    @Test
+    fun `emoji surrounded by plain text decodes correctly`() {
+        // "hello 😀 world" - surrogate pair embedded in normal ASCII text.
+        val input = "\"hello \\uD83D\\uDE00 world\""
+        assertThat(unescapeJsString(input)).isEqualTo("hello 😀 world")
+    }
+
+    @Test
+    fun `lone high surrogate without following low surrogate is passed through as-is`() {
+        // \uD83D alone (no \uDC00-\uDFFF following) - should not crash and should emit the char.
+        val input = "\"\\uD83D\""
+        val result = unescapeJsString(input)
+        // No crash; the lone surrogate char is emitted (best-effort).
+        assertThat(result).hasLength(1)
+        assertThat(result[0].code).isEqualTo(0xD83D)
+    }
+
+    @Test
+    fun `high surrogate followed by non-surrogate unicode is not combined`() {
+        // \uD83D followed by \u0041 ('A') - should emit the lone high surrogate then 'A'.
+        val input = "\"\\uD83D\\u0041\""
+        val result = unescapeJsString(input)
+        assertThat(result).hasLength(2)
+        assertThat(result[0].code).isEqualTo(0xD83D)
+        assertThat(result[1]).isEqualTo('A')
+    }
+
+    @Test
+    fun `multiple emoji in sequence decode correctly`() {
+        // Two emoji back-to-back: 😀🐛 -> \uD83D\uDE00\uD83D\uDC1B
+        val input = "\"\\uD83D\\uDE00\\uD83D\\uDC1B\""
+        assertThat(unescapeJsString(input)).isEqualTo("😀🐛")
+    }
+
+    @Test
+    fun `emoji in code comment context decodes correctly`() {
+        // Simulates: // TODO: fix this 🐛
+        val input = "\"// TODO: fix this \\uD83D\\uDC1B\""
+        assertThat(unescapeJsString(input)).isEqualTo("// TODO: fix this 🐛")
+    }
 }
