@@ -23,6 +23,8 @@ fun SyntaxHighlightedCode(
     copyButtonContent: (@Composable (onClick: () -> Unit) -> Unit)? = /* default button */,
     onCopyClick: ((String) -> Unit)? = null,
     onHighlightComplete: ((HighlightResult) -> Unit)? = null,
+    onError: ((HighlightException) -> Unit)? = null,
+    placeholder: (@Composable (code: String) -> Unit)? = null,
 )
 ```
 
@@ -40,6 +42,8 @@ fun SyntaxHighlightedCode(
 | `copyButtonContent` | `(@Composable (onClick: () -> Unit) -> Unit)?` | Default button | Header copy button slot. `null` hides it |
 | `onCopyClick` | `((String) -> Unit)?` | `null` | Custom copy handler. If `null`, copies to system clipboard |
 | `onHighlightComplete` | `((HighlightResult) -> Unit)?` | `null` | Callback invoked with timing and span count after successful highlighting |
+| `onError` | `((HighlightException) -> Unit)?` | `null` | Callback invoked when highlighting fails. Falls back to plain text; purely observational |
+| `placeholder` | `(@Composable (code: String) -> Unit)?` | `null` | Composable rendered while highlighting is in progress. `null` shows raw unstyled code (default behavior) |
 
 ## Usage
 
@@ -133,6 +137,27 @@ SyntaxHighlightedCode(
     language = "kotlin",
     onHighlightComplete = { result ->
         Log.d("Perf", "Highlighted in ${result.durationMs}ms, ${result.spanCount} spans")
+    },
+)
+```
+
+### Custom placeholder while loading
+
+```kotlin
+import androidx.compose.material3.Text
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontFamily
+import dev.hossain.highlight.ui.SyntaxHighlightedCode
+
+SyntaxHighlightedCode(
+    code = snippet,
+    language = "kotlin",
+    placeholder = { rawCode ->
+        Text(
+            text = rawCode,
+            color = Color.Gray.copy(alpha = 0.5f),
+            fontFamily = FontFamily.Monospace,
+        )
     },
 )
 ```

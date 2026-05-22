@@ -6,6 +6,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -25,6 +26,13 @@ class SyntaxHighlightedCodeTest {
 
     private val context = InstrumentationRegistry.getInstrumentation().targetContext
     private val sampleCode = "def hello():\n    print('world')"
+
+    /** Returns whether the loading placeholder text is currently present in the semantics tree. */
+    private fun isPlaceholderVisible(): Boolean =
+        composeTestRule
+            .onAllNodesWithText("loading-placeholder", useUnmergedTree = true)
+            .fetchSemanticsNodes()
+            .isNotEmpty()
 
     @Test
     fun composableRendersWithoutCrash() {
@@ -170,6 +178,73 @@ class SyntaxHighlightedCodeTest {
         composeTestRule
             .onNodeWithTag("syntax-highlighted-code")
             .assertIsDisplayed()
+    }
+
+    @Test
+    fun placeholderIsShownDuringLoading() {
+        var placeholderComposed = false
+        var placeholderVisibleInTree = false
+        composeTestRule.setContent {
+            HighlightThemeProvider {
+                SyntaxHighlightedCode(
+                    code = sampleCode,
+                    language = "python",
+                    placeholder = { _ ->
+                        SideEffect { placeholderComposed = true }
+                        androidx.compose.material3.Text(text = "loading-placeholder")
+                    },
+                )
+            }
+        }
+        composeTestRule.waitUntil(timeoutMillis = 10_000L) {
+            val isVisible = isPlaceholderVisible()
+            if (isVisible) {
+                placeholderVisibleInTree = true
+            }
+            placeholderComposed && placeholderVisibleInTree
+        }
+        composeTestRule.runOnIdle {
+            assertThat(placeholderComposed).isTrue()
+            assertThat(placeholderVisibleInTree).isTrue()
+        }
+    }
+
+    @Test
+    fun placeholderDisappearsAfterHighlightCompletes() {
+        var capturedResult: dev.hossain.highlight.engine.HighlightResult? = null
+        var sawPlaceholderDuringLoading = false
+
+        composeTestRule.setContent {
+            HighlightThemeProvider(
+                lightHighlightTheme = HighlightTheme.tomorrow(context),
+                darkHighlightTheme = HighlightTheme.tomorrowNight(context),
+            ) {
+                SyntaxHighlightedCode(
+                    code = sampleCode,
+                    language = "python",
+                    placeholder = { _ ->
+                        androidx.compose.material3.Text(text = "loading-placeholder")
+                    },
+                    onHighlightComplete = { result -> capturedResult = result },
+                )
+            }
+        }
+
+        composeTestRule.waitUntil(timeoutMillis = 10_000L) {
+            val placeholderVisible = isPlaceholderVisible()
+            if (placeholderVisible && capturedResult == null) {
+                sawPlaceholderDuringLoading = true
+            }
+            sawPlaceholderDuringLoading
+        }
+
+        // Wait until highlighting is done
+        composeTestRule.waitUntil(timeoutMillis = 10_000L) { capturedResult != null }
+        composeTestRule.waitForIdle()
+
+        assertThat(sawPlaceholderDuringLoading).isTrue()
+        // Placeholder must be gone after highlighting completes
+        composeTestRule.onNodeWithText("loading-placeholder", useUnmergedTree = true).assertDoesNotExist()
     }
 
     @Test

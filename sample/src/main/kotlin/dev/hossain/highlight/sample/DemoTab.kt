@@ -24,6 +24,8 @@ internal sealed class DemoTab(
 
     data object Callbacks : DemoTab("Callbacks")
 
+    data object Placeholder : DemoTab("Placeholder")
+
     data object Themes : DemoTab("Themes")
 
     data object AllThemes : DemoTab("All Themes")
@@ -34,7 +36,19 @@ internal sealed class DemoTab(
 
     companion object {
         val all by lazy {
-            listOf(Languages, Styling, Typography, Toggles, Callbacks, Themes, AllThemes, LanguageDiscoverability, Advanced, Engine)
+            listOf(
+                Languages,
+                Styling,
+                Typography,
+                Toggles,
+                Callbacks,
+                Placeholder,
+                Themes,
+                AllThemes,
+                LanguageDiscoverability,
+                Advanced,
+                Engine,
+            )
         }
     }
 }

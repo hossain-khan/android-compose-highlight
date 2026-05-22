@@ -19,8 +19,12 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -43,6 +47,7 @@ import kotlinx.coroutines.launch
 // size from CodeBlockStyle.copyButtonSize, which cannot be referenced in a parameter
 // default value (Kotlin does not allow forward references to other parameters).
 private val DefaultCopyButtonSentinel: (@Composable (onClick: () -> Unit) -> Unit) = { }
+private val LineNumberGutterSpacing = 8.dp
 
 /**
  * Displays syntax-highlighted code in a styled block.
@@ -107,6 +112,22 @@ private val DefaultCopyButtonSentinel: (@Composable (onClick: () -> Unit) -> Uni
  * )
  * ```
  *
+ * ## Custom placeholder while loading
+ *
+ * ```kotlin
+ * SyntaxHighlightedCode(
+ *     code = myCode,
+ *     language = "kotlin",
+ *     placeholder = { rawCode ->
+ *         Text(
+ *             text = rawCode,
+ *             color = Color.Gray.copy(alpha = 0.5f),
+ *             fontFamily = FontFamily.Monospace,
+ *         )
+ *     },
+ * )
+ * ```
+ *
  * @param code The source code to display.
  * @param language Highlight.js language identifier (e.g. `"python"`, `"kotlin"`).
  * @param modifier Modifier for the outer container. The composable also applies a
@@ -153,6 +174,24 @@ private val DefaultCopyButtonSentinel: (@Composable (onClick: () -> Unit) -> Uni
  *       },
  *   )
  *   ```
+ * @param placeholder Optional composable rendered while highlighting is in progress (before the
+ *   first highlight result is available). When `null` (default), the raw unstyled code is shown
+ *   until highlighting completes - preserving the existing behavior. The [code] string is passed
+ *   so the placeholder can optionally render it styled differently (e.g., dimmed or with a shimmer
+ *   overlay).
+ *   ```kotlin
+ *   SyntaxHighlightedCode(
+ *       code = myCode,
+ *       language = "kotlin",
+ *       placeholder = { rawCode ->
+ *           Text(
+ *               text = rawCode,
+ *               color = Color.Gray.copy(alpha = 0.5f),
+ *               fontFamily = FontFamily.Monospace,
+ *           )
+ *       },
+ *   )
+ *   ```
  */
 @Composable
 fun SyntaxHighlightedCode(
@@ -179,6 +218,7 @@ fun SyntaxHighlightedCode(
     onCopyClick: ((String) -> Unit)? = null,
     onHighlightComplete: ((HighlightResult) -> Unit)? = null,
     onError: ((HighlightException) -> Unit)? = null,
+    placeholder: (@Composable (code: String) -> Unit)? = null,
 ) {
     // Remember derived colors and text styles keyed on theme and style so they are only
     // recomputed when the theme or style actually changes, not on every recomposition.
@@ -234,7 +274,19 @@ fun SyntaxHighlightedCode(
         return
     }
 
-    val highlightedState = rememberHighlightedCode(code, language, theme, onHighlightComplete, onError)
+    val latestOnError = rememberUpdatedState(onError)
+    var highlightFailed by remember(code, language, theme) { mutableStateOf(false) }
+    val highlightedState =
+        rememberHighlightedCode(
+            code = code,
+            language = language,
+            theme = theme,
+            onHighlightComplete = onHighlightComplete,
+            onError = { error ->
+                highlightFailed = true
+                latestOnError.value?.invoke(error)
+            },
+        )
     val clipboard = LocalClipboard.current
     val scope = rememberCoroutineScope()
 
@@ -275,30 +327,80 @@ fun SyntaxHighlightedCode(
 
             // Code content with horizontal scroll
             Box(modifier = Modifier.horizontalScroll(rememberScrollState())) {
-                AnimatedContent(
-                    targetState = highlightedState.value,
-                    transitionSpec = { fadeIn() togetherWith fadeOut() },
-                    label = "syntax-highlight-fade",
-                ) { highlighted ->
+                val highlighted = highlightedState.value
+                val placeholderContent = placeholder
+                val shouldShowPlaceholder = highlighted == null && placeholderContent != null && !highlightFailed
+                if (shouldShowPlaceholder) {
                     SelectionContainer {
                         if (showLineNumbers) {
-                            LineNumberedCode(
+                            LineNumberedPlaceholder(
                                 code = code,
-                                highlighted = highlighted,
-                                codeTextStyle = themedCodeStyle,
                                 lineNumTextStyle = themedLineNumStyle,
                                 style = style,
+                                placeholder = { placeholderContent(code) },
                             )
                         } else {
-                            Text(
-                                text = highlighted ?: AnnotatedString(code),
-                                modifier = Modifier.padding(style.padding),
-                                style = themedCodeStyle,
-                            )
+                            Box(modifier = Modifier.padding(style.padding)) {
+                                placeholderContent(code)
+                            }
+                        }
+                    }
+                } else {
+                    AnimatedContent(
+                        targetState = highlighted,
+                        transitionSpec = { fadeIn() togetherWith fadeOut() },
+                        label = "syntax-highlight-fade",
+                    ) { animatedHighlighted ->
+                        SelectionContainer {
+                            if (showLineNumbers) {
+                                LineNumberedCode(
+                                    code = code,
+                                    highlighted = animatedHighlighted,
+                                    codeTextStyle = themedCodeStyle,
+                                    lineNumTextStyle = themedLineNumStyle,
+                                    style = style,
+                                )
+                            } else {
+                                Text(
+                                    text = animatedHighlighted ?: AnnotatedString(code),
+                                    modifier = Modifier.padding(style.padding),
+                                    style = themedCodeStyle,
+                                )
+                            }
                         }
                     }
                 }
             }
+        }
+    }
+}
+
+/**
+ * Renders placeholder content using the same line-number gutter structure as [LineNumberedCode]
+ * so the loading state keeps identical horizontal layout and avoids gutter shift when highlighting
+ * finishes.
+ */
+@Composable
+private fun LineNumberedPlaceholder(
+    code: String,
+    lineNumTextStyle: TextStyle,
+    style: CodeBlockStyle,
+    placeholder: @Composable () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val lineCount = remember(code) { code.lines().size }
+    val lineNumbers = remember(lineCount) { (1..lineCount).joinToString("\n") }
+
+    Row(modifier = modifier.padding(style.padding)) {
+        Text(
+            text = lineNumbers,
+            style = lineNumTextStyle,
+            modifier = Modifier.width(style.lineNumberWidth),
+            textAlign = TextAlign.End,
+        )
+        Spacer(modifier = Modifier.width(LineNumberGutterSpacing))
+        Box {
+            placeholder()
         }
     }
 }
@@ -326,7 +428,7 @@ private fun LineNumberedCode(
             modifier = Modifier.width(style.lineNumberWidth),
             textAlign = TextAlign.End,
         )
-        Spacer(modifier = Modifier.width(8.dp))
+        Spacer(modifier = Modifier.width(LineNumberGutterSpacing))
         // Code text
         if (highlighted != null) {
             Text(text = highlighted, style = codeTextStyle)
