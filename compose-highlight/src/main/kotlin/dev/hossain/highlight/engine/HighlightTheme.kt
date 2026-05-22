@@ -93,14 +93,20 @@ import kotlin.time.measureTimedValue
  * a == b         // true  - same name and same CSS content
  * ```
  *
- * @property name Display name for this theme. Used together with content identity by [equals]
+ * @property name Display name for this theme. Used together with [contentIdentity] by [equals]
  *   and [hashCode].
  */
 @Stable
 class HighlightTheme private constructor(
     val name: String,
     private val colorMapProvider: () -> Map<String, SpanStyle>,
-    private val contentIdentity: Any,
+    /**
+     * Precomputed identity hash for the theme content. Computed once at construction time
+     * from the CSS text, asset path, or color-map inputs, and stored as an [Int] so that
+     * [equals] and [hashCode] are O(1). Used by Compose keys (`remember`, `LaunchedEffect`)
+     * to detect theme changes even when two themes share the same [name].
+     */
+    private val contentIdentity: Int,
 ) {
     /** Lazily-parsed map of hljs class names → [SpanStyle]. Cached forever. */
     private val colorMapLazy = lazy { colorMapProvider() }
@@ -189,7 +195,7 @@ class HighlightTheme private constructor(
             return HighlightTheme(
                 name = "tomorrow",
                 colorMapProvider = { ThemeParser.parseAsset(appContext, assetPath) },
-                contentIdentity = assetPath,
+                contentIdentity = assetPath.hashCode(),
             )
         }
 
@@ -208,7 +214,7 @@ class HighlightTheme private constructor(
             return HighlightTheme(
                 name = "tomorrow-night",
                 colorMapProvider = { ThemeParser.parseAsset(appContext, assetPath) },
-                contentIdentity = assetPath,
+                contentIdentity = assetPath.hashCode(),
             )
         }
 
@@ -227,7 +233,7 @@ class HighlightTheme private constructor(
             return HighlightTheme(
                 name = "atom-one-dark",
                 colorMapProvider = { ThemeParser.parseAsset(appContext, assetPath) },
-                contentIdentity = assetPath,
+                contentIdentity = assetPath.hashCode(),
             )
         }
 
@@ -246,7 +252,7 @@ class HighlightTheme private constructor(
             return HighlightTheme(
                 name = "atom-one-light",
                 colorMapProvider = { ThemeParser.parseAsset(appContext, assetPath) },
-                contentIdentity = assetPath,
+                contentIdentity = assetPath.hashCode(),
             )
         }
 
@@ -293,7 +299,7 @@ class HighlightTheme private constructor(
                     if (map.isEmpty()) throw HighlightException.ThemeNotFound(assetPath)
                     map
                 },
-                contentIdentity = assetPath,
+                contentIdentity = assetPath.hashCode(),
             )
         }
 
@@ -321,7 +327,7 @@ class HighlightTheme private constructor(
             HighlightTheme(
                 name = name,
                 colorMapProvider = { ThemeParser.parse(cssText) },
-                contentIdentity = cssText,
+                contentIdentity = cssText.hashCode(),
             )
 
         /**
@@ -363,7 +369,10 @@ class HighlightTheme private constructor(
         ): HighlightTheme {
             // Defensively copy so later mutations to the caller's map don't affect the theme.
             val immutableMap = colorMap.toMap()
-            val contentIdentity = ColorMapIdentity(immutableMap, backgroundColor, defaultTextColor)
+            // Precompute identity hash once so equals/hashCode stay O(1).
+            val contentIdentity =
+                31 * (31 * immutableMap.hashCode() + backgroundColor.hashCode()) +
+                    defaultTextColor.hashCode()
             return if (backgroundColor != null || defaultTextColor != null) {
                 HighlightTheme(
                     name = name,
@@ -389,9 +398,3 @@ class HighlightTheme private constructor(
         }
     }
 }
-
-private data class ColorMapIdentity(
-    val colorMap: Map<String, SpanStyle>,
-    val backgroundColor: Color?,
-    val defaultTextColor: Color?,
-)

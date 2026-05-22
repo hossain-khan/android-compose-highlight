@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 - **`HighlightTheme` - content-aware equality** - `equals()` and `hashCode()` previously
-  compared themes by [name] only, so two themes with the same name but different CSS content
+  compared themes by `name` only, so two themes with the same name but different CSS content
   were considered equal. This caused `LaunchedEffect(theme)` and `remember(theme)` in
   `rememberHighlightedCode` to silently skip re-highlighting when switching between same-named
   themes with different colors. Equality now includes a `contentIdentity` derived from the

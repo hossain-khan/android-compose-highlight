@@ -187,6 +187,28 @@ class HighlightThemeTest {
     }
 
     @Test
+    fun `themes from fromColorMap with same name and same colorMap are equal`() {
+        val map =
+            mapOf(
+                "hljs" to SpanStyle(color = Color.Black, background = Color.White),
+                "hljs-keyword" to SpanStyle(color = Color.Blue),
+            )
+        val a = HighlightTheme.fromColorMap(name = "dynamic", colorMap = map)
+        val b = HighlightTheme.fromColorMap(name = "dynamic", colorMap = map)
+        assertThat(a).isEqualTo(b)
+        assertThat(a.hashCode()).isEqualTo(b.hashCode())
+    }
+
+    @Test
+    fun `themes from fromColorMap with same name but different colorMap are not equal`() {
+        val mapA = mapOf("hljs-keyword" to SpanStyle(color = Color.Blue))
+        val mapB = mapOf("hljs-keyword" to SpanStyle(color = Color.Red))
+        val a = HighlightTheme.fromColorMap(name = "dynamic", colorMap = mapA)
+        val b = HighlightTheme.fromColorMap(name = "dynamic", colorMap = mapB)
+        assertThat(a).isNotEqualTo(b)
+    }
+
+    @Test
     fun `toString contains the theme name`() {
         val theme = HighlightTheme.fromCss(sampleCss, "my-theme")
         assertThat(theme.toString()).contains("my-theme")
