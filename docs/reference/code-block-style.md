@@ -13,6 +13,8 @@ Visual style configuration for `SyntaxHighlightedCode`.
 | `lineNumberWidth` | `Dp` | `32.dp` | Width reserved for the line number gutter |
 | `copyButtonSize` | `Dp` | `32.dp` | Width and height of the copy button touch target |
 | `textStyle` | `TextStyle` | See below | Font family, size, line height for the code text |
+| `fallbackBackgroundColor` | `Color` | `Color(0xFF1E1E1E)` | Background color used when the active theme has no `.hljs { background: ... }` rule |
+| `fallbackTextColor` | `Color` | `Color(0xFFCCCCCC)` | Text color used when the active theme has no `.hljs { color: ... }` rule |
 
 The default `textStyle` is `SyntaxHighlightedCodeDefaults.codeTextStyle`: monospace font, 13 sp size, 20 sp line height.
 
@@ -102,6 +104,8 @@ Object providing default constants and helper composables.
 | `headerPadding` | Default header padding: `PaddingValues(horizontal=16.dp, vertical=8.dp)` |
 | `lineNumberWidth` | Default gutter width: `32.dp` |
 | `copyButtonSize` | Default copy button size: `32.dp` |
+| `fallbackBackgroundColor` | Default fallback background: `Color(0xFF1E1E1E)` (dark). Used when the active theme has no `.hljs { background }` rule |
+| `fallbackTextColor` | Default fallback text color: `Color(0xFFCCCCCC)` (light gray). Used when the active theme has no `.hljs { color }` rule |
 | `CopyButton(onClick, tint, contentDescription, size)` | Default copy button composable (renders `⧉` icon) |
 | `LanguageLabel(language, color, fontSize)` | Default language badge composable |
 

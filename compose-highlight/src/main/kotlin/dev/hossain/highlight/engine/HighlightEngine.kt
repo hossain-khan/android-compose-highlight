@@ -612,7 +612,11 @@ class HighlightEngine(
         }
     }
 
-    /** Releases the WebView resources and clears all internal caches (languages, version). */
+    /**
+     * Releases the WebView resources and clears all internal caches (languages, version).
+     *
+     * Idempotent - safe to call multiple times. Subsequent calls after the first are no-ops.
+     */
     fun destroy() {
         cachedLanguages = null
         cachedVersion = null
