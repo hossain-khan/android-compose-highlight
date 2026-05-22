@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Fixed
+- **`ThemeParser` - CSS4 `rgb()` space-separated syntax support** - `rgb(R G B)` and
+  `rgb(R G B / alpha)` (CSS Color Level 4) were silently ignored, causing color values in
+  modern hljs themes to fall back to `Color.Unspecified`. The parser now handles both the
+  legacy comma syntax (`rgb(R, G, B)`, `rgba(R, G, B, A)`) and the modern space/slash
+  syntax (`rgb(R G B)`, `rgb(R G B / A)`). Percentage channel values (e.g. `rgb(100% 0% 50%)`)
+  and percentage alpha (e.g. `rgb(100% 0% 50% / 50%)`) are also supported.
+
 ## [0.21.0] - 2026-05-22
 
 ### Changed (Breaking)

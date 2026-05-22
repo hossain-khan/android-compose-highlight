@@ -294,26 +294,67 @@ object ThemeParser {
             null
         }
 
-    private fun parseRgbColor(value: String): Color? =
-        try {
-            val nums = Regex("""\d*\.?\d+""").findAll(value).map { it.value }.toList()
-            when (nums.size) {
-                3 -> {
-                    Color(nums[0].toInt(), nums[1].toInt(), nums[2].toInt())
-                }
-
-                4 -> {
-                    val alpha = nums[3].toFloat()
-                    // CSS rgba alpha is 0.0–1.0; values > 1 are treated as 0–255
-                    val alphaInt = if (alpha <= 1.0f) (alpha * 255).roundToInt() else alpha.toInt()
-                    Color(nums[0].toInt(), nums[1].toInt(), nums[2].toInt(), alphaInt)
-                }
-
-                else -> {
-                    null
-                }
-            }
-        } catch (e: Exception) {
-            null
+    private fun parseRgbColor(value: String): Color? {
+        val inner = value.substringAfter("(").substringBefore(")").trim()
+        return if (inner.contains(",")) {
+            parseCommaSeparatedRgb(inner)
+        } else {
+            parseSpaceSeparatedRgb(inner)
         }
+    }
+
+    private fun parseCommaSeparatedRgb(inner: String): Color? {
+        val parts = inner.split(",").map { it.trim() }
+        return when (parts.size) {
+            3 -> colorFromRgbStrings(parts[0], parts[1], parts[2], alpha = null)
+            4 -> colorFromRgbStrings(parts[0], parts[1], parts[2], alpha = parts[3])
+            else -> null
+        }
+    }
+
+    private fun parseSpaceSeparatedRgb(inner: String): Color? {
+        return if (inner.contains("/")) {
+            val slashIdx = inner.indexOf("/")
+            val colorPart = inner.substring(0, slashIdx).trim()
+            val alphaPart = inner.substring(slashIdx + 1).trim()
+            val parts = colorPart.split(Regex("\\s+")).filter { it.isNotEmpty() }
+            if (parts.size != 3) return null
+            colorFromRgbStrings(parts[0], parts[1], parts[2], alpha = alphaPart)
+        } else {
+            val parts = inner.split(Regex("\\s+")).filter { it.isNotEmpty() }
+            if (parts.size != 3) return null
+            colorFromRgbStrings(parts[0], parts[1], parts[2], alpha = null)
+        }
+    }
+
+    private fun colorFromRgbStrings(
+        r: String,
+        g: String,
+        b: String,
+        alpha: String?,
+    ): Color? {
+        val red = parseRgbComponent(r) ?: return null
+        val green = parseRgbComponent(g) ?: return null
+        val blue = parseRgbComponent(b) ?: return null
+        val a = if (alpha != null) parseAlphaComponent(alpha) ?: return null else 255
+        return Color(red, green, blue, a)
+    }
+
+    private fun parseRgbComponent(value: String): Int? {
+        if (value.endsWith("%")) {
+            val pct = value.dropLast(1).toFloatOrNull() ?: return null
+            return (pct / 100f * 255).toInt().coerceIn(0, 255)
+        }
+        return value.toIntOrNull()?.coerceIn(0, 255)
+    }
+
+    private fun parseAlphaComponent(value: String): Int? {
+        if (value.endsWith("%")) {
+            val pct = value.dropLast(1).toFloatOrNull() ?: return null
+            return (pct / 100f * 255).toInt().coerceIn(0, 255)
+        }
+        val f = value.toFloatOrNull() ?: return null
+        // CSS alpha is 0.0-1.0; values > 1 are treated as 0-255 integer
+        return if (f <= 1.0f) (f * 255).roundToInt().coerceIn(0, 255) else f.toInt().coerceIn(0, 255)
+    }
 }

@@ -487,4 +487,83 @@ class ThemeParserTest {
         assertThat(result["hljs-title"]?.color).isEqualTo(Color(0xFF78BB65))
         assertThat(result["hljs-title"]?.fontWeight).isEqualTo(FontWeight.Bold)
     }
+
+    // ── CSS4 rgb() space-separated syntax ─────────────────────────────────────────────────────────
+
+    @Test
+    fun `parse handles CSS4 rgb space-separated without alpha`() {
+        val css = ".hljs-keyword { color: rgb(255 0 128) }"
+        val result = ThemeParser.parse(css)
+        assertThat(result["hljs-keyword"]?.color).isEqualTo(Color(255, 0, 128))
+    }
+
+    @Test
+    fun `parse handles CSS4 rgb space-separated with slash alpha float`() {
+        val css = ".hljs-keyword { color: rgb(255 0 128 / 0.5) }"
+        val result = ThemeParser.parse(css)
+        // 0.5 * 255 = 127.5, roundToInt = 128
+        assertThat(result["hljs-keyword"]?.color).isEqualTo(Color(255, 0, 128, 128))
+    }
+
+    @Test
+    fun `parse handles CSS4 rgba space-separated with slash alpha float`() {
+        // CSS4 allows rgba() with space-separated values just like rgb()
+        val css = ".hljs-comment { color: rgba(255 0 128 / 0.5) }"
+        val result = ThemeParser.parse(css)
+        assertThat(result["hljs-comment"]?.color).isEqualTo(Color(255, 0, 128, 128))
+    }
+
+    @Test
+    fun `parse handles CSS4 rgb with percentage channel values`() {
+        // 100% = 255, 0% = 0, 50% = 127
+        val css = ".hljs-string { color: rgb(100% 0% 50%) }"
+        val result = ThemeParser.parse(css)
+        assertThat(result["hljs-string"]?.color).isEqualTo(Color(255, 0, 127))
+    }
+
+    @Test
+    fun `parse handles CSS4 rgb with percentage channels and percentage alpha`() {
+        // 100%=255, 0%=0, 50%=127, alpha 50%=127
+        val css = ".hljs-string { color: rgb(100% 0% 50% / 50%) }"
+        val result = ThemeParser.parse(css)
+        assertThat(result["hljs-string"]?.color).isEqualTo(Color(255, 0, 127, 127))
+    }
+
+    @Test
+    fun `parse handles CSS4 rgb black edge case`() {
+        val css = ".hljs { color: rgb(0 0 0) }"
+        val result = ThemeParser.parse(css)
+        assertThat(result["hljs"]?.color).isEqualTo(Color(0, 0, 0))
+    }
+
+    @Test
+    fun `parse handles CSS4 rgb opaque white with slash alpha 1`() {
+        val css = ".hljs { color: rgb(255 255 255 / 1) }"
+        val result = ThemeParser.parse(css)
+        assertThat(result["hljs"]?.color).isEqualTo(Color(255, 255, 255, 255))
+    }
+
+    @Test
+    fun `parse handles CSS4 rgb transparent black with slash alpha 0`() {
+        val css = ".hljs { color: rgb(0 0 0 / 0) }"
+        val result = ThemeParser.parse(css)
+        assertThat(result["hljs"]?.color).isEqualTo(Color(0, 0, 0, 0))
+    }
+
+    @Test
+    fun `parse handles synthetic CSS4 hljs theme snippet with space-separated rgb`() {
+        // Synthetic snippet representative of a theme that adopted CSS Color Level 4 syntax
+        val css =
+            ".hljs{background:rgb(30 30 30);color:rgb(212 212 212)}" +
+                ".hljs-keyword{color:rgb(86 156 214)}" +
+                ".hljs-string{color:rgb(206 145 120)}" +
+                ".hljs-comment{color:rgb(106 153 85 / 0.8)}"
+        val result = ThemeParser.parse(css)
+        assertThat(result["hljs"]?.background).isEqualTo(Color(30, 30, 30))
+        assertThat(result["hljs"]?.color).isEqualTo(Color(212, 212, 212))
+        assertThat(result["hljs-keyword"]?.color).isEqualTo(Color(86, 156, 214))
+        assertThat(result["hljs-string"]?.color).isEqualTo(Color(206, 145, 120))
+        // 0.8 * 255 = 204
+        assertThat(result["hljs-comment"]?.color).isEqualTo(Color(106, 153, 85, 204))
+    }
 }
