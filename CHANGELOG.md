@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Fixed
+- **`HighlightTheme` - content-aware equality** - `equals()` and `hashCode()` previously
+  compared themes by `name` only, so two themes with the same name but different CSS content
+  were considered equal. This caused `LaunchedEffect(theme)` and `remember(theme)` in
+  `rememberHighlightedCode` to silently skip re-highlighting when switching between same-named
+  themes with different colors. Equality now includes a precomputed `contentIdentity` digest
+  derived from the effective theme content:
+  - `fromCss(cssText, name)` - identity uses a SHA-256-based digest of `cssText`
+  - `fromAsset(context, assetPath, name)` - identity uses a SHA-256-based digest of `assetPath`
+  - `fromColorMap(name, colorMap, ...)` - identity uses a SHA-256-based digest of the effective
+    color map after optional `.hljs` background/text overrides are applied
+  - Built-in factories (`tomorrow`, `tomorrowNight`, `atomOneDark`, `atomOneLight`) - identity
+    uses their fixed asset path
+
+  Two themes with the same name and the same content are still considered equal, preserving
+  memoization for the common case of re-creating the same theme across recompositions.
+
 - **`ThemeParser` - CSS4 `rgb()` space-separated syntax support** - `rgb(R G B)` and
   `rgb(R G B / alpha)` (CSS Color Level 4) were silently ignored, causing color values in
   modern hljs themes to fall back to `Color.Unspecified`. The parser now handles both the
