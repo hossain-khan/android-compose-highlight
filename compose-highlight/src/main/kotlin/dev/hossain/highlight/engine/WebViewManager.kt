@@ -102,37 +102,41 @@ internal class WebViewManager(
                     .build()
 
             val view =
-                WebView(context).apply {
-                    settings.javaScriptEnabled = true
-                    webViewClient =
-                        object : WebViewClient() {
-                            override fun shouldInterceptRequest(
-                                view: WebView,
-                                request: WebResourceRequest,
-                            ): WebResourceResponse? = assetLoader.shouldInterceptRequest(request.url)
+                try {
+                    WebView(context).apply {
+                        settings.javaScriptEnabled = true
+                        webViewClient =
+                            object : WebViewClient() {
+                                override fun shouldInterceptRequest(
+                                    view: WebView,
+                                    request: WebResourceRequest,
+                                ): WebResourceResponse? = assetLoader.shouldInterceptRequest(request.url)
 
-                            override fun onPageFinished(
-                                view: WebView,
-                                url: String,
-                            ) {
-                                // Guard against a race where destroy() ran while the page
-                                // was still loading: webView was set to null by destroy(),
-                                // and readyDeferred was replaced with a fresh instance.
-                                // Completing the captured (now-cancelled) deferred would
-                                // leave the new deferred permanently incomplete → hung engine.
-                                // Returning here lets the next initialize() call pick up
-                                // the fresh deferred and complete it normally.
-                                if (webView == null) return
-                                if (!deferred.isCompleted) {
-                                    deferred.complete(view)
-                                    _isInitialized.value = true
+                                override fun onPageFinished(
+                                    view: WebView,
+                                    url: String,
+                                ) {
+                                    // Guard against a race where destroy() ran while the page
+                                    // was still loading: webView was set to null by destroy(),
+                                    // and readyDeferred was replaced with a fresh instance.
+                                    // Completing the captured (now-cancelled) deferred would
+                                    // leave the new deferred permanently incomplete - hung engine.
+                                    // Returning here lets the next initialize() call pick up
+                                    // the fresh deferred and complete it normally.
+                                    if (webView == null) return
+                                    if (!deferred.isCompleted) {
+                                        deferred.complete(view)
+                                        _isInitialized.value = true
+                                    }
                                 }
                             }
-                        }
-                    // Serves local assets over https:// via WebViewAssetLoader — required for
-                    // Same-Origin Policy compliance so that highlight.min.js can execute.
-                    // https://developer.android.com/reference/androidx/webkit/WebViewAssetLoader
-                    loadUrl("https://appassets.androidplatform.net/assets/compose-highlight/bridge.html")
+                        // Serves local assets over https:// via WebViewAssetLoader - required for
+                        // Same-Origin Policy compliance so that highlight.min.js can execute.
+                        // https://developer.android.com/reference/androidx/webkit/WebViewAssetLoader
+                        loadUrl("https://appassets.androidplatform.net/assets/compose-highlight/bridge.html")
+                    }
+                } catch (e: Exception) {
+                    throw HighlightException.WebViewInitFailed(e)
                 }
 
             webView = view
