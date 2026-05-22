@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Fixed
+- **`WebViewManager` - WebView unavailability now surfaces as `WebViewInitFailed` not
+  `JsExecutionFailed`** - When WebView is not available on the device (Android Go, MDM-disabled,
+  mid-system-update), the `WebView(context)` constructor throws a `RuntimeException`. Previously
+  this raw exception bubbled through `withEngineErrorHandling` and was incorrectly wrapped as
+  `HighlightException.JsExecutionFailed`, making the real cause opaque to callers. The fix wraps
+  the entire WebView construction block in `WebViewManager.initialize()` with a targeted
+  `catch (e: Exception)` that rethrows as `HighlightException.WebViewInitFailed`. Additionally,
+  `HighlightEngine.initialize()` now adds a dedicated `catch (e: HighlightException)` branch to
+  preserve the already-typed exception and avoid double-wrapping it. Both `initialize()` and all
+  `highlight*()` methods now correctly return `Result.failure(WebViewInitFailed(...))` when
+  WebView is unavailable.
 - **`unescapeJsString` - surrogate pair handling for emoji and supplementary Unicode** -
   `unescapeJsString` decoded each `\uXXXX` sequence independently via `codePoint.toChar()`.
   Characters above U+FFFF (emoji, mathematical symbols, CJK Extension B, etc.) are encoded by

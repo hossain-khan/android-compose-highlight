@@ -63,9 +63,17 @@ import kotlin.time.measureTimedValue
  * }
  * ```
  *
+ * ## WebView requirement
+ *
+ * This library requires WebView to be installed and enabled on the device. When WebView is
+ * unavailable (e.g. Android Go devices, during a system WebView update, or when disabled by MDM
+ * policy), all highlight methods return [Result.failure] wrapping
+ * [HighlightException.WebViewInitFailed]. Check for this specific exception type to distinguish
+ * WebView availability issues from JavaScript errors.
+ *
  * ## Composable usage (lower-level)
  *
- * For most cases, prefer `SyntaxHighlightedCode` inside a `HighlightThemeProvider` — it handles
+ * For most cases, prefer `SyntaxHighlightedCode` inside a `HighlightThemeProvider` - it handles
  * the engine lifecycle automatically. Use [rememberHighlightEngine] directly only when you need
  * lower-level control, such as calling [highlightBothThemes] or building a custom UI.
  *
@@ -174,6 +182,8 @@ class HighlightEngine(
             Result.success(Unit)
         } catch (e: CancellationException) {
             throw e
+        } catch (e: HighlightException) {
+            Result.failure(e)
         } catch (e: Exception) {
             Result.failure(HighlightException.WebViewInitFailed(e))
         }
