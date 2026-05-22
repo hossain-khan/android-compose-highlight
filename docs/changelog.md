@@ -6,6 +6,14 @@ For release artifacts and APK downloads, see the [GitHub Releases page](https://
 
 ## Recent highlights
 
+### Unreleased (on main, not yet published)
+
+- CSS4 `rgb(R G B)` and `rgb(R G B / alpha)` space-separated syntax support in ThemeParser
+- `HighlightTheme` content-aware equality - `equals()`/`hashCode()` now includes content identity, not just name
+- `unescapeJsString` surrogate pair handling for emoji and supplementary Unicode characters
+- `escapeForJs` now escapes null bytes and control characters (U+0000-U+001F)
+- WebView unavailability now surfaces as `WebViewInitFailed` instead of `JsExecutionFailed`
+
 ### 0.21.0 - Slot parameter rename and fallback colors
 
 - `languageLabelContent` renamed to `languageLabel`; `copyButtonContent` renamed to `copyButton` (matches Material 3 slot naming conventions)
