@@ -652,21 +652,23 @@ class HighlightEngine(
                     }
                     // The result is a JSON-encoded string — strip surrounding quotes and unescape
                     val (html, jsonUnescapeDuration) = measureTimedValue { unescapeJsString(rawResult) }
-                    // Check if the JS bridge returned an error object from the try/catch in bridge.html
-                    if (html.startsWith("{\"error\":true")) {
+                    // Check if the JS bridge returned an error object from the try/catch in bridge.html.
+                    // highlightCode returns raw HTML on success; if the result starts with '{'
+                    // try to parse it as JSON to detect the { error: true, message: "..." } shape.
+                    if (html.startsWith("{")) {
                         try {
-                            val errorJson = org.json.JSONObject(html)
-                            continuation.resumeWithException(
-                                HighlightException.JsExecutionFailed(
-                                    RuntimeException("highlight.js error: ${errorJson.optString("message")}"),
-                                ),
-                            )
-                        } catch (e: Exception) {
-                            continuation.resumeWithException(
-                                HighlightException.JsExecutionFailed(RuntimeException("highlight.js error: $html")),
-                            )
+                            val maybeError = org.json.JSONObject(html)
+                            if (maybeError.optBoolean("error")) {
+                                continuation.resumeWithException(
+                                    HighlightException.JsExecutionFailed(
+                                        RuntimeException("highlight.js error: ${maybeError.optString("message")}"),
+                                    ),
+                                )
+                                return@evaluateJavascript
+                            }
+                        } catch (_: Exception) {
+                            // Not a JSON error object - treat as normal HTML
                         }
-                        return@evaluateJavascript
                     }
                     continuation.resume(Result.success(JsResult(html, jsBridgeDuration, jsonUnescapeDuration)))
                 }
