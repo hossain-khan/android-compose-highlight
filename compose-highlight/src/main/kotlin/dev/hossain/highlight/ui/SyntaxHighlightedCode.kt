@@ -47,6 +47,7 @@ import kotlinx.coroutines.launch
 // size from CodeBlockStyle.copyButtonSize, which cannot be referenced in a parameter
 // default value (Kotlin does not allow forward references to other parameters).
 private val DefaultCopyButtonSentinel: (@Composable (onClick: () -> Unit) -> Unit) = { }
+private val LineNumberGutterSpacing = 8.dp
 
 /**
  * Displays syntax-highlighted code in a styled block.
@@ -374,6 +375,11 @@ fun SyntaxHighlightedCode(
     }
 }
 
+/**
+ * Renders placeholder content using the same line-number gutter structure as [LineNumberedCode]
+ * so the loading state keeps identical horizontal layout and avoids gutter shift when highlighting
+ * finishes.
+ */
 @Composable
 private fun LineNumberedPlaceholder(
     code: String,
@@ -392,7 +398,7 @@ private fun LineNumberedPlaceholder(
             modifier = Modifier.width(style.lineNumberWidth),
             textAlign = TextAlign.End,
         )
-        Spacer(modifier = Modifier.width(8.dp))
+        Spacer(modifier = Modifier.width(LineNumberGutterSpacing))
         Box {
             placeholder()
         }
@@ -422,7 +428,7 @@ private fun LineNumberedCode(
             modifier = Modifier.width(style.lineNumberWidth),
             textAlign = TextAlign.End,
         )
-        Spacer(modifier = Modifier.width(8.dp))
+        Spacer(modifier = Modifier.width(LineNumberGutterSpacing))
         // Code text
         if (highlighted != null) {
             Text(text = highlighted, style = codeTextStyle)

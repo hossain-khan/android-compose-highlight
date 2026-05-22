@@ -27,6 +27,13 @@ class SyntaxHighlightedCodeTest {
     private val context = InstrumentationRegistry.getInstrumentation().targetContext
     private val sampleCode = "def hello():\n    print('world')"
 
+    /** Returns whether the loading placeholder text is currently present in the semantics tree. */
+    private fun isPlaceholderVisible(): Boolean =
+        composeTestRule
+            .onAllNodesWithText("loading-placeholder", useUnmergedTree = true)
+            .fetchSemanticsNodes()
+            .isNotEmpty()
+
     @Test
     fun composableRendersWithoutCrash() {
         composeTestRule.setContent {
@@ -190,11 +197,7 @@ class SyntaxHighlightedCodeTest {
             }
         }
         composeTestRule.waitUntil(timeoutMillis = 10_000L) {
-            val isVisible =
-                composeTestRule
-                    .onAllNodesWithText("loading-placeholder", useUnmergedTree = true)
-                    .fetchSemanticsNodes()
-                    .isNotEmpty()
+            val isVisible = isPlaceholderVisible()
             if (isVisible) {
                 placeholderVisibleInTree = true
             }
@@ -209,7 +212,7 @@ class SyntaxHighlightedCodeTest {
     @Test
     fun placeholderDisappearsAfterHighlightCompletes() {
         var capturedResult: dev.hossain.highlight.engine.HighlightResult? = null
-        var placeholderVisibleBeforeCompletion = false
+        var sawPlaceholderDuringLoading = false
 
         composeTestRule.setContent {
             HighlightThemeProvider(
@@ -228,22 +231,18 @@ class SyntaxHighlightedCodeTest {
         }
 
         composeTestRule.waitUntil(timeoutMillis = 10_000L) {
-            val placeholderVisible =
-                composeTestRule
-                    .onAllNodesWithText("loading-placeholder", useUnmergedTree = true)
-                    .fetchSemanticsNodes()
-                    .isNotEmpty()
+            val placeholderVisible = isPlaceholderVisible()
             if (placeholderVisible && capturedResult == null) {
-                placeholderVisibleBeforeCompletion = true
+                sawPlaceholderDuringLoading = true
             }
-            placeholderVisibleBeforeCompletion
+            sawPlaceholderDuringLoading
         }
 
         // Wait until highlighting is done
         composeTestRule.waitUntil(timeoutMillis = 10_000L) { capturedResult != null }
         composeTestRule.waitForIdle()
 
-        assertThat(placeholderVisibleBeforeCompletion).isTrue()
+        assertThat(sawPlaceholderDuringLoading).isTrue()
         // Placeholder must be gone after highlighting completes
         composeTestRule.onNodeWithText("loading-placeholder", useUnmergedTree = true).assertDoesNotExist()
     }
