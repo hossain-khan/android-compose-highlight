@@ -9,14 +9,14 @@ All notable changes to this project will be documented in this file.
   compared themes by [name] only, so two themes with the same name but different CSS content
   were considered equal. This caused `LaunchedEffect(theme)` and `remember(theme)` in
   `rememberHighlightedCode` to silently skip re-highlighting when switching between same-named
-  themes with different colors. Equality now includes a `contentIdentity` hash derived from the
-  CSS text, asset path, or color map supplied at construction time:
-  - `fromCss(cssText, name)` - identity derived from `cssText`
-  - `fromAsset(context, assetPath, name)` - identity derived from `assetPath`
-  - `fromColorMap(name, colorMap, ...)` - identity derived from `colorMap`, `backgroundColor`,
+  themes with different colors. Equality now includes a `contentIdentity` derived from the
+  CSS text, asset path, or color map inputs supplied at construction time:
+  - `fromCss(cssText, name)` - identity uses full `cssText`
+  - `fromAsset(context, assetPath, name)` - identity uses full `assetPath`
+  - `fromColorMap(name, colorMap, ...)` - identity uses `colorMap`, `backgroundColor`,
     and `defaultTextColor`
   - Built-in factories (`tomorrow`, `tomorrowNight`, `atomOneDark`, `atomOneLight`) - identity
-    derived from their fixed asset path
+    uses their fixed asset path
 
   Two themes with the same name and the same content are still considered equal, preserving
   memoization for the common case of re-creating the same theme across recompositions.

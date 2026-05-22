@@ -79,7 +79,7 @@ import kotlin.time.measureTimedValue
  * ## Theme identity
  *
  * Two `HighlightTheme` instances are equal when they share the same [name] **and** the same
- * content identity (a hash derived from the CSS text, asset path, or color map used to create
+ * content identity (derived from the CSS text, asset path, or color map used to create
  * the theme). This means Compose APIs (`remember`, `LaunchedEffect`, `key`) correctly detect
  * theme changes even when two themes share the same name but carry different color content.
  *
@@ -100,7 +100,7 @@ import kotlin.time.measureTimedValue
 class HighlightTheme private constructor(
     val name: String,
     private val colorMapProvider: () -> Map<String, SpanStyle>,
-    private val contentIdentity: Int,
+    private val contentIdentity: Any,
 ) {
     /** Lazily-parsed map of hljs class names → [SpanStyle]. Cached forever. */
     private val colorMapLazy = lazy { colorMapProvider() }
@@ -169,7 +169,7 @@ class HighlightTheme private constructor(
             name == other.name &&
             contentIdentity == other.contentIdentity
 
-    override fun hashCode(): Int = 31 * name.hashCode() + contentIdentity
+    override fun hashCode(): Int = 31 * name.hashCode() + contentIdentity.hashCode()
 
     override fun toString(): String = "HighlightTheme(name=$name)"
 
@@ -189,7 +189,7 @@ class HighlightTheme private constructor(
             return HighlightTheme(
                 name = "tomorrow",
                 colorMapProvider = { ThemeParser.parseAsset(appContext, assetPath) },
-                contentIdentity = assetPath.hashCode(),
+                contentIdentity = assetPath,
             )
         }
 
@@ -208,7 +208,7 @@ class HighlightTheme private constructor(
             return HighlightTheme(
                 name = "tomorrow-night",
                 colorMapProvider = { ThemeParser.parseAsset(appContext, assetPath) },
-                contentIdentity = assetPath.hashCode(),
+                contentIdentity = assetPath,
             )
         }
 
@@ -227,7 +227,7 @@ class HighlightTheme private constructor(
             return HighlightTheme(
                 name = "atom-one-dark",
                 colorMapProvider = { ThemeParser.parseAsset(appContext, assetPath) },
-                contentIdentity = assetPath.hashCode(),
+                contentIdentity = assetPath,
             )
         }
 
@@ -246,7 +246,7 @@ class HighlightTheme private constructor(
             return HighlightTheme(
                 name = "atom-one-light",
                 colorMapProvider = { ThemeParser.parseAsset(appContext, assetPath) },
-                contentIdentity = assetPath.hashCode(),
+                contentIdentity = assetPath,
             )
         }
 
@@ -293,7 +293,7 @@ class HighlightTheme private constructor(
                     if (map.isEmpty()) throw HighlightException.ThemeNotFound(assetPath)
                     map
                 },
-                contentIdentity = assetPath.hashCode(),
+                contentIdentity = assetPath,
             )
         }
 
@@ -321,7 +321,7 @@ class HighlightTheme private constructor(
             HighlightTheme(
                 name = name,
                 colorMapProvider = { ThemeParser.parse(cssText) },
-                contentIdentity = cssText.hashCode(),
+                contentIdentity = cssText,
             )
 
         /**
@@ -363,10 +363,7 @@ class HighlightTheme private constructor(
         ): HighlightTheme {
             // Defensively copy so later mutations to the caller's map don't affect the theme.
             val immutableMap = colorMap.toMap()
-            // Compute identity from all inputs that determine rendered output.
-            var contentHash = immutableMap.hashCode()
-            contentHash = 31 * contentHash + (backgroundColor?.hashCode() ?: 0)
-            contentHash = 31 * contentHash + (defaultTextColor?.hashCode() ?: 0)
+            val contentIdentity = ColorMapIdentity(immutableMap, backgroundColor, defaultTextColor)
             return if (backgroundColor != null || defaultTextColor != null) {
                 HighlightTheme(
                     name = name,
@@ -380,11 +377,21 @@ class HighlightTheme private constructor(
                             )
                         base
                     },
-                    contentIdentity = contentHash,
+                    contentIdentity = contentIdentity,
                 )
             } else {
-                HighlightTheme(name = name, colorMapProvider = { immutableMap }, contentIdentity = contentHash)
+                HighlightTheme(
+                    name = name,
+                    colorMapProvider = { immutableMap },
+                    contentIdentity = contentIdentity,
+                )
             }
         }
     }
 }
+
+private data class ColorMapIdentity(
+    val colorMap: Map<String, SpanStyle>,
+    val backgroundColor: Color?,
+    val defaultTextColor: Color?,
+)
