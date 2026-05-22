@@ -331,8 +331,17 @@ fun SyntaxHighlightedCode(
                 val shouldShowPlaceholder = highlighted == null && placeholderContent != null && !highlightFailed
                 if (shouldShowPlaceholder) {
                     SelectionContainer {
-                        Box(modifier = Modifier.padding(style.padding)) {
-                            placeholderContent(code)
+                        if (showLineNumbers) {
+                            LineNumberedPlaceholder(
+                                code = code,
+                                lineNumTextStyle = themedLineNumStyle,
+                                style = style,
+                                placeholder = { placeholderContent(code) },
+                            )
+                        } else {
+                            Box(modifier = Modifier.padding(style.padding)) {
+                                placeholderContent(code)
+                            }
                         }
                     }
                 } else {
@@ -361,6 +370,31 @@ fun SyntaxHighlightedCode(
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun LineNumberedPlaceholder(
+    code: String,
+    lineNumTextStyle: TextStyle,
+    style: CodeBlockStyle,
+    placeholder: @Composable () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val lineCount = remember(code) { code.lines().size }
+    val lineNumbers = remember(lineCount) { (1..lineCount).joinToString("\n") }
+
+    Row(modifier = modifier.padding(style.padding)) {
+        Text(
+            text = lineNumbers,
+            style = lineNumTextStyle,
+            modifier = Modifier.width(style.lineNumberWidth),
+            textAlign = TextAlign.End,
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        Box {
+            placeholder()
         }
     }
 }

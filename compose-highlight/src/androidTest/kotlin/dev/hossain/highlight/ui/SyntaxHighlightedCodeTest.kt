@@ -6,6 +6,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -175,6 +176,7 @@ class SyntaxHighlightedCodeTest {
     @Test
     fun placeholderIsShownDuringLoading() {
         var placeholderComposed = false
+        var placeholderVisibleInTree = false
         composeTestRule.setContent {
             HighlightThemeProvider {
                 SyntaxHighlightedCode(
@@ -187,15 +189,27 @@ class SyntaxHighlightedCodeTest {
                 )
             }
         }
-        composeTestRule.waitUntil(timeoutMillis = 10_000L) { placeholderComposed }
+        composeTestRule.waitUntil(timeoutMillis = 10_000L) {
+            val isVisible =
+                composeTestRule
+                    .onAllNodesWithText("loading-placeholder", useUnmergedTree = true)
+                    .fetchSemanticsNodes()
+                    .isNotEmpty()
+            if (isVisible) {
+                placeholderVisibleInTree = true
+            }
+            placeholderComposed && placeholderVisibleInTree
+        }
         composeTestRule.runOnIdle {
             assertThat(placeholderComposed).isTrue()
+            assertThat(placeholderVisibleInTree).isTrue()
         }
     }
 
     @Test
     fun placeholderDisappearsAfterHighlightCompletes() {
         var capturedResult: dev.hossain.highlight.engine.HighlightResult? = null
+        var placeholderVisibleBeforeCompletion = false
 
         composeTestRule.setContent {
             HighlightThemeProvider(
@@ -213,10 +227,23 @@ class SyntaxHighlightedCodeTest {
             }
         }
 
+        composeTestRule.waitUntil(timeoutMillis = 10_000L) {
+            val placeholderVisible =
+                composeTestRule
+                    .onAllNodesWithText("loading-placeholder", useUnmergedTree = true)
+                    .fetchSemanticsNodes()
+                    .isNotEmpty()
+            if (placeholderVisible && capturedResult == null) {
+                placeholderVisibleBeforeCompletion = true
+            }
+            placeholderVisibleBeforeCompletion
+        }
+
         // Wait until highlighting is done
         composeTestRule.waitUntil(timeoutMillis = 10_000L) { capturedResult != null }
         composeTestRule.waitForIdle()
 
+        assertThat(placeholderVisibleBeforeCompletion).isTrue()
         // Placeholder must be gone after highlighting completes
         composeTestRule.onNodeWithText("loading-placeholder", useUnmergedTree = true).assertDoesNotExist()
     }
