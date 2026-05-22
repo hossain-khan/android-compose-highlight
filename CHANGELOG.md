@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.21.0] - 2026-05-22
+
 ### Changed (Breaking)
 - **`SyntaxHighlightedCode` slot parameter rename** - `languageLabelContent` renamed to
   `languageLabel` and `copyButtonContent` renamed to `copyButton` to match Material 3 naming
