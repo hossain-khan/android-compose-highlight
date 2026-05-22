@@ -28,7 +28,7 @@ import dev.hossain.highlight.ui.SyntaxHighlightedCodeDefaults
  * Demonstrates every [SyntaxHighlightedCode] visibility option:
  * - `languageLabel` - default, null (hidden), and rich custom slot
  * - `copyButton` - default, null (hidden), and custom vector icon
- * - `showLineNumbers` x `languageLabel` (2x2)
+ * - `showLineNumbers` × `languageLabel` (2×2)
  */
 @Composable
 internal fun TogglesSection() {
