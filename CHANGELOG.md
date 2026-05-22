@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Fixed
+- **`escapeForJs` - null byte and control character escaping** - `escapeForJs` did not escape
+  null bytes (U+0000) or control characters U+0001-U+001F (excluding `\n`, `\r`, `\t`). A null
+  byte could silently truncate the JS string inside the WebView V8 engine, producing incorrect or
+  partial highlight output with no error signal. ANSI escape codes (U+001B) from terminal output
+  were passed through unescaped. All control characters are now escaped as `\uXXXX` sequences,
+  and tab (`\t`, U+0009) is now explicitly escaped as `\\t`.
 - **`HighlightTheme` - content-aware equality** - `equals()` and `hashCode()` previously
   compared themes by `name` only, so two themes with the same name but different CSS content
   were considered equal. This caused `LaunchedEffect(theme)` and `remember(theme)` in

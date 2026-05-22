@@ -886,12 +886,18 @@ internal fun unescapeJsString(jsonString: String): String {
  * 2. `'` → `\'`
  * 3. `\n` (LF, U+000A) → `\n`
  * 4. `\r` (CR, U+000D) → `\r`
- * 5. U+2028 (Line Separator) → `\u2028` (pre-ES2019 JS treats this as a line terminator)
- * 6. U+2029 (Paragraph Separator) → `\u2029` (pre-ES2019 JS treats this as a line terminator)
+ * 5. `\t` (HT, U+0009) → `\t`
+ * 6. U+2028 (Line Separator) → `\u2028` (pre-ES2019 JS treats this as a line terminator)
+ * 7. U+2029 (Paragraph Separator) → `\u2029` (pre-ES2019 JS treats this as a line terminator)
+ * 8. Remaining control characters U+0000-U+001F (null byte, ANSI escapes, etc.) → `\uXXXX`
  *
- * Steps 5–6 are required for compatibility with WebView on pre-Android 10 devices (pre-ES2019
+ * Steps 6-7 are required for compatibility with WebView on pre-Android 10 devices (pre-ES2019
  * V8). Without these escapes, a string containing U+2028 or U+2029 would produce an unterminated
  * string literal in the JS engine, resulting in a [HighlightException.JsExecutionFailed].
+ *
+ * Step 8 prevents silent string corruption: the null byte (U+0000) can cause V8 to truncate
+ * the string at that position, and ANSI escape codes (U+001B) common in terminal output are
+ * explicitly escaped to avoid interaction with the highlight.js parser.
  */
 internal fun escapeForJs(str: String): String =
     str
@@ -899,8 +905,16 @@ internal fun escapeForJs(str: String): String =
         .replace("'", "\\'")
         .replace("\n", "\\n")
         .replace("\r", "\\r")
+        .replace("\t", "\\t")
         .replace("\u2028", "\\u2028")
         .replace("\u2029", "\\u2029")
+        .replace(CONTROL_CHAR_REGEX) { match ->
+            "\\u${match.value[0].code.toString(16).padStart(4, '0')}"
+        }
+
+// Matches control characters U+0000-U+001F except \t (U+0009), \n (U+000A), \r (U+000D)
+// which are already handled by explicit replacements above.
+private val CONTROL_CHAR_REGEX = Regex("[\u0000-\u0008\u000B\u000C\u000E-\u001F]")
 
 /**
  * Holds both light and dark [AnnotatedString] results from a single highlight call.
