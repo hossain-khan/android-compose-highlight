@@ -114,7 +114,7 @@ import dev.hossain.highlight.ui.SyntaxHighlightedCodeDefaults
 SyntaxHighlightedCode(
     code = snippet,
     language = "kotlin",
-    copyButtonContent = { onClick ->
+    copyButton = { onClick ->
         SyntaxHighlightedCodeDefaults.CopyButton(
             onClick            = onClick,
             contentDescription = stringResource(R.string.copy_code_label),
@@ -134,7 +134,7 @@ var showLabel by remember { mutableStateOf(true) }
 SyntaxHighlightedCode(
     code = snippet,
     language = "kotlin",
-    languageLabelContent = if (showLabel) {
+    languageLabel = if (showLabel) {
         { SyntaxHighlightedCodeDefaults.LanguageLabel("kotlin") }
     } else null,
 )

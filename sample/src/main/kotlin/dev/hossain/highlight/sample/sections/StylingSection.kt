@@ -96,7 +96,7 @@ internal fun StylingSection(
         modifier = Modifier.fillMaxWidth(),
         style = style,
         showLineNumbers = showLineNumbers,
-        languageLabelContent =
+        languageLabel =
             if (!showLanguageLabel) {
                 null
             } else if (useCustomLanguageLabel) {
@@ -117,7 +117,7 @@ internal fun StylingSection(
             } else {
                 { SyntaxHighlightedCodeDefaults.LanguageLabel("kotlin") }
             },
-        copyButtonContent =
+        copyButton =
             if (!showCopyButton) {
                 null
             } else if (useCustomCopyIcon) {

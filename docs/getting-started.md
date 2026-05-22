@@ -94,8 +94,8 @@ import dev.hossain.highlight.ui.SyntaxHighlightedCode
 SyntaxHighlightedCode(
     code                 = snippet,
     language             = "kotlin",
-    languageLabelContent = null,  // hide language badge
-    copyButtonContent    = null,  // hide copy button
+    languageLabel = null,  // hide language badge
+    copyButton    = null,  // hide copy button
 )
 ```
 

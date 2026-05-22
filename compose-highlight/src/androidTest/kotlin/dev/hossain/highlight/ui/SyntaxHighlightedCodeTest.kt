@@ -71,7 +71,7 @@ class SyntaxHighlightedCodeTest {
                 SyntaxHighlightedCode(
                     code = "val x = 1",
                     language = "kotlin",
-                    languageLabelContent = null,
+                    languageLabel = null,
                 )
             }
         }
