@@ -35,16 +35,17 @@ All notable changes to this project will be documented in this file.
   explicit keywords `bold` and `normal` continue to work as before.
 
 - **`bridge.html` hljs error handling** - `highlightCode`, `highlightAuto`, and `getLanguage` are
-  now wrapped in `try/catch`. On a JS-level error (e.g. deeply nested template literals, regex edge
-  cases) the functions return `{ error: true, message: "..." }` instead of throwing. `HighlightEngine`
-  detects this JSON shape and surfaces a `HighlightException.JsExecutionFailed` with the actual
+  now wrapped in `try/catch`. `highlightCode` and `highlightAuto` now return a consistent JSON envelope
+  (`{ error: false, html: ... }` on success and `{ error: true, message: ... }` on failure), and
+  `getLanguage` returns either language JSON, `null`, or the same error envelope. `HighlightEngine`
+  parses these responses and surfaces `HighlightException.JsExecutionFailed` with the actual
   JavaScript error message, replacing the previous opaque `"JS returned null"` error.
 
-- **`HighlightTheme.timedColorMap()` race condition** - `colorMapInitialized` was a `@Volatile var`
-  that is not atomically paired with the `lazy` delegate. Under concurrent access two threads could
-  both observe `false`, both run `measureTimedValue`, and both report a non-zero `themeParse`
-  duration. Replaced with `AtomicBoolean` and `compareAndSet` so exactly one concurrent caller
-  reports the real parse duration; all other callers report `Duration.ZERO`.
+- **`HighlightTheme.timedColorMap()` race and attribution fix** - `timedColorMap()` now uses
+  `AtomicBoolean.compareAndSet` around `measureTimedValue` so at most one concurrent caller reports
+  non-zero parse time. If `colorMap` was initialized earlier via incidental access
+  (`backgroundColor` or `defaultTextColor`), `timedColorMap()` now returns `Duration.ZERO` to keep
+  `HighlightTimings.themeParse` attributed only to first-call work performed by `HighlightEngine`.
 
 - `placeholder: (@Composable (code: String) -> Unit)? = null` parameter added to
   `SyntaxHighlightedCode`. When provided, the placeholder composable is rendered while async

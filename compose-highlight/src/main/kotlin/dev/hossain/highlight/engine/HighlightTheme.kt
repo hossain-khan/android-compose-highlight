@@ -5,9 +5,7 @@ import androidx.compose.runtime.Stable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.SpanStyle
 import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.atomic.AtomicLong
 import kotlin.time.Duration
-import kotlin.time.Duration.Companion.nanoseconds
 import kotlin.time.measureTimedValue
 
 /**
@@ -93,11 +91,9 @@ class HighlightTheme private constructor(
     private val colorMapProvider: () -> Map<String, SpanStyle>,
 ) {
     /** Lazily-parsed map of hljs class names → [SpanStyle]. Cached forever. */
-    val colorMap: Map<String, SpanStyle> by lazy {
-        val (map, duration) = measureTimedValue { colorMapProvider() }
-        initialColorMapParseDurationNanos.compareAndSet(UNSET_DURATION_NANOS, duration.inWholeNanoseconds)
-        map
-    }
+    private val colorMapLazy = lazy { colorMapProvider() }
+    val colorMap: Map<String, SpanStyle>
+        get() = colorMapLazy.value
 
     /**
      * Tracks whether [colorMap] has been initialized (lazy block has run).
@@ -107,7 +103,6 @@ class HighlightTheme private constructor(
      * caller reports the real parse duration; all others report [Duration.ZERO].
      */
     private val colorMapInitialized = AtomicBoolean(false)
-    private val initialColorMapParseDurationNanos = AtomicLong(UNSET_DURATION_NANOS)
 
     /**
      * Returns [colorMap] together with the time taken to initialize it.
@@ -126,16 +121,19 @@ class HighlightTheme private constructor(
         if (colorMapInitialized.get()) {
             colorMap to Duration.ZERO
         } else {
-            val map = colorMap
-            // Only the first thread to flip the flag from false to true reports the first parse duration.
-            val reportedDuration =
+            // Preserve attribution semantics: if any non-engine path initialized colorMap first,
+            // do not attribute parse time to HighlightEngine.
+            if (colorMapLazy.isInitialized()) {
+                colorMapInitialized.compareAndSet(false, true)
+                colorMap to Duration.ZERO
+            } else {
+                val (map, duration) = measureTimedValue { colorMapLazy.value }
                 if (colorMapInitialized.compareAndSet(false, true)) {
-                    val nanos = initialColorMapParseDurationNanos.getAndSet(UNSET_DURATION_NANOS)
-                    if (nanos == UNSET_DURATION_NANOS) Duration.ZERO else nanos.nanoseconds
+                    map to duration
                 } else {
-                    Duration.ZERO
+                    map to Duration.ZERO
                 }
-            map to reportedDuration
+            }
         }
 
     /** Background color from the `.hljs` CSS rule. Unspecified if not present in theme. */
@@ -156,8 +154,6 @@ class HighlightTheme private constructor(
     override fun toString(): String = "HighlightTheme(name=$name)"
 
     companion object {
-        private const val UNSET_DURATION_NANOS = Long.MIN_VALUE
-
         /**
          * Built-in Base16 Tomorrow light theme.
          *

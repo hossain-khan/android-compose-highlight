@@ -11,7 +11,7 @@ function highlightCode(code, lang) {
     block.className = lang;
     delete block.dataset.highlighted;
     hljs.highlightElement(block);
-    return block.innerHTML;
+    return JSON.stringify({ error: false, html: block.innerHTML });
   } catch(e) {
     return JSON.stringify({ error: true, message: e.message || String(e) });
   }

@@ -659,27 +659,31 @@ class HighlightEngine(
                         )
                         return@evaluateJavascript
                     }
-                    // The result is a JSON-encoded string - strip surrounding quotes and unescape
-                    val (html, jsonUnescapeDuration) = measureTimedValue { unescapeJsString(rawResult) }
-                    // Check if the JS bridge returned an error object from the try/catch in bridge.html.
-                    // highlightCode returns raw HTML on success; if the result starts with '{"error":true'
-                    // parse it as JSON to detect the { error: true, message: "..." } shape.
-                    if (html.startsWith("{\"error\":true")) {
-                        try {
-                            val maybeError = org.json.JSONObject(html)
-                            if (maybeError.optBoolean("error")) {
-                                continuation.resumeWithException(
-                                    HighlightException.JsExecutionFailed(
-                                        RuntimeException("highlight.js error: ${maybeError.optString("message")}"),
-                                    ),
-                                )
-                                return@evaluateJavascript
-                            }
-                        } catch (_: Exception) {
-                            // Not a JSON error object - treat as normal HTML
+                    try {
+                        // The result is a JSON-encoded string - strip surrounding quotes and unescape
+                        val (jsonString, jsonUnescapeDuration) =
+                            measureTimedValue { unescapeJsString(rawResult) }
+                        val json = org.json.JSONObject(jsonString)
+                        if (json.optBoolean("error")) {
+                            continuation.resumeWithException(
+                                HighlightException.JsExecutionFailed(
+                                    RuntimeException("highlight.js error: ${json.optString("message")}"),
+                                ),
+                            )
+                            return@evaluateJavascript
                         }
+                        continuation.resume(
+                            Result.success(
+                                JsResult(
+                                    html = json.getString("html"),
+                                    jsBridgeDuration = jsBridgeDuration,
+                                    jsonUnescapeDuration = jsonUnescapeDuration,
+                                ),
+                            ),
+                        )
+                    } catch (e: Exception) {
+                        continuation.resumeWithException(HighlightException.JsExecutionFailed(e))
                     }
-                    continuation.resume(Result.success(JsResult(html, jsBridgeDuration, jsonUnescapeDuration)))
                 }
             }
         }

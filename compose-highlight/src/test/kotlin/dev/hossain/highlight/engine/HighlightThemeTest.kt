@@ -255,4 +255,15 @@ class HighlightThemeTest {
             assertThat(duration).isEqualTo(Duration.ZERO)
         }
     }
+
+    @Test
+    fun `timedColorMap returns Duration ZERO when colorMap was initialized incidentally`() {
+        val theme = HighlightTheme.fromCss(sampleCss, "incidental-init")
+        // Simulate incidental access from UI composition before HighlightEngine calls timedColorMap().
+        theme.backgroundColor
+
+        val (_, duration) = theme.timedColorMap()
+
+        assertThat(duration).isEqualTo(Duration.ZERO)
+    }
 }
