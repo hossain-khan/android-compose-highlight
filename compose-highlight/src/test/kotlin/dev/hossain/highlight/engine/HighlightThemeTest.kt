@@ -158,10 +158,18 @@ class HighlightThemeTest {
     // ── equals / hashCode / toString ─────────────────────────────────────────
 
     @Test
-    fun `themes with same name are equal`() {
+    fun `themes with same name and same CSS are equal`() {
         val a = HighlightTheme.fromCss(sampleCss, "same")
-        val b = HighlightTheme.fromColorMap("same", emptyMap())
+        val b = HighlightTheme.fromCss(sampleCss, "same")
         assertThat(a).isEqualTo(b)
+    }
+
+    @Test
+    fun `themes with same name but different CSS are not equal`() {
+        val otherCss = ".hljs{color:#ff0000;background:#000000}"
+        val a = HighlightTheme.fromCss(sampleCss, "my-theme")
+        val b = HighlightTheme.fromCss(otherCss, "my-theme")
+        assertThat(a).isNotEqualTo(b)
     }
 
     @Test
@@ -172,10 +180,18 @@ class HighlightThemeTest {
     }
 
     @Test
-    fun `themes with same name have same hashCode`() {
+    fun `themes with same name and same CSS have same hashCode`() {
         val a = HighlightTheme.fromCss(sampleCss, "same")
-        val b = HighlightTheme.fromColorMap("same", emptyMap())
+        val b = HighlightTheme.fromCss(sampleCss, "same")
         assertThat(a.hashCode()).isEqualTo(b.hashCode())
+    }
+
+    @Test
+    fun `themes with same name but different CSS have different hashCodes`() {
+        val otherCss = ".hljs{color:#ff0000;background:#000000}"
+        val a = HighlightTheme.fromCss(sampleCss, "my-theme")
+        val b = HighlightTheme.fromCss(otherCss, "my-theme")
+        assertThat(a.hashCode()).isNotEqualTo(b.hashCode())
     }
 
     @Test

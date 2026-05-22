@@ -78,17 +78,29 @@ import kotlin.time.measureTimedValue
  *
  * ## Theme identity
  *
- * `HighlightTheme` uses [name] as its identity for `equals()` and `hashCode()`. This means
- * Compose APIs (`remember`, `LaunchedEffect`, `key`) correctly detect theme changes by name.
- * **Names must be unique** — do not create two themes with different content but the same name.
+ * Two `HighlightTheme` instances are equal when they share the same [name] **and** the same
+ * content identity (a hash derived from the CSS text, asset path, or color map used to create
+ * the theme). This means Compose APIs (`remember`, `LaunchedEffect`, `key`) correctly detect
+ * theme changes even when two themes share the same name but carry different color content.
  *
- * @property name Unique display name for this theme. Used by [equals] and [hashCode] — two themes
- *   with the same [name] are considered equal regardless of their color maps.
+ * ```kotlin
+ * val light = HighlightTheme.fromCss(lightCss, "custom")
+ * val dark  = HighlightTheme.fromCss(darkCss,  "custom")
+ * light == dark  // false - same name but different CSS content
+ *
+ * val a = HighlightTheme.fromCss(css, "custom")
+ * val b = HighlightTheme.fromCss(css, "custom")
+ * a == b         // true  - same name and same CSS content
+ * ```
+ *
+ * @property name Display name for this theme. Used together with content identity by [equals]
+ *   and [hashCode].
  */
 @Stable
 class HighlightTheme private constructor(
     val name: String,
     private val colorMapProvider: () -> Map<String, SpanStyle>,
+    private val contentIdentity: Int,
 ) {
     /** Lazily-parsed map of hljs class names → [SpanStyle]. Cached forever. */
     private val colorMapLazy = lazy { colorMapProvider() }
@@ -146,10 +158,15 @@ class HighlightTheme private constructor(
         colorMap["hljs"]?.color?.takeIf { it != Color.Unspecified } ?: Color.Unspecified
     }
 
-    /** Two themes are equal when they have the same [name]. Names must be unique per theme. */
-    override fun equals(other: Any?): Boolean = other is HighlightTheme && name == other.name
+    /**
+     * Two themes are equal when they have the same [name] **and** the same content identity.
+     * This ensures that themes sharing a name but carrying different CSS or color-map content
+     * are treated as distinct, so Compose recomposition keys (`remember`, `LaunchedEffect`)
+     * correctly trigger a re-highlight when the theme content changes.
+     */
+    override fun equals(other: Any?): Boolean = other is HighlightTheme && name == other.name && contentIdentity == other.contentIdentity
 
-    override fun hashCode(): Int = name.hashCode()
+    override fun hashCode(): Int = 31 * name.hashCode() + contentIdentity
 
     override fun toString(): String = "HighlightTheme(name=$name)"
 
@@ -165,9 +182,11 @@ class HighlightTheme private constructor(
          */
         fun tomorrow(context: Context): HighlightTheme {
             val appContext = context.applicationContext
+            val assetPath = "compose-highlight/themes/tomorrow.css"
             return HighlightTheme(
                 name = "tomorrow",
-                colorMapProvider = { ThemeParser.parseAsset(appContext, "compose-highlight/themes/tomorrow.css") },
+                colorMapProvider = { ThemeParser.parseAsset(appContext, assetPath) },
+                contentIdentity = assetPath.hashCode(),
             )
         }
 
@@ -182,9 +201,11 @@ class HighlightTheme private constructor(
          */
         fun tomorrowNight(context: Context): HighlightTheme {
             val appContext = context.applicationContext
+            val assetPath = "compose-highlight/themes/tomorrow-night.css"
             return HighlightTheme(
                 name = "tomorrow-night",
-                colorMapProvider = { ThemeParser.parseAsset(appContext, "compose-highlight/themes/tomorrow-night.css") },
+                colorMapProvider = { ThemeParser.parseAsset(appContext, assetPath) },
+                contentIdentity = assetPath.hashCode(),
             )
         }
 
@@ -199,9 +220,11 @@ class HighlightTheme private constructor(
          */
         fun atomOneDark(context: Context): HighlightTheme {
             val appContext = context.applicationContext
+            val assetPath = "compose-highlight/themes/atom-one-dark.css"
             return HighlightTheme(
                 name = "atom-one-dark",
-                colorMapProvider = { ThemeParser.parseAsset(appContext, "compose-highlight/themes/atom-one-dark.css") },
+                colorMapProvider = { ThemeParser.parseAsset(appContext, assetPath) },
+                contentIdentity = assetPath.hashCode(),
             )
         }
 
@@ -216,9 +239,11 @@ class HighlightTheme private constructor(
          */
         fun atomOneLight(context: Context): HighlightTheme {
             val appContext = context.applicationContext
+            val assetPath = "compose-highlight/themes/atom-one-light.css"
             return HighlightTheme(
                 name = "atom-one-light",
-                colorMapProvider = { ThemeParser.parseAsset(appContext, "compose-highlight/themes/atom-one-light.css") },
+                colorMapProvider = { ThemeParser.parseAsset(appContext, assetPath) },
+                contentIdentity = assetPath.hashCode(),
             )
         }
 
@@ -265,6 +290,7 @@ class HighlightTheme private constructor(
                     if (map.isEmpty()) throw HighlightException.ThemeNotFound(assetPath)
                     map
                 },
+                contentIdentity = assetPath.hashCode(),
             )
         }
 
@@ -292,6 +318,7 @@ class HighlightTheme private constructor(
             HighlightTheme(
                 name = name,
                 colorMapProvider = { ThemeParser.parse(cssText) },
+                contentIdentity = cssText.hashCode(),
             )
 
         /**
@@ -333,6 +360,10 @@ class HighlightTheme private constructor(
         ): HighlightTheme {
             // Defensively copy so later mutations to the caller's map don't affect the theme.
             val immutableMap = colorMap.toMap()
+            // Compute identity from all inputs that determine rendered output.
+            var contentHash = immutableMap.hashCode()
+            contentHash = 31 * contentHash + (backgroundColor?.hashCode() ?: 0)
+            contentHash = 31 * contentHash + (defaultTextColor?.hashCode() ?: 0)
             return if (backgroundColor != null || defaultTextColor != null) {
                 HighlightTheme(
                     name = name,
@@ -346,9 +377,10 @@ class HighlightTheme private constructor(
                             )
                         base
                     },
+                    contentIdentity = contentHash,
                 )
             } else {
-                HighlightTheme(name = name, colorMapProvider = { immutableMap })
+                HighlightTheme(name = name, colorMapProvider = { immutableMap }, contentIdentity = contentHash)
             }
         }
     }
