@@ -26,6 +26,7 @@ nav = [
       "reference/code-block-style.md",
       "reference/highlight-theme.md",
       "reference/highlight-engine.md",
+      "reference/highlight-language.md",
   ]},
   { "Guides" = [
       "guides/theming.md",
@@ -33,6 +34,7 @@ nav = [
       "guides/line-numbers.md",
       "guides/performance.md",
       "guides/engine-only.md",
+      "guides/language-selection.md",
   ]},
   { "Changelog" = "changelog.md" },
   { "Dokka API Docs" = "https://hossain-khan.github.io/android-compose-highlight/api/" },

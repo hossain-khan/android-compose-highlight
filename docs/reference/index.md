@@ -11,8 +11,12 @@ This section documents the public API of `compose-highlight`.
 | [`HighlightTheme`](highlight-theme.md) | Theme model backed by a Highlight.js CSS file |
 | [`HighlightEngine`](highlight-engine.md) | Lower-level engine for custom highlighting pipelines |
 | [`HighlightLanguage`](highlight-language.md) | Maps file extensions to Highlight.js language identifiers |
-| [`HighlightLanguageInfo`](highlight-engine.md#highlightlanguageinfo) | Metadata returned by `HighlightEngine.getLanguage()` |
+| [`HighlightResult`](highlight-engine.md#highlightresult) | Result of `HighlightEngine.highlight()` - annotated string, span count, timing |
+| [`ThemedHighlightResult`](highlight-engine.md#themedhighlightresult) | Result of `HighlightEngine.highlightBothThemes()` - light and dark variants |
 | [`AutoHighlightResult`](highlight-engine.md#autohighlightresult) | Result type returned by `HighlightEngine.highlightAuto()` |
+| [`HighlightTimings`](../guides/performance.md#timing-callbacks) | Per-stage timing breakdown (`jsBridge`, `jsonUnescape`, `htmlParse`, `treeWalk`, `themeParse`, `total`) |
+| [`HighlightLanguageInfo`](highlight-engine.md#highlightlanguageinfo) | Metadata returned by `HighlightEngine.getLanguage()` |
+| [`HighlightException`](highlight-engine.md) | Sealed exception hierarchy for all engine errors |
 | `rememberHighlightedCode` | Composable helper - highlights code and returns an `AnnotatedString` state |
 | `rememberHighlightedCodeBothThemes` | Highlights once, produces light + dark variants |
 | `rememberHighlightEngine` | Returns the shared or standalone `HighlightEngine` for the current composition |
