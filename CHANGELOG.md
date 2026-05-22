@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Fixed
+- **`unescapeJsString` - surrogate pair handling for emoji and supplementary Unicode** -
+  `unescapeJsString` decoded each `\uXXXX` sequence independently via `codePoint.toChar()`.
+  Characters above U+FFFF (emoji, mathematical symbols, CJK Extension B, etc.) are encoded by
+  `evaluateJavascript` as UTF-16 surrogate pairs - two consecutive `\uXXXX` sequences. The old
+  code emitted two lone surrogate `Char` values, which Android text rendering (Skia/HarfBuzz)
+  treats as invalid and renders as replacement characters (U+FFFD) or drops silently. Source code
+  containing emoji in comments or string literals (`// TODO: fix this 🐛`) was silently corrupted
+  in the highlighted output. The `'u'` branch now detects a high surrogate (U+D800-U+DBFF)
+  followed by a low surrogate `\uXXXX` (U+DC00-U+DFFF) and combines them into the correct
+  supplementary code point via `appendCodePoint`. Lone surrogates without a valid pair are still
+  emitted as-is (best effort, no crash).
+
 - **`escapeForJs` - null byte and control character escaping** - `escapeForJs` did not escape
   null bytes (U+0000) or control characters U+0001-U+001F (excluding `\n`, `\r`, `\t`). A null
   byte could silently truncate the JS string inside the WebView V8 engine, producing incorrect or

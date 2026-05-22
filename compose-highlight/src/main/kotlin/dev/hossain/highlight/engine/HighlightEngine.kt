@@ -802,6 +802,11 @@ internal suspend fun <T> withHtmlParsingErrorHandling(block: suspend () -> Resul
  * [String.replace] calls cannot handle correctly (the `\\` and `\n` replacements interfere).
  *
  * Supported escape sequences: `\"`, `\\`, `\/`, `\n`, `\r`, `\t`, `\uXXXX`.
+ *
+ * UTF-16 surrogate pairs (two consecutive `\uXXXX` sequences where the first is a high surrogate
+ * U+D800-U+DBFF and the second is a low surrogate U+DC00-U+DFFF) are combined into a single
+ * supplementary code point. This is required to correctly decode emoji and other characters above
+ * U+FFFF that `evaluateJavascript` encodes as surrogate pairs.
  */
 internal fun unescapeJsString(jsonString: String): String {
     // Strip surrounding double quotes if present
@@ -848,13 +853,36 @@ internal fun unescapeJsString(jsonString: String): String {
                 }
 
                 'u' -> {
-                    // \uXXXX — exactly 4 hex digits required
+                    // \uXXXX - exactly 4 hex digits required
                     if (i + 5 < inner.length) {
                         val hex = inner.substring(i + 2, i + 6)
                         val codePoint = hex.toIntOrNull(16)
                         if (codePoint != null) {
-                            sb.append(codePoint.toChar())
-                            i += 6
+                            // Check for a UTF-16 surrogate pair: high surrogate followed by \uXXXX low surrogate.
+                            // Characters above U+FFFF (e.g. emoji) are encoded by evaluateJavascript as two
+                            // consecutive \uXXXX sequences representing the UTF-16 surrogate pair.
+                            if (codePoint in 0xD800..0xDBFF &&
+                                i + 11 < inner.length &&
+                                inner[i + 6] == '\\' &&
+                                inner[i + 7] == 'u'
+                            ) {
+                                val lowHex = inner.substring(i + 8, i + 12)
+                                val lowSurrogate = lowHex.toIntOrNull(16)
+                                if (lowSurrogate != null && lowSurrogate in 0xDC00..0xDFFF) {
+                                    // Combine the surrogate pair into a single supplementary code point.
+                                    val supplementary =
+                                        Character.toCodePoint(codePoint.toChar(), lowSurrogate.toChar())
+                                    sb.appendCodePoint(supplementary)
+                                    i += 12 // skip both \uXXXX sequences
+                                } else {
+                                    // Not a valid low surrogate - emit the high surrogate as-is (best effort).
+                                    sb.append(codePoint.toChar())
+                                    i += 6
+                                }
+                            } else {
+                                sb.append(codePoint.toChar())
+                                i += 6
+                            }
                         } else {
                             sb.append(c)
                             i++
