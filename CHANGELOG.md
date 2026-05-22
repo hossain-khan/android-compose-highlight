@@ -9,7 +9,8 @@ All notable changes to this project will be documented in this file.
   and `fallbackTextColor: Color` (default `Color(0xFFCCCCCC)`). These are used by
   `SyntaxHighlightedCode` when the active theme's CSS has no `.hljs { background: ... }` or
   `.hljs { color: ... }` rule. Previously the fallback values were hardcoded inline; they are now
-  configurable via `CodeBlockStyle` while keeping the same defaults for backward compatibility.
+  configurable via `CodeBlockStyle`. This changes the public `CodeBlockStyle` data class constructor
+  signature and is binary-incompatible for already compiled consumers.
 
   ```kotlin
   // Light fallback for a custom light-only theme that has no .hljs base rule

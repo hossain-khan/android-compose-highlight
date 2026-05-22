@@ -5,7 +5,9 @@ import androidx.compose.runtime.Stable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.SpanStyle
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicLong
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.nanoseconds
 import kotlin.time.measureTimedValue
 
 /**
@@ -91,7 +93,11 @@ class HighlightTheme private constructor(
     private val colorMapProvider: () -> Map<String, SpanStyle>,
 ) {
     /** Lazily-parsed map of hljs class names → [SpanStyle]. Cached forever. */
-    val colorMap: Map<String, SpanStyle> by lazy { colorMapProvider() }
+    val colorMap: Map<String, SpanStyle> by lazy {
+        val (map, duration) = measureTimedValue { colorMapProvider() }
+        initialColorMapParseDurationNanos.compareAndSet(UNSET_DURATION_NANOS, duration.inWholeNanoseconds)
+        map
+    }
 
     /**
      * Tracks whether [colorMap] has been initialized (lazy block has run).
@@ -101,6 +107,7 @@ class HighlightTheme private constructor(
      * caller reports the real parse duration; all others report [Duration.ZERO].
      */
     private val colorMapInitialized = AtomicBoolean(false)
+    private val initialColorMapParseDurationNanos = AtomicLong(UNSET_DURATION_NANOS)
 
     /**
      * Returns [colorMap] together with the time taken to initialize it.
@@ -109,9 +116,8 @@ class HighlightTheme private constructor(
      * only attributed to an actual highlight call, not to incidental accesses of
      * [colorMap], [backgroundColor], or [defaultTextColor] from other callers.
      *
-     * On the first call the CSS provider runs inside [measureTimedValue] and the
-     * real parse duration is returned. On all subsequent calls the cached map is
-     * returned with [Duration.ZERO].
+     * On the first call the initial parse duration is returned. On all subsequent calls
+     * the cached map is returned with [Duration.ZERO].
      *
      * Under concurrent access [AtomicBoolean.compareAndSet] ensures exactly one caller
      * reports a non-zero duration; all racing callers report [Duration.ZERO].
@@ -120,9 +126,15 @@ class HighlightTheme private constructor(
         if (colorMapInitialized.get()) {
             colorMap to Duration.ZERO
         } else {
-            val (map, duration) = measureTimedValue { colorMap }
-            // Only the first thread to flip the flag from false to true reports the real duration.
-            val reportedDuration = if (colorMapInitialized.compareAndSet(false, true)) duration else Duration.ZERO
+            val map = colorMap
+            // Only the first thread to flip the flag from false to true reports the first parse duration.
+            val reportedDuration =
+                if (colorMapInitialized.compareAndSet(false, true)) {
+                    val nanos = initialColorMapParseDurationNanos.getAndSet(UNSET_DURATION_NANOS)
+                    if (nanos == UNSET_DURATION_NANOS) Duration.ZERO else nanos.nanoseconds
+                } else {
+                    Duration.ZERO
+                }
             map to reportedDuration
         }
 
@@ -144,6 +156,8 @@ class HighlightTheme private constructor(
     override fun toString(): String = "HighlightTheme(name=$name)"
 
     companion object {
+        private const val UNSET_DURATION_NANOS = Long.MIN_VALUE
+
         /**
          * Built-in Base16 Tomorrow light theme.
          *

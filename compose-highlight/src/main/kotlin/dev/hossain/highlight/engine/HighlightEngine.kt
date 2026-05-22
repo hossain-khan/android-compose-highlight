@@ -514,6 +514,14 @@ class HighlightEngine(
                                 }
                                 try {
                                     val json = org.json.JSONObject(unescapeJsString(rawResult))
+                                    if (json.optBoolean("error")) {
+                                        continuation.resumeWithException(
+                                            HighlightException.JsExecutionFailed(
+                                                RuntimeException("highlight.js error: ${json.optString("message")}"),
+                                            ),
+                                        )
+                                        return@evaluateJavascript
+                                    }
                                     val aliasesJson = json.optJSONArray("aliases")
                                     val aliases =
                                         buildList {
@@ -625,7 +633,7 @@ class HighlightEngine(
      *
      * String escaping is delegated to [escapeForJs]; see that function for the full escape order.
      *
-     * The JS callback returns a JSON-encoded string — parsed by [unescapeJsString].
+     * The JS callback returns a JSON-encoded string - parsed by [unescapeJsString].
      * Returns a [JsResult] containing the HTML, the JS bridge round-trip duration, and the
      * JSON unescape duration.
      */
@@ -644,18 +652,19 @@ class HighlightEngine(
                 val jsStart = TimeSource.Monotonic.markNow()
                 webView.evaluateJavascript(js) { rawResult ->
                     val jsBridgeDuration = jsStart.elapsedNow()
+                    if (!continuation.isActive) return@evaluateJavascript
                     if (rawResult == null || rawResult == "null") {
                         continuation.resumeWithException(
                             HighlightException.JsExecutionFailed(RuntimeException("JS returned null")),
                         )
                         return@evaluateJavascript
                     }
-                    // The result is a JSON-encoded string — strip surrounding quotes and unescape
+                    // The result is a JSON-encoded string - strip surrounding quotes and unescape
                     val (html, jsonUnescapeDuration) = measureTimedValue { unescapeJsString(rawResult) }
                     // Check if the JS bridge returned an error object from the try/catch in bridge.html.
-                    // highlightCode returns raw HTML on success; if the result starts with '{'
-                    // try to parse it as JSON to detect the { error: true, message: "..." } shape.
-                    if (html.startsWith("{")) {
+                    // highlightCode returns raw HTML on success; if the result starts with '{"error":true'
+                    // parse it as JSON to detect the { error: true, message: "..." } shape.
+                    if (html.startsWith("{\"error\":true")) {
                         try {
                             val maybeError = org.json.JSONObject(html)
                             if (maybeError.optBoolean("error")) {
