@@ -257,7 +257,7 @@ fun SampleScreen() {
                                         modifier = Modifier.fillMaxWidth(),
                                         showLineNumbers = sample.language == "python",
                                         onCopyClick = onCopyClick,
-                                        copyButtonContent = { onClick ->
+                                        copyButton = { onClick ->
                                             SyntaxHighlightedCodeDefaults.CopyButton(
                                                 onClick = onClick,
                                                 contentDescription = "Copy code",

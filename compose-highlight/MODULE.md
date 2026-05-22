@@ -160,7 +160,7 @@ SyntaxHighlightedCode(
     code     = snippet,
     language = "json",
     style    = compact,
-    copyButtonContent = null,   // hide the copy button
+    copyButton = null,   // hide the copy button
 )
 ```
 

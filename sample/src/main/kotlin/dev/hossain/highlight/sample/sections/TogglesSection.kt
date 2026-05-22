@@ -26,16 +26,16 @@ import dev.hossain.highlight.ui.SyntaxHighlightedCodeDefaults
 
 /**
  * Demonstrates every [SyntaxHighlightedCode] visibility option:
- * - `languageLabelContent` - default, null (hidden), and rich custom slot
- * - `copyButtonContent` - default, null (hidden), and custom vector icon
- * - `showLineNumbers` × `languageLabelContent` (2×2)
+ * - `languageLabel` - default, null (hidden), and rich custom slot
+ * - `copyButton` - default, null (hidden), and custom vector icon
+ * - `showLineNumbers` x `languageLabel` (2x2)
  */
 @Composable
 internal fun TogglesSection() {
     Column(
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        SubSectionHeader("languageLabelContent - rich custom label")
+        SubSectionHeader("languageLabel - rich custom label")
         androidx.compose.material3.Text(
             text = "The slot accepts any @Composable - here is an example with a custom label, icon, and metadata badge.",
             style =
@@ -46,7 +46,7 @@ internal fun TogglesSection() {
             code = KOTLIN_SNIPPET,
             language = "kotlin",
             modifier = Modifier.fillMaxWidth(),
-            languageLabelContent = {
+            languageLabel = {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(4.dp),
@@ -73,12 +73,12 @@ internal fun TogglesSection() {
 
         HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
 
-        SubSectionHeader("copyButtonContent - custom vector icon")
+        SubSectionHeader("copyButton - custom vector icon")
         SyntaxHighlightedCode(
             code = KOTLIN_SNIPPET,
             language = "kotlin",
             modifier = Modifier.fillMaxWidth(),
-            copyButtonContent = { onClick ->
+            copyButton = { onClick ->
                 androidx.compose.material3.IconButton(onClick = onClick) {
                     Icon(
                         imageVector = ImageVector.vectorResource(R.drawable.content_copy_24dp),
@@ -91,7 +91,7 @@ internal fun TogglesSection() {
 
         HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
 
-        SubSectionHeader("showLineNumbers=false, languageLabelContent=default")
+        SubSectionHeader("showLineNumbers=false, languageLabel=default")
         SyntaxHighlightedCode(
             code = PYTHON_SNIPPET,
             language = "python",
@@ -99,7 +99,7 @@ internal fun TogglesSection() {
             showLineNumbers = false,
         )
 
-        SubSectionHeader("showLineNumbers=true, languageLabelContent=default")
+        SubSectionHeader("showLineNumbers=true, languageLabel=default")
         SyntaxHighlightedCode(
             code = PYTHON_SNIPPET,
             language = "python",
@@ -107,50 +107,50 @@ internal fun TogglesSection() {
             showLineNumbers = true,
         )
 
-        SubSectionHeader("showLineNumbers=false, languageLabelContent=null (hidden)")
+        SubSectionHeader("showLineNumbers=false, languageLabel=null (hidden)")
         SyntaxHighlightedCode(
             code = PYTHON_SNIPPET,
             language = "python",
             modifier = Modifier.fillMaxWidth(),
             showLineNumbers = false,
-            languageLabelContent = null,
+            languageLabel = null,
         )
 
-        SubSectionHeader("showLineNumbers=true, languageLabelContent=null (hidden)")
+        SubSectionHeader("showLineNumbers=true, languageLabel=null (hidden)")
         SyntaxHighlightedCode(
             code = PYTHON_SNIPPET,
             language = "python",
             modifier = Modifier.fillMaxWidth(),
             showLineNumbers = true,
-            languageLabelContent = null,
+            languageLabel = null,
         )
 
         HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
 
-        SubSectionHeader("copyButtonContent=default")
+        SubSectionHeader("copyButton=default")
         SyntaxHighlightedCode(
             code = KOTLIN_SNIPPET,
             language = "kotlin",
             modifier = Modifier.fillMaxWidth(),
         )
 
-        SubSectionHeader("copyButtonContent=null (hidden)")
+        SubSectionHeader("copyButton=null (hidden)")
         SyntaxHighlightedCode(
             code = KOTLIN_SNIPPET,
             language = "kotlin",
             modifier = Modifier.fillMaxWidth(),
-            copyButtonContent = null,
+            copyButton = null,
         )
 
         HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
 
-        SubSectionHeader("languageLabelContent=null + copyButtonContent=null (header row hidden)")
+        SubSectionHeader("languageLabel=null + copyButton=null (header row hidden)")
         SyntaxHighlightedCode(
             code = KOTLIN_SNIPPET,
             language = "kotlin",
             modifier = Modifier.fillMaxWidth(),
-            languageLabelContent = null,
-            copyButtonContent = null,
+            languageLabel = null,
+            copyButton = null,
         )
     }
 }
