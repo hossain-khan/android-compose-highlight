@@ -19,7 +19,6 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -276,9 +275,6 @@ fun SyntaxHighlightedCode(
 
     val latestOnError = rememberUpdatedState(onError)
     var highlightFailed by remember(code, language, theme) { mutableStateOf(false) }
-    LaunchedEffect(code, language, theme) {
-        highlightFailed = false
-    }
     val highlightedState =
         rememberHighlightedCode(
             code = code,
@@ -330,32 +326,37 @@ fun SyntaxHighlightedCode(
 
             // Code content with horizontal scroll
             Box(modifier = Modifier.horizontalScroll(rememberScrollState())) {
-                AnimatedContent(
-                    targetState = highlightedState.value,
-                    transitionSpec = { fadeIn() togetherWith fadeOut() },
-                    label = "syntax-highlight-fade",
-                ) { highlighted ->
-                    val placeholderContent = placeholder
-                    val shouldShowPlaceholder = highlighted == null && placeholderContent != null && !highlightFailed
+                val highlighted = highlightedState.value
+                val placeholderContent = placeholder
+                val shouldShowPlaceholder = highlighted == null && placeholderContent != null && !highlightFailed
+                if (shouldShowPlaceholder) {
                     SelectionContainer {
-                        if (shouldShowPlaceholder) {
-                            Box(modifier = Modifier.padding(style.padding)) {
-                                placeholderContent(code)
+                        Box(modifier = Modifier.padding(style.padding)) {
+                            placeholderContent(code)
+                        }
+                    }
+                } else {
+                    AnimatedContent(
+                        targetState = highlighted,
+                        transitionSpec = { fadeIn() togetherWith fadeOut() },
+                        label = "syntax-highlight-fade",
+                    ) { animatedHighlighted ->
+                        SelectionContainer {
+                            if (showLineNumbers) {
+                                LineNumberedCode(
+                                    code = code,
+                                    highlighted = animatedHighlighted,
+                                    codeTextStyle = themedCodeStyle,
+                                    lineNumTextStyle = themedLineNumStyle,
+                                    style = style,
+                                )
+                            } else {
+                                Text(
+                                    text = animatedHighlighted ?: AnnotatedString(code),
+                                    modifier = Modifier.padding(style.padding),
+                                    style = themedCodeStyle,
+                                )
                             }
-                        } else if (showLineNumbers) {
-                            LineNumberedCode(
-                                code = code,
-                                highlighted = highlighted,
-                                codeTextStyle = themedCodeStyle,
-                                lineNumTextStyle = themedLineNumStyle,
-                                style = style,
-                            )
-                        } else {
-                            Text(
-                                text = highlighted ?: AnnotatedString(code),
-                                modifier = Modifier.padding(style.padding),
-                                style = themedCodeStyle,
-                            )
                         }
                     }
                 }
