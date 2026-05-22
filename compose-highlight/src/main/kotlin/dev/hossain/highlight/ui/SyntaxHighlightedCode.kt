@@ -42,7 +42,7 @@ import dev.hossain.highlight.engine.HighlightResult
 import dev.hossain.highlight.engine.HighlightTheme
 import kotlinx.coroutines.launch
 
-// Sentinel used to detect when the caller did not supply a custom copyButtonContent.
+// Sentinel used to detect when the caller did not supply a custom copyButton.
 // This allows the composable body to resolve the default CopyButton with the correct
 // size from CodeBlockStyle.copyButtonSize, which cannot be referenced in a parameter
 // default value (Kotlin does not allow forward references to other parameters).
@@ -90,7 +90,7 @@ private val LineNumberGutterSpacing = 8.dp
  * SyntaxHighlightedCode(
  *     code = snippet,
  *     language = "kotlin",
- *     copyButtonContent = { onClick ->
+ *     copyButton = { onClick ->
  *         IconButton(onClick = onClick) {
  *             Icon(
  *                 imageVector = ImageVector.vectorResource(R.drawable.content_copy_24dp),
@@ -107,8 +107,8 @@ private val LineNumberGutterSpacing = 8.dp
  * SyntaxHighlightedCode(
  *     code = jsonSnippet,
  *     language = "json",
- *     languageLabelContent = null,   // hide the language badge
- *     copyButtonContent    = null,   // hide the copy button
+ *     languageLabel = null,   // hide the language badge
+ *     copyButton    = null,   // hide the copy button
  * )
  * ```
  *
@@ -138,18 +138,18 @@ private val LineNumberGutterSpacing = 8.dp
  *   Use [CodeBlockStyle.textStyle] to override typography (font family, size, line height).
  *   See [SyntaxHighlightedCodeDefaults] for the default values.
  * @param showLineNumbers Whether to show a line-number gutter on the left.
- * @param languageLabelContent Optional composable content for the language badge in the header.
+ * @param languageLabel Optional composable content for the language badge in the header.
  *   `null` hides the badge entirely. The default shows [language] in a dimmed style derived from
  *   the active theme. Renders inside a [Surface] whose [LocalContentColor] is the theme foreground
- *   — use `LocalContentColor.current` inside your slot to inherit it automatically.
+ *   - use `LocalContentColor.current` inside your slot to inherit it automatically.
  *   Use [SyntaxHighlightedCodeDefaults.LanguageLabel] as a starting point for customisation.
  *   Wrap your lambda in `remember` if it captures an unstable value.
- * @param copyButtonContent Optional composable slot for the copy button in the header. `null`
+ * @param copyButton Optional composable slot for the copy button in the header. `null`
  *   hides the button entirely. The slot receives an `onClick` action pre-wired to copy [code] to
- *   the system clipboard (or call [onCopyClick] if provided) — pass it to your button's `onClick`.
+ *   the system clipboard (or call [onCopyClick] if provided) - pass it to your button's `onClick`.
  *   The default uses [SyntaxHighlightedCodeDefaults.CopyButton].
  *   ```kotlin
- *   copyButtonContent = { onClick ->
+ *   copyButton = { onClick ->
  *       TextButton(onClick = onClick) { Text("Copy") }
  *   }
  *   ```
@@ -201,7 +201,7 @@ fun SyntaxHighlightedCode(
     theme: HighlightTheme = LocalHighlightTheme.current,
     style: CodeBlockStyle = CodeBlockStyle.Default,
     showLineNumbers: Boolean = false,
-    languageLabelContent: (@Composable () -> Unit)? =
+    languageLabel: (@Composable () -> Unit)? =
         if (language.isNotBlank()) {
             {
                 SyntaxHighlightedCodeDefaults.LanguageLabel(
@@ -214,7 +214,7 @@ fun SyntaxHighlightedCode(
         } else {
             null
         },
-    copyButtonContent: (@Composable (onClick: () -> Unit) -> Unit)? = DefaultCopyButtonSentinel,
+    copyButton: (@Composable (onClick: () -> Unit) -> Unit)? = DefaultCopyButtonSentinel,
     onCopyClick: ((String) -> Unit)? = null,
     onHighlightComplete: ((HighlightResult) -> Unit)? = null,
     onError: ((HighlightException) -> Unit)? = null,
@@ -247,12 +247,12 @@ fun SyntaxHighlightedCode(
     // property actually takes effect.
     val effectiveCopyButton: (@Composable (onClick: () -> Unit) -> Unit)? =
         when {
-            copyButtonContent === DefaultCopyButtonSentinel -> {
+            copyButton === DefaultCopyButtonSentinel -> {
                 { onClick -> SyntaxHighlightedCodeDefaults.CopyButton(onClick = onClick, size = style.copyButtonSize) }
             }
 
             else -> {
-                copyButtonContent
+                copyButton
             }
         }
     // In Android Studio Preview, WebView cannot be created. Render a themed fallback
@@ -298,7 +298,7 @@ fun SyntaxHighlightedCode(
     ) {
         Column {
             // Header: language badge + copy button
-            if (languageLabelContent != null || effectiveCopyButton != null) {
+            if (languageLabel != null || effectiveCopyButton != null) {
                 Row(
                     modifier =
                         Modifier
@@ -306,7 +306,7 @@ fun SyntaxHighlightedCode(
                             .padding(style.headerPadding),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    languageLabelContent?.invoke()
+                    languageLabel?.invoke()
                     Spacer(modifier = Modifier.weight(1f))
                     if (effectiveCopyButton != null) {
                         effectiveCopyButton {

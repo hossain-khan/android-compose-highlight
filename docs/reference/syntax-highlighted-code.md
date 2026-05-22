@@ -19,8 +19,8 @@ fun SyntaxHighlightedCode(
     theme: HighlightTheme = LocalHighlightTheme.current,
     style: CodeBlockStyle = CodeBlockStyle.Default,
     showLineNumbers: Boolean = false,
-    languageLabelContent: (@Composable () -> Unit)? = /* default badge */,
-    copyButtonContent: (@Composable (onClick: () -> Unit) -> Unit)? = /* default button */,
+    languageLabel: (@Composable () -> Unit)? = /* default badge */,
+    copyButton: (@Composable (onClick: () -> Unit) -> Unit)? = /* default button */,
     onCopyClick: ((String) -> Unit)? = null,
     onHighlightComplete: ((HighlightResult) -> Unit)? = null,
     onError: ((HighlightException) -> Unit)? = null,
@@ -38,8 +38,8 @@ fun SyntaxHighlightedCode(
 | `theme` | `HighlightTheme` | `LocalHighlightTheme.current` | Theme to use. Throws if no `HighlightThemeProvider` is present and no explicit theme is passed |
 | `style` | `CodeBlockStyle` | `CodeBlockStyle.Default` | Visual style - shape, padding, font, copy button size |
 | `showLineNumbers` | `Boolean` | `false` | Whether to show a line-number gutter |
-| `languageLabelContent` | `(@Composable () -> Unit)?` | Default badge | Header language badge slot. `null` hides it |
-| `copyButtonContent` | `(@Composable (onClick: () -> Unit) -> Unit)?` | Default button | Header copy button slot. `null` hides it |
+| `languageLabel` | `(@Composable () -> Unit)?` | Default badge | Header language badge slot. `null` hides it |
+| `copyButton` | `(@Composable (onClick: () -> Unit) -> Unit)?` | Default button | Header copy button slot. `null` hides it |
 | `onCopyClick` | `((String) -> Unit)?` | `null` | Custom copy handler. If `null`, copies to system clipboard |
 | `onHighlightComplete` | `((HighlightResult) -> Unit)?` | `null` | Callback invoked with timing and span count after successful highlighting |
 | `onError` | `((HighlightException) -> Unit)?` | `null` | Callback invoked when highlighting fails. Falls back to plain text; purely observational |
@@ -88,8 +88,8 @@ import dev.hossain.highlight.ui.SyntaxHighlightedCode
 SyntaxHighlightedCode(
     code                 = snippet,
     language             = "json",
-    languageLabelContent = null,  // hide language badge
-    copyButtonContent    = null,  // hide copy button
+    languageLabel = null,  // hide language badge
+    copyButton    = null,  // hide copy button
 )
 ```
 
@@ -101,7 +101,7 @@ import dev.hossain.highlight.ui.SyntaxHighlightedCode
 SyntaxHighlightedCode(
     code = snippet,
     language = "kotlin",
-    copyButtonContent = { onClick ->
+    copyButton = { onClick ->
         IconButton(onClick = onClick) {
             Icon(Icons.Default.ContentCopy, contentDescription = "Copy")
         }
@@ -117,7 +117,7 @@ import dev.hossain.highlight.ui.SyntaxHighlightedCode
 SyntaxHighlightedCode(
     code = snippet,
     language = "kotlin",
-    languageLabelContent = {
+    languageLabel = {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(Icons.Default.Star, contentDescription = null, modifier = Modifier.size(12.dp))
             Spacer(Modifier.width(4.dp))

@@ -10,7 +10,7 @@ import dev.hossain.highlight.ui.SyntaxHighlightedCode
 SyntaxHighlightedCode(
     code     = snippet,
     language = "kotlin",
-    languageLabelContent = {
+    languageLabel = {
         Text(
             text     = "Kotlin",
             color    = Color.White,
@@ -28,7 +28,7 @@ Pass `null` to hide the label entirely:
 ```kotlin
 import dev.hossain.highlight.ui.SyntaxHighlightedCode
 
-SyntaxHighlightedCode(code = snippet, language = "kotlin", languageLabelContent = null)
+SyntaxHighlightedCode(code = snippet, language = "kotlin", languageLabel = null)
 ```
 
 ## Copy button
@@ -41,7 +41,7 @@ import dev.hossain.highlight.ui.SyntaxHighlightedCode
 SyntaxHighlightedCode(
     code     = snippet,
     language = "kotlin",
-    copyButtonContent = { onClick ->
+    copyButton = { onClick ->
         IconButton(onClick = onClick) {
             Icon(Icons.Default.ContentCopy, contentDescription = "Copy code")
         }
@@ -54,7 +54,7 @@ SyntaxHighlightedCode(
 ```kotlin
 import dev.hossain.highlight.ui.SyntaxHighlightedCode
 
-SyntaxHighlightedCode(code = snippet, language = "kotlin", copyButtonContent = null)
+SyntaxHighlightedCode(code = snippet, language = "kotlin", copyButton = null)
 ```
 
 ### Custom copy feedback (Snackbar, Toast, etc.)
@@ -173,7 +173,7 @@ import dev.hossain.highlight.ui.SyntaxHighlightedCodeDefaults
 SyntaxHighlightedCode(
     code     = snippet,
     language = "kotlin",
-    copyButtonContent = { onClick ->
+    copyButton = { onClick ->
         SyntaxHighlightedCodeDefaults.CopyButton(
             onClick            = onClick,
             contentDescription = stringResource(R.string.copy_code_a11y),

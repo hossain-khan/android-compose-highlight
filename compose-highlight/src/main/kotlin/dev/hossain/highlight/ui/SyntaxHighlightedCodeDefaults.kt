@@ -40,7 +40,7 @@ import androidx.compose.ui.unit.sp
  * SyntaxHighlightedCode(
  *     code = snippet,
  *     language = "kotlin",
- *     copyButtonContent = { onClick ->
+ *     copyButton = { onClick ->
  *         SyntaxHighlightedCodeDefaults.CopyButton(
  *             onClick = onClick,
  *             contentDescription = stringResource(R.string.copy_code),
@@ -100,19 +100,19 @@ object SyntaxHighlightedCodeDefaults {
     val fallbackTextColor: Color = Color(0xFFCCCCCC)
 
     /**
-     * Default copy-to-clipboard button used by [SyntaxHighlightedCode]'s `copyButtonContent` slot.
+     * Default copy-to-clipboard button used by [SyntaxHighlightedCode]'s `copyButton` slot.
      *
      * Renders a simple `⧉` text icon inside an [IconButton]. Tint and size default to values
      * that blend naturally with the code block background when placed inside a
      * [SyntaxHighlightedCode] block.
      *
-     * Pass to `copyButtonContent` to retain the default look while customising other parameters:
+     * Pass to `copyButton` to retain the default look while customising other parameters:
      *
      * ```kotlin
      * SyntaxHighlightedCode(
      *     code = snippet,
      *     language = "kotlin",
-     *     copyButtonContent = { onClick ->
+     *     copyButton = { onClick ->
      *         SyntaxHighlightedCodeDefaults.CopyButton(
      *             onClick = onClick,
      *             contentDescription = stringResource(R.string.copy_code_label),
@@ -122,7 +122,7 @@ object SyntaxHighlightedCodeDefaults {
      * ```
      *
      * @param onClick Action invoked when the button is clicked. Wire this to the `onClick`
-     *   parameter received from the `copyButtonContent` slot.
+     *   parameter received from the `copyButton` slot.
      * @param tint Icon color. Defaults to [LocalContentColor] at 70 % opacity, which resolves
      *   correctly when inside a [SyntaxHighlightedCode] block.
      * @param contentDescription Accessibility label for TalkBack and other assistive services.
@@ -151,7 +151,7 @@ object SyntaxHighlightedCodeDefaults {
     }
 
     /**
-     * Default language badge used by [SyntaxHighlightedCode]'s `languageLabelContent` slot.
+     * Default language badge used by [SyntaxHighlightedCode]'s `languageLabel` slot.
      *
      * Renders the language identifier as a dimmed [Text]. Color and size default to values that
      * blend naturally with the code block header when placed inside a [SyntaxHighlightedCode] block.
@@ -165,7 +165,7 @@ object SyntaxHighlightedCodeDefaults {
      * SyntaxHighlightedCode(
      *     code = snippet,
      *     language = "kotlin",
-     *     languageLabelContent = if (showLabel) {
+     *     languageLabel = if (showLabel) {
      *         { SyntaxHighlightedCodeDefaults.LanguageLabel("kotlin") }
      *     } else null,
      * )

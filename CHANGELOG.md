@@ -4,6 +4,36 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Changed (Breaking)
+- **`SyntaxHighlightedCode` slot parameter rename** - `languageLabelContent` renamed to
+  `languageLabel` and `copyButtonContent` renamed to `copyButton` to match Material 3 naming
+  conventions (`TextField.label`, `Scaffold.topBar`, etc.). The `@Composable` type annotation
+  already communicates that these are content slots; the `Content` suffix was redundant.
+  `placeholder` is unchanged - it already followed the shorter convention.
+
+  | Before | After |
+  |---|---|
+  | `languageLabelContent` | `languageLabel` |
+  | `copyButtonContent` | `copyButton` |
+
+  Update call sites:
+  ```kotlin
+  // Before
+  SyntaxHighlightedCode(
+      code = snippet,
+      language = "kotlin",
+      languageLabelContent = null,
+      copyButtonContent = { onClick -> MyButton(onClick) },
+  )
+  // After
+  SyntaxHighlightedCode(
+      code = snippet,
+      language = "kotlin",
+      languageLabel = null,
+      copyButton = { onClick -> MyButton(onClick) },
+  )
+  ```
+
 ### Added
 - `CodeBlockStyle` gains two new fields: `fallbackBackgroundColor: Color` (default `Color(0xFF1E1E1E)`)
   and `fallbackTextColor: Color` (default `Color(0xFFCCCCCC)`). These are used by
