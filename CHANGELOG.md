@@ -11,9 +11,9 @@ All notable changes to this project will be documented in this file.
   `rememberHighlightedCode` to silently skip re-highlighting when switching between same-named
   themes with different colors. Equality now includes a precomputed `contentIdentity` digest
   derived from the effective theme content:
-  - `fromCss(cssText, name)` - identity uses a SHA-256 based digest of `cssText`
-  - `fromAsset(context, assetPath, name)` - identity uses a SHA-256 based digest of `assetPath`
-  - `fromColorMap(name, colorMap, ...)` - identity uses a SHA-256 based digest of the effective
+  - `fromCss(cssText, name)` - identity uses a SHA-256-based digest of `cssText`
+  - `fromAsset(context, assetPath, name)` - identity uses a SHA-256-based digest of `assetPath`
+  - `fromColorMap(name, colorMap, ...)` - identity uses a SHA-256-based digest of the effective
     color map after optional `.hljs` background/text overrides are applied
   - Built-in factories (`tomorrow`, `tomorrowNight`, `atomOneDark`, `atomOneLight`) - identity
     uses their fixed asset path
