@@ -77,9 +77,56 @@ class HighlightEngineEscapeTest {
     }
 
     @Test
+    fun `tab is escaped`() {
+        assertThat(escapeForJs("a\tb")).isEqualTo("a\\tb")
+    }
+
+    @Test
+    fun `null byte is escaped to unicode escape sequence`() {
+        // U+0000 can silently truncate the JS string in some WebView V8 versions.
+        assertThat(escapeForJs("a\u0000b")).isEqualTo("a\\u0000b")
+    }
+
+    @Test
+    fun `ANSI escape U+001B is escaped to unicode escape sequence`() {
+        // U+001B is the ANSI escape character common in terminal output (e.g. color codes).
+        assertThat(escapeForJs("\u001b[32m")).isEqualTo("\\u001b[32m")
+    }
+
+    @Test
+    fun `control chars U+0001 through U+0008 are escaped`() {
+        // SOH through BS
+        assertThat(escapeForJs("\u0001")).isEqualTo("\\u0001")
+        assertThat(escapeForJs("\u0008")).isEqualTo("\\u0008")
+    }
+
+    @Test
+    fun `control chars U+000B and U+000C are escaped`() {
+        // VT (vertical tab) and FF (form feed)
+        assertThat(escapeForJs("\u000B")).isEqualTo("\\u000b")
+        assertThat(escapeForJs("\u000C")).isEqualTo("\\u000c")
+    }
+
+    @Test
+    fun `control chars U+000E through U+001F are escaped`() {
+        // SO through US - spot-check a few
+        assertThat(escapeForJs("\u000E")).isEqualTo("\\u000e")
+        assertThat(escapeForJs("\u001F")).isEqualTo("\\u001f")
+    }
+
+    @Test
+    fun `tab newline and carriage return are NOT escaped by control char regex`() {
+        // \t (U+0009), \n (U+000A), \r (U+000D) are handled by explicit replacements,
+        // not the control char regex, so they produce \t, \n, \r (not \u0009 etc.).
+        assertThat(escapeForJs("\t")).isEqualTo("\\t")
+        assertThat(escapeForJs("\n")).isEqualTo("\\n")
+        assertThat(escapeForJs("\r")).isEqualTo("\\r")
+    }
+
+    @Test
     fun `all special chars combined are escaped correctly`() {
-        val input = "a\\\n'\r\u2028\u2029b"
-        val expected = "a\\\\\\n\\'\\r\\u2028\\u2029b"
+        val input = "a\\\n'\r\t\u0000\u001b\u2028\u2029b"
+        val expected = "a\\\\\\n\\'\\r\\t\\u0000\\u001b\\u2028\\u2029b"
         assertThat(escapeForJs(input)).isEqualTo(expected)
     }
 }
