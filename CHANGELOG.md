@@ -9,12 +9,12 @@ All notable changes to this project will be documented in this file.
   compared themes by `name` only, so two themes with the same name but different CSS content
   were considered equal. This caused `LaunchedEffect(theme)` and `remember(theme)` in
   `rememberHighlightedCode` to silently skip re-highlighting when switching between same-named
-  themes with different colors. Equality now includes a `contentIdentity` derived from the
-  CSS text, asset path, or color map inputs supplied at construction time:
-  - `fromCss(cssText, name)` - identity uses full `cssText`
-  - `fromAsset(context, assetPath, name)` - identity uses full `assetPath`
-  - `fromColorMap(name, colorMap, ...)` - identity uses `colorMap`, `backgroundColor`,
-    and `defaultTextColor`
+  themes with different colors. Equality now includes a precomputed `contentIdentity` digest
+  derived from the effective theme content:
+  - `fromCss(cssText, name)` - identity uses a SHA-256 based digest of `cssText`
+  - `fromAsset(context, assetPath, name)` - identity uses a SHA-256 based digest of `assetPath`
+  - `fromColorMap(name, colorMap, ...)` - identity uses a SHA-256 based digest of the effective
+    color map after optional `.hljs` background/text overrides are applied
   - Built-in factories (`tomorrow`, `tomorrowNight`, `atomOneDark`, `atomOneLight`) - identity
     uses their fixed asset path
 

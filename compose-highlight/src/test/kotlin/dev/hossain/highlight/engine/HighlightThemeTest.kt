@@ -187,7 +187,7 @@ class HighlightThemeTest {
     }
 
     @Test
-    fun `themes from fromColorMap with same name and same colorMap are equal`() {
+    fun `themes created with fromColorMap with same name and same colorMap are equal`() {
         val map =
             mapOf(
                 "hljs" to SpanStyle(color = Color.Black, background = Color.White),
@@ -200,12 +200,31 @@ class HighlightThemeTest {
     }
 
     @Test
-    fun `themes from fromColorMap with same name but different colorMap are not equal`() {
+    fun `themes created with fromColorMap with same name but different colorMap are not equal`() {
         val mapA = mapOf("hljs-keyword" to SpanStyle(color = Color.Blue))
         val mapB = mapOf("hljs-keyword" to SpanStyle(color = Color.Red))
         val a = HighlightTheme.fromColorMap(name = "dynamic", colorMap = mapA)
         val b = HighlightTheme.fromColorMap(name = "dynamic", colorMap = mapB)
         assertThat(a).isNotEqualTo(b)
+    }
+
+    @Test
+    fun `themes created with fromColorMap with equivalent hljs override are equal`() {
+        val map =
+            mapOf(
+                "hljs" to SpanStyle(color = Color.Black, background = Color.White),
+                "hljs-keyword" to SpanStyle(color = Color.Blue),
+            )
+        val withoutOverride = HighlightTheme.fromColorMap(name = "dynamic", colorMap = map)
+        val withSameOverride =
+            HighlightTheme.fromColorMap(
+                name = "dynamic",
+                colorMap = map,
+                backgroundColor = Color.White,
+                defaultTextColor = Color.Black,
+            )
+        assertThat(withoutOverride).isEqualTo(withSameOverride)
+        assertThat(withoutOverride.hashCode()).isEqualTo(withSameOverride.hashCode())
     }
 
     @Test

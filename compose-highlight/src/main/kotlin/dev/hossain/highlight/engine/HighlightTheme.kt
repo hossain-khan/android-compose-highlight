@@ -4,6 +4,8 @@ import android.content.Context
 import androidx.compose.runtime.Stable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.SpanStyle
+import java.nio.ByteBuffer
+import java.security.MessageDigest
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.time.Duration
 import kotlin.time.measureTimedValue
@@ -102,11 +104,11 @@ class HighlightTheme private constructor(
     private val colorMapProvider: () -> Map<String, SpanStyle>,
     /**
      * Precomputed identity hash for the theme content. Computed once at construction time
-     * from the CSS text, asset path, or color-map inputs, and stored as an [Int] so that
+     * from the CSS text, asset path, or color-map inputs, and stored as a [Long] so that
      * [equals] and [hashCode] are O(1). Used by Compose keys (`remember`, `LaunchedEffect`)
      * to detect theme changes even when two themes share the same [name].
      */
-    private val contentIdentity: Int,
+    private val contentIdentity: Long,
 ) {
     /** Lazily-parsed map of hljs class names → [SpanStyle]. Cached forever. */
     private val colorMapLazy = lazy { colorMapProvider() }
@@ -195,7 +197,7 @@ class HighlightTheme private constructor(
             return HighlightTheme(
                 name = "tomorrow",
                 colorMapProvider = { ThemeParser.parseAsset(appContext, assetPath) },
-                contentIdentity = assetPath.hashCode(),
+                contentIdentity = contentDigest64("asset", assetPath),
             )
         }
 
@@ -214,7 +216,7 @@ class HighlightTheme private constructor(
             return HighlightTheme(
                 name = "tomorrow-night",
                 colorMapProvider = { ThemeParser.parseAsset(appContext, assetPath) },
-                contentIdentity = assetPath.hashCode(),
+                contentIdentity = contentDigest64("asset", assetPath),
             )
         }
 
@@ -233,7 +235,7 @@ class HighlightTheme private constructor(
             return HighlightTheme(
                 name = "atom-one-dark",
                 colorMapProvider = { ThemeParser.parseAsset(appContext, assetPath) },
-                contentIdentity = assetPath.hashCode(),
+                contentIdentity = contentDigest64("asset", assetPath),
             )
         }
 
@@ -252,7 +254,7 @@ class HighlightTheme private constructor(
             return HighlightTheme(
                 name = "atom-one-light",
                 colorMapProvider = { ThemeParser.parseAsset(appContext, assetPath) },
-                contentIdentity = assetPath.hashCode(),
+                contentIdentity = contentDigest64("asset", assetPath),
             )
         }
 
@@ -299,7 +301,7 @@ class HighlightTheme private constructor(
                     if (map.isEmpty()) throw HighlightException.ThemeNotFound(assetPath)
                     map
                 },
-                contentIdentity = assetPath.hashCode(),
+                contentIdentity = contentDigest64("asset", assetPath),
             )
         }
 
@@ -327,7 +329,7 @@ class HighlightTheme private constructor(
             HighlightTheme(
                 name = name,
                 colorMapProvider = { ThemeParser.parse(cssText) },
-                contentIdentity = cssText.hashCode(),
+                contentIdentity = contentDigest64("css", cssText),
             )
 
         /**
@@ -369,32 +371,54 @@ class HighlightTheme private constructor(
         ): HighlightTheme {
             // Defensively copy so later mutations to the caller's map don't affect the theme.
             val immutableMap = colorMap.toMap()
-            // Precompute identity hash once so equals/hashCode stay O(1).
-            val contentIdentity =
-                31 * (31 * immutableMap.hashCode() + backgroundColor.hashCode()) +
-                    defaultTextColor.hashCode()
-            return if (backgroundColor != null || defaultTextColor != null) {
-                HighlightTheme(
-                    name = name,
-                    colorMapProvider = {
-                        val base = immutableMap.toMutableMap()
-                        val existing = base["hljs"] ?: SpanStyle()
-                        base["hljs"] =
-                            existing.copy(
-                                background = backgroundColor ?: existing.background,
-                                color = defaultTextColor ?: existing.color,
-                            )
-                        base
-                    },
-                    contentIdentity = contentIdentity,
-                )
-            } else {
-                HighlightTheme(
-                    name = name,
-                    colorMapProvider = { immutableMap },
-                    contentIdentity = contentIdentity,
-                )
+            val effectiveColorMap =
+                if (backgroundColor != null || defaultTextColor != null) {
+                    val base = immutableMap.toMutableMap()
+                    val existing = base["hljs"] ?: SpanStyle()
+                    base["hljs"] =
+                        existing.copy(
+                            background = backgroundColor ?: existing.background,
+                            color = defaultTextColor ?: existing.color,
+                        )
+                    base.toMap()
+                } else {
+                    immutableMap
+                }
+            val contentIdentity = contentDigest64(effectiveColorMap)
+            return HighlightTheme(
+                name = name,
+                colorMapProvider = { effectiveColorMap },
+                contentIdentity = contentIdentity,
+            )
+        }
+
+        private fun contentDigest64(
+            prefix: String,
+            value: String,
+        ): Long =
+            digestToLong {
+                update(prefix.toByteArray(Charsets.UTF_8))
+                update(byteArrayOf(0))
+                update(value.toByteArray(Charsets.UTF_8))
             }
+
+        private fun contentDigest64(colorMap: Map<String, SpanStyle>): Long =
+            digestToLong {
+                update("colormap".toByteArray(Charsets.UTF_8))
+                update(byteArrayOf(0))
+                colorMap.toSortedMap().forEach { (selector, style) ->
+                    update(selector.toByteArray(Charsets.UTF_8))
+                    update(byteArrayOf(0))
+                    update(style.toString().toByteArray(Charsets.UTF_8))
+                    update(byteArrayOf(0))
+                }
+            }
+
+        private inline fun digestToLong(updateDigest: MessageDigest.() -> Unit): Long {
+            val digest = MessageDigest.getInstance("SHA-256")
+            digest.updateDigest()
+            val bytes = digest.digest()
+            return ByteBuffer.wrap(bytes, 0, Long.SIZE_BYTES).long
         }
     }
 }
