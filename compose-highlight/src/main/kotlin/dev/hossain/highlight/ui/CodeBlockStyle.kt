@@ -87,6 +87,22 @@ data class CodeBlockStyle(
      * so [TextStyle.color] set here is overridden by the active [HighlightTheme].
      */
     val textStyle: TextStyle = SyntaxHighlightedCodeDefaults.codeTextStyle,
+    /**
+     * Background color used when the active theme's CSS has no `.hljs { background: ... }` rule.
+     *
+     * Applies when [HighlightTheme.backgroundColor] is [Color.Unspecified] - for example when
+     * using a custom theme CSS that omits the base `.hljs` rule. Defaults to
+     * [SyntaxHighlightedCodeDefaults.fallbackBackgroundColor].
+     */
+    val fallbackBackgroundColor: Color = SyntaxHighlightedCodeDefaults.fallbackBackgroundColor,
+    /**
+     * Text color used when the active theme's CSS has no `.hljs { color: ... }` rule.
+     *
+     * Applies when [HighlightTheme.defaultTextColor] is [Color.Unspecified] - for example when
+     * using a custom theme CSS that omits the base `.hljs` rule. Defaults to
+     * [SyntaxHighlightedCodeDefaults.fallbackTextColor].
+     */
+    val fallbackTextColor: Color = SyntaxHighlightedCodeDefaults.fallbackTextColor,
 ) {
     companion object {
         /** Standard code block with rounded corners and comfortable padding. */

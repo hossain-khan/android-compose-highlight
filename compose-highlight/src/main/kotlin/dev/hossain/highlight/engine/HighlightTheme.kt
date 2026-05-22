@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.compose.runtime.Stable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.SpanStyle
+import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.time.Duration
 import kotlin.time.measureTimedValue
 
@@ -95,9 +96,11 @@ class HighlightTheme private constructor(
     /**
      * Tracks whether [colorMap] has been initialized (lazy block has run).
      * Used by [timedColorMap] to report [Duration.ZERO] on repeated calls.
+     *
+     * Uses [AtomicBoolean] with compare-and-set so that under concurrent access exactly one
+     * caller reports the real parse duration; all others report [Duration.ZERO].
      */
-    @Volatile
-    private var colorMapInitialized = false
+    private val colorMapInitialized = AtomicBoolean(false)
 
     /**
      * Returns [colorMap] together with the time taken to initialize it.
@@ -109,14 +112,18 @@ class HighlightTheme private constructor(
      * On the first call the CSS provider runs inside [measureTimedValue] and the
      * real parse duration is returned. On all subsequent calls the cached map is
      * returned with [Duration.ZERO].
+     *
+     * Under concurrent access [AtomicBoolean.compareAndSet] ensures exactly one caller
+     * reports a non-zero duration; all racing callers report [Duration.ZERO].
      */
     internal fun timedColorMap(): Pair<Map<String, SpanStyle>, Duration> =
-        if (colorMapInitialized) {
+        if (colorMapInitialized.get()) {
             colorMap to Duration.ZERO
         } else {
             val (map, duration) = measureTimedValue { colorMap }
-            colorMapInitialized = true
-            map to duration
+            // Only the first thread to flip the flag from false to true reports the real duration.
+            val reportedDuration = if (colorMapInitialized.compareAndSet(false, true)) duration else Duration.ZERO
+            map to reportedDuration
         }
 
     /** Background color from the `.hljs` CSS rule. Unspecified if not present in theme. */

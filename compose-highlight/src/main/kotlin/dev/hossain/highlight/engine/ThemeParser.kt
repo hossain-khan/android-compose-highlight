@@ -180,10 +180,25 @@ object ThemeParser {
             val prop = match.groupValues[1].trim()
             val value = match.groupValues[2].trim()
             when (prop) {
-                "color" -> color = parseColor(value)
-                "background", "background-color" -> background = parseColor(value)
-                "font-weight" -> if (value == "bold" || value == "700") fontWeight = FontWeight.Bold
-                "font-style" -> if (value == "italic") fontStyle = FontStyle.Italic
+                "color" -> {
+                    color = parseColor(value)
+                }
+
+                "background", "background-color" -> {
+                    background = parseColor(value)
+                }
+
+                "font-weight" -> {
+                    val numericWeight = value.toIntOrNull()
+                    when {
+                        value == "bold" || (numericWeight != null && numericWeight >= 600) -> fontWeight = FontWeight.Bold
+                        value == "normal" || (numericWeight != null && numericWeight < 600) -> fontWeight = FontWeight.Normal
+                    }
+                }
+
+                "font-style" -> {
+                    if (value == "italic") fontStyle = FontStyle.Italic
+                }
             }
         }
 

@@ -202,6 +202,48 @@ class ThemeParserTest {
     }
 
     @Test
+    fun `parse treats font-weight 600 as bold`() {
+        val css = ".hljs-strong { font-weight: 600 }"
+        val result = ThemeParser.parse(css)
+        assertThat(result["hljs-strong"]?.fontWeight).isEqualTo(FontWeight.Bold)
+    }
+
+    @Test
+    fun `parse treats font-weight 800 as bold`() {
+        val css = ".hljs-strong { font-weight: 800 }"
+        val result = ThemeParser.parse(css)
+        assertThat(result["hljs-strong"]?.fontWeight).isEqualTo(FontWeight.Bold)
+    }
+
+    @Test
+    fun `parse treats font-weight 900 as bold`() {
+        val css = ".hljs-strong { font-weight: 900 }"
+        val result = ThemeParser.parse(css)
+        assertThat(result["hljs-strong"]?.fontWeight).isEqualTo(FontWeight.Bold)
+    }
+
+    @Test
+    fun `parse treats font-weight 400 as normal`() {
+        val css = ".hljs-comment { font-weight: 400; color: #888 }"
+        val result = ThemeParser.parse(css)
+        assertThat(result["hljs-comment"]?.fontWeight).isEqualTo(FontWeight.Normal)
+    }
+
+    @Test
+    fun `parse treats font-weight 100 as normal`() {
+        val css = ".hljs-comment { font-weight: 100; color: #888 }"
+        val result = ThemeParser.parse(css)
+        assertThat(result["hljs-comment"]?.fontWeight).isEqualTo(FontWeight.Normal)
+    }
+
+    @Test
+    fun `parse treats font-weight normal keyword as normal`() {
+        val css = ".hljs-comment { font-weight: normal; color: #888 }"
+        val result = ThemeParser.parse(css)
+        assertThat(result["hljs-comment"]?.fontWeight).isEqualTo(FontWeight.Normal)
+    }
+
+    @Test
     fun `parse handles 8-digit hex color`() {
         // 8-digit hex: first two digits are alpha (AARRGGBB), rest are RGB
         val css = ".hljs-comment { color: #ff8e908c }"

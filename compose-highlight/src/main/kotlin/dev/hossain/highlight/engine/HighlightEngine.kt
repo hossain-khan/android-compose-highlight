@@ -652,6 +652,22 @@ class HighlightEngine(
                     }
                     // The result is a JSON-encoded string — strip surrounding quotes and unescape
                     val (html, jsonUnescapeDuration) = measureTimedValue { unescapeJsString(rawResult) }
+                    // Check if the JS bridge returned an error object from the try/catch in bridge.html
+                    if (html.startsWith("{\"error\":true")) {
+                        try {
+                            val errorJson = org.json.JSONObject(html)
+                            continuation.resumeWithException(
+                                HighlightException.JsExecutionFailed(
+                                    RuntimeException("highlight.js error: ${errorJson.optString("message")}"),
+                                ),
+                            )
+                        } catch (e: Exception) {
+                            continuation.resumeWithException(
+                                HighlightException.JsExecutionFailed(RuntimeException("highlight.js error: $html")),
+                            )
+                        }
+                        return@evaluateJavascript
+                    }
                     continuation.resume(Result.success(JsResult(html, jsBridgeDuration, jsonUnescapeDuration)))
                 }
             }
@@ -684,6 +700,15 @@ class HighlightEngine(
                         val (jsonString, jsonUnescapeDuration) =
                             measureTimedValue { unescapeJsString(rawResult) }
                         val json = org.json.JSONObject(jsonString)
+                        // Check if the JS bridge returned an error object from the try/catch in bridge.html
+                        if (json.optBoolean("error")) {
+                            continuation.resumeWithException(
+                                HighlightException.JsExecutionFailed(
+                                    RuntimeException("highlight.js error: ${json.optString("message")}"),
+                                ),
+                            )
+                            return@evaluateJavascript
+                        }
                         continuation.resume(
                             Result.success(
                                 AutoJsResult(

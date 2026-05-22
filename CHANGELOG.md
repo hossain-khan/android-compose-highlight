@@ -5,6 +5,46 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- `CodeBlockStyle` gains two new fields: `fallbackBackgroundColor: Color` (default `Color(0xFF1E1E1E)`)
+  and `fallbackTextColor: Color` (default `Color(0xFFCCCCCC)`). These are used by
+  `SyntaxHighlightedCode` when the active theme's CSS has no `.hljs { background: ... }` or
+  `.hljs { color: ... }` rule. Previously the fallback values were hardcoded inline; they are now
+  configurable via `CodeBlockStyle` while keeping the same defaults for backward compatibility.
+
+  ```kotlin
+  // Light fallback for a custom light-only theme that has no .hljs base rule
+  SyntaxHighlightedCode(
+      code = snippet,
+      language = "kotlin",
+      style = CodeBlockStyle(
+          fallbackBackgroundColor = Color.White,
+          fallbackTextColor = Color.Black,
+      ),
+  )
+  ```
+
+  Corresponding constants `SyntaxHighlightedCodeDefaults.fallbackBackgroundColor` and
+  `SyntaxHighlightedCodeDefaults.fallbackTextColor` are also exposed.
+
+### Fixed
+- **`ThemeParser` font-weight numeric values** - Previously only `font-weight: bold` and
+  `font-weight: 700` mapped to `FontWeight.Bold`; other numeric values (e.g. `600`, `800`, `900`)
+  were silently ignored. Now any numeric weight >= 600 maps to `FontWeight.Bold` and any numeric
+  weight < 600 maps to `FontWeight.Normal`, matching standard browser bold-threshold behavior. The
+  explicit keywords `bold` and `normal` continue to work as before.
+
+- **`bridge.html` hljs error handling** - `highlightCode`, `highlightAuto`, and `getLanguage` are
+  now wrapped in `try/catch`. On a JS-level error (e.g. deeply nested template literals, regex edge
+  cases) the functions return `{ error: true, message: "..." }` instead of throwing. `HighlightEngine`
+  detects this JSON shape and surfaces a `HighlightException.JsExecutionFailed` with the actual
+  JavaScript error message, replacing the previous opaque `"JS returned null"` error.
+
+- **`HighlightTheme.timedColorMap()` race condition** - `colorMapInitialized` was a `@Volatile var`
+  that is not atomically paired with the `lazy` delegate. Under concurrent access two threads could
+  both observe `false`, both run `measureTimedValue`, and both report a non-zero `themeParse`
+  duration. Replaced with `AtomicBoolean` and `compareAndSet` so exactly one concurrent caller
+  reports the real parse duration; all other callers report `Duration.ZERO`.
+
 - `placeholder: (@Composable (code: String) -> Unit)? = null` parameter added to
   `SyntaxHighlightedCode`. When provided, the placeholder composable is rendered while async
   highlighting is in progress (state is null) and transitions to the highlighted output via

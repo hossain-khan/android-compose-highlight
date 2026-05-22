@@ -88,6 +88,18 @@ object SyntaxHighlightedCodeDefaults {
     val copyButtonSize: Dp = 32.dp
 
     /**
+     * Default background color used when the active theme CSS has no `.hljs { background: ... }`
+     * rule. Matches the dark background from the built-in tomorrow-night and atom-one-dark themes.
+     */
+    val fallbackBackgroundColor: Color = Color(0xFF1E1E1E)
+
+    /**
+     * Default text color used when the active theme CSS has no `.hljs { color: ... }` rule.
+     * Provides readable light-gray text on the dark [fallbackBackgroundColor].
+     */
+    val fallbackTextColor: Color = Color(0xFFCCCCCC)
+
+    /**
      * Default copy-to-clipboard button used by [SyntaxHighlightedCode]'s `copyButtonContent` slot.
      *
      * Renders a simple `⧉` text icon inside an [IconButton]. Tint and size default to values

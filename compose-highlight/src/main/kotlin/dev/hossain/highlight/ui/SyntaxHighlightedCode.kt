@@ -225,17 +225,17 @@ fun SyntaxHighlightedCode(
     val backgroundColor =
         remember(theme, style) {
             theme.backgroundColor.takeIf { it != Color.Unspecified }
-                ?: Color(0xFF1E1E1E)
+                ?: style.fallbackBackgroundColor
         }
     val textColor =
         remember(theme, style) {
             theme.defaultTextColor.takeIf { it != Color.Unspecified }
-                ?: Color(0xFFCCCCCC)
+                ?: style.fallbackTextColor
         }
     val lineNumberColor =
         remember(theme, style) {
             style.lineNumberColor.takeIf { it != Color.Unspecified }
-                ?: (theme.defaultTextColor.takeIf { it != Color.Unspecified } ?: Color(0xFFCCCCCC)).copy(alpha = 0.4f)
+                ?: (theme.defaultTextColor.takeIf { it != Color.Unspecified } ?: style.fallbackTextColor).copy(alpha = 0.4f)
         }
 
     // Apply the theme's foreground color on top of the caller-supplied text style.

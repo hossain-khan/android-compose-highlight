@@ -52,6 +52,30 @@ class CodeBlockStyleTest {
     }
 
     @Test
+    fun `Default preset has dark fallbackBackgroundColor`() {
+        assertThat(CodeBlockStyle.Default.fallbackBackgroundColor)
+            .isEqualTo(SyntaxHighlightedCodeDefaults.fallbackBackgroundColor)
+    }
+
+    @Test
+    fun `Default preset has light gray fallbackTextColor`() {
+        assertThat(CodeBlockStyle.Default.fallbackTextColor)
+            .isEqualTo(SyntaxHighlightedCodeDefaults.fallbackTextColor)
+    }
+
+    @Test
+    fun `custom fallbackBackgroundColor is preserved in copy`() {
+        val custom = CodeBlockStyle.Default.copy(fallbackBackgroundColor = Color.White)
+        assertThat(custom.fallbackBackgroundColor).isEqualTo(Color.White)
+    }
+
+    @Test
+    fun `custom fallbackTextColor is preserved in copy`() {
+        val custom = CodeBlockStyle.Default.copy(fallbackTextColor = Color.Black)
+        assertThat(custom.fallbackTextColor).isEqualTo(Color.Black)
+    }
+
+    @Test
     fun `custom style with all parameters`() {
         val custom =
             CodeBlockStyle(
@@ -103,5 +127,15 @@ class SyntaxHighlightedCodeDefaultsTest {
     @Test
     fun `copyButtonSize is 32dp`() {
         assertThat(SyntaxHighlightedCodeDefaults.copyButtonSize).isEqualTo(32.dp)
+    }
+
+    @Test
+    fun `fallbackBackgroundColor is dark`() {
+        assertThat(SyntaxHighlightedCodeDefaults.fallbackBackgroundColor).isEqualTo(Color(0xFF1E1E1E))
+    }
+
+    @Test
+    fun `fallbackTextColor is light gray`() {
+        assertThat(SyntaxHighlightedCodeDefaults.fallbackTextColor).isEqualTo(Color(0xFFCCCCCC))
     }
 }

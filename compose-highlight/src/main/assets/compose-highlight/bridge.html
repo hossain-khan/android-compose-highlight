@@ -5,12 +5,16 @@
 <script>
 // https://highlightjs.readthedocs.io/en/latest/api.html#highlightelement
 function highlightCode(code, lang) {
-  const block = document.getElementById("code");
-  block.textContent = code;
-  block.className = lang;
-  delete block.dataset.highlighted;
-  hljs.highlightElement(block);
-  return block.innerHTML;
+  try {
+    const block = document.getElementById("code");
+    block.textContent = code;
+    block.className = lang;
+    delete block.dataset.highlighted;
+    hljs.highlightElement(block);
+    return block.innerHTML;
+  } catch(e) {
+    return JSON.stringify({ error: true, message: e.message || String(e) });
+  }
 }
 
 // https://highlightjs.readthedocs.io/en/latest/api.html#listlanguages
@@ -20,14 +24,22 @@ function listLanguages() {
 
 // https://highlightjs.readthedocs.io/en/latest/api.html#highlightauto
 function highlightAuto(code) {
-  const result = hljs.highlightAuto(code);
-  return JSON.stringify({ html: result.value, language: result.language || "" });
+  try {
+    const result = hljs.highlightAuto(code);
+    return JSON.stringify({ html: result.value, language: result.language || "" });
+  } catch(e) {
+    return JSON.stringify({ error: true, message: e.message || String(e) });
+  }
 }
 
 // https://highlightjs.readthedocs.io/en/latest/api.html#getlanguage
 function getLanguage(nameOrAlias) {
-  const lang = hljs.getLanguage(nameOrAlias);
-  return lang ? JSON.stringify({ name: lang.name, aliases: lang.aliases || [] }) : null;
+  try {
+    const lang = hljs.getLanguage(nameOrAlias);
+    return lang ? JSON.stringify({ name: lang.name, aliases: lang.aliases || [] }) : null;
+  } catch(e) {
+    return JSON.stringify({ error: true, message: e.message || String(e) });
+  }
 }
 
 // https://highlightjs.readthedocs.io/en/latest/api.html#versionstring
