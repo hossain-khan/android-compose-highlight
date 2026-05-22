@@ -164,7 +164,10 @@ class HighlightTheme private constructor(
      * are treated as distinct, so Compose recomposition keys (`remember`, `LaunchedEffect`)
      * correctly trigger a re-highlight when the theme content changes.
      */
-    override fun equals(other: Any?): Boolean = other is HighlightTheme && name == other.name && contentIdentity == other.contentIdentity
+    override fun equals(other: Any?): Boolean =
+        other is HighlightTheme &&
+            name == other.name &&
+            contentIdentity == other.contentIdentity
 
     override fun hashCode(): Int = 31 * name.hashCode() + contentIdentity
 
