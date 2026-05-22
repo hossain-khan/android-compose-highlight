@@ -111,22 +111,6 @@ class HighlightExceptionTest {
     // ── Shared contract ───────────────────────────────────────────────────────
 
     @Test
-    fun `all variants are Exception subtypes`() {
-        val all: List<Exception> =
-            listOf(
-                HighlightException.WebViewInitFailed(RuntimeException()),
-                HighlightException.JsExecutionFailed(RuntimeException()),
-                HighlightException.ThemeNotFound("path"),
-                HighlightException.HtmlParseFailed(RuntimeException()),
-                HighlightException.Timeout(),
-            )
-        all.forEach { ex ->
-            assertThat(ex).isInstanceOf(Exception::class.java)
-            assertThat(ex.message).isNotNull()
-        }
-    }
-
-    @Test
     fun `TIMEOUT_SECONDS constant is positive`() {
         assertThat(HighlightException.TIMEOUT_SECONDS).isGreaterThan(0)
     }

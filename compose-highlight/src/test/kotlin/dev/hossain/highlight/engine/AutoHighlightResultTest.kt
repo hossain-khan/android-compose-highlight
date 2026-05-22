@@ -50,7 +50,29 @@ class AutoHighlightResultTest {
     }
 
     @Test
-    fun `equals hashCode copy and toString contracts`() {
+    fun `equal instances have same hashCode`() {
+        val a =
+            AutoHighlightResult(
+                annotated = sampleAnnotated,
+                detectedLanguage = "kotlin",
+                spanCount = 3,
+                durationMs = 55L,
+                timings = zeroTimings,
+            )
+        val b =
+            AutoHighlightResult(
+                annotated = sampleAnnotated,
+                detectedLanguage = "kotlin",
+                spanCount = 3,
+                durationMs = 55L,
+                timings = zeroTimings,
+            )
+        assertThat(a).isEqualTo(b)
+        assertThat(a.hashCode()).isEqualTo(b.hashCode())
+    }
+
+    @Test
+    fun `copy produces equal instance`() {
         val original =
             AutoHighlightResult(
                 annotated = sampleAnnotated,
@@ -59,7 +81,13 @@ class AutoHighlightResultTest {
                 durationMs = 55L,
                 timings = zeroTimings,
             )
-        val equal =
+        val copied = original.copy()
+        assertThat(copied).isEqualTo(original)
+    }
+
+    @Test
+    fun `copy with override changes the field`() {
+        val original =
             AutoHighlightResult(
                 annotated = sampleAnnotated,
                 detectedLanguage = "kotlin",
@@ -67,15 +95,22 @@ class AutoHighlightResultTest {
                 durationMs = 55L,
                 timings = zeroTimings,
             )
-        val copied = original.copy()
         val overridden = original.copy(detectedLanguage = "python")
-        val str = original.toString()
-
-        assertThat(original).isEqualTo(equal)
-        assertThat(original.hashCode()).isEqualTo(equal.hashCode())
-        assertThat(copied).isEqualTo(original)
         assertThat(overridden.detectedLanguage).isEqualTo("python")
         assertThat(overridden.spanCount).isEqualTo(3)
+    }
+
+    @Test
+    fun `toString contains class name`() {
+        val original =
+            AutoHighlightResult(
+                annotated = sampleAnnotated,
+                detectedLanguage = "kotlin",
+                spanCount = 3,
+                durationMs = 55L,
+                timings = zeroTimings,
+            )
+        val str = original.toString()
         assertThat(str).contains("detectedLanguage=kotlin")
         assertThat(str).contains("spanCount=3")
         assertThat(str).contains("durationMs=55")

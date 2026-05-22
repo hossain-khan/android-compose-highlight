@@ -90,8 +90,8 @@ class SyntaxHighlightedCodeTest {
                 )
             }
         }
-        // Copy button shows the ⧉ icon
-        composeTestRule.onNodeWithText("⧉", useUnmergedTree = true).performClick()
+        // The copy button can be found and clicked via its content description
+        composeTestRule.onNodeWithContentDescription("Copy code", useUnmergedTree = true).performClick()
         composeTestRule.waitForIdle()
         assert(copyCalled) { "Expected onCopyClick to be called" }
     }
