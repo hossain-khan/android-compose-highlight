@@ -81,13 +81,29 @@ val theme = HighlightTheme.fromColorMap(
 
 ## Theme identity
 
-`HighlightTheme` uses `name` for `equals()` and `hashCode()`. Compose APIs (`remember`, `LaunchedEffect`) detect theme changes by name. **Names must be unique** - do not create two themes with different content but the same name.
+`HighlightTheme` uses both `name` and a content identity digest for `equals()` and `hashCode()`. This means:
+
+- Two themes with the same name **and** same CSS content are equal (memoization preserved)
+- Two themes with the same name but **different** CSS content are **not** equal (re-highlighting triggers correctly)
+- Two themes with different names are never equal
+
+```kotlin
+val light = HighlightTheme.fromCss(lightCss, "custom")
+val dark  = HighlightTheme.fromCss(darkCss,  "custom")
+light == dark  // false - same name but different CSS content
+
+val a = HighlightTheme.fromCss(css, "custom")
+val b = HighlightTheme.fromCss(css, "custom")
+a == b         // true  - same name and same CSS content
+```
+
+Compose APIs (`remember`, `LaunchedEffect`) correctly detect theme changes based on this combined identity.
 
 ## Properties
 
 | Property | Description |
 |---|---|
-| `name` | Unique display name |
+| `name` | Display name for this theme |
 | `colorMap` | Lazily parsed `Map<String, SpanStyle>` (hljs class name to style) |
 | `backgroundColor` | Background color from the `.hljs` CSS rule |
 | `defaultTextColor` | Default text color from the `.hljs` CSS rule |

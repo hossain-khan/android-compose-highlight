@@ -32,7 +32,7 @@ class CodeViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     override fun onCleared() {
-        engine.destroy()
+        engine.close()
     }
 }
 ```
@@ -90,15 +90,20 @@ engine.highlight(code, language, theme)
     .onFailure { error ->
         if (error is HighlightException) {
             when (error) {
-                is HighlightException.WebViewInitFailed -> /* WebView failed to initialize */
+                is HighlightException.WebViewInitFailed -> /* WebView not available (Go edition, MDM-disabled, mid-update) */
                 is HighlightException.JsExecutionFailed -> /* JS evaluation error */
                 is HighlightException.ThemeNotFound     -> /* theme CSS found but contains no parseable color rules */
-                is HighlightException.HtmlParseFailed   -> /* jsoup parse error */
+                is HighlightException.HtmlParseFailed   -> /* jsoup parse error, or theme asset IOException (check cause) */
                 is HighlightException.Timeout           -> /* timed out waiting for WebView */
             }
         }
     }
 ```
+
+!!! note "Missing asset files"
+    If a theme asset file is missing or unreadable, the `IOException` is wrapped in
+    `HtmlParseFailed` (since theme resolution happens during the HTML processing stage).
+    Check `error.cause` to distinguish asset I/O errors from jsoup parse failures.
 
 ## Important rules
 

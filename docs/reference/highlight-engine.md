@@ -21,7 +21,7 @@ try {
 
 | Method | Description |
 |---|---|
-| `suspend initialize()` | Warms up the WebView. Optional - `highlight()` also initializes on first call |
+| `suspend initialize(): Result<Unit>` | Warms up the WebView. Optional - `highlight()` also initializes on first call. Returns `Result.failure(WebViewInitFailed(...))` if WebView is unavailable |
 | `suspend highlight(code, language, theme)` | Full pipeline: tokenize, apply theme, return `Result<HighlightResult>` (access `.annotated` for the `AnnotatedString`) |
 | `suspend highlightBothThemes(code, language, lightTheme, darkTheme)` | Highlight once, return `Result<ThemedHighlightResult>` (access `.light` and `.dark` for the `AnnotatedString` variants) |
 | `suspend highlightToHtml(code, language)` | Returns `Result<HtmlHighlightResult>` (access `.html` for the HTML string, `.jsBridgeDuration` and `.jsonUnescapeDuration` for timing) |
