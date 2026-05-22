@@ -42,6 +42,7 @@ class WebViewManagerRobolectricTest {
      * [WebView]`(Context)` constructor.
      */
     @Implements(WebView::class)
+    @Suppress("ktlint:standard:function-naming")
     class ThrowingWebViewShadow {
         @Implementation
         fun __constructor__(context: Context): Unit = throw RuntimeException("WebView is not available on this device")
