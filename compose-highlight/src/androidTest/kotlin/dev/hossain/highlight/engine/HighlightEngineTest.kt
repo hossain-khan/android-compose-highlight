@@ -7,9 +7,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.junit.After
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNotNull
-import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -34,42 +31,42 @@ class HighlightEngineTest {
     fun webViewInitializesSuccessfully() =
         runBlocking {
             val result = engine.initialize()
-            assertTrue("Expected initialize() to succeed", result.isSuccess)
+            assertThat(result.isSuccess).isTrue()
             // Wait for bridge.html to finish loading (onPageFinished → isInitialized = true)
             engine.isInitialized.first { it }
-            assertTrue("Expected isInitialized true after WebView page load", engine.isInitialized.value)
+            assertThat(engine.isInitialized.value).isTrue()
         }
 
     @Test
     fun highlightPythonCodeReturnsHljsSpans() =
         runBlocking {
             val result = engine.highlightToHtml("def foo():\n    return 42", "python")
-            assertTrue("Expected success", result.isSuccess)
+            assertThat(result.isSuccess).isTrue()
             val html = result.getOrThrow().html
-            assertTrue("Expected hljs spans in output", html.contains("hljs-"))
-            assertTrue("Expected 'def' keyword", html.contains("def"))
+            assertThat(html).contains("hljs-")
+            assertThat(html).contains("def")
         }
 
     @Test
     fun highlightKotlinCodeReturnsHljsSpans() =
         runBlocking {
             val result = engine.highlightToHtml("fun hello(): String = \"world\"", "kotlin")
-            assertTrue(result.isSuccess)
+            assertThat(result.isSuccess).isTrue()
             val html = result.getOrThrow().html
-            assertTrue(html.contains("hljs-"))
+            assertThat(html).contains("hljs-")
         }
 
     @Test
     fun unknownLanguageReturnsUnhighlightedHtmlWithoutCrash() =
         runBlocking {
             val result = engine.highlightToHtml("some code here", "not-a-real-language")
-            // highlight.js falls back to auto-detection — succeeds without crashing
-            assertTrue("Should succeed even for unknown language", result.isSuccess)
+            // highlight.js falls back to auto-detection - succeeds without crashing
+            assertThat(result.isSuccess).isTrue()
             val html = result.getOrThrow().html
             // Auto-detection may wrap tokens in spans (breaking exact phrase), so check individual words
-            assertTrue("Output should be non-empty", html.isNotEmpty())
-            assertTrue("Output should contain 'some'", html.contains("some"))
-            assertTrue("Output should contain 'here'", html.contains("here"))
+            assertThat(html).isNotEmpty()
+            assertThat(html).contains("some")
+            assertThat(html).contains("here")
         }
 
     @Test
@@ -77,9 +74,9 @@ class HighlightEngineTest {
         runBlocking {
             val code = """C:\Users\test\file.txt"""
             val result = engine.highlightToHtml(code, "plaintext")
-            assertTrue("Expected success for backslash code", result.isSuccess)
+            assertThat(result.isSuccess).isTrue()
             val html = result.getOrThrow().html
-            assertTrue("Expected backslash in output: $html", html.contains("\\"))
+            assertThat(html).contains("\\")
         }
 
     @Test
@@ -87,12 +84,11 @@ class HighlightEngineTest {
         runBlocking {
             val code = "print('hello world')"
             val result = engine.highlightToHtml(code, "python")
-            assertTrue(result.isSuccess)
+            assertThat(result.isSuccess).isTrue()
             val html = result.getOrThrow().html
-            assertTrue(
-                "Expected single quotes in output: $html",
+            assertThat(
                 html.contains("'") || html.contains("&#x27;") || html.contains("&apos;") || html.contains("hello"),
-            )
+            ).isTrue()
         }
 
     @Test
@@ -100,10 +96,10 @@ class HighlightEngineTest {
         runBlocking {
             val code = "line1\nline2\nline3"
             val result = engine.highlightToHtml(code, "plaintext")
-            assertTrue(result.isSuccess)
+            assertThat(result.isSuccess).isTrue()
             val html = result.getOrThrow().html
-            assertTrue("Expected line content in output: $html", html.contains("line1"))
-            assertTrue(html.contains("line2"))
+            assertThat(html).contains("line1")
+            assertThat(html).contains("line2")
         }
 
     @Test
@@ -111,9 +107,9 @@ class HighlightEngineTest {
         runBlocking {
             val code = "// héllo wörld 🌍"
             val result = engine.highlightToHtml(code, "javascript")
-            assertTrue(result.isSuccess)
+            assertThat(result.isSuccess).isTrue()
             val html = result.getOrThrow().html
-            assertNotNull(html)
+            assertThat(html).isNotNull()
         }
 
     @Test
@@ -123,7 +119,7 @@ class HighlightEngineTest {
                 (1..5).map { i ->
                     launch {
                         val result = engine.highlightToHtml("val x = $i", "kotlin")
-                        assertTrue("Concurrent call $i should succeed", result.isSuccess)
+                        assertThat(result.isSuccess).isTrue()
                     }
                 }
             jobs.forEach { it.join() }
@@ -133,10 +129,10 @@ class HighlightEngineTest {
     fun highlightFullPipelineProducesAnnotatedString() =
         runBlocking {
             val result = engine.highlight("def foo(): pass", "python", lightTheme)
-            assertTrue(result.isSuccess)
+            assertThat(result.isSuccess).isTrue()
             val highlightResult = result.getOrThrow()
-            assertTrue("Expected non-empty text", highlightResult.annotated.text.isNotEmpty())
-            assertTrue("Expected 'foo' in text", highlightResult.annotated.text.contains("foo"))
+            assertThat(highlightResult.annotated.text).isNotEmpty()
+            assertThat(highlightResult.annotated.text).contains("foo")
         }
 
     @Test
@@ -150,11 +146,11 @@ class HighlightEngineTest {
                     lightTheme = lightTheme,
                     darkTheme = darkTheme,
                 )
-            assertTrue(result.isSuccess)
+            assertThat(result.isSuccess).isTrue()
             val themed = result.getOrThrow()
-            assertFalse(themed.light.text.isEmpty())
-            assertFalse(themed.dark.text.isEmpty())
-            assertTrue("Light and dark should have same text", themed.light.text == themed.dark.text)
+            assertThat(themed.light.text).isNotEmpty()
+            assertThat(themed.dark.text).isNotEmpty()
+            assertThat(themed.light.text).isEqualTo(themed.dark.text)
         }
 
     @Test
@@ -186,10 +182,7 @@ class HighlightEngineTest {
     @Test
     fun engineImplementsCloseable() {
         // HighlightEngine must implement java.io.Closeable
-        assertTrue(
-            "HighlightEngine should implement Closeable",
-            engine is java.io.Closeable,
-        )
+        assertThat(engine).isInstanceOf(java.io.Closeable::class.java)
     }
 
     @Test
@@ -204,7 +197,7 @@ class HighlightEngineTest {
 
     @Test
     fun isInitializedIsFalseBeforeInitialize() {
-        assertFalse("Expected false before initialize()", engine.isInitialized.value)
+        assertThat(engine.isInitialized.value).isFalse()
     }
 
     @Test
@@ -214,16 +207,16 @@ class HighlightEngineTest {
             // onPageFinished fires. A real highlight call awaits readyDeferred, guaranteeing
             // the page has fully loaded before we check isInitialized.
             engine.highlightToHtml("val x = 1", "kotlin")
-            assertTrue("Expected true after WebView page load", engine.isInitialized.value)
+            assertThat(engine.isInitialized.value).isTrue()
         }
 
     @Test
     fun isInitializedIsFalseAfterDestroy() =
         runBlocking {
             engine.highlightToHtml("val x = 1", "kotlin")
-            assertTrue(engine.isInitialized.value)
+            assertThat(engine.isInitialized.value).isTrue()
             engine.destroy()
-            assertFalse("Expected false after destroy()", engine.isInitialized.value)
+            assertThat(engine.isInitialized.value).isFalse()
         }
 
     // ── highlight() → HighlightResult fields ─────────────────────────────────
@@ -232,7 +225,7 @@ class HighlightEngineTest {
     fun highlightResultLanguageMatchesRequest() =
         runBlocking {
             val result = engine.highlight("val x = 1", "kotlin", lightTheme)
-            assertTrue(result.isSuccess)
+            assertThat(result.isSuccess).isTrue()
             assertThat(result.getOrThrow().language).isEqualTo("kotlin")
         }
 
@@ -240,11 +233,8 @@ class HighlightEngineTest {
     fun highlightResultSpanCountPositiveForSupportedLanguage() =
         runBlocking {
             val result = engine.highlight("def foo(): pass", "python", lightTheme)
-            assertTrue(result.isSuccess)
-            assertTrue(
-                "Expected spanCount > 0 for python",
-                result.getOrThrow().spanCount > 0,
-            )
+            assertThat(result.isSuccess).isTrue()
+            assertThat(result.getOrThrow().spanCount).isGreaterThan(0)
         }
 
     @Test
@@ -253,36 +243,24 @@ class HighlightEngineTest {
             // highlight.js falls back to auto-detection for unknown languages, which may still
             // produce spans. We only assert the call succeeds and spanCount is non-negative.
             val result = engine.highlight("some code here", "not-a-real-language-xyz", lightTheme)
-            assertTrue("Expected success even for unknown language", result.isSuccess)
-            assertTrue(
-                "Expected spanCount >= 0",
-                result.getOrThrow().spanCount >= 0,
-            )
+            assertThat(result.isSuccess).isTrue()
+            assertThat(result.getOrThrow().spanCount).isAtLeast(0)
         }
 
     @Test
     fun highlightResultDurationMsIsNonNegative() =
         runBlocking {
             val result = engine.highlight("val x = 1", "kotlin", lightTheme)
-            assertTrue(result.isSuccess)
-            assertTrue(
-                "Expected durationMs >= 0",
-                result.getOrThrow().durationMs >= 0L,
-            )
+            assertThat(result.isSuccess).isTrue()
+            assertThat(result.getOrThrow().durationMs).isAtLeast(0L)
         }
 
     @Test
     fun highlightResultAnnotatedTextContainsCode() =
         runBlocking {
             val result = engine.highlight("fun hello() = 42", "kotlin", lightTheme)
-            assertTrue(result.isSuccess)
-            assertTrue(
-                "Expected annotated text to contain 'hello'",
-                result
-                    .getOrThrow()
-                    .annotated.text
-                    .contains("hello"),
-            )
+            assertThat(result.isSuccess).isTrue()
+            assertThat(result.getOrThrow().annotated.text).contains("hello")
         }
 
     // ── highlightToHtml() → HtmlHighlightResult fields ───────────────────────
@@ -291,22 +269,16 @@ class HighlightEngineTest {
     fun highlightToHtmlResultDurationMsIsNonNegative() =
         runBlocking {
             val result = engine.highlightToHtml("val x = 1", "kotlin")
-            assertTrue(result.isSuccess)
-            assertTrue(
-                "Expected durationMs >= 0",
-                result.getOrThrow().durationMs >= 0L,
-            )
+            assertThat(result.isSuccess).isTrue()
+            assertThat(result.getOrThrow().durationMs).isAtLeast(0L)
         }
 
     @Test
     fun highlightToHtmlResultHtmlContainsHljsSpans() =
         runBlocking {
             val result = engine.highlightToHtml("def foo(): pass", "python")
-            assertTrue(result.isSuccess)
-            assertTrue(
-                "Expected hljs-* spans in HTML",
-                result.getOrThrow().html.contains("hljs-"),
-            )
+            assertThat(result.isSuccess).isTrue()
+            assertThat(result.getOrThrow().html).contains("hljs-")
         }
 
     // ── supportedLanguages() ─────────────────────────────────────────────────
@@ -315,14 +287,14 @@ class HighlightEngineTest {
     fun supportedLanguagesReturnsSuccess() =
         runBlocking {
             val result = engine.supportedLanguages()
-            assertTrue("Expected success", result.isSuccess)
+            assertThat(result.isSuccess).isTrue()
         }
 
     @Test
     fun supportedLanguagesListIsNonEmpty() =
         runBlocking {
             val languages = engine.supportedLanguages().getOrThrow()
-            assertTrue("Expected non-empty language list", languages.isNotEmpty())
+            assertThat(languages).isNotEmpty()
         }
 
     @Test
@@ -357,14 +329,14 @@ class HighlightEngineTest {
     fun highlightJsVersionReturnsSuccess() =
         runBlocking {
             val result = engine.highlightJsVersion()
-            assertTrue("Expected success", result.isSuccess)
+            assertThat(result.isSuccess).isTrue()
         }
 
     @Test
     fun highlightJsVersionIsNonEmpty() =
         runBlocking {
             val version = engine.highlightJsVersion().getOrThrow()
-            assertTrue("Expected non-empty version string", version.isNotEmpty())
+            assertThat(version).isNotEmpty()
         }
 
     @Test
@@ -372,10 +344,7 @@ class HighlightEngineTest {
         runBlocking {
             val version = engine.highlightJsVersion().getOrThrow()
             // Format: digits and dots, e.g. "11.11.1"
-            assertTrue(
-                "Expected version to match digits-and-dots format, got: $version",
-                version.matches(Regex("\\d+\\.\\d+.*")),
-            )
+            assertThat(version).matches("\\d+\\.\\d+.*")
         }
 
     @Test
@@ -392,14 +361,14 @@ class HighlightEngineTest {
     fun getLanguageReturnsSuccessForKnownAlias() =
         runBlocking {
             val result = engine.getLanguage("kt")
-            assertTrue("Expected success for 'kt'", result.isSuccess)
+            assertThat(result.isSuccess).isTrue()
         }
 
     @Test
     fun getLanguageReturnsNonNullForKnownAlias() =
         runBlocking {
             val info = engine.getLanguage("kt").getOrThrow()
-            assertNotNull("Expected non-null HighlightLanguageInfo for 'kt'", info)
+            assertThat(info).isNotNull()
         }
 
     @Test
@@ -413,7 +382,7 @@ class HighlightEngineTest {
     fun getLanguageAliasesContainsKtForKotlin() =
         runBlocking {
             val info = engine.getLanguage("kotlin").getOrThrow()
-            assertNotNull(info)
+            assertThat(info).isNotNull()
             assertThat(info!!.aliases).contains("kt")
         }
 
@@ -421,7 +390,7 @@ class HighlightEngineTest {
     fun getLanguageReturnsNullForUnknownLanguage() =
         runBlocking {
             val result = engine.getLanguage("not-a-real-language-xyz")
-            assertTrue("Expected success", result.isSuccess)
+            assertThat(result.isSuccess).isTrue()
             assertThat(result.getOrThrow()).isNull()
         }
 
@@ -429,7 +398,7 @@ class HighlightEngineTest {
     fun getLanguageByPrimaryNameReturnsNonNull() =
         runBlocking {
             val info = engine.getLanguage("python").getOrThrow()
-            assertNotNull("Expected non-null for primary name 'python'", info)
+            assertThat(info).isNotNull()
             assertThat(info!!.name).isEqualTo("Python")
         }
 
@@ -439,14 +408,14 @@ class HighlightEngineTest {
     fun highlightAutoReturnsSuccessForKotlinCode() =
         runBlocking {
             val result = engine.highlightAuto("fun hello(): String = \"world\"", lightTheme)
-            assertTrue("Expected success", result.isSuccess)
+            assertThat(result.isSuccess).isTrue()
         }
 
     @Test
     fun highlightAutoAnnotatedTextContainsCode() =
         runBlocking {
             val result = engine.highlightAuto("fun hello(): String = \"world\"", lightTheme)
-            assertTrue(result.isSuccess)
+            assertThat(result.isSuccess).isTrue()
             assertThat(result.getOrThrow().annotated.text).contains("hello")
         }
 
@@ -454,14 +423,8 @@ class HighlightEngineTest {
     fun highlightAutoAnnotatedTextIsNonEmpty() =
         runBlocking {
             val result = engine.highlightAuto("def foo(): pass", lightTheme)
-            assertTrue(result.isSuccess)
-            assertTrue(
-                "Expected non-empty annotated text",
-                result
-                    .getOrThrow()
-                    .annotated.text
-                    .isNotEmpty(),
-            )
+            assertThat(result.isSuccess).isTrue()
+            assertThat(result.getOrThrow().annotated.text).isNotEmpty()
         }
 
     @Test
@@ -470,21 +433,82 @@ class HighlightEngineTest {
             // SQL is a strong signal - hljs should detect it. We assert the call succeeds
             // and detectedLanguage is a non-empty string (hljs recognised something).
             val result = engine.highlightAuto("SELECT id, name FROM users WHERE active = 1", lightTheme)
-            assertTrue(result.isSuccess)
-            assertTrue(
-                "Expected hljs to detect a language for clear SQL input",
-                result.getOrThrow().detectedLanguage.isNotEmpty(),
-            )
+            assertThat(result.isSuccess).isTrue()
+            assertThat(result.getOrThrow().detectedLanguage).isNotEmpty()
         }
 
     @Test
     fun highlightAutoDurationMsIsNonNegative() =
         runBlocking {
             val result = engine.highlightAuto("val x = 42", lightTheme)
-            assertTrue(result.isSuccess)
-            assertTrue(
-                "Expected durationMs >= 0",
-                result.getOrThrow().durationMs >= 0L,
-            )
+            assertThat(result.isSuccess).isTrue()
+            assertThat(result.getOrThrow().durationMs).isAtLeast(0L)
+        }
+
+    // ── highlightAuto edge cases ───────────────────────────────────────────────
+
+    @Test
+    fun highlightAutoWithEmptyInputReturnsSuccess() =
+        runBlocking {
+            val result = engine.highlightAuto("", lightTheme)
+            assertThat(result.isSuccess).isTrue()
+        }
+
+    @Test
+    fun highlightAutoWithWhitespaceOnlyInputReturnsSuccess() =
+        runBlocking {
+            val result = engine.highlightAuto("   \n\t  ", lightTheme)
+            assertThat(result.isSuccess).isTrue()
+        }
+
+    // ── code containing bridge envelope format ────────────────────────────────
+
+    @Test
+    fun highlightCodeThatLooksLikeBridgeEnvelopeDoesNotConfuseParser() =
+        runBlocking {
+            // Verify that code resembling the bridge error envelope is highlighted correctly
+            // and not mistaken for an actual bridge protocol message.
+            val code = """{"error": "something went wrong", "value": null}"""
+            val result = engine.highlight(code, "json", lightTheme)
+            assertThat(result.isSuccess).isTrue()
+            assertThat(result.getOrThrow().annotated.text).contains("error")
+        }
+
+    // ── very long single-line input ───────────────────────────────────────────
+
+    @Test
+    fun highlightVeryLongSingleLineInputReturnsSuccess() =
+        runBlocking {
+            val longLine = "val x = " + "\"hello\" + ".repeat(500) + "\"end\""
+            val result = engine.highlight(longLine, "kotlin", lightTheme)
+            assertThat(result.isSuccess).isTrue()
+            assertThat(result.getOrThrow().annotated.text).contains("hello")
+        }
+
+    // ── highlightBothThemes result equivalence ────────────────────────────────
+
+    @Test
+    fun highlightBothThemesProducesSameTextAsTwoIndependentCalls() =
+        runBlocking {
+            val darkTheme = HighlightTheme.tomorrowNight(context)
+            val code = "fun add(a: Int, b: Int) = a + b"
+            val language = "kotlin"
+
+            val bothResult =
+                engine.highlightBothThemes(
+                    code = code,
+                    language = language,
+                    lightTheme = lightTheme,
+                    darkTheme = darkTheme,
+                )
+            val lightResult = engine.highlight(code, language, lightTheme)
+            val darkResult = engine.highlight(code, language, darkTheme)
+
+            assertThat(bothResult.isSuccess).isTrue()
+            assertThat(lightResult.isSuccess).isTrue()
+            assertThat(darkResult.isSuccess).isTrue()
+
+            assertThat(bothResult.getOrThrow().light.text).isEqualTo(lightResult.getOrThrow().annotated.text)
+            assertThat(bothResult.getOrThrow().dark.text).isEqualTo(darkResult.getOrThrow().annotated.text)
         }
 }

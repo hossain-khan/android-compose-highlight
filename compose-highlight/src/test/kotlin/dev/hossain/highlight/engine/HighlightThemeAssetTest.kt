@@ -93,10 +93,11 @@ class HighlightThemeAssetTest {
         val theme = HighlightTheme.fromAsset(context, "nonexistent.css", "bad")
         try {
             theme.colorMap
-            org.junit.Assert.fail("Expected exception but colorMap access succeeded")
-        } catch (e: Exception) {
-            val isExpected = e is java.io.IOException || e is HighlightException.ThemeNotFound
-            assertThat(isExpected).isTrue()
+            org.junit.Assert.fail("Expected ThemeNotFound or IOException but colorMap access succeeded")
+        } catch (e: HighlightException.ThemeNotFound) {
+            // expected
+        } catch (e: java.io.IOException) {
+            // also acceptable - wrapped before ThemeNotFound is thrown on some paths
         }
     }
 
