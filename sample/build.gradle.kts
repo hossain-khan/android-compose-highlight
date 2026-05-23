@@ -12,8 +12,8 @@ android {
         applicationId = "dev.hossain.highlight.sample"
         minSdk = 24
         targetSdk = 36
-        versionCode = 24
-        versionName = "0.21.0"
+        versionCode = 25
+        versionName = "0.22.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 

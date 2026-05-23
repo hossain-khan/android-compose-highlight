@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.22.0] - 2026-05-22
+
 ### Fixed
 - **`WebViewManager` - WebView unavailability now surfaces as `WebViewInitFailed` not
   `JsExecutionFailed`** - When WebView is not available on the device (Android Go, MDM-disabled,
