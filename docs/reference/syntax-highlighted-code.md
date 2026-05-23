@@ -70,7 +70,6 @@ HighlightThemeProvider(
 ### With an explicit theme
 
 ```kotlin
-import android.util.Log
 import dev.hossain.highlight.ui.SyntaxHighlightedCode
 import dev.hossain.highlight.ui.rememberTomorrowTheme
 
@@ -145,9 +144,6 @@ SyntaxHighlightedCode(
 ### Custom placeholder while loading
 
 ```kotlin
-import androidx.compose.material3.Text
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontFamily
 import dev.hossain.highlight.ui.SyntaxHighlightedCode
 
 SyntaxHighlightedCode(
@@ -226,8 +222,6 @@ Text(text = highlighted ?: AnnotatedString(snippet))
 Use `onHighlightComplete` for metrics and `onError` for typed failure handling:
 
 ```kotlin
-import android.util.Log
-
 val highlighted by rememberHighlightedCode(
     code = snippet,
     language = "kotlin",
