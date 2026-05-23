@@ -33,15 +33,20 @@ Drop any [Highlight.js CSS theme](https://github.com/highlightjs/highlight.js/tr
 ```kotlin
 import dev.hossain.highlight.engine.HighlightTheme
 import dev.hossain.highlight.ui.HighlightThemeProvider
+import androidx.compose.ui.platform.LocalContext
 
 // src/main/assets/themes/github.css  <- place the CSS here
+val appContext = LocalContext.current.applicationContext
 val theme = HighlightTheme.fromAsset(
-    context   = context,
+    context   = appContext,
     assetPath = "themes/github.css",
     name      = "github",
 )
 HighlightThemeProvider(lightHighlightTheme = theme) { ... }
 ```
+
+!!! note
+    Always pass `applicationContext` to `HighlightTheme` factories.
 
 !!! note
     `fromAsset()` is lazy - CSS parsing happens on first use, not at factory-call time.

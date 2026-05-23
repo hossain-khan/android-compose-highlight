@@ -17,9 +17,9 @@ This section documents the public API of `compose-highlight`.
 | [`HighlightTimings`](../guides/performance.md#timing-callbacks) | Per-stage timing breakdown (`jsBridge`, `jsonUnescape`, `htmlParse`, `treeWalk`, `themeParse`, `total`) |
 | [`HighlightLanguageInfo`](highlight-engine.md#highlightlanguageinfo) | Metadata returned by `HighlightEngine.getLanguage()` |
 | [`HighlightException`](highlight-engine.md) | Sealed exception hierarchy for all engine errors |
-| `rememberHighlightedCode` | Composable helper - highlights code and returns an `AnnotatedString` state |
-| `rememberHighlightedCodeBothThemes` | Highlights once, produces light + dark variants |
-| `rememberHighlightEngine` | Returns the shared or standalone `HighlightEngine` for the current composition |
+| [`rememberHighlightedCode`](syntax-highlighted-code.md#rememberhighlightedcode) | Composable helper - highlights code and returns an `AnnotatedString` state |
+| [`rememberHighlightedCodeBothThemes`](syntax-highlighted-code.md#rememberhighlightedcodeboththemes) | Highlights once, produces light + dark variants |
+| [`rememberHighlightEngine`](highlight-engine.md#rememberhighlightengine) | Returns the shared or standalone `HighlightEngine` for the current composition |
 | `rememberTomorrowTheme` | Composable factory for the built-in Tomorrow (light) theme |
 | `rememberTomorrowNightTheme` | Composable factory for the built-in Tomorrow Night (dark) theme |
 | `rememberAtomOneDarkTheme` | Composable factory for the built-in Atom One Dark theme |
