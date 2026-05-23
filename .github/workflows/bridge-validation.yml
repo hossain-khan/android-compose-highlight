@@ -48,6 +48,8 @@ jobs:
           grep -Eq 'function[[:space:]]+highlightCode[[:space:]]*\(' "$BRIDGE_FILE"
           grep -Eq 'function[[:space:]]+listLanguages[[:space:]]*\(' "$BRIDGE_FILE"
           grep -Eq 'function[[:space:]]+hljsVersion[[:space:]]*\(' "$BRIDGE_FILE"
+          grep -Eq 'function[[:space:]]+highlightAuto[[:space:]]*\(' "$BRIDGE_FILE"
+          grep -Eq 'function[[:space:]]+getLanguage[[:space:]]*\(' "$BRIDGE_FILE"
           grep -Eq "getElementById[[:space:]]*\([[:space:]]*['\"]code['\"][[:space:]]*\)|querySelector[[:space:]]*\([[:space:]]*['\"]#code['\"][[:space:]]*\)" "$BRIDGE_FILE"
 
           grep -q 'https://appassets.androidplatform.net/assets/compose-highlight/bridge.html' "$WEBVIEW_FILE"
