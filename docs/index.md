@@ -40,7 +40,7 @@ That's it. `HighlightThemeProvider` automatically picks Tomorrow (light) or Tomo
 
 ## Key features
 
-- **180+ languages** - every language Highlight.js supports
+- **Wide language coverage** - use any language supported by the bundled Highlight.js build
 - **Light + dark themes** - automatic system-mode switching, or manual override
 - **Built-in themes** - Tomorrow, Tomorrow Night, Atom One Dark, Atom One Light
 - **Custom themes** - load any Highlight.js CSS from `assets/`, raw CSS string, or a `Map<String, SpanStyle>`

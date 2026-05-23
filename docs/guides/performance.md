@@ -63,7 +63,7 @@ import dev.hossain.highlight.engine.HighlightEngine
 import dev.hossain.highlight.engine.HighlightTheme
 
 class CodeViewModel(application: Application) : AndroidViewModel(application) {
-    private val engine = HighlightEngine(application)
+    private val engine = HighlightEngine(application.applicationContext)
 
     init {
         viewModelScope.launch {

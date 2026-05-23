@@ -197,3 +197,76 @@ HighlightThemeProvider(
     darkHighlightTheme  = rememberTomorrowNightTheme(),
 ) { ... }
 ```
+
+## `rememberHighlightedCode`
+
+Highlights code in a composable and returns `State<AnnotatedString?>`.
+
+```kotlin
+@Composable
+fun rememberHighlightedCode(
+    code: String,
+    language: String,
+    theme: HighlightTheme = LocalHighlightTheme.current,
+    onHighlightComplete: ((HighlightResult) -> Unit)? = null,
+    onError: ((HighlightException) -> Unit)? = null,
+): State<AnnotatedString?>
+```
+
+Returns `null` while highlighting is still running or if highlighting fails, so callers should
+always render a plain-text fallback.
+
+```kotlin
+val highlighted by rememberHighlightedCode(code = snippet, language = "kotlin")
+
+Text(text = highlighted ?: AnnotatedString(snippet))
+```
+
+Use `onHighlightComplete` for metrics and `onError` for typed failure handling:
+
+```kotlin
+val highlighted by rememberHighlightedCode(
+    code = snippet,
+    language = "kotlin",
+    onHighlightComplete = { result ->
+        metrics["highlightMs"] = result.durationMs
+    },
+    onError = { error ->
+        println("Highlight failed: ${error.message}")
+    },
+)
+```
+
+## `rememberHighlightedCodeBothThemes`
+
+Highlights once and returns both light and dark variants as `State<ThemedHighlightResult?>`.
+
+```kotlin
+@Composable
+fun rememberHighlightedCodeBothThemes(
+    code: String,
+    language: String,
+    lightTheme: HighlightTheme = LocalLightHighlightTheme.current,
+    darkTheme: HighlightTheme = LocalDarkHighlightTheme.current,
+    onHighlightComplete: ((ThemedHighlightResult) -> Unit)? = null,
+    onError: ((HighlightException) -> Unit)? = null,
+): State<ThemedHighlightResult?>
+```
+
+This is the Compose helper for zero-extra-latency theme switching. It tokenizes the source once,
+then applies both color maps to the same HTML result.
+
+```kotlin
+val themed by rememberHighlightedCodeBothThemes(
+    code = snippet,
+    language = "kotlin",
+)
+
+Text(
+    text = if (isDark) themed?.dark ?: AnnotatedString(snippet)
+    else themed?.light ?: AnnotatedString(snippet),
+)
+```
+
+Inside `HighlightThemeProvider`, `lightTheme` and `darkTheme` default from the provider. Outside a
+provider, pass both themes explicitly.

@@ -133,4 +133,4 @@ val (lightAnnotated, darkAnnotated) by produceState(fallback to fallback, code) 
 // Switch between lightAnnotated and darkAnnotated instantly
 ```
 
-See [`rememberHighlightedCodeBothThemes`](../reference/highlight-engine.md) for the ready-made composable helper.
+See [`rememberHighlightedCodeBothThemes`](../reference/syntax-highlighted-code.md#rememberhighlightedcodeboththemes) for the ready-made composable helper.
