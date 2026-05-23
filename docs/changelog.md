@@ -6,10 +6,10 @@ For release artifacts and APK downloads, see the [GitHub Releases page](https://
 
 ## Recent highlights
 
-### Unreleased (on main, not yet published)
+### 0.22.0 - WebView and theme correctness fixes
 
-- CSS4 `rgb(R G B)` and `rgb(R G B / alpha)` space-separated syntax support in ThemeParser
-- `HighlightTheme` content-aware equality - `equals()`/`hashCode()` now includes content identity, not just name
+- CSS4 `rgb(R G B)` and `rgb(R G B / alpha)` space-separated syntax support in `ThemeParser`
+- `HighlightTheme` content-aware equality - `equals()` and `hashCode()` now include content identity, not just name
 - `unescapeJsString` surrogate pair handling for emoji and supplementary Unicode characters
 - `escapeForJs` now escapes null bytes and control characters (U+0000-U+001F)
 - WebView unavailability now surfaces as `WebViewInitFailed` instead of `JsExecutionFailed`

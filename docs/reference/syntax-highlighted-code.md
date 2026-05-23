@@ -144,9 +144,6 @@ SyntaxHighlightedCode(
 ### Custom placeholder while loading
 
 ```kotlin
-import androidx.compose.material3.Text
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontFamily
 import dev.hossain.highlight.ui.SyntaxHighlightedCode
 
 SyntaxHighlightedCode(
@@ -232,7 +229,7 @@ val highlighted by rememberHighlightedCode(
         metrics["highlightMs"] = result.durationMs
     },
     onError = { error ->
-        println("Highlight failed: ${error.message}")
+        Log.d("Highlight", "Failed: ${error.message}")
     },
 )
 ```
