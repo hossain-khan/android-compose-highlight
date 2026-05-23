@@ -1,5 +1,7 @@
 package dev.hossain.highlight.engine
 
+import java.util.Locale
+
 /**
  * Maps file extensions to Highlight.js language identifiers.
  *
@@ -163,5 +165,5 @@ public object HighlightLanguage {
      * @return Highlight.js language name such as `"kotlin"`, or `null` if the extension is not
      *   recognised.
      */
-    fun fromExtension(extension: String): String? = extensionMap[extension.lowercase(java.util.Locale.ROOT)]
+    fun fromExtension(extension: String): String? = extensionMap[extension.lowercase(Locale.ROOT)]
 }

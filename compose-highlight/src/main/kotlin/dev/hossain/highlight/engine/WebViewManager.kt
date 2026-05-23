@@ -38,7 +38,7 @@ import kotlinx.coroutines.withContext
  *
  * `bridge.html` is a minimal HTML page (loaded once at startup) that:
  * 1. Loads the bundled `highlight.min.js` library
- * 2. Defines a single JS function: `highlightCode(code, lang) → HTML string`
+ * 2. Defines multiple highlight JS function like, `highlightCode(code, lang) → HTML string`
  *
  * After the page finishes loading, [HighlightEngine] calls `highlightCode()` via
  * [android.webkit.WebView.evaluateJavascript] for every syntax-highlight request,
