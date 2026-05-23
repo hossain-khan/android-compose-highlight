@@ -10,12 +10,12 @@ sample/
 ├── src/main/
 │   ├── assets/
 │   │   ├── samples/          # Code snippets shown in the Languages tab (one file per language)
-│   │   └── themes/           # Custom Highlight.js CSS themes (github.css, github-dark.css)
+│   │   └── themes/           # 80+ Highlight.js CSS themes (bundled from highlight.js CDN)
 │   │                         # Demonstrates HighlightTheme.fromAsset()
 │   └── kotlin/…/sample/
 │       ├── MainActivity.kt         # Entry point; wraps SampleScreen in HighlightThemeProvider
 │       ├── SampleScreen.kt         # Top-level screen: tab bar + per-tab content routing
-│       ├── DemoTab.kt              # Sealed class for the 8 demo tabs (type-safe routing)
+│       ├── DemoTab.kt              # Sealed class for the 11 demo tabs (type-safe routing)
 │       ├── SampleData.kt           # loadCodeSamples(), loadThemePairs(), KOTLIN_SNIPPET, PYTHON_SNIPPET
 │       ├── sections/               # One file per tab — each exports a single @Composable
 │       │   ├── SectionComponents.kt    # Shared SectionHeader / SubSectionHeader
@@ -23,7 +23,10 @@ sample/
 │       │   ├── TypographySection.kt
 │       │   ├── TogglesSection.kt
 │       │   ├── CallbacksSection.kt
+│       │   ├── PlaceholderSection.kt
 │       │   ├── ThemeCreationSection.kt
+│       │   ├── AllThemesSection.kt
+│       │   ├── LanguageDiscoverabilitySection.kt
 │       │   ├── AdvancedEngineSection.kt
 │       │   └── EngineInfoSection.kt
 │       └── perf/                   # Separate performance-benchmark screen
@@ -40,7 +43,10 @@ sample/
 | **Typography** | `CodeBlockStyle.textStyle` — font size, weight, line height |
 | **Toggles** | All boolean flags: line numbers, language label, copy button |
 | **Callbacks** | `onHighlightComplete` and `onCopyClick` in action |
-| **Themes** | Every `HighlightTheme` factory method demonstrated side-by-side |
+| **Placeholder** | `placeholder` slot of `SyntaxHighlightedCode` — default, dimmed text, and loading label |
+| **Themes** | `HighlightTheme` factory methods demonstrated side-by-side |
+| **All Themes** | Scrollable showcase of all 256 bundled highlight.js themes with live preview |
+| **Lang Discover** | Language detection and manual language selection with filter chips |
 | **Advanced** | `rememberHighlightedCodeBothThemes` for instant light/dark switching |
 | **Engine** | `HighlightEngine.highlightJsVersion` and `supportedLanguages` |
 
