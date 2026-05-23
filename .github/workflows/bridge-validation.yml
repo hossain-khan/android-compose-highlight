@@ -1,3 +1,27 @@
+# Bridge Validation
+#
+# Guards the JS/Kotlin contract between bridge.html and HighlightEngine.
+#
+# The library works by loading a hidden WebView with bridge.html, which bundles
+# highlight.min.js and exposes JS functions that Kotlin calls via evaluateJavascript().
+# If any part of that contract breaks - a function is renamed, the DOM element id
+# changes, or the asset URL drifts - highlighting silently fails at runtime with no
+# compile-time error. This workflow catches those regressions at PR time.
+#
+# What is validated:
+#   1. bridge.html is valid HTML (htmlhint: matching tags, lowercase names, no duplicate ids, etc.)
+#   2. bridge.html loads highlight.min.js via a <script src=...> tag
+#   3. bridge.html exposes all 5 JS functions called by HighlightEngine:
+#        - highlightCode(code, lang)  - primary per-language syntax highlighting
+#        - highlightAuto(code)        - auto-language-detection highlighting
+#        - listLanguages()            - returns all supported language identifiers
+#        - getLanguage(nameOrAlias)   - returns metadata for a given language
+#        - hljsVersion()              - returns the bundled highlight.js version string
+#   4. bridge.html contains an element with id="code" (used by highlightCode() via getElementById)
+#   5. WebViewManager.kt loads bridge.html from the expected appassets.androidplatform.net URL
+#
+# Triggered only when the bridge files or this workflow itself change.
+
 name: Bridge Validation
 
 on:
@@ -44,14 +68,20 @@ jobs:
           BRIDGE_FILE="compose-highlight/src/main/assets/compose-highlight/bridge.html"
           WEBVIEW_FILE="compose-highlight/src/main/kotlin/dev/hossain/highlight/engine/WebViewManager.kt"
 
+          # highlight.min.js must be loaded - without it, hljs is undefined and all highlighting breaks
           grep -Eiq "<script[^>]*src=[\"']highlight\\.min\\.js[\"'][^>]*>" "$BRIDGE_FILE"
+
+          # All 5 JS functions called by HighlightEngine via evaluateJavascript() must exist
           grep -Eq 'function[[:space:]]+highlightCode[[:space:]]*\(' "$BRIDGE_FILE"
-          grep -Eq 'function[[:space:]]+listLanguages[[:space:]]*\(' "$BRIDGE_FILE"
-          grep -Eq 'function[[:space:]]+hljsVersion[[:space:]]*\(' "$BRIDGE_FILE"
           grep -Eq 'function[[:space:]]+highlightAuto[[:space:]]*\(' "$BRIDGE_FILE"
+          grep -Eq 'function[[:space:]]+listLanguages[[:space:]]*\(' "$BRIDGE_FILE"
           grep -Eq 'function[[:space:]]+getLanguage[[:space:]]*\(' "$BRIDGE_FILE"
+          grep -Eq 'function[[:space:]]+hljsVersion[[:space:]]*\(' "$BRIDGE_FILE"
+
+          # highlightCode() uses getElementById("code") to set content - the element must exist
           grep -Eq "getElementById[[:space:]]*\([[:space:]]*['\"]code['\"][[:space:]]*\)|querySelector[[:space:]]*\([[:space:]]*['\"]#code['\"][[:space:]]*\)" "$BRIDGE_FILE"
 
+          # WebViewManager must load bridge.html from the correct appassets URL - wrong path = blank WebView
           grep -q 'https://appassets.androidplatform.net/assets/compose-highlight/bridge.html' "$WEBVIEW_FILE"
 
       - name: Bridge validation passed
