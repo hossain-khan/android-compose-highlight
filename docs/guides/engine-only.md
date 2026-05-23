@@ -60,6 +60,8 @@ fun CodeScreen(viewModel: CodeViewModel = viewModel()) {
 Get the raw Highlight.js HTML tokens for custom rendering pipelines:
 
 ```kotlin
+import android.util.Log
+
 engine.highlightToHtml("val x = 42", "kotlin").onSuccess { result ->
     // result.html: "<span class=\"hljs-keyword\">val</span> x = <span class=\"hljs-number\">42</span>"
     Log.d("HTML", result.html)
@@ -69,6 +71,8 @@ engine.highlightToHtml("val x = 42", "kotlin").onSuccess { result ->
 ## Querying engine metadata
 
 ```kotlin
+import android.util.Log
+
 engine.supportedLanguages().onSuccess { languages ->
     Log.d("Engine", "Supports ${languages.size} languages")
 }

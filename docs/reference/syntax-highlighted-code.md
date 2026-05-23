@@ -70,6 +70,7 @@ HighlightThemeProvider(
 ### With an explicit theme
 
 ```kotlin
+import android.util.Log
 import dev.hossain.highlight.ui.SyntaxHighlightedCode
 import dev.hossain.highlight.ui.rememberTomorrowTheme
 
@@ -225,6 +226,8 @@ Text(text = highlighted ?: AnnotatedString(snippet))
 Use `onHighlightComplete` for metrics and `onError` for typed failure handling:
 
 ```kotlin
+import android.util.Log
+
 val highlighted by rememberHighlightedCode(
     code = snippet,
     language = "kotlin",
@@ -232,7 +235,7 @@ val highlighted by rememberHighlightedCode(
         metrics["highlightMs"] = result.durationMs
     },
     onError = { error ->
-        println("Highlight failed: ${error.message}")
+        Log.d("Highlight", "Failed: ${error.message}")
     },
 )
 ```

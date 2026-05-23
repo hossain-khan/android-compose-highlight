@@ -105,17 +105,20 @@ Inside Compose, use `rememberHighlightedCodeBothThemes(code, language)`.
 Monitor per-stage latency with `onHighlightComplete`:
 
 ```kotlin
+import android.util.Log
 import dev.hossain.highlight.ui.SyntaxHighlightedCode
 
 SyntaxHighlightedCode(
     code     = snippet,
     language = "kotlin",
     onHighlightComplete = { result ->
-        Log.d("HighlightPerf",
+        Log.d(
+            "HighlightPerf",
             "total=${result.durationMs}ms, " +
             "js=${result.timings.jsBridge.inWholeMilliseconds}ms, " +
             "parse=${result.timings.htmlParse.inWholeMilliseconds}ms, " +
-            "spans=${result.spanCount}")
+            "spans=${result.spanCount}",
+        )
     },
 )
 ```
