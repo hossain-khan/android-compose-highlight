@@ -1,101 +1,95 @@
 # Module compose-highlight
 
-A Jetpack Compose library for beautiful syntax highlighting powered by [Highlight.js](https://highlightjs.org/) running in a hidden WebView. Tokenized HTML is converted to native Compose `AnnotatedString` — no custom lexers, no grammars to maintain: 190+ languages out of the box.
+A Jetpack Compose syntax-highlighting library powered by [Highlight.js](https://highlightjs.org/) running in a hidden WebView. Highlight.js produces tokenized HTML, and the library converts that output into native Compose `AnnotatedString` values instead of maintaining custom lexers or grammars.
 
-For detailed API documentation and usage examples, see the [generated API docs](../docs/api/) and [getting started guide](../docs/getting-started.md).
+For user-facing docs, see the [Getting Started guide](https://hossain-khan.github.io/android-compose-highlight/getting-started/) and the [generated API reference](https://hossain-khan.github.io/android-compose-highlight/api/).
 
 ## Architecture
 
-Public API is split across two layers:
+The public surface spans a Compose UI layer and a lower-level engine layer:
 
+```text
+UI layer (public)
+  |- SyntaxHighlightedCode              Compose code block
+  |- HighlightThemeProvider             Shared engine + active theme for a subtree
+  |- rememberHighlightEngine()          Lifecycle-aware engine access
+  |- rememberHighlightedCode()          Single-theme state helper
+  \- rememberHighlightedCodeBothThemes() Dual-theme state helper
+
+Engine layer (public)
+  |- HighlightEngine                    Hidden WebView orchestration
+  |  |- highlight()
+  |  |- highlightBothThemes()
+  |  |- highlightAuto()
+  |  |- highlightToHtml()
+  |  |- supportedLanguages()
+  |  |- getLanguage()
+  |  \- highlightJsVersion()
+  |- HighlightTheme                     Lazy CSS-backed theme model
+  |- HighlightException                 Sealed failure hierarchy
+  |- HighlightResult / HtmlHighlightResult / ThemedHighlightResult / AutoHighlightResult
+  \- HighlightLanguage / HighlightLanguageInfo / HighlightTimings
+
+Internal implementation
+  |- WebViewManager                     Hidden WebView lifecycle + bridge page
+  |- ThemeParser                        CSS selector to SpanStyle parsing
+  |- HtmlToAnnotatedString              jsoup HTML to AnnotatedString conversion
+  \- escapeForJs() / unescapeJsString() and related helpers
 ```
-UI Layer (public)
-  ├── SyntaxHighlightedCode        ← Compose wrapper around HighlightEngine
-  ├── HighlightThemeProvider       ← Provides shared engine + active theme to subtree
-  ├── rememberHighlightEngine()    ← Lifecycle-aware engine factory (uses provider's engine when available)
-  ├── rememberHighlightedCode()    ← State holder for single-language highlighting
-  └── rememberHighlightedCodeBothThemes()  ← State holder for dual-theme highlighting
 
-Engine Layer (public)
-  ├── HighlightEngine              ← Main entry point, owns WebView and serialization
-  ├── HighlightTheme               ← Lazy CSS-backed color map model
-  ├── HighlightResult / HtmlHighlightResult / ThemedHighlightResult  ← Result types
-  └── HighlightLanguage / HighlightLanguageInfo  ← Helper lookups
+**How highlighting works:**
+1. `WebViewManager` loads `bridge.html` from `assets/compose-highlight/` into a hidden `WebView` on the Main thread.
+2. `HighlightEngine` serializes JS calls with a `Mutex` and invokes Highlight.js through `evaluateJavascript()`.
+3. `HighlightTheme` lazily parses CSS into a selector-to-`SpanStyle` map on first use.
+4. `HtmlToAnnotatedString` walks the returned HTML and applies theme styles to build a Compose `AnnotatedString`.
 
-Internal (compose-highlight package-internal)
-  ├── WebViewManager               ← Hidden WebView lifecycle, JS bridge
-  ├── ThemeParser                  ← CSS selector → Map<String, SpanStyle> parsing
-  ├── HtmlToAnnotatedString        ← jsoup-based HTML → AnnotatedString conversion
-  └── Helper functions (unescapeJsString, escapeForJs, etc.)
-```
+**Shared engine via `HighlightThemeProvider`:** one provider creates one `HighlightEngine`, which means one hidden `WebView` for the entire subtree. `rememberHighlightEngine()` reuses that shared engine inside the provider and creates a standalone engine only when used outside one.
 
-**WebView threading:** All `WebView` APIs run on the Main thread. `HighlightEngine` serializes concurrent highlight calls via an internal `Mutex` and dispatches theme-parsing / HTML-conversion work to `Dispatchers.Default` off the Main thread.
-
-**Shared engine via `HighlightThemeProvider`:** Creates one `HighlightEngine` (one hidden WebView) for its entire subtree. `rememberHighlightEngine()` detects the provider via `LocalHighlightEngine` and returns the shared engine if present; otherwise creates a standalone engine with automatic lifecycle cleanup via `DisposableEffect`.
-
-**Asset loading:** `WebViewAssetLoader` maps requests to `https://appassets.androidplatform.net/assets/` to the app's `assets/` folder, bypassing Same-Origin Policy restrictions on `file://` URLs and enabling `<script>` execution.
+**Asset loading:** `WebViewAssetLoader` maps `https://appassets.androidplatform.net/assets/` to the app's packaged assets. This avoids the script restrictions that apply to `file://` URLs.
 
 ## Implementation conventions
 
-**Public vs internal API boundary:** Only `ui/*`, `engine/HighlightEngine.kt`, `engine/HighlightTheme.kt`, and `engine/HighlightException.kt` are public. All other engine helpers (`WebViewManager`, `ThemeParser`, `HtmlToAnnotatedString`, `unescapeJsString`, etc.) are `internal`. Note: `unescapeJsString` is a package-level `internal fun` so it can be tested directly in JVM unit tests without mocking Android.
+**Public vs internal boundary:** public API lives in `ui/` plus the public engine entry points, result types, metadata types, and timing types in `engine/`. WebView management, CSS parsing, HTML conversion, and JS-string helpers stay `internal`.
 
-**`android.util.Log` is banned.** Any `Log.*` call in code that runs in JVM tests causes `RuntimeException: Method d in android.util.Log not mocked`. Use structured logging via test assertions instead.
+**Public suspend engine methods return `Result<T>`.** Methods like `highlight()`, `highlightBothThemes()`, `highlightAuto()`, `highlightToHtml()`, `supportedLanguages()`, `getLanguage()`, and `highlightJsVersion()` report failures through `Result.failure(HighlightException(...))` instead of throwing. Add new failure cases to `HighlightException` rather than introducing ad hoc exception types.
 
-**Results use `Result<T>`, never throw from public methods.** All public engine methods return `Result<T>`. Failures wrap `HighlightException` (a sealed class). Add new exception variants to the sealed class rather than throwing arbitrary exceptions.
+**`android.util.Log` is banned in library code paths used by JVM tests.** Android logging calls in JVM-tested paths trigger "Method ... in android.util.Log not mocked" failures.
 
-**Application context only.** Both `HighlightEngine` and `HighlightTheme` hold contexts beyond Activity lifecycle. Always pass `context.applicationContext` from call sites - never Activity contexts. Internals defensively normalize any provided context to `applicationContext`.
+**Always prefer `applicationContext`.** `HighlightEngine` retains a `Context` through `WebViewManager`, and `HighlightTheme` factories may retain one through lazy providers. Internals defensively normalize to `applicationContext`, but call sites should still pass `context.applicationContext`.
 
-**Main thread threading model.** All WebView APIs run on the Main thread via `Dispatchers.Main` callbacks. `HighlightEngine` serializes concurrent highlight calls via `Mutex` and offloads theme parsing / HTML conversion to `Dispatchers.Default`.
+**WebView work stays on the Main thread.** `WebViewManager` initialization, destruction, and JS evaluation are all dispatched to the Main thread. Theme parsing and HTML-to-`AnnotatedString` conversion run off the Main thread on `Dispatchers.Default`.
 
-**Lazy theme initialization.** `HighlightTheme.colorMap` is backed by `lazy {}`. CSS parsing and any asset I/O happen on first access to `colorMap`, not at factory time. Errors surface on first use, not theme construction.
+**`rememberHighlightEngine()` owns Compose lifecycle behavior.** Inside `HighlightThemeProvider`, it returns the shared engine. Outside the provider, it creates a standalone engine and destroys it with `DisposableEffect` when the composable leaves composition.
 
-**Static CompositionLocals.** `LocalHighlightTheme`, `LocalLightHighlightTheme`, `LocalDarkHighlightTheme`, and internal `LocalHighlightEngine` use `staticCompositionLocalOf` (not `compositionLocalOf`) because they carry stable objects (themes, engine) that do not change within their provider subtree. This avoids unnecessary recomposition tracking.
+**`SyntaxHighlightedCode` needs a theme source.** Its `theme` parameter defaults to `LocalHighlightTheme.current`, which throws if there is no `HighlightThemeProvider`. Wrap usage in `HighlightThemeProvider { ... }` or pass an explicit `theme`.
 
-**Asset path structure.** All library assets live under `assets/compose-highlight/` to avoid collisions. CSS themes are in `assets/compose-highlight/themes/`.
+**`HighlightTheme` is lazy.** CSS parsing happens on first `colorMap` access, not when the theme instance is constructed.
 
-**Formatting.** ktlint via `org.jmailen.kotlinter`. The `.editorconfig` suppresses the function-naming rule for composables. Run `./gradlew formatKotlin` before committing.
+**CompositionLocals use `staticCompositionLocalOf`.** `LocalHighlightTheme`, `LocalLightHighlightTheme`, `LocalDarkHighlightTheme`, and internal `LocalHighlightEngine` all use static locals because they hold long-lived objects rather than frequently mutating reactive values.
 
-**KDoc on public API.** Every public class, function, and property must have KDoc. Non-trivial classes and composables should include usage examples in triple-backtick blocks. Dokka generates published API docs from KDoc to GitHub Pages. Internal classes benefit from KDoc but are not required.
+**Assets live under `assets/compose-highlight/`.** Theme CSS files are stored under `assets/compose-highlight/themes/` to avoid collisions when the library is consumed by an app.
 
-**Test structure.** JVM unit tests in `src/test/` run fast without a device. Use `ThemeParser.parse(cssString)` for theme tests and call `unescapeJsString(...)` directly - both work without Android mocks. Use [Google Truth](https://github.com/google/truth) for assertions. Instrumented tests in `src/androidTest/` require a connected device; includes `HighlightEngineTest` and microbenchmarks using `BenchmarkRule`.
+**Public API requires KDoc.** Dokka publishes the public API docs from KDoc, so all public classes, functions, and properties need KDoc, with usage examples on non-trivial APIs.
 
-## Git workflow and release process
+**Testing split:** JVM tests live in `src/test/` and should use `ThemeParser.parse(cssString)` and direct `unescapeJsString(...)` calls where possible. Instrumented tests and benchmarks live in `src/androidTest/`.
 
-**Always create new commits.** Never use `git commit --amend`, `git push --force`, or similar rewriting operations. Always create a new commit for changes. This preserves attribution and clean history. If changes are needed after pushing, create a new commit with a descriptive message (e.g., "fix: address code review feedback in X").
+## Contributor workflow
 
-**Before every commit - verify stability.** Run the following and ensure all pass:
+**Formatting and validation:**
 ```bash
 ./gradlew formatKotlin
 ./gradlew :compose-highlight:assembleDebug :sample:assembleDebug
 ./gradlew :compose-highlight:test
 ```
-Do not commit if any fail.
 
-**Git tags must not use `v` prefix.** Use `0.3.0`, not `v0.3.0`. Maven Central uses the tag as the dependency version, so the version consumers write matches the tag exactly.
+**Git workflow:** create new commits only. Do not use `git commit --amend`, `git push --force`, or `git push --force-with-lease`.
 
-**Release process uses a script.** Before tagging, use the release script to update version references atomically:
-```bash
-./scripts/prepare-release.sh <new-version>
-# Example: ./scripts/prepare-release.sh 0.18.0
-```
-This script updates `gradle.properties`, `README.md`, `sample/build.gradle.kts`, and `CHANGELOG.md` in one step. Never update these manually one-by-one - you will miss files.
+**Release preparation:** use `./scripts/prepare-release.sh <new-version>` to update `gradle.properties`, `README.md`, `sample/build.gradle.kts`, and `CHANGELOG.md` together before opening the release PR.
 
-**Release PR workflow:** Create a release branch, run all checks, commit, push, and open a PR into `main`:
-```bash
-git checkout -b release/<new-version>
-./gradlew formatKotlin :compose-highlight:assembleDebug :sample:assembleDebug :compose-highlight:test
-git add -A && git commit -m "chore: prepare release <new-version>"
-git push -u origin release/<new-version>
-gh pr create --title "chore: prepare release <new-version>" --base main
-```
+**Tags:** release tags must not use a `v` prefix.
 
-**Publishing is a manual two-step after the PR is merged.** Only after the release PR is merged into `main`:
-```bash
-git checkout main && git pull
-git tag <new-version> && git push origin <new-version>
-```
-Then manually trigger the GitHub Actions publish workflow in **dry-run mode first**, then again **without dry-run** to actually publish to Maven Central.
+**Publishing:** Maven Central publishing is a manual two-step workflow after the release PR is merged and the tag is pushed: run the publish workflow in dry-run mode first, then run it again without dry-run.
 
-**CHANGELOG.md must stay current.** For every PR/commit that adds a feature, fixes a bug, or makes a breaking change, add an entry under `[Unreleased]` in `CHANGELOG.md`. When releasing, rename the `[Unreleased]` section to the version number with today's date.
+**CHANGELOG:** keep `CHANGELOG.md` updated under `[Unreleased]` for features, fixes, and breaking changes.
 
-**No em dashes in text.** Write `-` (regular hyphen) instead of `-` (em dash) in commit messages, code comments, KDoc, and CHANGELOG entries.
+**Writing style:** never use the em dash character in comments, docs, KDoc, commit messages, or changelog entries. Use a regular hyphen instead.
