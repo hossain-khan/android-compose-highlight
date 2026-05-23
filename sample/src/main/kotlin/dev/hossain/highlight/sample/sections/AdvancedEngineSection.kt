@@ -383,19 +383,17 @@ internal fun AdvancedEngineSection(
                         assetPath = "nonexistent-theme.css",
                         name = "broken",
                     )
-                runCatching {
-                    // runCatching is needed because theme.colorMap is a lazy property that can
-                    // throw an IOException (wrapped in HighlightException) when first accessed
-                    // during highlight(). The Result returned by highlight() only covers
-                    // failures that occur after colorMap succeeds.
-                    directEngine.highlight("val x = 42", "kotlin", brokenTheme)
-                }.onFailure { e ->
-                    caughtException =
-                        when (e) {
-                            is HighlightException -> e
-                            else -> HighlightException.HtmlParseFailed(e)
-                        }
-                }
+                // highlight() catches all theme and parsing exceptions via withHtmlParsingErrorHandling
+                // and returns them as Result.failure - no throw, so check the Result directly.
+                directEngine
+                    .highlight("val x = 42", "kotlin", brokenTheme)
+                    .onFailure { e ->
+                        caughtException =
+                            when (e) {
+                                is HighlightException -> e
+                                else -> HighlightException.HtmlParseFailed(e)
+                            }
+                    }
             }
         }) {
             Text("Trigger Engine Error")
