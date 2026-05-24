@@ -89,8 +89,7 @@ fun StreamingResponseBubble(
                     .background(
                         color = Color(0xFF81C784),
                         shape = RoundedCornerShape(12.dp),
-                    )
-                    .padding(12.dp)
+                    ).padding(12.dp)
                     .fillMaxWidth(0.85f),
         ) {
             Text(
@@ -152,8 +151,6 @@ fun ChatScreen(
     uiState: ChatUiState,
     onSendMessage: (String) -> Unit,
     onClearConversation: () -> Unit,
-    selectedLanguage: String?,
-    onLanguageChange: (String?) -> Unit,
 ) {
     val listState = rememberLazyListState()
 
@@ -168,9 +165,7 @@ fun ChatScreen(
     Column(
         modifier =
             Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp),
-        verticalArrangement = Arrangement.SpaceBetween,
+                .fillMaxWidth(),
     ) {
         // Messages list
         LazyColumn(
@@ -178,7 +173,8 @@ fun ChatScreen(
             modifier =
                 Modifier
                     .weight(1f)
-                    .fillMaxWidth(),
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             // Display conversation history
@@ -247,44 +243,19 @@ fun ChatScreen(
             }
         }
 
-        // Input section
+        // Floating input at the bottom
         Column(
             modifier =
                 Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+                    .background(color = Color(0xFFF5F5F5)),
+            verticalArrangement = Arrangement.spacedBy(0.dp),
         ) {
-            // Language selector
-            LanguageSelector(
-                selectedLanguage = selectedLanguage,
-                onLanguageChange = onLanguageChange,
-                isEnabled = uiState !is ChatUiState.Loading,
-            )
-
-            // Message input
             ChatInputField(
                 onSendMessage = onSendMessage,
                 onClearConversation = onClearConversation,
                 isLoading = uiState is ChatUiState.Loading,
             )
-
-            // Loading indicator
-            if (uiState is ChatUiState.Loading) {
-                Box(
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(8.dp),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    CircularProgressIndicator(
-                        modifier =
-                            Modifier
-                                .padding(8.dp),
-                    )
-                }
-            }
         }
     }
 }

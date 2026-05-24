@@ -1,15 +1,15 @@
 package dev.hossain.highlight.sample.chat.ui
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.OutlinedButton
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Send
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -18,86 +18,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 
 /**
- * Language selector dropdown component.
- *
- * @param selectedLanguage Currently selected language or null
- * @param onLanguageChange Callback when language selection changes
- * @param isEnabled Whether the selector is enabled
- */
-@Composable
-fun LanguageSelector(
-    selectedLanguage: String?,
-    onLanguageChange: (String?) -> Unit,
-    isEnabled: Boolean = true,
-) {
-    var showMenu by remember { mutableStateOf(false) }
-
-    val languages =
-        listOf(
-            "kotlin",
-            "python",
-            "javascript",
-            "typescript",
-            "java",
-            "go",
-            "rust",
-            "swift",
-            "csharp",
-        )
-
-    Row(
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .padding(8.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-    ) {
-        Text(
-            text = "Language: ${selectedLanguage ?: "Any"}",
-            fontSize = 14.sp,
-            modifier = Modifier.padding(start = 8.dp),
-        )
-
-        Box {
-            OutlinedButton(
-                onClick = { showMenu = true },
-                enabled = isEnabled,
-            ) {
-                Text(selectedLanguage ?: "Select Language")
-            }
-
-            DropdownMenu(
-                expanded = showMenu,
-                onDismissRequest = { showMenu = false },
-            ) {
-                languages.forEach { language ->
-                    DropdownMenuItem(
-                        text = { Text(language) },
-                        onClick = {
-                            onLanguageChange(language)
-                            showMenu = false
-                        },
-                    )
-                }
-
-                DropdownMenuItem(
-                    text = { Text("Clear") },
-                    onClick = {
-                        onLanguageChange(null)
-                        showMenu = false
-                    },
-                )
-            }
-        }
-    }
-}
-
-/**
- * Chat input field component with send and clear buttons.
+ * Chat input field component with send button.
+ * Styled like production chat apps (WhatsApp, Telegram) with floating bottom input.
  *
  * @param onSendMessage Callback when send button is pressed
  * @param onClearConversation Callback when clear conversation button is pressed
@@ -110,12 +36,18 @@ fun ChatInputField(
     isLoading: Boolean = false,
 ) {
     var input by remember { mutableStateOf("") }
-    val charCount = input.length
     val maxChars = 2000
 
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
+    Row(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp, vertical = 8.dp)
+                .background(
+                    color = Color.White,
+                    shape = RoundedCornerShape(24.dp),
+                ).padding(horizontal = 12.dp, vertical = 4.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         // Input field
         OutlinedTextField(
@@ -127,48 +59,27 @@ fun ChatInputField(
             },
             modifier =
                 Modifier
-                    .fillMaxWidth(),
-            placeholder = { Text("Ask about programming...") },
-            label = { Text("Question") },
+                    .weight(1f),
+            placeholder = { Text("Message...") },
             enabled = !isLoading,
-            maxLines = 4,
-            supportingText = {
-                Text(
-                    text = "$charCount / $maxChars",
-                    fontSize = 12.sp,
-                )
-            },
+            maxLines = 3,
+            singleLine = false,
         )
 
-        // Buttons row
-        Row(
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .padding(top = 8.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        // Send button with icon
+        IconButton(
+            onClick = {
+                onSendMessage(input)
+                input = ""
+            },
+            enabled = input.isNotEmpty() && !isLoading,
+            modifier = Modifier.padding(4.dp),
         ) {
-            Button(
-                onClick = {
-                    onSendMessage(input)
-                    input = ""
-                },
-                enabled = input.isNotEmpty() && !isLoading,
-                modifier = Modifier.weight(1f),
-            ) {
-                Text("Send")
-            }
-
-            OutlinedButton(
-                onClick = {
-                    onClearConversation()
-                    input = ""
-                },
-                enabled = !isLoading,
-                modifier = Modifier.weight(1f),
-            ) {
-                Text("Clear")
-            }
+            Icon(
+                imageVector = Icons.Default.Send,
+                contentDescription = "Send message",
+                tint = Color(0xFF00BCD4),
+            )
         }
     }
 }

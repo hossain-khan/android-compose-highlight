@@ -14,7 +14,6 @@ import dev.hossain.highlight.sample.chat.state.ChatViewModel
  * Features:
  * - Real-time streaming responses from the AI API
  * - Multi-turn conversation support with history
- * - Language context for better responses
  * - Character limit enforcement (2000 characters)
  * - Error handling with user-friendly messages
  * - Session management for conversation tracking
@@ -24,7 +23,6 @@ fun ChatDemoTab() {
     val viewModel: ChatViewModel = viewModel()
 
     val uiState by viewModel.uiState
-    val selectedLanguage by viewModel.selectedLanguage
 
     ChatScreen(
         uiState = uiState,
@@ -33,10 +31,6 @@ fun ChatDemoTab() {
         },
         onClearConversation = {
             viewModel.clearConversation()
-        },
-        selectedLanguage = selectedLanguage,
-        onLanguageChange = { language ->
-            viewModel.setLanguage(language)
         },
     )
 }

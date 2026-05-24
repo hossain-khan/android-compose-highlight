@@ -102,12 +102,12 @@ class CodeAIService(
             // Parse streaming response
             val lines = response.bodyAsText().lines()
             Log.d(TAG, "Response body has ${lines.size} total lines")
-            
+
             var processedLines = 0
             var nullTokenLines = 0
             var completedLines = 0
             var tokensEmitted = 0
-            
+
             for (line in lines) {
                 if (line.isNotBlank()) {
                     processedLines++
@@ -127,7 +127,7 @@ class CodeAIService(
                         Log.v(TAG, "Token received: '$token'")
                         onToken(token)
                         tokensEmitted++
-                        
+
                         // Yield every 10 tokens to let the UI thread recompose
                         // without blocking the coroutine for too long
                         if (tokensEmitted % 10 == 0) {
@@ -139,8 +139,11 @@ class CodeAIService(
                     }
                 }
             }
-            
-            Log.d(TAG, "Finished parsing: processedLines=$processedLines, nullTokens=$nullTokenLines, completions=$completedLines, tokensEmitted=$tokensEmitted")
+
+            Log.d(
+                TAG,
+                "Finished parsing: processedLines=$processedLines, nullTokens=$nullTokenLines, completions=$completedLines, tokensEmitted=$tokensEmitted",
+            )
 
             Log.d(TAG, "Stream processing finished")
 
