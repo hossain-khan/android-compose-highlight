@@ -1,5 +1,6 @@
 package dev.hossain.highlight.sample.chat.ui
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -25,6 +26,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import dev.hossain.highlight.sample.chat.model.ChatMessage
 import dev.hossain.highlight.sample.chat.state.ChatUiState
+
+private const val TAG = "ChatScreen"
 
 /**
  * Message bubble component for displaying a single chat message.
@@ -196,14 +199,17 @@ fun ChatScreen(
                 }
 
                 is ChatUiState.Loading -> {
+                    Log.d(TAG, "Rendering Loading state: currentResponse='${uiState.currentResponse.take(50)}...' (length: ${uiState.currentResponse.length})")
                     val (historyMessages, currentResponse) =
                         when {
                             uiState.currentResponse.isNotEmpty() -> {
                                 // Show empty history and current response while streaming
+                                Log.d(TAG, "Response is not empty, showing StreamingResponseBubble")
                                 emptyList<ChatMessage>() to uiState.currentResponse
                             }
 
                             else -> {
+                                Log.d(TAG, "Response is empty, not showing any bubble")
                                 emptyList<ChatMessage>() to ""
                             }
                         }
@@ -213,12 +219,15 @@ fun ChatScreen(
                     }
 
                     if (currentResponse.isNotEmpty()) {
+                        Log.d(TAG, "Adding StreamingResponseBubble to LazyColumn")
                         item {
                             StreamingResponseBubble(
                                 text = currentResponse,
                                 isStreaming = true,
                             )
                         }
+                    } else {
+                        Log.d(TAG, "currentResponse is empty, not adding bubble")
                     }
                 }
 
