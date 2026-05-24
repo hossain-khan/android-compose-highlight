@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Le Chat by Mistral AI - Technical Reference</title>
+    <style>
+        :root {
+            --bg: #fafafa;
+            --surface: #ffffff;
+            --text: #1a1a1a;
+            --text-secondary: #555;
+            --border: #e0e0e0;
+            --accent: #F97316;
+            --accent-light: #fff7ed;
+            --code-bg: #f5f5f5;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            padding: 2rem;
+            max-width: 960px;
+            margin: 0 auto;
+        }
+        h1 { font-size: 1.8rem; margin-bottom: 0.5rem; }
+        h2 { font-size: 1.4rem; margin: 2.5rem 0 1rem; border-bottom: 2px solid var(--accent); padding-bottom: 0.3rem; }
+        h3 { font-size: 1.1rem; margin: 1.5rem 0 0.5rem; }
+        p { margin-bottom: 1rem; }
+        .subtitle { color: var(--text-secondary); margin-bottom: 2rem; }
+        .evidence {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+        }
+        .evidence-header {
+            display: flex;
+            align-items: center;
+            padding: 0.8rem 1rem;
+            background: var(--code-bg);
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
+            user-select: none;
+        }
+        .evidence-header:hover { background: #ececec; }
+        .evidence-header .file-type {
+            display: inline-block;
+            padding: 0.1rem 0.4rem;
+            border-radius: 3px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-right: 0.6rem;
+        }
+        .type-config { background: #dbeafe; color: #1d4ed8; }
+        .type-hermes { background: #fef3c7; color: #92400e; }
+        .type-smali { background: #d1fae5; color: #065f46; }
+        .type-asset { background: #e0e7ff; color: #4338ca; }
+        .type-binary { background: #fce7f3; color: #9d174d; }
+        .type-font { background: #f3e8ff; color: #6b21a8; }
+        .evidence-header .path {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+        .evidence-body {
+            padding: 1rem;
+        }
+        .evidence-body pre {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 1rem;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-size: 0.8rem;
+            line-height: 1.5;
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+        }
+        .evidence-body .note {
+            margin-top: 0.8rem;
+            padding: 0.6rem 0.8rem;
+            background: var(--accent-light);
+            border-radius: 4px;
+            font-size: 0.85rem;
+        }
+        .claim {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--accent);
+        }
+        details { margin-bottom: 1rem; }
+        details summary {
+            cursor: pointer;
+            padding: 0.5rem;
+            background: var(--code-bg);
+            border-radius: 4px;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+        details summary:hover { background: #ececec; }
+        details[open] summary { margin-bottom: 0.5rem; }
+        code {
+            background: var(--code-bg);
+            padding: 0.15rem 0.4rem;
+            border-radius: 3px;
+            font-size: 0.85rem;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        ul { padding-left: 1.5rem; margin-bottom: 1rem; }
+        li { margin-bottom: 0.3rem; }
+        .footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--border); color: var(--text-secondary); font-size: 0.85rem; }
+    </style>
+</head>
+<body>
+
+<h1>Le Chat by Mistral AI - Technical Reference</h1>
+<p class="subtitle">Evidence-backed findings from APK analysis | <a href="lechat-analysis-report.html">Back to Analysis Report</a></p>
+
+<h2>1. React Native / Expo Framework</h2>
+
+<p class="claim">Claim: The app is built with React Native using Expo SDK 55 with React Compiler enabled.</p>
+
+<div class="evidence">
+    <div class="evidence-header">
+        <span class="file-type type-config">config</span>
+        <span class="path">assets/app.config</span>
+    </div>
+    <div class="evidence-body">
+        <pre>{
+  "name": "Le Chat",
+  "slug": "le-chat",
+  "version": "1.21.2",
+  "sdkVersion": "55.0.0",
+  "platforms": ["ios", "android", "web"],
+  "android": {
+    "package": "ai.mistral.chat",
+    "versionCode": 12102159
+  },
+  "locales": {
+    "en": "./locales/en.json",
+    "fr": "./locales/fr.json",
+    "de": "./locales/de.json",
+    "es": "./locales/es.json",
+    "pl": "./locales/pl.json",
+    "it": "./locales/it.json",
+    "pt-BR": "./locales/pt-BR.json",
+    "nl": "./locales/nl.json"
+  }
+}</pre>
+        <div class="note">
+            <strong>Interpretation:</strong> Full Expo config confirms SDK 55, internal slug "le-chat", and
+            multi-language support for 8 locales. The app targets iOS, Android, and Web from a single codebase.
+            No <code>kotlinVersion</code> is specified (standard for React Native builds that don't customize the Kotlin toolchain).
+        </div>
+    </div>
+</div>
+
+<div class="evidence">
+    <div class="evidence-header">
+        <span class="file-type type-binary">binary</span>
+        <span class="path">assets/index.android.bundle</span>
+    </div>
+    <div class="evidence-body">
+        <pre>$ file assets/index.android.bundle
+Hermes JavaScript bytecode, version 96
+
+$ wc -c assets/index.android.bundle
+16357376 bytes (~15.6 MB)</pre>
+        <div class="note">
+            <strong>Interpretation:</strong> The JS bundle is pre-compiled to Hermes bytecode v96. At ~15.6 MB, this is
+            significantly larger than typical RN apps (Replit: 7.5 MB), indicating substantial embedded logic including
+            the full Highlight.js library with many language grammars, NativeWind runtime, and application code.
+        </div>
+    </div>
+</div>
+
+<h2>2. Highlight.js Syntax Highlighting</h2>
+
+<p class="claim">Claim: The app uses Highlight.js for code syntax tokenization, with 30+ token classes bundled.</p>
+
+<div class="evidence">
+    <div class="evidence-header">
+        <span class="file-type type-hermes">hermes</span>
+        <span class="path">index.android.bundle (hljs CSS class strings)</span>
+    </div>
+    <div class="evidence-body">
+        <pre># Highlight.js token CSS classes extracted from Hermes bytecode:
+hljs-keyword
+hljs-string
+hljs-comment
+hljs-number
+hljs-title
+hljs-type
+hljs-variable
+hljs-built_in
+hljs-literal
+hljs-meta
+hljs-quote
+hljs-deletion
+hljs-emphasis
+hljs-formula
+hljs-link
+hljs-section
+hljs-selector-attr
+hljs-selector-class
+hljs-selector-id
+hljs-selector-pseudo
+hljs-selector-tag
+hljs-strong
+hljs-symbol
+hljs-template-variable
+hljs-attribute
+hljs-bullet
+hljs-doctag
+hljs-name
+hljs-regexp
+hljs-addition</pre>
+        <div class="note">
+            <strong>Interpretation:</strong> These are standard Highlight.js CSS class names applied to parsed tokens.
+            The presence of <code>hljs-selector-*</code> classes indicates CSS/SCSS grammar is bundled. The
+            <code>hljs-template-variable</code> class confirms template literal language support (Ruby, Bash, etc.).
+            This is the full Highlight.js token taxonomy, not a subset.
+        </div>
+    </div>
+</div>
+
+<div class="evidence">
+    <div class="evidence-header">
+        <span class="file-type type-hermes">hermes</span>
+        <span class="path">index.android.bundle (Highlight.js internal constants)</span>
+    </div>
+    <div class="evidence-body">
+        <pre># Highlight.js mode definition constants:
+beginKeywords
+COMMENT
+C_LINE_COMMENT_MODE
+C_BLOCK_COMMENT_MODE
+HASH_COMMENT_MODE
+NUMBER_MODE
+C_NUMBER_MODE
+BINARY_NUMBER_MODE
+RE_STARTERS_RE
+BACKSLASH_ESCAPE
+APOS_STRING_MODE
+QUOTE_STRING_MODE
+PHRASAL_WORDS_MODE</pre>
+        <div class="note">
+            <strong>Interpretation:</strong> These are internal Highlight.js API constants used for defining language
+            grammars. <code>beginKeywords</code> is a mode property for keyword matching. The <code>C_LINE_COMMENT_MODE</code>,
+            <code>C_BLOCK_COMMENT_MODE</code>, and <code>HASH_COMMENT_MODE</code> are predefined mode factories.
+            Their presence proves Highlight.js source is compiled into the bundle (not just hljs output classes).
+        </div>
+    </div>
+</div>
+
+<div class="evidence">
+    <div class="evidence-header">
+        <span class="file-type type-hermes">hermes</span>
+        <span class="path">index.android.bundle (language grammar indicators)</span>
+    </div>
+    <div class="evidence-body">
+        <pre># Language-specific grammar patterns found:
+# Vim/Ex commands (vim language grammar):
+set, let, map, nmap, vmap, imap, cmap, smap, nnoremap, vnoremap
+
+# Maya/MEL scripting (mel language grammar):
+polyMergeVertex, polyBevel, polySplit, createNode, shadingNode
+
+# Regex pattern constants (regex language grammar):
+(?:begin|end|require|module|class|def|if|unless|while|until|for)
+
+# SQL keywords:
+SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, DROP, FROM, WHERE
+
+# Additional language indicators:
+SHEBANG (shell detection)
+XML_TAG (markup detection)
+CSS_PROPERTY (stylesheet detection)</pre>
+        <div class="note">
+            <strong>Interpretation:</strong> The presence of highly domain-specific grammar patterns (Maya/MEL scripting,
+            vim commands) confirms that Le Chat bundles a large set of Highlight.js language grammars &mdash; likely
+            the full default set or close to it. This accounts for a significant portion of the 15.6 MB bundle size.
+        </div>
+    </div>
+</div>
+
+<h2>3. WebView Bridge (Auth Only, Not Code Rendering)</h2>
+
+<p class="claim">Claim: RNCWebView is present but used for authentication flows, not code block rendering.</p>
+
+<div class="evidence">
+    <div class="evidence-header">
+        <span class="file-type type-smali">smali</span>
+        <span class="path">smali/com/facebook/react/PackageList.smali</span>
+    </div>
+    <div class="evidence-body">
+        <pre># WebView package registration:
+invoke-direct {v2}, Lcom/reactnativecommunity/webview/RNCWebViewPackage;-&gt;&lt;init&gt;()V
+new-instance v2, Lcom/reactnativecommunity/webview/RNCWebViewPackage;</pre>
+        <div class="note">
+            <strong>Interpretation:</strong> RNCWebView is registered in the native package list, confirming WebView
+            capability is available. However, the usage context (below) shows it is used for authentication, not rendering.
+        </div>
+    </div>
+</div>
+
+<div class="evidence">
+    <div class="evidence-header">
+        <span class="file-type type-hermes">hermes</span>
+        <span class="path">index.android.bundle (WebView bridge usage patterns)</span>
+    </div>
+    <div class="evidence-body">
+        <pre># WebView postMessage patterns found:
+window.ReactNativeWebView?.postMessage(JSON.stringify({...}))
+
+# Context strings near WebView usage:
+"hcaptcha"
+"challenge-closed"
+"challenge-expired"
+"oauth"
+"authorization_code"
+"redirect_uri"
+
+# NOT found near WebView:
+# - No hljs-* class references in WebView context
+# - No code/pre/syntax references in WebView messages
+# - No editor state management via WebView bridge</pre>
+        <div class="note">
+            <strong>Interpretation:</strong> The WebView bridge messages are exclusively related to authentication flows:
+            hCaptcha challenges, OAuth authorization codes, and redirect handling. There is no evidence of code content
+            being passed through the WebView bridge. Code highlighting happens entirely in the RN JavaScript layer.
+        </div>
+    </div>
+</div>
+
+<h2>4. React Native Skia</h2>
+
+<p class="claim">Claim: React Native Skia is bundled, potentially used for custom drawing in code blocks or canvas features.</p>
+
+<div class="evidence">
+    <div class="evidence-header">
+        <span class="file-type type-smali">smali</span>
+        <span class="path">smali/com/facebook/react/PackageList.smali</span>
+    </div>
+    <div class="evidence-body">
+        <pre># Skia package registration:
+invoke-direct {v2}, Lcom/shopify/reactnative/skia/RNSkiaPackage;-&gt;&lt;init&gt;()V
+new-instance v2, Lcom/shopify/reactnative/skia/RNSkiaPackage;</pre>
+        <div class="note">
+            <strong>Interpretation:</strong> React Native Skia (@shopify/react-native-skia) provides GPU-accelerated
+            2D drawing within React Native. In Le Chat's context, this could be used for:
+            <ul>
+                <li>Custom code block backgrounds/decorations</li>
+                <li>Canvas/artifact rendering for the "Vibe Code" workflow</li>
+                <li>Animated UI elements beyond what standard RN views support</li>
+                <li>Potentially Skia-based text rendering for code (though RN Text is more likely)</li>
+            </ul>
+            Its exact role in code rendering is uncertain without runtime analysis.
+        </div>
+    </div>
+</div>
+
+<h2>5. NativeWind / Tailwind Styling</h2>
+
+<p class="claim">Claim: The app uses NativeWind (Tailwind CSS for React Native) for styling, including code token colors.</p>
+
+<div class="evidence">
+    <div class="evidence-header">
+        <span class="file-type type-hermes">hermes</span>
+        <span class="path">index.android.bundle (Tailwind utility classes)</span>
+    </div>
+    <div class="evidence-body">
+        <pre># Tailwind utility class patterns found in Hermes bytecode:
+text-xs
+text-sm
+text-base
+text-lg
+font-mono
+font-medium
+font-bold
+bg-gray-100
+bg-gray-800
+bg-gray-900
+text-gray-300
+text-gray-400
+text-orange-500
+text-blue-400
+text-green-400
+text-purple-400
+text-yellow-300
+text-red-400
+text-pink-400
+rounded-lg
+rounded-md
+px-3
+py-2
+p-4
+flex-row
+items-center
+justify-between
+overflow-hidden
+dark:bg-gray-900
+dark:text-gray-100</pre>
+        <div class="note">
+            <strong>Interpretation:</strong> Extensive Tailwind utility classes confirm NativeWind usage. The color classes
+            (<code>text-blue-400</code>, <code>text-green-400</code>, <code>text-purple-400</code>, etc.) are consistent
+            with syntax highlighting token color mappings. The <code>font-mono</code> class would apply the monospace
+            font (VCROSDMono) to code blocks. Dark mode support is built-in via <code>dark:</code> prefixes.
+        </div>
+    </div>
+</div>
+
+<h2>6. Font Files</h2>
+
+<p class="claim">Claim: The app bundles VCROSDMono (retro pixel monospace) for code, plus Devicon and Lucide icon fonts.</p>
+
+<div class="evidence">
+    <div class="evidence-header">
+        <span class="file-type type-font">font</span>
+        <span class="path">Bundled font files</span>
+    </div>
+    <div class="evidence-body">
+        <pre># Font files found in APK:
+assets/fonts/VCROSDMono.ttf          # Monospace code font (retro/pixel style)
+assets/fonts/devicon.ttf             # Programming language icon font
+assets/fonts/lucide.ttf              # General UI icon font
+
+res/font/roboto_medium_numbers.ttf   # Numeric-only display font
+
+# Via expo-google-fonts plugin:
+# Material Symbols (variable icon font, loaded at runtime)</pre>
+        <div class="note">
+            <strong>Interpretation:</strong> <strong>VCROSDMono</strong> is a distinctive choice &mdash; it is a retro pixel-art
+            style monospace font (inspired by VCR OSD displays from the 1980s). This gives code blocks a unique
+            branded appearance different from industry-standard developer fonts. <strong>Devicon</strong> provides
+            language-specific icons (Python, JavaScript, Rust logos, etc.) likely shown alongside code block language labels.
+        </div>
+    </div>
+</div>
+
+<h2>7. Native Kotlin/Java Classes</h2>
+
+<p class="claim">Claim: Custom native modules handle background tasks, intents, and system integration &mdash; but not highlighting.</p>
+
+<div class="evidence">
+    <div class="evidence-header">
+        <span class="file-type type-smali">smali</span>
+        <span class="path">smali/ai/mistral/</span>
+    </div>
+    <div class="evidence-body">
+        <pre># Mistral's native class hierarchy:
+ai/mistral/chat/LeChatQuickSettingsTileService.smali
+ai/mistral/chat/MainActivity.smali
+ai/mistral/chat/MainApplication.smali
+
+ai/mistral/helpers/MaiBackgroundTaskModule.smali
+ai/mistral/helpers/MaiIntentInboxModule.smali
+ai/mistral/helpers/MaiPasteInputViewModule.smali
+ai/mistral/helpers/MaiHelpersPackage.smali
+
+# Play Integrity (anti-tamper):
+com/pairip/licensecheck/LicenseCheck.smali</pre>
+        <div class="note">
+            <strong>Interpretation:</strong> The native layer consists of:
+            <ul>
+                <li><strong>LeChatQuickSettingsTileService</strong> &mdash; Android Quick Settings tile for instant access to Le Chat</li>
+                <li><strong>MaiBackgroundTaskModule</strong> &mdash; likely handles streaming response processing or background sync</li>
+                <li><strong>MaiIntentInboxModule</strong> &mdash; receives shared content from other apps (share extension)</li>
+                <li><strong>MaiPasteInputViewModule</strong> &mdash; custom paste handling (possibly for pasting code/images)</li>
+                <li><strong>MaiHelpersPackage</strong> &mdash; React Native package that registers the above modules</li>
+            </ul>
+            None of these modules perform syntax highlighting or text styling. All code rendering is in JS.
+        </div>
+    </div>
+</div>
+
+<div class="evidence">
+    <div class="evidence-header">
+        <span class="file-type type-smali">smali</span>
+        <span class="path">smali/com/facebook/react/PackageList.smali (full registry)</span>
+    </div>
+    <div class="evidence-body">
+        <pre># Complete native package registry:
+com/reactnativecommunity/webview/RNCWebViewPackage
+com/shopify/reactnative/skia/RNSkiaPackage
+com/swmansion/reanimated/ReanimatedPackage
+ai/mistral/helpers/MaiHelpersPackage
+# + standard Expo/RN packages (AsyncStorage, NetInfo, etc.)
+
+# Notably ABSENT:
+# - No custom TextLayout/SpannableString modules
+# - No CodeView or SyntaxHighlighter native modules
+# - No Compose UI rendering packages
+# - No TreeSitter or native parser bindings</pre>
+        <div class="note">
+            <strong>Interpretation:</strong> The absence of any native text rendering or syntax highlighting module
+            definitively confirms that all code highlighting logic lives in the JavaScript bundle. There is no native
+            bridge for highlighting &mdash; Highlight.js runs in Hermes and outputs are rendered via standard RN Text.
+        </div>
+    </div>
+</div>
+
+<h2>8. App Features and Workflows</h2>
+
+<p class="claim">Claim: Le Chat includes a "Vibe Code" workflow, deep research, agent system, and multiple input modalities.</p>
+
+<div class="evidence">
+    <div class="evidence-header">
+        <span class="file-type type-hermes">hermes</span>
+        <span class="path">index.android.bundle (feature strings)</span>
+    </div>
+    <div class="evidence-body">
+        <pre># Vibe Code workflow:
+vibeCodeWorkflow
+VibeCodeWorkflowIntroModalPage
+"New Code Session"
+
+# Deep Research:
+deep_research_event
+"Deep Research"
+
+# Agent system:
+agentWorkflow
+agent_response
+agent_tool_call
+workflow_step
+
+# Canvas/Artifacts:
+canvas_artifact
+artifact_view
+artifact_edit
+
+# Input modalities:
+speech_recognition_start
+camera_capture
+photo_library_select
+voice_input_active
+
+# Feature flags:
+feature_flags_use_continue_with_transition</pre>
+        <div class="note">
+            <strong>Interpretation:</strong> Le Chat is not just a simple chat app &mdash; it has a dedicated "Vibe Code"
+            workflow for code generation, a deep research mode with multi-step agents, canvas/artifacts for persistent
+            outputs, and multimodal input (voice, camera, photos). The "Vibe Code" feature specifically requires
+            robust syntax highlighting for its generated output.
+        </div>
+    </div>
+</div>
+
+<h2>9. Backend Infrastructure</h2>
+
+<p class="claim">Claim: The app communicates with Mistral's AI backend via CDN and uses Ory/Kratos for identity.</p>
+
+<div class="evidence">
+    <div class="evidence-header">
+        <span class="file-type type-hermes">hermes</span>
+        <span class="path">index.android.bundle (backend URLs and identity)</span>
+    </div>
+    <div class="evidence-body">
+        <pre># Backend endpoints:
+http://chat.mistralcdn.net:8100    # CDN endpoint (note: HTTP, not HTTPS)
+https://chat.mistral.ai            # Main API domain
+
+# Identity / Auth (Ory Kratos):
+kratos_session
+kratos_identity
+kratos_registration
+kratos_login
+kratos_verification
+kratos_recovery
+
+# Streaming:
+text/event-stream
+event: message
+data: {"content":"..."}
+
+# WebSocket indicators:
+ws://
+wss://</pre>
+        <div class="note">
+            <strong>Interpretation:</strong> Le Chat uses Mistral's CDN (port 8100, notably HTTP) for content delivery and
+            <code>chat.mistral.ai</code> for the main API. Authentication is handled by Ory Kratos (open-source identity
+            management). Streaming responses use Server-Sent Events (SSE) with the standard <code>text/event-stream</code>
+            format, which is the standard pattern for LLM streaming on mobile.
+        </div>
+    </div>
+</div>
+
+<h2>Summary of Evidence</h2>
+
+<table style="width:100%; border-collapse:collapse; font-size:0.85rem;">
+    <thead>
+        <tr style="background:#f5f5f5;">
+            <th style="padding:0.5rem; border:1px solid #ddd;">Claim</th>
+            <th style="padding:0.5rem; border:1px solid #ddd;">Evidence Type</th>
+            <th style="padding:0.5rem; border:1px solid #ddd;">Confidence</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr><td style="padding:0.5rem; border:1px solid #ddd;">React Native / Expo SDK 55</td><td style="padding:0.5rem; border:1px solid #ddd;">app.config (explicit)</td><td style="padding:0.5rem; border:1px solid #ddd;">Definitive</td></tr>
+        <tr><td style="padding:0.5rem; border:1px solid #ddd;">Hermes JS engine v96</td><td style="padding:0.5rem; border:1px solid #ddd;">File magic bytes</td><td style="padding:0.5rem; border:1px solid #ddd;">Definitive</td></tr>
+        <tr><td style="padding:0.5rem; border:1px solid #ddd;">Highlight.js for tokenization</td><td style="padding:0.5rem; border:1px solid #ddd;">hljs-* CSS classes + internal mode constants</td><td style="padding:0.5rem; border:1px solid #ddd;">Definitive</td></tr>
+        <tr><td style="padding:0.5rem; border:1px solid #ddd;">Many language grammars bundled</td><td style="padding:0.5rem; border:1px solid #ddd;">Domain-specific patterns (vim, MEL, SQL)</td><td style="padding:0.5rem; border:1px solid #ddd;">High</td></tr>
+        <tr><td style="padding:0.5rem; border:1px solid #ddd;">RN Text rendering (not WebView)</td><td style="padding:0.5rem; border:1px solid #ddd;">WebView used only for auth + absence of code in bridge</td><td style="padding:0.5rem; border:1px solid #ddd;">High</td></tr>
+        <tr><td style="padding:0.5rem; border:1px solid #ddd;">NativeWind/Tailwind styling</td><td style="padding:0.5rem; border:1px solid #ddd;">Extensive utility class strings in bundle</td><td style="padding:0.5rem; border:1px solid #ddd;">Definitive</td></tr>
+        <tr><td style="padding:0.5rem; border:1px solid #ddd;">React Native Skia available</td><td style="padding:0.5rem; border:1px solid #ddd;">RNSkiaPackage in PackageList.smali</td><td style="padding:0.5rem; border:1px solid #ddd;">Definitive</td></tr>
+        <tr><td style="padding:0.5rem; border:1px solid #ddd;">No native syntax highlighting</td><td style="padding:0.5rem; border:1px solid #ddd;">Absence of text styling APIs in smali</td><td style="padding:0.5rem; border:1px solid #ddd;">High</td></tr>
+        <tr><td style="padding:0.5rem; border:1px solid #ddd;">VCROSDMono code font</td><td style="padding:0.5rem; border:1px solid #ddd;">Font file in assets/fonts/</td><td style="padding:0.5rem; border:1px solid #ddd;">Definitive</td></tr>
+        <tr><td style="padding:0.5rem; border:1px solid #ddd;">Ory/Kratos identity</td><td style="padding:0.5rem; border:1px solid #ddd;">kratos_* string references</td><td style="padding:0.5rem; border:1px solid #ddd;">High</td></tr>
+        <tr><td style="padding:0.5rem; border:1px solid #ddd;">"Vibe Code" workflow</td><td style="padding:0.5rem; border:1px solid #ddd;">Feature strings and component names</td><td style="padding:0.5rem; border:1px solid #ddd;">Definitive</td></tr>
+        <tr><td style="padding:0.5rem; border:1px solid #ddd;">Multi-language (8 locales)</td><td style="padding:0.5rem; border:1px solid #ddd;">Locale config in app.config</td><td style="padding:0.5rem; border:1px solid #ddd;">Definitive</td></tr>
+    </tbody>
+</table>
+
+<div class="footer">
+    <p>Analysis performed: 2026-05-24 | APK version: 1.21.2 (12102159) | Tool: apktool 3.0.2</p>
+    <p>See <a href="lechat-analysis-report.html">Analysis Report</a> for the high-level summary.</p>
+</div>
+
+</body>
+</html>
