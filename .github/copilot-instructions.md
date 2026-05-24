@@ -138,6 +138,23 @@ git tag <new-version> && git push origin <new-version>
 
 Never tell the user "the publish workflow will trigger automatically" - it won't.
 
+**Release notes format** - when users ask for release notes, provide them in markdown format. Example:
+```markdown
+## v0.22.1
+
+### Bug Fixes
+- Fixed resource leak: InputStream in ThemeParser now properly closed when loading CSS assets
+- Fixed scroll position persistence when code snippet changes
+- Removed redundant code in HtmlToAnnotatedString
+
+### Performance
+- Improved recomposition efficiency in LazyColumn scenarios by stabilizing internal lambda instances
+
+**Dependency:** `dev.hossain:compose-highlight:0.22.1`
+```
+
+**Automated Release APK workflow** - when a git tag is pushed, the `.github/workflows/android-release.yml` job automatically runs and attaches the Release APK to the GitHub Release. No need to build APK manually anymore.
+
 **Dependency coordinates (Maven Central):**
 ```
 dev.hossain:compose-highlight:<version>
