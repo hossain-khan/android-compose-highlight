@@ -47,6 +47,13 @@ import kotlinx.coroutines.launch
 // size from CodeBlockStyle.copyButtonSize, which cannot be referenced in a parameter
 // default value (Kotlin does not allow forward references to other parameters).
 private val DefaultCopyButtonSentinel: (@Composable (onClick: () -> Unit) -> Unit) = { }
+
+// Sentinel used to detect when the caller did not supply a custom languageLabel.
+// Without this, the default expression in the parameter list allocates a new @Composable
+// lambda on every recomposition of the call site. The sentinel enables remember-based
+// resolution inside the body, keeping the lambda instance stable across recompositions.
+private val DefaultLanguageLabelSentinel: (@Composable () -> Unit) = { }
+
 private val LineNumberGutterSpacing = 8.dp
 
 /**
@@ -202,18 +209,7 @@ fun SyntaxHighlightedCode(
     style: CodeBlockStyle = CodeBlockStyle.Default,
     showLineNumbers: Boolean = false,
     languageLabel: (@Composable () -> Unit)? =
-        if (language.isNotBlank()) {
-            {
-                SyntaxHighlightedCodeDefaults.LanguageLabel(
-                    language = language,
-                    color =
-                        LocalContentColor.current.copy(alpha = 0.6f),
-                    fontSize = 12.sp,
-                )
-            }
-        } else {
-            null
-        },
+        if (language.isNotBlank()) DefaultLanguageLabelSentinel else null,
     copyButton: (@Composable (onClick: () -> Unit) -> Unit)? = DefaultCopyButtonSentinel,
     onCopyClick: ((String) -> Unit)? = null,
     onHighlightComplete: ((HighlightResult) -> Unit)? = null,
@@ -242,17 +238,42 @@ fun SyntaxHighlightedCode(
     val themedCodeStyle = remember(theme, style) { style.textStyle.copy(color = textColor) }
     val themedLineNumStyle = remember(theme, style) { style.textStyle.copy(color = lineNumberColor) }
 
+    // Resolve the effective language label: when the caller used the default (sentinel),
+    // substitute the real default composable. Wrapped in remember so the lambda instance is
+    // stable across recompositions, preventing unnecessary recomposition of the header subtree.
+    val effectiveLanguageLabel: (@Composable () -> Unit)? =
+        remember(languageLabel, language) {
+            when {
+                languageLabel === DefaultLanguageLabelSentinel -> {
+                    {
+                        SyntaxHighlightedCodeDefaults.LanguageLabel(
+                            language = language,
+                            color = LocalContentColor.current.copy(alpha = 0.6f),
+                            fontSize = 12.sp,
+                        )
+                    }
+                }
+
+                else -> {
+                    languageLabel
+                }
+            }
+        }
+
     // Resolve the effective copy button: when the caller used the default (sentinel),
     // substitute a real lambda that forwards style.copyButtonSize so the CodeBlockStyle
-    // property actually takes effect.
+    // property actually takes effect. Wrapped in remember so the lambda instance is stable
+    // across recompositions, preventing unnecessary recomposition of the copy button subtree.
     val effectiveCopyButton: (@Composable (onClick: () -> Unit) -> Unit)? =
-        when {
-            copyButton === DefaultCopyButtonSentinel -> {
-                { onClick -> SyntaxHighlightedCodeDefaults.CopyButton(onClick = onClick, size = style.copyButtonSize) }
-            }
+        remember(copyButton, style.copyButtonSize) {
+            when {
+                copyButton === DefaultCopyButtonSentinel -> {
+                    { onClick: () -> Unit -> SyntaxHighlightedCodeDefaults.CopyButton(onClick = onClick, size = style.copyButtonSize) }
+                }
 
-            else -> {
-                copyButton
+                else -> {
+                    copyButton
+                }
             }
         }
     // In Android Studio Preview, WebView cannot be created. Render a themed fallback
@@ -298,7 +319,7 @@ fun SyntaxHighlightedCode(
     ) {
         Column {
             // Header: language badge + copy button
-            if (languageLabel != null || effectiveCopyButton != null) {
+            if (effectiveLanguageLabel != null || effectiveCopyButton != null) {
                 Row(
                     modifier =
                         Modifier
@@ -306,7 +327,7 @@ fun SyntaxHighlightedCode(
                             .padding(style.headerPadding),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    languageLabel?.invoke()
+                    effectiveLanguageLabel?.invoke()
                     Spacer(modifier = Modifier.weight(1f))
                     if (effectiveCopyButton != null) {
                         effectiveCopyButton {

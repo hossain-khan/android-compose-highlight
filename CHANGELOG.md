@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Performance
+- **`SyntaxHighlightedCode` - stable lambda instances for slot defaults** - The `effectiveCopyButton`
+  lambda and the default `languageLabel` lambda were allocated fresh on every recomposition, preventing
+  the copy button and language label subtrees from being skipped by the Compose runtime. Both are now
+  resolved via a sentinel pattern and wrapped in `remember`, keeping lambda instances stable across
+  recompositions. This reduces unnecessary recomposition work in `LazyColumn` scenarios with many
+  code blocks on screen.
+
 ## [0.22.0] - 2026-05-22
 
 ### Fixed
