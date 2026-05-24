@@ -1,5 +1,6 @@
 package dev.hossain.highlight.sample.chat.ui
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -25,6 +26,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import dev.hossain.highlight.sample.chat.model.ChatMessage
 import dev.hossain.highlight.sample.chat.state.ChatUiState
+
+private const val TAG = "ChatScreen"
 
 /**
  * Message bubble component for displaying a single chat message.
@@ -71,6 +74,7 @@ fun StreamingResponseBubble(
     text: String,
     isStreaming: Boolean,
 ) {
+    Log.d(TAG, "StreamingResponseBubble composable called with text length=${text.length}, streaming=$isStreaming")
     Row(
         modifier =
             Modifier
@@ -78,31 +82,31 @@ fun StreamingResponseBubble(
                 .padding(vertical = 8.dp),
         horizontalArrangement = Arrangement.Start,
     ) {
-        Card(
+        // Simplified plain text display for debugging
+        Column(
             modifier =
                 Modifier
-                    .widthIn(max = 280.dp)
                     .background(
                         color = Color(0xFF81C784),
                         shape = RoundedCornerShape(12.dp),
-                    ),
-        ) {
-            Column(modifier = Modifier.padding(12.dp)) {
-                Text(
-                    text = text,
-                    color = Color.White,
-                    fontSize = 14.sp,
-                    fontFamily = FontFamily.Default,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-                if (isStreaming) {
-                    Text(
-                        text = "●",
-                        color = Color.White,
-                        fontSize = 16.sp,
-                        modifier = Modifier.padding(top = 4.dp),
                     )
-                }
+                    .padding(12.dp)
+                    .fillMaxWidth(0.85f),
+        ) {
+            Text(
+                text = text,
+                color = Color.White,
+                fontSize = 14.sp,
+                fontFamily = FontFamily.Monospace,
+                modifier = Modifier.fillMaxWidth(),
+            )
+            if (isStreaming) {
+                Text(
+                    text = "●",
+                    color = Color.White,
+                    fontSize = 16.sp,
+                    modifier = Modifier.padding(top = 4.dp),
+                )
             }
         }
     }
@@ -198,14 +202,17 @@ fun ChatScreen(
                 }
 
                 is ChatUiState.Loading -> {
+                    Log.d(TAG, "Rendering Loading state with response length=${uiState.currentResponse.length}")
                     val (historyMessages, currentResponse) =
                         when {
                             uiState.currentResponse.isNotEmpty() -> {
                                 // Show empty history and current response while streaming
+                                Log.d(TAG, "Response is not empty, will show bubble")
                                 emptyList<ChatMessage>() to uiState.currentResponse
                             }
 
                             else -> {
+                                Log.d(TAG, "Response is empty, no bubble")
                                 emptyList<ChatMessage>() to ""
                             }
                         }
@@ -215,7 +222,9 @@ fun ChatScreen(
                     }
 
                     if (currentResponse.isNotEmpty()) {
+                        Log.d(TAG, "Adding streaming bubble to LazyColumn")
                         item(key = "streaming_response") {
+                            Log.d(TAG, "Inside item lambda, rendering bubble")
                             StreamingResponseBubble(
                                 text = currentResponse,
                                 isStreaming = true,
