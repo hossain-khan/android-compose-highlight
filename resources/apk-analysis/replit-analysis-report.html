@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Replit Android App - Syntax Highlighting Analysis Report</title>
+    <style>
+        :root {
+            --bg: #fafafa;
+            --surface: #ffffff;
+            --text: #1a1a1a;
+            --text-secondary: #555;
+            --border: #e0e0e0;
+            --accent: #FF3C00;
+            --accent-light: #fff3ee;
+            --code-bg: #f5f5f5;
+            --tag-bg: #e8f4fd;
+            --tag-text: #0969da;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            padding: 2rem;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        h1 { font-size: 1.8rem; margin-bottom: 0.5rem; }
+        h2 { font-size: 1.4rem; margin: 2rem 0 1rem; border-bottom: 2px solid var(--accent); padding-bottom: 0.3rem; }
+        h3 { font-size: 1.1rem; margin: 1.5rem 0 0.5rem; }
+        p { margin-bottom: 1rem; }
+        .subtitle { color: var(--text-secondary); margin-bottom: 2rem; }
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .highlight-card {
+            border-left: 4px solid var(--accent);
+            background: var(--accent-light);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+            font-size: 0.9rem;
+        }
+        th, td {
+            padding: 0.6rem 0.8rem;
+            border: 1px solid var(--border);
+            text-align: left;
+        }
+        th { background: var(--code-bg); font-weight: 600; }
+        .tag {
+            display: inline-block;
+            padding: 0.15rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            margin-right: 0.3rem;
+        }
+        .tag-webview { background: #dbeafe; color: #1d4ed8; }
+        .tag-rn { background: #e0e7ff; color: #4338ca; }
+        .tag-lezer { background: #fef3c7; color: #92400e; }
+        .tag-native { background: #d1fae5; color: #065f46; }
+        code {
+            background: var(--code-bg);
+            padding: 0.15rem 0.4rem;
+            border-radius: 3px;
+            font-size: 0.85rem;
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+        }
+        .arch-diagram {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1.5rem;
+            font-family: monospace;
+            font-size: 0.8rem;
+            line-height: 1.4;
+            overflow-x: auto;
+            white-space: pre;
+        }
+        ul { padding-left: 1.5rem; margin-bottom: 1rem; }
+        li { margin-bottom: 0.4rem; }
+        .meta-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+        }
+        .meta-info dt { font-weight: 600; color: var(--text-secondary); }
+        .meta-info dd { margin-bottom: 0.5rem; }
+        .footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--border); color: var(--text-secondary); font-size: 0.85rem; }
+    </style>
+</head>
+<body>
+
+<h1>Replit Android App</h1>
+<p class="subtitle">Syntax Highlighting &amp; Code Editor Implementation Analysis</p>
+
+<div class="card highlight-card">
+    <h3>Executive Summary</h3>
+    <p>
+        Replit's Android app (v2.185.0) is a <strong>React Native (Expo SDK 54)</strong> application that uses a
+        <strong>WebView-based architecture</strong> for its code editing workspace. The editor runs Replit's web-based
+        IDE inside a <code>react-native-community/webview</code> (RNCWebView), which loads the full CodeMirror 6 editor
+        with <strong>Lezer-based parsing</strong> for syntax highlighting. The native shell handles navigation, authentication,
+        and notifications while delegating all code editing, syntax highlighting, and file management to the embedded web workspace.
+        This is a fundamentally different approach from native rendering &mdash; Replit treats the mobile app as a thin client
+        wrapping their existing web IDE.
+    </p>
+</div>
+
+<h2>App Metadata</h2>
+<div class="card">
+    <dl class="meta-info">
+        <dt>Package</dt><dd><code>com.replit.app</code></dd>
+        <dt>Version</dt><dd>2.185.0 (versionCode: 3850000)</dd>
+        <dt>Internal Name</dt><dd>"Bonsai"</dd>
+        <dt>APK Size</dt><dd>~78 MB (base APK)</dd>
+        <dt>Framework</dt><dd>React Native (Expo SDK 54)</dd>
+        <dt>JS Engine</dt><dd>Hermes (bytecode v96)</dd>
+        <dt>Min SDK</dt><dd>Android (edge-to-edge enabled)</dd>
+        <dt>Kotlin Version</dt><dd>2.1.20</dd>
+    </dl>
+</div>
+
+<h2>Architecture Overview</h2>
+
+<div class="arch-diagram">
+┌─────────────────────────────────────────────────────────────┐
+│                    React Native Shell (Expo)                  │
+│  ┌──────────┐  ┌──────────────┐  ┌────────────────────────┐│
+│  │Navigation│  │Authentication│  │ Notifications/Settings  ││
+│  │(React Nav)│  │(Firebase Auth)│  │ (Expo Notifications)   ││
+│  └──────────┘  └──────────────┘  └────────────────────────┘│
+│                                                              │
+│  ┌────────────────────────────────────────────────────────┐ │
+│  │              WorkspaceScreen.tsx                         │ │
+│  │  ┌──────────────────────────────────────────────────┐  │ │
+│  │  │         WorkspaceWebView.tsx (RNCWebView)         │  │ │
+│  │  │                                                    │  │ │
+│  │  │  ┌──────────────────────────────────────────────┐ │  │ │
+│  │  │  │         Replit Web IDE (CodeMirror 6)         │ │  │ │
+│  │  │  │                                              │ │  │ │
+│  │  │  │  • Lezer Parser (grammar tables bundled)     │ │  │ │
+│  │  │  │  • EditorState / EditorView                  │ │  │ │
+│  │  │  │  • Token classes (tok-keyword, tok-string..) │ │  │ │
+│  │  │  │  • Theme support via CSS                     │ │  │ │
+│  │  │  │  • File tabs, terminal, output panes         │ │  │ │
+│  │  │  └──────────────────────────────────────────────┘ │  │ │
+│  │  │                                                    │  │ │
+│  │  │  Communication: window.ReactNativeWebView          │  │ │
+│  │  │                 .postMessage(JSON)                  │  │ │
+│  │  └──────────────────────────────────────────────────┘  │ │
+│  └────────────────────────────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────────┘
+                            │
+                            ▼
+              ┌───────────────────────┐
+              │   Replit Cloud Backend │
+              │  (GraphQL + WebSocket) │
+              │  OT/CRDT Collaboration │
+              └───────────────────────┘
+</div>
+
+<h2>Syntax Highlighting Implementation</h2>
+
+<div class="card">
+    <h3>Approach: WebView + CodeMirror 6 + Lezer</h3>
+    <p>
+        <span class="tag tag-webview">WebView</span>
+        <span class="tag tag-lezer">Lezer Parser</span>
+        <span class="tag tag-rn">React Native</span>
+    </p>
+    <p>
+        Replit does <strong>not</strong> perform syntax highlighting natively on Android. Instead, the entire code
+        editing experience is rendered inside a WebView that loads Replit's web-based IDE. This web IDE uses
+        <strong>CodeMirror 6</strong> as its editor framework, with <strong>Lezer</strong> as the incremental parser
+        for syntax highlighting.
+    </p>
+
+    <h3>Evidence</h3>
+    <ul>
+        <li><strong>Lezer grammar tables</strong> found embedded in the Hermes bytecode &mdash; LR(1) parse table data with state transitions</li>
+        <li><strong>EditorState</strong> references (6 occurrences) &mdash; CodeMirror 6's core state management</li>
+        <li><strong>CodeMirror token classes</strong> extracted: <code>tok-keyword</code>, <code>tok-string</code>, <code>tok-comment</code>, <code>tok-number</code>, <code>tok-operator</code>, <code>tok-variableName</code>, <code>tok-typeName</code>, <code>tok-propertyName</code>, <code>tok-className</code>, <code>tok-meta</code>, <code>tok-namespace</code>, <code>tok-bool</code>, <code>tok-atom</code>, <code>tok-literal</code>, <code>tok-punctuation</code>, <code>tok-url</code>, <code>tok-link</code>, <code>tok-heading</code>, <code>tok-emphasis</code>, <code>tok-strong</code>, <code>tok-inserted</code>, <code>tok-deleted</code>, <code>tok-invalid</code>, <code>tok-definitionOperator</code>, <code>tok-definitionSyntax</code>, <code>tok-labelName</code>, <code>tok-macroName</code></li>
+        <li><strong>RNCWebView</strong> native package confirmed in <code>PackageList.smali</code></li>
+        <li>Source paths: <code>screens/workspace/WorkspaceWebView.tsx</code>, <code>screens/workspace/WorkspaceWebviewPane.tsx</code></li>
+    </ul>
+</div>
+
+<h2>Key Libraries &amp; Dependencies</h2>
+
+<table>
+    <thead>
+        <tr><th>Category</th><th>Library</th><th>Evidence</th></tr>
+    </thead>
+    <tbody>
+        <tr><td>Framework</td><td>React Native (Expo SDK 54)</td><td><code>app.config</code>: sdkVersion "54.0.0"</td></tr>
+        <tr><td>JS Engine</td><td>Hermes v96</td><td>File type of <code>index.android.bundle</code></td></tr>
+        <tr><td>Code Editor</td><td>CodeMirror 6 (via WebView)</td><td>EditorState, tok-* classes, Lezer tables</td></tr>
+        <tr><td>Parser</td><td>Lezer (LR parser)</td><td>"LezerParser.tsx", grammar tables in bundle</td></tr>
+        <tr><td>WebView</td><td>react-native-community/webview</td><td>RNCWebViewPackage in PackageList.smali</td></tr>
+        <tr><td>Navigation</td><td>React Navigation</td><td>Navigator/Screen references throughout</td></tr>
+        <tr><td>Animations</td><td>React Native Reanimated</td><td>Worklet init functions, react-native-reanimated.git</td></tr>
+        <tr><td>Analytics</td><td>Sentry, Datadog, Statsig, Segment</td><td>Multiple SDK references in bundle and smali</td></tr>
+        <tr><td>Feature Flags</td><td>LaunchDarkly, Statsig</td><td>String references in Hermes bytecode</td></tr>
+        <tr><td>Auth</td><td>Firebase Auth, Google Sign-In, Apple Sign-In</td><td>Smali packages + app.config plugins</td></tr>
+        <tr><td>Barcode/QR</td><td>ML Kit Barcode</td><td>TFLite models in assets/mlkit_barcode_models/</td></tr>
+        <tr><td>Payments</td><td>Google Play Billing, Expo IAP</td><td>Billing client in res/raw + expo-iap plugin</td></tr>
+        <tr><td>Backend</td><td>GraphQL (with subscriptions)</td><td>"graphql-ws", "graphql@16" references</td></tr>
+    </tbody>
+</table>
+
+<h2>Fonts</h2>
+
+<div class="card">
+    <h3>Bundled Typefaces</h3>
+    <table>
+        <thead><tr><th>Font</th><th>Weights</th><th>Location</th><th>Purpose</th></tr></thead>
+        <tbody>
+            <tr><td><strong>Hack</strong></td><td>Regular</td><td><code>assets/fonts/</code></td><td>Code editor monospace font</td></tr>
+            <tr><td><strong>JetBrains Mono</strong></td><td>Light, Regular, Medium</td><td><code>res/font/</code></td><td>Code display / alternative monospace</td></tr>
+            <tr><td><strong>IBM Plex Sans</strong></td><td>Regular, Medium</td><td><code>assets/fonts/</code></td><td>UI text</td></tr>
+            <tr><td><strong>Inter</strong></td><td>Regular, Medium, Semi-Bold, Bold</td><td><code>res/font/</code></td><td>Primary UI font</td></tr>
+            <tr><td><strong>Roboto</strong></td><td>Medium (numbers only)</td><td><code>res/font/</code></td><td>Numeric displays</td></tr>
+        </tbody>
+    </table>
+</div>
+
+<h2>Rendering Surface</h2>
+
+<div class="card">
+    <h3>WebView-Based (Not Native)</h3>
+    <p>
+        The code editor is <strong>entirely web-rendered</strong> inside RNCWebView. The native Android layer contains
+        no syntax highlighting logic &mdash; no <code>ForegroundColorSpan</code>, no custom <code>SpannableString</code> builders,
+        no Compose text styling for code. The native Kotlin/Java code consists only of:
+    </p>
+    <ul>
+        <li><code>MainActivity</code> (single Activity, ReactActivityDelegate)</li>
+        <li><code>MainApplication</code> (ReactNativeHost setup)</li>
+        <li>Standard React Native bridge packages (AsyncStorage, NetInfo, Cookies, WebView, Google Sign-In, Keyboard Controller)</li>
+    </ul>
+    <p>
+        All workspace logic lives in the React Native JavaScript layer, which in turn delegates to the WebView for the actual IDE.
+    </p>
+</div>
+
+<h2>Communication Architecture</h2>
+
+<div class="card">
+    <h3>Native ↔ WebView Bridge</h3>
+    <p>Communication between the React Native shell and the WebView-hosted IDE uses:</p>
+    <ul>
+        <li><strong>WebView → Native:</strong> <code>window.ReactNativeWebView.postMessage(JSON.stringify(...))</code></li>
+        <li><strong>Native → WebView:</strong> <code>injectJavaScript</code> / message handlers</li>
+    </ul>
+    <p>Key message types observed:</p>
+    <ul>
+        <li><code>handleTextEditorState</code> &mdash; editor state sync</li>
+        <li><code>handleTextEditorClosed</code> &mdash; editor lifecycle</li>
+        <li><code>performTextEditorCommand</code> &mdash; native-initiated editor commands</li>
+        <li><code>handleWorkspaceState</code> &mdash; workspace state updates</li>
+        <li><code>ForTextEditorAction</code> &mdash; action dispatch to editor</li>
+    </ul>
+</div>
+
+<h2>Comparison with Native Approaches</h2>
+
+<table>
+    <thead>
+        <tr><th>Dimension</th><th>Replit (WebView)</th><th>Native Approach (e.g., this library)</th></tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>Rendering</td>
+            <td>WebView (HTML/CSS/JS)</td>
+            <td>Compose/Android Views with spans</td>
+        </tr>
+        <tr>
+            <td>Language Support</td>
+            <td>Unlimited (Lezer grammars loaded dynamically)</td>
+            <td>Limited to bundled grammars</td>
+        </tr>
+        <tr>
+            <td>Performance</td>
+            <td>WebView overhead, but mature CM6 optimizations</td>
+            <td>Native rendering, minimal overhead</td>
+        </tr>
+        <tr>
+            <td>Startup Time</td>
+            <td>Slower (WebView init + page load)</td>
+            <td>Faster (immediate native render)</td>
+        </tr>
+        <tr>
+            <td>Memory</td>
+            <td>Higher (separate WebView process)</td>
+            <td>Lower (in-process rendering)</td>
+        </tr>
+        <tr>
+            <td>Theme Support</td>
+            <td>Full CSS theming (web platform)</td>
+            <td>Programmatic color mapping</td>
+        </tr>
+        <tr>
+            <td>Code Sharing</td>
+            <td>Maximum (same codebase as web)</td>
+            <td>Platform-specific implementation</td>
+        </tr>
+        <tr>
+            <td>Editing</td>
+            <td>Full IDE (editing, autocomplete, terminal)</td>
+            <td>Display-only or basic editing</td>
+        </tr>
+        <tr>
+            <td>Offline</td>
+            <td>Limited (requires backend connection)</td>
+            <td>Fully offline capable</td>
+        </tr>
+        <tr>
+            <td>APK Impact</td>
+            <td>~78MB total (includes full app)</td>
+            <td>Minimal library size</td>
+        </tr>
+    </tbody>
+</table>
+
+<h2>Key Insights for This Library</h2>
+
+<div class="card">
+    <ol>
+        <li><strong>Replit chose code reuse over native UX.</strong> Their mobile app is essentially a wrapper around their web IDE. This validates that syntax highlighting on mobile is hard enough that even well-funded teams avoid building native solutions.</li>
+        <li><strong>Lezer token taxonomy is comprehensive.</strong> The 27+ token classes found represent a mature, well-thought-out highlighting categorization that could inform our own token type design.</li>
+        <li><strong>WebView approach trades performance for breadth.</strong> They get unlimited language support but pay with startup time and memory. A native library like this one can offer better performance for the common case (read-only code display).</li>
+        <li><strong>Two monospace fonts bundled.</strong> Hack (in assets, for the WebView) and JetBrains Mono (in res/font, likely for native code display outside the editor). This suggests they use different fonts in different contexts.</li>
+        <li><strong>The app architecture confirms the market need.</strong> There's no off-the-shelf native Android solution good enough for Replit to adopt &mdash; hence the WebView approach. A high-quality native Compose highlighting library fills a real gap.</li>
+    </ol>
+</div>
+
+<h2>Conclusions</h2>
+
+<div class="card">
+    <p>
+        Replit's approach is a pragmatic engineering decision: they have a mature web IDE and chose to embed it in a
+        mobile shell rather than rebuild syntax highlighting natively. This is the right choice for a full IDE app
+        that needs editing, collaboration, terminals, and AI agents. However, for apps that only need to <em>display</em>
+        highlighted code (documentation apps, chat apps, note-taking apps), a native Compose solution offers
+        significantly better performance, lower memory usage, faster startup, and better integration with the Android platform.
+    </p>
+    <p>
+        The Lezer/CodeMirror token taxonomy discovered here (27+ token types) is a useful reference for ensuring
+        comprehensive highlighting coverage in a native library.
+    </p>
+</div>
+
+<div class="footer">
+    <p>Analysis performed: 2026-05-24 | APK version: 2.185.0 | Tool: apktool 3.0.2</p>
+    <p>See <a href="replit-technical-reference.html">Technical Reference</a> for detailed evidence.</p>
+</div>
+
+</body>
+</html>

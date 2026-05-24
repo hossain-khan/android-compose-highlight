@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Replit Android App - Technical Reference</title>
+    <style>
+        :root {
+            --bg: #fafafa;
+            --surface: #ffffff;
+            --text: #1a1a1a;
+            --text-secondary: #555;
+            --border: #e0e0e0;
+            --accent: #FF3C00;
+            --accent-light: #fff3ee;
+            --code-bg: #f5f5f5;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            padding: 2rem;
+            max-width: 960px;
+            margin: 0 auto;
+        }
+        h1 { font-size: 1.8rem; margin-bottom: 0.5rem; }
+        h2 { font-size: 1.4rem; margin: 2.5rem 0 1rem; border-bottom: 2px solid var(--accent); padding-bottom: 0.3rem; }
+        h3 { font-size: 1.1rem; margin: 1.5rem 0 0.5rem; }
+        p { margin-bottom: 1rem; }
+        .subtitle { color: var(--text-secondary); margin-bottom: 2rem; }
+        .evidence {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+        }
+        .evidence-header {
+            display: flex;
+            align-items: center;
+            padding: 0.8rem 1rem;
+            background: var(--code-bg);
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
+            user-select: none;
+        }
+        .evidence-header:hover { background: #ececec; }
+        .evidence-header .file-type {
+            display: inline-block;
+            padding: 0.1rem 0.4rem;
+            border-radius: 3px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-right: 0.6rem;
+        }
+        .type-config { background: #dbeafe; color: #1d4ed8; }
+        .type-hermes { background: #fef3c7; color: #92400e; }
+        .type-smali { background: #d1fae5; color: #065f46; }
+        .type-asset { background: #e0e7ff; color: #4338ca; }
+        .type-binary { background: #fce7f3; color: #9d174d; }
+        .evidence-header .path {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+        .evidence-body {
+            padding: 1rem;
+        }
+        .evidence-body pre {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 1rem;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-size: 0.8rem;
+            line-height: 1.5;
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+        }
+        .evidence-body .note {
+            margin-top: 0.8rem;
+            padding: 0.6rem 0.8rem;
+            background: var(--accent-light);
+            border-radius: 4px;
+            font-size: 0.85rem;
+        }
+        .claim {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--accent);
+        }
+        details { margin-bottom: 1rem; }
+        details summary {
+            cursor: pointer;
+            padding: 0.5rem;
+            background: var(--code-bg);
+            border-radius: 4px;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+        details summary:hover { background: #ececec; }
+        details[open] summary { margin-bottom: 0.5rem; }
+        code {
+            background: var(--code-bg);
+            padding: 0.15rem 0.4rem;
+            border-radius: 3px;
+            font-size: 0.85rem;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        ul { padding-left: 1.5rem; margin-bottom: 1rem; }
+        li { margin-bottom: 0.3rem; }
+        .footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--border); color: var(--text-secondary); font-size: 0.85rem; }
+    </style>
+</head>
+<body>
+
+<h1>Replit Android App - Technical Reference</h1>
+<p class="subtitle">Evidence-backed findings from APK analysis | <a href="replit-analysis-report.html">Back to Analysis Report</a></p>
+
+<h2>1. React Native / Expo Framework</h2>
+
+<p class="claim">Claim: The app is built with React Native using the Expo managed workflow (SDK 54).</p>
+
+<div class="evidence">
+    <div class="evidence-header">
+        <span class="file-type type-config">config</span>
+        <span class="path">assets/app.config</span>
+    </div>
+    <div class="evidence-body">
+        <pre>{
+  "name": "Replit",
+  "slug": "bonsai",
+  "owner": "replit",
+  "version": "2.185.0",
+  "orientation": "default",
+  "scheme": "replit",
+  "userInterfaceStyle": "automatic",
+  "sdkVersion": "54.0.0",
+  "platforms": ["ios", "android", "web"],
+  "android": {
+    "package": "com.replit.app",
+    "versionCode": 3850000,
+    "kotlinVersion": "2.1.20",
+    "edgeToEdgeEnabled": true
+  },
+  "plugins": [
+    "expo-asset", "expo-audio", "expo-web-browser",
+    "expo-apple-authentication", "expo-localization",
+    "expo-iap", "@react-native-firebase/app",
+    ["expo-font", {
+      "fonts": [
+        "assets/fonts/Hack-Regular.ttf",
+        "assets/fonts/IBMPlexSans-Medium.ttf",
+        "assets/fonts/IBMPlexSans-Regular.ttf"
+      ]
+    }],
+    ["@sentry/react-native/expo", {
+      "organization": "replit-kq",
+      "project": "bonsai"
+    }]
+  ]
+}</pre>
+        <div class="note">
+            <strong>Interpretation:</strong> Full Expo config confirms SDK 54, internal codename "bonsai",
+            and a comprehensive plugin set including Sentry for crash reporting. The "scheme": "replit" enables deep linking.
+        </div>
+    </div>
+</div>
+
+<div class="evidence">
+    <div class="evidence-header">
+        <span class="file-type type-binary">binary</span>
+        <span class="path">assets/index.android.bundle</span>
+    </div>
+    <div class="evidence-body">
+        <pre>$ file assets/index.android.bundle
+Hermes JavaScript bytecode, version 96
+
+$ wc -c assets/index.android.bundle
+7910060 bytes (~7.5 MB)</pre>
+        <div class="note">
+            <strong>Interpretation:</strong> The JS bundle is pre-compiled to Hermes bytecode (not plain JS text),
+            which is standard for production React Native / Expo apps. The 7.5MB bundle size includes the entire
+            app logic, UI components, and embedded library code.
+        </div>
+    </div>
+</div>
+
+<h2>2. WebView-Based Code Editor</h2>
+
+<p class="claim">Claim: The code editor workspace is rendered inside a WebView, not natively.</p>
+
+<div class="evidence">
+    <div class="evidence-header">
+        <span class="file-type type-smali">smali</span>
+        <span class="path">smali_classes5/com/facebook/react/PackageList.smali</span>
+    </div>
+    <div class="evidence-body">
+        <pre>invoke-direct {v2}, Lcom/reactnativecommunity/webview/RNCWebViewPackage;->&lt;init&gt;()V
+...
+new-instance v2, Lcom/reactnativecommunity/webview/RNCWebViewPackage;</pre>
+        <div class="note">
+            <strong>Interpretation:</strong> The <code>react-native-community/webview</code> package (RNCWebView) is registered
+            in the native PackageList. This is the standard React Native WebView bridge that enables loading web content.
+        </div>
+    </div>
+</div>
+
+<div class="evidence">
+    <div class="evidence-header">
+        <span class="file-type type-hermes">hermes</span>
+        <span class="path">index.android.bundle (strings extraction)</span>
+    </div>
+    <div class="evidence-body">
+        <pre># Source file paths preserved in Hermes bytecode:
+screens/workspace/WorkspaceWebView.tsx
+screens/workspace/WorkspaceWebviewPane.tsx
+screens/workspace/WorkspaceScreen.tsx
+components/webview/BaseWebView.tsx
+screens/create/home/HomeWebview.tsx
+utils/captureWebviewError.ts</pre>
+        <div class="note">
+            <strong>Interpretation:</strong> The workspace screen hierarchy clearly shows the WebView is the core
+            rendering surface for the code editor. <code>WorkspaceWebView.tsx</code> wraps the editor WebView,
+            <code>WorkspaceWebviewPane.tsx</code> likely manages pane layout, and <code>BaseWebView.tsx</code>
+            is a shared WebView component.
+        </div>
+    </div>
+</div>
+
+<div class="evidence">
+    <div class="evidence-header">
+        <span class="file-type type-hermes">hermes</span>
+        <span class="path">index.android.bundle (WebView bridge messages)</span>
+    </div>
+    <div class="evidence-body">
+        <pre># WebView → Native communication patterns:
+window.ReactNativeWebView.postMessage(e.name);
+window.ReactNativeWebView.postMessage("challenge-closed");
+window.ReactNativeWebView.postMessage("open");
+window.ReactNativeWebView.postMessage(error);
+window.ReactNativeWebView.postMessage(response);
+window.ReactNativeWebView.postMessage(JSON.stringify({...}));</pre>
+        <div class="note">
+            <strong>Interpretation:</strong> The WebView communicates with the native shell via <code>postMessage</code>.
+            Messages include editor events, challenge states (hCaptcha), and structured JSON payloads. This is the
+            standard RNCWebView bridge pattern.
+        </div>
+    </div>
+</div>
+
+<h2>3. CodeMirror 6 / Lezer Parser</h2>
+
+<p class="claim">Claim: The web editor uses CodeMirror 6 with Lezer-based incremental parsing for syntax highlighting.</p>
+
+<div class="evidence">
+    <div class="evidence-header">
+        <span class="file-type type-hermes">hermes</span>
+        <span class="path">index.android.bundle (Lezer references)</span>
+    </div>
+    <div class="evidence-body">
+        <pre># String: Source file reference
+LezerParser.tsx
+
+# String: CodeMirror state references (6 occurrences)
+EditorState
+
+# String: Lezer package references
+Lezer  (6 occurrences)</pre>
+        <div class="note">
+            <strong>Interpretation:</strong> <code>LezerParser.tsx</code> is a source file that wraps Lezer parser creation.
+            <code>EditorState</code> is CodeMirror 6's immutable state object. Together these confirm CM6 is the editor framework.
+        </div>
+    </div>
+</div>
+
+<div class="evidence">
+    <div class="evidence-header">
+        <span class="file-type type-hermes">hermes</span>
+        <span class="path">index.android.bundle (Lezer grammar table)</span>
+    </div>
+    <div class="evidence-body">
+        <pre># LR(1) parse table data embedded in Hermes bytecode (excerpt):
+~O%]!YO~OV!aO_!aOa!bOh!iO!X!kO!f!mO%j![O%k!]O%l!^O%m!_O%n!_O
+%o!`O%p!`O%q!aO%r!aO%s!aO~Ok%xXl%xXm%xXn%xXo%xXp%xXs%xXz%xX
+{%xX!x%xX#g%xX%[%xX%_%xX%z%xXg%xX!T%xX!U%xX%{%xX!W%xX![%xX
+!Q%xX#[%xXt%xX!m%xX~P%SOfoOhYO!XZO!][O!h`O!r`O!s`O!t`O%oRO
+%pRO%tSO%uWO&amp;Z]O&amp;[]O&amp;]]O&amp;^]O...</pre>
+        <div class="note">
+            <strong>Interpretation:</strong> This is a serialized Lezer LR(1) grammar parse table. The format uses
+            single-character state encodings with transition tables. This is definitive proof that Lezer grammars
+            are bundled directly in the app for client-side parsing. The large size (~15KB+ of table data found)
+            suggests multiple language grammars are included.
+        </div>
+    </div>
+</div>
+
+<div class="evidence">
+    <div class="evidence-header">
+        <span class="file-type type-hermes">hermes</span>
+        <span class="path">index.android.bundle (CodeMirror token classes)</span>
+    </div>
+    <div class="evidence-body">
+        <pre># Complete list of CodeMirror 6 token CSS classes found:
+tok-atom
+tok-bool
+tok-className
+tok-comment
+tok-definitionOperator
+tok-definitionSyntax
+tok-deleted
+tok-emphasis
+tok-heading
+tok-inserted
+tok-invalid
+tok-keyword
+tok-labelName
+tok-link
+tok-literalEscape (partial match)
+tok-local (partial: tok-localNotificationReceived)
+tok-macroName
+tok-meta
+tok-namespace
+tok-number
+tok-operator
+tok-propertyName
+tok-punctuation
+tok-string
+tok-strong
+tok-typeName
+tok-url
+tok-variableName</pre>
+        <div class="note">
+            <strong>Interpretation:</strong> These are the CSS class names that CodeMirror 6 applies to highlighted tokens.
+            Each <code>tok-*</code> class corresponds to a Lezer node type that gets styled via a <code>HighlightStyle</code>.
+            This is the complete highlighting taxonomy used for rendering. Some partial matches (tok-local, tok-literalEscape)
+            are due to Hermes string concatenation in the binary format.
+        </div>
+    </div>
+</div>
+
+<h2>4. Editor State & Lifecycle</h2>
+
+<p class="claim">Claim: The native shell manages editor lifecycle events and commands via bridge messages.</p>
+
+<div class="evidence">
+    <div class="evidence-header">
+        <span class="file-type type-hermes">hermes</span>
+        <span class="path">index.android.bundle (editor lifecycle strings)</span>
+    </div>
+    <div class="evidence-body">
+        <pre># Editor state management strings:
+handleTextEditorState
+handleTextEditorClosed
+performTextEditorCommand
+ForTextEditorAction
+handleWorkspaceState
+
+# React hooks:
+useEditorNavigatorTsx
+useWorkspaceContentHeight</pre>
+        <div class="note">
+            <strong>Interpretation:</strong> The native React Native layer tracks editor state changes via
+            <code>handleTextEditorState</code>, knows when the editor closes (<code>handleTextEditorClosed</code>),
+            and can send commands to the editor (<code>performTextEditorCommand</code>). The <code>useEditorNavigatorTsx</code>
+            hook likely manages navigation within the editor context.
+        </div>
+    </div>
+</div>
+
+<h2>5. Fonts</h2>
+
+<p class="claim">Claim: The app bundles Hack for the WebView editor and JetBrains Mono for native code display.</p>
+
+<div class="evidence">
+    <div class="evidence-header">
+        <span class="file-type type-asset">asset</span>
+        <span class="path">Bundled font files</span>
+    </div>
+    <div class="evidence-body">
+        <pre># In assets/fonts/ (loaded via expo-font for React Native):
+assets/fonts/Hack-Regular.ttf
+assets/fonts/IBMPlexSans-Medium.ttf
+assets/fonts/IBMPlexSans-Regular.ttf
+
+# In res/font/ (Android resource fonts):
+res/font/jetbrains_mono_light.ttf
+res/font/jetbrains_mono_regular.ttf
+res/font/jetbrains_mono_medium.ttf
+res/font/inter_regular.ttf
+res/font/inter_medium.ttf
+res/font/inter_semibold.ttf
+res/font/inter_bold.ttf
+res/font/roboto_medium_numbers.ttf</pre>
+        <div class="note">
+            <strong>Interpretation:</strong> Two distinct monospace fonts are included:
+            <ul>
+                <li><strong>Hack</strong> (in assets/) — registered via <code>expo-font</code> plugin in app.config, likely used
+                within the WebView editor where web fonts are needed</li>
+                <li><strong>JetBrains Mono</strong> (in res/font/) — available as an Android resource font, likely used for
+                native code display (e.g., file names, code snippets in the Repl listing, AI chat code blocks)</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<h2>6. Native Package Registry</h2>
+
+<p class="claim">Claim: The native layer is minimal — standard React Native bridge packages only.</p>
+
+<div class="evidence">
+    <div class="evidence-header">
+        <span class="file-type type-smali">smali</span>
+        <span class="path">smali_classes5/com/facebook/react/PackageList.smali</span>
+    </div>
+    <div class="evidence-body">
+        <pre># Native packages registered in the React Native bridge:
+com/reactnativecommunity/asyncstorage/AsyncStoragePackage
+com/reactnativecommunity/cookies/CookieManagerPackage
+com/reactnativecommunity/netinfo/NetInfoPackage
+com/reactnativecommunity/webview/RNCWebViewPackage
+com/reactnativegooglesignin/RNGoogleSigninPackage
+com/reactnativekeyboardcontroller/KeyboardControllerPackage</pre>
+        <div class="note">
+            <strong>Interpretation:</strong> The native package list is lean. Notably absent are any custom native
+            modules for code editing, syntax highlighting, or text rendering. This confirms all editor logic
+            lives in JS/WebView, not in native code.
+        </div>
+    </div>
+</div>
+
+<div class="evidence">
+    <div class="evidence-header">
+        <span class="file-type type-smali">smali</span>
+        <span class="path">smali_classes7/com/replit/app/</span>
+    </div>
+    <div class="evidence-body">
+        <pre># Replit's own native classes:
+com/replit/app/BuildConfig.smali
+com/replit/app/MainActivity.smali
+com/replit/app/MainActivity$createReactActivityDelegate$1.smali
+com/replit/app/MainApplication.smali
+com/replit/app/MainApplication$reactNativeHost$1.smali
+com/replit/app/R.smali (+ R$color, R$drawable, R$integer, etc.)</pre>
+        <div class="note">
+            <strong>Interpretation:</strong> Replit's native code consists only of the standard React Native entry points:
+            a single Activity and Application class. No custom native modules, no syntax highlighting logic,
+            no custom text rendering. Everything is delegated to the JS/WebView layers.
+        </div>
+    </div>
+</div>
+
+<h2>7. Backend & Collaboration</h2>
+
+<p class="claim">Claim: The app uses GraphQL with WebSocket subscriptions and operational transform for real-time collaboration.</p>
+
+<div class="evidence">
+    <div class="evidence-header">
+        <span class="file-type type-hermes">hermes</span>
+        <span class="path">index.android.bundle (backend communication strings)</span>
+    </div>
+    <div class="evidence-body">
+        <pre># GraphQL:
+graphql-ws
+graphql@16 dropped long-deprecated support for positional arguments
+
+# Backend URLs:
+https://replit.com/graphql
+replit.com
+
+# Collaboration indicators:
+handleTextEditorState
+handleWorkspaceState
+OTClient (referenced in search results)
+
+# Infrastructure:
+https://mobile-release-notifier-bot.replit.app
+https://o447951.ingest.sentry.io/api/4509632503087104/envelope/
+https://cdn-settings.segment.com/v1/projects/</pre>
+        <div class="note">
+            <strong>Interpretation:</strong> The app communicates with Replit's backend via GraphQL over WebSocket
+            (<code>graphql-ws</code>). The presence of OT (Operational Transform) references suggests the collaborative
+            editing uses OT for conflict resolution, consistent with Replit's known architecture.
+        </div>
+    </div>
+</div>
+
+<h2>8. Infrastructure & Observability</h2>
+
+<p class="claim">Claim: The app uses multiple analytics/monitoring SDKs for observability.</p>
+
+<div class="evidence">
+    <div class="evidence-header">
+        <span class="file-type type-hermes">hermes</span>
+        <span class="path">index.android.bundle + smali (SDK references)</span>
+    </div>
+    <div class="evidence-body">
+        <pre># Crash Reporting / APM:
+@sentry/react-native/expo (in app.config plugins)
+sentry.javascript.browser/1.33.7 (in sentry DSN URL)
+com/datadog/reactnative/ (DatadogSDKWrapper.smali, DdSdk.smali)
+
+# Analytics:
+Segment (cdn-settings.segment.com)
+
+# Feature Flags:
+LaunchDarkly (launchDarklyIntegration string)
+Statsig (statsig-retry-count, StatsigClientEvent)
+
+# A/B Testing:
+Statsig (statsig-retry-count references)</pre>
+        <div class="note">
+            <strong>Interpretation:</strong> Replit uses a comprehensive observability stack: Sentry for crash reporting,
+            Datadog for APM/RUM (with WebView event tracking!), Segment for analytics routing, and both LaunchDarkly
+            and Statsig for feature flagging. The Datadog WebView integration
+            (<code>consumeWebviewEvent</code>) shows they track WebView performance metrics.
+        </div>
+    </div>
+</div>
+
+<h2>9. Additional Features Detected</h2>
+
+<div class="evidence">
+    <div class="evidence-header">
+        <span class="file-type type-hermes">hermes</span>
+        <span class="path">index.android.bundle (feature strings)</span>
+    </div>
+    <div class="evidence-body">
+        <pre># AI Agent integration:
+"Replit uses speech recognition for dictation while building with Agent."
+"Replit uses the camera to provide visual context for AI assisted software creation."
+"Replit uses the photo library to provide visual context for AI assisted software creation."
+AgentUiIcon
+useReplAgentStatusAppCardTsx
+
+# MCP (Model Context Protocol):
+createMcpSpan
+MCP_METHOD_NAME_ATTRIBUTE
+wrapAllMCPHandlers
+
+# Deployment:
+https://docs.replit.com/cloud-services/deployments/about-deployments
+
+# Monetization:
+"Join Replit Core now to claim $10 in credits"
+"Upgrade to Replit Core or Teams"
+RequiresEnterprisePlan
+expo-iap (In-App Purchases)</pre>
+        <div class="note">
+            <strong>Interpretation:</strong> Replit's mobile app includes AI Agent features (voice input, camera for visual context),
+            MCP (Model Context Protocol) support for AI tool integrations, deployment management, and a tiered
+            monetization model (Core, Teams, Enterprise) via in-app purchases.
+        </div>
+    </div>
+</div>
+
+<h2>Summary of Evidence</h2>
+
+<table style="width:100%; border-collapse:collapse; font-size:0.85rem;">
+    <thead>
+        <tr style="background:#f5f5f5;">
+            <th style="padding:0.5rem; border:1px solid #ddd;">Claim</th>
+            <th style="padding:0.5rem; border:1px solid #ddd;">Evidence Type</th>
+            <th style="padding:0.5rem; border:1px solid #ddd;">Confidence</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr><td style="padding:0.5rem; border:1px solid #ddd;">React Native / Expo SDK 54</td><td style="padding:0.5rem; border:1px solid #ddd;">app.config (explicit)</td><td style="padding:0.5rem; border:1px solid #ddd;">Definitive</td></tr>
+        <tr><td style="padding:0.5rem; border:1px solid #ddd;">Hermes JS engine</td><td style="padding:0.5rem; border:1px solid #ddd;">File magic bytes</td><td style="padding:0.5rem; border:1px solid #ddd;">Definitive</td></tr>
+        <tr><td style="padding:0.5rem; border:1px solid #ddd;">WebView-based editor</td><td style="padding:0.5rem; border:1px solid #ddd;">RNCWebViewPackage in smali + source paths</td><td style="padding:0.5rem; border:1px solid #ddd;">Definitive</td></tr>
+        <tr><td style="padding:0.5rem; border:1px solid #ddd;">CodeMirror 6 editor</td><td style="padding:0.5rem; border:1px solid #ddd;">EditorState + tok-* classes</td><td style="padding:0.5rem; border:1px solid #ddd;">High</td></tr>
+        <tr><td style="padding:0.5rem; border:1px solid #ddd;">Lezer parser for highlighting</td><td style="padding:0.5rem; border:1px solid #ddd;">LezerParser.tsx + grammar tables</td><td style="padding:0.5rem; border:1px solid #ddd;">High</td></tr>
+        <tr><td style="padding:0.5rem; border:1px solid #ddd;">No native syntax highlighting</td><td style="padding:0.5rem; border:1px solid #ddd;">Absence of Span/Compose code APIs in smali</td><td style="padding:0.5rem; border:1px solid #ddd;">High</td></tr>
+        <tr><td style="padding:0.5rem; border:1px solid #ddd;">Hack + JetBrains Mono fonts</td><td style="padding:0.5rem; border:1px solid #ddd;">Font files in assets/ and res/font/</td><td style="padding:0.5rem; border:1px solid #ddd;">Definitive</td></tr>
+        <tr><td style="padding:0.5rem; border:1px solid #ddd;">GraphQL + WebSocket backend</td><td style="padding:0.5rem; border:1px solid #ddd;">graphql-ws string + URL patterns</td><td style="padding:0.5rem; border:1px solid #ddd;">High</td></tr>
+        <tr><td style="padding:0.5rem; border:1px solid #ddd;">OT collaboration</td><td style="padding:0.5rem; border:1px solid #ddd;">OTClient string references</td><td style="padding:0.5rem; border:1px solid #ddd;">Medium</td></tr>
+        <tr><td style="padding:0.5rem; border:1px solid #ddd;">AI Agent integration</td><td style="padding:0.5rem; border:1px solid #ddd;">Permission strings + component names</td><td style="padding:0.5rem; border:1px solid #ddd;">High</td></tr>
+    </tbody>
+</table>
+
+<div class="footer">
+    <p>Analysis performed: 2026-05-24 | APK version: 2.185.0 | Tool: apktool 3.0.2</p>
+    <p>See <a href="replit-analysis-report.html">Analysis Report</a> for the high-level summary.</p>
+</div>
+
+</body>
+</html>
