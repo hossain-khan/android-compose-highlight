@@ -1,12 +1,9 @@
 package dev.hossain.highlight.sample.chat.ui
 
-import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.hossain.highlight.sample.chat.state.ChatViewModel
-
-private const val TAG = "ChatDemoTab"
 
 /**
  * Demo tab entry point for the LLM-based chat streaming feature.
@@ -24,22 +21,17 @@ private const val TAG = "ChatDemoTab"
  */
 @Composable
 fun ChatDemoTab() {
-    Log.d(TAG, "ChatDemoTab composable called")
     val viewModel: ChatViewModel = viewModel()
 
     val uiState by viewModel.uiState
     val selectedLanguage by viewModel.selectedLanguage
 
-    Log.d(TAG, "Current state: $uiState")
-
     ChatScreen(
         uiState = uiState,
         onSendMessage = { prompt ->
-            Log.d(TAG, "onSendMessage callback triggered with: '$prompt'")
             viewModel.sendMessage(prompt)
         },
         onClearConversation = {
-            Log.d(TAG, "onClearConversation callback triggered")
             viewModel.clearConversation()
         },
         selectedLanguage = selectedLanguage,
