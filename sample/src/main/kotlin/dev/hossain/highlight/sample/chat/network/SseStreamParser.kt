@@ -19,6 +19,10 @@ internal object SseStreamParser {
     private const val DONE_MARKER = "[DONE]"
 
     // Pre-compiled patterns for the two field names used in the API response.
+    // The capture group `((?:[^"\\]|\\.)*)` matches a JSON string value:
+    //   [^"\\]  - any character that is not a quote or backslash
+    //   \\.     - a backslash followed by any character (escape sequence)
+    //   (?:...)*- zero or more repetitions (non-capturing group)
     private val TOKEN_FIELD_PATTERN = Regex(""""token"\s*:\s*"((?:[^"\\]|\\.)*)"""")
     private val CONTENT_FIELD_PATTERN = Regex(""""content"\s*:\s*"((?:[^"\\]|\\.)*)"""")
 

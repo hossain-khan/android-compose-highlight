@@ -79,10 +79,9 @@ internal class CodeAIService {
                 }
 
                 connection.inputStream.bufferedReader(Charsets.UTF_8).use { reader ->
-                    var line: String?
-                    while (reader.readLine().also { line = it } != null) {
+                    while (true) {
                         currentCoroutineContext().ensureActive()
-                        val currentLine = line ?: break
+                        val currentLine = reader.readLine() ?: break
                         if (SseStreamParser.isDataLine(currentLine)) {
                             val data = SseStreamParser.extractDataContent(currentLine)
                             if (SseStreamParser.isDoneMarker(data)) break

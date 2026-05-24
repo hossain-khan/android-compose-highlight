@@ -164,38 +164,48 @@ internal fun ChatScreen(
         }
 
         // ── Conversation list ─────────────────────────────────────────────
+        // Pre-compute display items so we can use the items() DSL with stable keys.
+        val displayItems =
+            remember(viewModel.messages, isStreaming, viewModel.streamingContent) {
+                buildDisplayItems(
+                    messages = viewModel.messages,
+                    isStreaming = isStreaming,
+                    streamingContent = viewModel.streamingContent,
+                )
+            }
+
         LazyColumn(
             state = listState,
             modifier = Modifier.weight(1f).fillMaxWidth(),
             contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
-            if (viewModel.messages.isEmpty() && !isStreaming) {
-                item {
+            if (displayItems.isEmpty()) {
+                item(key = "empty-hint") {
                     EmptyConversationHint()
                 }
-            }
+            } else {
+                items(items = displayItems, key = { it.key }) { displayItem ->
+                    when (displayItem) {
+                        is ChatDisplayItem.RoleLabel -> {
+                            RoleLabel(role = displayItem.role)
+                        }
 
-            var lastRole: ChatMessage.MessageRole? = null
-            viewModel.messages.forEachIndexed { index, msg ->
-                if (msg.role != lastRole) {
-                    item(key = "label-${msg.role}-$index") {
-                        RoleLabel(role = msg.role)
+                        is ChatDisplayItem.Message -> {
+                            MessageBubble(message = displayItem.message)
+                        }
+
+                        is ChatDisplayItem.StreamingLabel -> {
+                            RoleLabel(role = ChatMessage.MessageRole.ASSISTANT)
+                        }
+
+                        is ChatDisplayItem.Streaming -> {
+                            StreamingBubble(
+                                content = displayItem.content,
+                                isStreaming = isStreaming,
+                            )
+                        }
                     }
-                }
-                item(key = "msg-$index") {
-                    MessageBubble(message = msg)
-                }
-                lastRole = msg.role
-            }
-
-            // Show the streaming bubble when a response is in progress
-            if (isStreaming || viewModel.streamingContent.isNotEmpty()) {
-                item(key = "streaming-label") {
-                    RoleLabel(role = ChatMessage.MessageRole.ASSISTANT)
-                }
-                item(key = "streaming-bubble") {
-                    StreamingBubble(content = viewModel.streamingContent, isStreaming = isStreaming)
                 }
             }
         }
@@ -269,4 +279,62 @@ private fun InfoLabel(selectedLanguage: String) {
             ),
         modifier = Modifier.padding(horizontal = 16.dp),
     )
+}
+
+/**
+ * Represents a single renderable item in the chat [LazyColumn].
+ *
+ * Separating the display model from the raw [ChatMessage] list lets us
+ * pre-compute role labels and the streaming row with stable, unique keys
+ * before passing everything to the `items()` DSL.
+ */
+private sealed class ChatDisplayItem {
+    abstract val key: String
+
+    data class RoleLabel(
+        val role: ChatMessage.MessageRole,
+        override val key: String,
+    ) : ChatDisplayItem()
+
+    data class Message(
+        val message: ChatMessage,
+        override val key: String,
+    ) : ChatDisplayItem()
+
+    data object StreamingLabel : ChatDisplayItem() {
+        override val key = "streaming-label"
+    }
+
+    data class Streaming(
+        val content: String,
+    ) : ChatDisplayItem() {
+        override val key = "streaming-bubble"
+    }
+}
+
+/**
+ * Builds the ordered list of [ChatDisplayItem]s from the current conversation state.
+ *
+ * Role labels are inserted only when the sender changes between consecutive messages,
+ * reducing visual repetition.
+ */
+private fun buildDisplayItems(
+    messages: List<ChatMessage>,
+    isStreaming: Boolean,
+    streamingContent: String,
+): List<ChatDisplayItem> {
+    val items = mutableListOf<ChatDisplayItem>()
+    var lastRole: ChatMessage.MessageRole? = null
+    messages.forEachIndexed { index, msg ->
+        if (msg.role != lastRole) {
+            items.add(ChatDisplayItem.RoleLabel(msg.role, "label-${msg.role}-$index"))
+        }
+        items.add(ChatDisplayItem.Message(msg, "msg-$index"))
+        lastRole = msg.role
+    }
+    if (isStreaming || streamingContent.isNotEmpty()) {
+        items.add(ChatDisplayItem.StreamingLabel)
+        items.add(ChatDisplayItem.Streaming(streamingContent))
+    }
+    return items
 }
