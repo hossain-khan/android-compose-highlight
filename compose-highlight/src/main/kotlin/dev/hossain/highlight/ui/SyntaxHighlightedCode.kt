@@ -36,7 +36,6 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import dev.hossain.highlight.engine.HighlightException
 import dev.hossain.highlight.engine.HighlightResult
 import dev.hossain.highlight.engine.HighlightTheme
@@ -245,13 +244,7 @@ fun SyntaxHighlightedCode(
         remember(languageLabel, language) {
             when {
                 languageLabel === DefaultLanguageLabelSentinel -> {
-                    {
-                        SyntaxHighlightedCodeDefaults.LanguageLabel(
-                            language = language,
-                            color = LocalContentColor.current.copy(alpha = 0.6f),
-                            fontSize = 12.sp,
-                        )
-                    }
+                    { SyntaxHighlightedCodeDefaults.LanguageLabel(language = language) }
                 }
 
                 else -> {
