@@ -87,11 +87,13 @@ internal fun MessageBubble(
  * that blinks while content is still being received.
  *
  * @param content The text accumulated so far from the SSE stream.
+ * @param isStreaming Whether tokens are still arriving (controls cursor blink).
  * @param modifier Optional [Modifier] for the outer row.
  */
 @Composable
 internal fun StreamingBubble(
     content: String,
+    isStreaming: Boolean,
     modifier: Modifier = Modifier,
 ) {
     Row(
@@ -111,11 +113,16 @@ internal fun StreamingBubble(
                         color = MaterialTheme.colorScheme.primary,
                     )
                 } else {
+                    // Cursor blink loop is keyed to isStreaming so it stops when streaming ends.
                     var showCursor by remember { mutableStateOf(true) }
-                    LaunchedEffect(Unit) {
-                        while (true) {
-                            delay(500)
-                            showCursor = !showCursor
+                    LaunchedEffect(isStreaming) {
+                        if (isStreaming) {
+                            while (true) {
+                                delay(500)
+                                showCursor = !showCursor
+                            }
+                        } else {
+                            showCursor = false
                         }
                     }
                     Text(

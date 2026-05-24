@@ -66,7 +66,8 @@ internal class ChatViewModel : ViewModel() {
         if (uiState == ChatUiState.Streaming) return
 
         val userMessage = ChatMessage(ChatMessage.MessageRole.USER, prompt)
-        // History sent to API = all previous messages (before the new user message)
+        // Capture all existing messages as conversation history before appending the new user
+        // message - the API receives prior turns as context, not the current prompt itself.
         val history = messages.toList()
         messages = messages + userMessage
         streamingContent = ""

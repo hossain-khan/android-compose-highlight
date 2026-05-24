@@ -177,13 +177,13 @@ internal fun ChatScreen(
             }
 
             var lastRole: ChatMessage.MessageRole? = null
-            viewModel.messages.forEach { msg ->
+            viewModel.messages.forEachIndexed { index, msg ->
                 if (msg.role != lastRole) {
-                    item(key = "label-${msg.role}-${viewModel.messages.indexOf(msg)}") {
+                    item(key = "label-${msg.role}-$index") {
                         RoleLabel(role = msg.role)
                     }
                 }
-                item(key = "msg-${viewModel.messages.indexOf(msg)}") {
+                item(key = "msg-$index") {
                     MessageBubble(message = msg)
                 }
                 lastRole = msg.role
@@ -195,7 +195,7 @@ internal fun ChatScreen(
                     RoleLabel(role = ChatMessage.MessageRole.ASSISTANT)
                 }
                 item(key = "streaming-bubble") {
-                    StreamingBubble(content = viewModel.streamingContent)
+                    StreamingBubble(content = viewModel.streamingContent, isStreaming = isStreaming)
                 }
             }
         }

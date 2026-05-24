@@ -18,6 +18,10 @@ internal object SseStreamParser {
     private const val DATA_PREFIX = "data: "
     private const val DONE_MARKER = "[DONE]"
 
+    // Pre-compiled patterns for the two field names used in the API response.
+    private val TOKEN_FIELD_PATTERN = Regex(""""token"\s*:\s*"((?:[^"\\]|\\.)*)"""")
+    private val CONTENT_FIELD_PATTERN = Regex(""""content"\s*:\s*"((?:[^"\\]|\\.)*)"""")
+
     /**
      * Returns true if [line] is an SSE data line (starts with `data: `).
      */
@@ -43,15 +47,14 @@ internal object SseStreamParser {
      */
     fun parseToken(dataContent: String): String? {
         if (isDoneMarker(dataContent)) return null
-        return extractJsonStringField(dataContent, "token")
-            ?: extractJsonStringField(dataContent, "content")
+        return extractJsonStringField(dataContent, TOKEN_FIELD_PATTERN)
+            ?: extractJsonStringField(dataContent, CONTENT_FIELD_PATTERN)
     }
 
     private fun extractJsonStringField(
         json: String,
-        fieldName: String,
+        pattern: Regex,
     ): String? {
-        val pattern = Regex(""""$fieldName"\s*:\s*"((?:[^"\\]|\\.)*)"""")
         val match = pattern.find(json) ?: return null
         val rawValue = match.groupValues[1]
         // Return null for empty strings to avoid emitting empty tokens
