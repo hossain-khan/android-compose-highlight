@@ -1,5 +1,6 @@
 package dev.hossain.highlight.sample.chat.network
 
+import android.util.Log
 import dev.hossain.highlight.sample.chat.model.ChatMessage
 import dev.hossain.highlight.sample.chat.model.CodeChatRequest
 import io.ktor.client.HttpClient
@@ -12,6 +13,8 @@ import io.ktor.http.contentType
 import io.ktor.http.isSuccess
 import kotlinx.coroutines.delay
 import kotlinx.serialization.json.Json
+
+private const val TAG = "CodeAIService"
 
 /**
  * Service layer for communicating with the AI code chat API.
@@ -56,6 +59,8 @@ class CodeAIService(
         onComplete: () -> Unit,
     ) {
         return try {
+            Log.d(TAG, "chat() called with prompt length=${prompt.length}, language=$language")
+
             // Build the request
             val request =
                 CodeChatRequest(
@@ -65,6 +70,8 @@ class CodeAIService(
                     conversationHistory = conversationHistory,
                 )
 
+            Log.d(TAG, "Making POST request to $baseUrl")
+
             // Make the HTTP request
             val response: HttpResponse =
                 client.post(baseUrl) {
@@ -72,9 +79,12 @@ class CodeAIService(
                     setBody(request)
                 }
 
+            Log.d(TAG, "Response received with status=${response.status.value}")
+
             // Handle response status
             if (!response.status.isSuccess()) {
                 val statusCode = response.status.value
+                Log.w(TAG, "Response status not successful: $statusCode")
                 val errorMessage =
                     when (statusCode) {
                         400 -> "Invalid request. Please check your prompt length (max 2000 chars)"
@@ -86,11 +96,16 @@ class CodeAIService(
                 return
             }
 
+            Log.d(TAG, "Parsing streaming response")
+
             // Parse streaming response
             response.bodyAsText().lines().forEach { line ->
                 if (line.isNotBlank()) {
+                    Log.v(TAG, "Processing SSE line: ${line.take(50)}...")
+
                     // Check for stream completion
                     if (SseStreamParser.isStreamComplete(line)) {
+                        Log.d(TAG, "Stream completed marker received")
                         onComplete()
                         return@forEach
                     }
@@ -103,9 +118,12 @@ class CodeAIService(
                 }
             }
 
+            Log.d(TAG, "Stream processing finished")
+
             // If we got here without hitting [DONE], stream ended normally
             onComplete()
         } catch (e: Exception) {
+            Log.e(TAG, "Exception in chat()", e)
             val errorMessage =
                 when {
                     e.message?.contains("timeout", ignoreCase = true) == true -> {

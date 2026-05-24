@@ -1,5 +1,6 @@
 package dev.hossain.highlight.sample.chat.state
 
+import android.util.Log
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
@@ -9,6 +10,8 @@ import dev.hossain.highlight.sample.chat.network.CodeAIClient
 import dev.hossain.highlight.sample.chat.network.CodeAIService
 import kotlinx.coroutines.launch
 import java.util.UUID
+
+private const val TAG = "ChatViewModel"
 
 /**
  * ViewModel for managing chat state and API interactions.
@@ -56,15 +59,21 @@ class ChatViewModel : ViewModel() {
      * @param prompt The user's programming question
      */
     fun sendMessage(prompt: String) {
+        Log.d(TAG, "sendMessage called with prompt: '$prompt' (${prompt.length} chars)")
+
         if (prompt.isBlank()) {
+            Log.w(TAG, "Blank prompt, showing error")
             _uiState.value = ChatUiState.Error("Please enter a question")
             return
         }
 
         if (prompt.length > 2000) {
+            Log.w(TAG, "Prompt exceeds 2000 chars")
             _uiState.value = ChatUiState.Error("Question exceeds 2000 character limit")
             return
         }
+
+        Log.d(TAG, "Validation passed, adding user message to history")
 
         // Add user message to history
         val userMessage = ChatMessage(role = "user", content = prompt)
@@ -72,15 +81,18 @@ class ChatViewModel : ViewModel() {
         _conversationHistory.value = updatedHistory
 
         // Start streaming response
+        Log.d(TAG, "Starting loading state, launching API call")
         _uiState.value = ChatUiState.Loading()
 
         viewModelScope.launch {
+            Log.d(TAG, "In viewModelScope, calling service.chat() with sessionId=${_sessionId.value}")
             service.chat(
                 prompt = prompt,
                 language = _selectedLanguage.value,
                 sessionId = _sessionId.value,
                 conversationHistory = updatedHistory.dropLast(1), // Exclude current message for context
                 onToken = { token ->
+                    Log.v(TAG, "Token received: '$token'")
                     val currentState = _uiState.value
                     if (currentState is ChatUiState.Loading) {
                         _uiState.value =
@@ -90,9 +102,11 @@ class ChatViewModel : ViewModel() {
                     }
                 },
                 onError = { error ->
+                    Log.e(TAG, "API error: $error")
                     _uiState.value = ChatUiState.Error(error)
                 },
                 onComplete = {
+                    Log.d(TAG, "Chat completed")
                     val currentState = _uiState.value
                     if (currentState is ChatUiState.Loading) {
                         // Add assistant message to history
