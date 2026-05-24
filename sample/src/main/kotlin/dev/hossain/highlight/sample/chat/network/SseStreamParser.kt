@@ -1,7 +1,10 @@
 package dev.hossain.highlight.sample.chat.network
 
+import android.util.Log
 import dev.hossain.highlight.sample.chat.model.CodeChatResponse
 import kotlinx.serialization.json.Json
+
+private const val TAG = "SseStreamParser"
 
 /**
  * Utility for parsing Server-Sent Events (SSE) format from the streaming API.
@@ -44,6 +47,7 @@ object SseStreamParser {
             response.getToken()
         } catch (e: Exception) {
             // Log malformed JSON but don't crash - just skip this line
+            Log.e(TAG, "Failed to parse SSE JSON: ${e.message}\nLine: ${line.take(100)}", e)
             null
         }
     }

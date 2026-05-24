@@ -99,13 +99,22 @@ class CodeAIService(
             Log.d(TAG, "Parsing streaming response")
 
             // Parse streaming response
-            response.bodyAsText().lines().forEach { line ->
+            val lines = response.bodyAsText().lines()
+            Log.d(TAG, "Response body has ${lines.size} total lines")
+            
+            var processedLines = 0
+            var nullTokenLines = 0
+            var completedLines = 0
+            
+            lines.forEach { line ->
                 if (line.isNotBlank()) {
+                    processedLines++
                     Log.v(TAG, "Processing SSE line: ${line.take(50)}...")
 
                     // Check for stream completion
                     if (SseStreamParser.isStreamComplete(line)) {
                         Log.d(TAG, "Stream completed marker received")
+                        completedLines++
                         onComplete()
                         return@forEach
                     }
@@ -113,10 +122,16 @@ class CodeAIService(
                     // Try to extract and emit token
                     val token = SseStreamParser.parseToken(line)
                     if (token != null) {
+                        Log.v(TAG, "Token received: '$token'")
                         onToken(token)
+                    } else {
+                        nullTokenLines++
+                        Log.v(TAG, "parseToken returned null for line: ${line.take(50)}...")
                     }
                 }
             }
+            
+            Log.d(TAG, "Finished parsing: processedLines=$processedLines, nullTokens=$nullTokenLines, completions=$completedLines")
 
             Log.d(TAG, "Stream processing finished")
 
