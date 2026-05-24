@@ -67,9 +67,10 @@ internal object SseStreamParser {
 
     private fun unescapeJsonString(escaped: String): String =
         escaped
+            // Double-backslash must be replaced first to avoid corrupting other sequences.
+            .replace("\\\\", "\\")
             .replace("\\n", "\n")
             .replace("\\r", "\r")
             .replace("\\t", "\t")
             .replace("\\\"", "\"")
-            .replace("\\\\", "\\")
 }

@@ -37,9 +37,12 @@ internal data class CodeChatRequest(
             text
                 .replace("\\", "\\\\")
                 .replace("\"", "\\\"")
+                .replace("\b", "\\b")
+                .replace("\u000C", "\\f")
                 .replace("\n", "\\n")
                 .replace("\r", "\\r")
                 .replace("\t", "\\t")
-        return "\"$escaped\""
+        // Escape remaining control characters (U+0000 through U+001F) as \uXXXX.
+        return "\"${escaped.replace(Regex("[\\u0000-\\u001F]")) { "\\u${it.value[0].code.toString(16).padStart(4, '0')}" }}\""
     }
 }

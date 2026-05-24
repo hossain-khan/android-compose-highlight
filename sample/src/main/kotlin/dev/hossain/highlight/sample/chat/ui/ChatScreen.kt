@@ -81,11 +81,22 @@ internal fun ChatScreen(
 
     val isStreaming = viewModel.uiState == ChatUiState.Streaming
 
-    // Auto-scroll to the bottom when new messages arrive or streaming content updates
-    LaunchedEffect(viewModel.messages.size, viewModel.streamingContent) {
-        val totalItems = viewModel.messages.size + (if (viewModel.streamingContent.isNotEmpty() || isStreaming) 1 else 0)
-        if (totalItems > 0) {
-            listState.animateScrollToItem(totalItems - 1)
+    // Pre-compute display items so we can use the items() DSL and derive the scroll target.
+    // Declared before the auto-scroll LaunchedEffect so displayItems.size can be used directly.
+    val displayItems =
+        remember(viewModel.messages, isStreaming, viewModel.streamingContent) {
+            buildDisplayItems(
+                messages = viewModel.messages,
+                isStreaming = isStreaming,
+                streamingContent = viewModel.streamingContent,
+            )
+        }
+
+    // Auto-scroll to the bottom when new messages arrive or streaming content updates.
+    // Uses displayItems.size to avoid duplicating the item-count logic.
+    LaunchedEffect(displayItems.size) {
+        if (displayItems.isNotEmpty()) {
+            listState.animateScrollToItem(displayItems.size - 1)
         }
     }
 
@@ -164,16 +175,6 @@ internal fun ChatScreen(
         }
 
         // ── Conversation list ─────────────────────────────────────────────
-        // Pre-compute display items so we can use the items() DSL with stable keys.
-        val displayItems =
-            remember(viewModel.messages, isStreaming, viewModel.streamingContent) {
-                buildDisplayItems(
-                    messages = viewModel.messages,
-                    isStreaming = isStreaming,
-                    streamingContent = viewModel.streamingContent,
-                )
-            }
-
         LazyColumn(
             state = listState,
             modifier = Modifier.weight(1f).fillMaxWidth(),

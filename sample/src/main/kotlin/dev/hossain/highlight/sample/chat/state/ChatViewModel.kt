@@ -34,6 +34,11 @@ import java.util.UUID
 internal class ChatViewModel : ViewModel() {
     private val service = CodeAIService()
 
+    companion object {
+        /** Maximum number of characters shown from an API error body in the error state message. */
+        private const val MAX_ERROR_BODY_LENGTH = 200
+    }
+
     /** The full conversation history (committed user + assistant messages). */
     var messages by mutableStateOf<List<ChatMessage>>(emptyList())
         private set
@@ -96,7 +101,7 @@ internal class ChatViewModel : ViewModel() {
                 uiState = ChatUiState.Error(e.message ?: "Rate limit exceeded")
             } catch (e: ChatException.ApiError) {
                 streamingContent = ""
-                uiState = ChatUiState.Error("API error (${e.code}): ${e.body.take(200)}")
+                uiState = ChatUiState.Error("API error (${e.code}): ${e.body.take(MAX_ERROR_BODY_LENGTH)}")
             } catch (e: ChatException.NetworkError) {
                 streamingContent = ""
                 uiState = ChatUiState.Error("Network error: ${e.cause.message ?: "Unknown"}")
