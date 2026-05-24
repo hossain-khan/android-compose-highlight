@@ -8,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import dev.hossain.highlight.sample.chat.model.ChatMessage
 import dev.hossain.highlight.sample.chat.network.CodeAIClient
 import dev.hossain.highlight.sample.chat.network.CodeAIService
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.util.UUID
 
@@ -84,7 +85,7 @@ class ChatViewModel : ViewModel() {
         Log.d(TAG, "Starting loading state, launching API call")
         _uiState.value = ChatUiState.Loading()
 
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.Main) {
             Log.d(TAG, "In viewModelScope, calling service.chat() with sessionId=${_sessionId.value}")
             service.chat(
                 prompt = prompt,
