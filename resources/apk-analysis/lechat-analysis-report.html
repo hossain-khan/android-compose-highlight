@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Le Chat by Mistral AI - Syntax Highlighting Analysis Report</title>
+    <style>
+        :root {
+            --bg: #fafafa;
+            --surface: #ffffff;
+            --text: #1a1a1a;
+            --text-secondary: #555;
+            --border: #e0e0e0;
+            --accent: #F97316;
+            --accent-light: #fff7ed;
+            --code-bg: #f5f5f5;
+            --tag-bg: #e8f4fd;
+            --tag-text: #0969da;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            padding: 2rem;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        h1 { font-size: 1.8rem; margin-bottom: 0.5rem; }
+        h2 { font-size: 1.4rem; margin: 2rem 0 1rem; border-bottom: 2px solid var(--accent); padding-bottom: 0.3rem; }
+        h3 { font-size: 1.1rem; margin: 1.5rem 0 0.5rem; }
+        p { margin-bottom: 1rem; }
+        .subtitle { color: var(--text-secondary); margin-bottom: 2rem; }
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .highlight-card {
+            border-left: 4px solid var(--accent);
+            background: var(--accent-light);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+            font-size: 0.9rem;
+        }
+        th, td {
+            padding: 0.6rem 0.8rem;
+            border: 1px solid var(--border);
+            text-align: left;
+        }
+        th { background: var(--code-bg); font-weight: 600; }
+        .tag {
+            display: inline-block;
+            padding: 0.15rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            margin-right: 0.3rem;
+        }
+        .tag-hljs { background: #fef3c7; color: #92400e; }
+        .tag-rn { background: #e0e7ff; color: #4338ca; }
+        .tag-native { background: #d1fae5; color: #065f46; }
+        .tag-skia { background: #fce7f3; color: #9d174d; }
+        code {
+            background: var(--code-bg);
+            padding: 0.15rem 0.4rem;
+            border-radius: 3px;
+            font-size: 0.85rem;
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+        }
+        .arch-diagram {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1.5rem;
+            font-family: monospace;
+            font-size: 0.8rem;
+            line-height: 1.4;
+            overflow-x: auto;
+            white-space: pre;
+        }
+        ul { padding-left: 1.5rem; margin-bottom: 1rem; }
+        li { margin-bottom: 0.4rem; }
+        .meta-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+        }
+        .meta-info dt { font-weight: 600; color: var(--text-secondary); }
+        .meta-info dd { margin-bottom: 0.5rem; }
+        .footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--border); color: var(--text-secondary); font-size: 0.85rem; }
+    </style>
+</head>
+<body>
+
+<h1>Le Chat by Mistral AI</h1>
+<p class="subtitle">Syntax Highlighting &amp; Code Rendering Implementation Analysis</p>
+
+<div class="card highlight-card">
+    <h3>Executive Summary</h3>
+    <p>
+        Le Chat (v1.21.2) is a <strong>React Native (Expo SDK 55)</strong> AI chat application by Mistral AI that uses
+        <strong>Highlight.js</strong> for syntax highlighting tokenization. The app runs on a Hermes JS engine with a
+        ~15.6 MB bytecode bundle. Unlike WebView-based editors, Le Chat performs highlighting entirely within the
+        JavaScript/React Native layer: Highlight.js tokenizes code blocks from AI responses, and the tokens are rendered
+        using <strong>React Native Text components with styled spans</strong>, enhanced by NativeWind (Tailwind CSS for RN).
+        The app also bundles <strong>React Native Skia</strong> which may be used for custom drawing of code blocks or
+        other rich content. This is a "tokenize in JS, render natively" pattern &mdash; similar to how Claude and Perplexity
+        handle code highlighting, but executed entirely within the React Native runtime rather than bridging to platform-native views.
+    </p>
+</div>
+
+<h2>App Metadata</h2>
+<div class="card">
+    <dl class="meta-info">
+        <dt>Package</dt><dd><code>ai.mistral.chat</code></dd>
+        <dt>Version</dt><dd>1.21.2 (versionCode: 12102159)</dd>
+        <dt>Internal Slug</dt><dd>"le-chat"</dd>
+        <dt>APK Size</dt><dd>~79 MB (base APK)</dd>
+        <dt>Framework</dt><dd>React Native (Expo SDK 55)</dd>
+        <dt>JS Engine</dt><dd>Hermes (bytecode v96, ~15.6 MB bundle)</dd>
+        <dt>Platforms</dt><dd>iOS, Android, Web</dd>
+        <dt>Languages</dt><dd>en, fr, de, es, pl, it, pt-BR, nl</dd>
+    </dl>
+</div>
+
+<h2>Architecture Overview</h2>
+
+<div class="arch-diagram">
+&#9484;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9488;
+&#9474;                  React Native Shell (Expo SDK 55)                   &#9474;
+&#9474;  &#9484;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9488; &#9484;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9488; &#9484;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9488;&#9474;
+&#9474;  &#9474;expo-router &#9474; &#9474; Auth (Kratos  &#9474; &#9474; Widgets (Voltra)         &#9474;&#9474;
+&#9474;  &#9474;(file-based) &#9474; &#9474; + Google SSO) &#9474; &#9474; Quick Settings Tile      &#9474;&#9474;
+&#9474;  &#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496; &#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496; &#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496;&#9474;
+&#9474;                                                               &#9474;
+&#9474;  &#9484;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9488; &#9474;
+&#9474;  &#9474;              Chat / Code Block Rendering                    &#9474; &#9474;
+&#9474;  &#9474;                                                             &#9474; &#9474;
+&#9474;  &#9474;  &#9484;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9488;   &#9484;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9488;  &#9474; &#9474;
+&#9474;  &#9474;  &#9474;   Highlight.js      &#9474;   &#9474;  RN Text Components       &#9474;  &#9474; &#9474;
+&#9474;  &#9474;  &#9474;   (Tokenization)    &#9474;&#9472;&#9472;&#9472;&#9474;  (Styled spans via        &#9474;  &#9474; &#9474;
+&#9474;  &#9474;  &#9474;   hljs-* classes    &#9474;   &#9474;   NativeWind/Tailwind)     &#9474;  &#9474; &#9474;
+&#9474;  &#9474;  &#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496;   &#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496;  &#9474; &#9474;
+&#9474;  &#9474;                                                             &#9474; &#9474;
+&#9474;  &#9474;  &#9484;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9488;   &#9484;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9488;  &#9474; &#9474;
+&#9474;  &#9474;  &#9474; React Native Skia  &#9474;   &#9474; RNCWebView (for auth:    &#9474;  &#9474; &#9474;
+&#9474;  &#9474;  &#9474; (custom drawing?)  &#9474;   &#9474;  hCaptcha, OAuth flows)  &#9474;  &#9474; &#9474;
+&#9474;  &#9474;  &#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496;   &#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496;  &#9474; &#9474;
+&#9474;  &#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496; &#9474;
+&#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496;
+                            &#9474;
+                            &#9660;
+              &#9484;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9488;
+              &#9474;   Mistral AI Backend   &#9474;
+              &#9474;  chat.mistral.ai        &#9474;
+              &#9474;  mistralcdn.net:8100     &#9474;
+              &#9474;  Ory/Kratos (identity)  &#9474;
+              &#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496;
+</div>
+
+<h2>Syntax Highlighting Implementation</h2>
+
+<div class="card">
+    <h3>Approach: Highlight.js Tokenization + React Native Text Rendering</h3>
+    <p>
+        <span class="tag tag-hljs">Highlight.js</span>
+        <span class="tag tag-rn">React Native</span>
+        <span class="tag tag-native">Native Text Spans</span>
+    </p>
+    <p>
+        Le Chat uses <strong>Highlight.js</strong> as its syntax highlighting engine, confirmed by the presence of
+        <code>hljs-</code> prefixed CSS token classes and internal Highlight.js constants (<code>beginKeywords</code>,
+        <code>COMMENT</code>, <code>C_LINE_COMMENT_MODE</code>) found in the Hermes bytecode bundle.
+    </p>
+    <p>
+        The rendering surface is <strong>React Native Text components</strong> (not WebView). Code tokens produced by
+        Highlight.js are mapped to styled Text spans using NativeWind/Tailwind utility classes. This approach keeps
+        highlighting performant and integrated with the native scroll/layout system while leveraging Highlight.js's
+        extensive language grammar coverage.
+    </p>
+
+    <h3>Evidence</h3>
+    <ul>
+        <li><strong>30+ hljs CSS classes</strong> found in Hermes bytecode &mdash; <code>hljs-keyword</code>, <code>hljs-string</code>, <code>hljs-comment</code>, <code>hljs-number</code>, <code>hljs-title</code>, <code>hljs-type</code>, <code>hljs-variable</code>, <code>hljs-built_in</code>, <code>hljs-literal</code>, etc.</li>
+        <li><strong>Highlight.js internal constants</strong> &mdash; <code>beginKeywords</code>, <code>COMMENT</code>, <code>C_LINE_COMMENT_MODE</code> patterns</li>
+        <li><strong>Large language grammar sets</strong> &mdash; vim commands, Maya/MEL, regex patterns indicate many languages bundled</li>
+        <li><strong>No WebView rendering for code</strong> &mdash; WebView (RNCWebView) is present but used for auth flows (hCaptcha, OAuth)</li>
+        <li><strong>NativeWind (Tailwind CSS for RN)</strong> &mdash; extensive Tailwind utility classes for styling tokens</li>
+    </ul>
+</div>
+
+<h2>Key Libraries &amp; Dependencies</h2>
+
+<table>
+    <thead>
+        <tr><th>Category</th><th>Library</th><th>Evidence</th></tr>
+    </thead>
+    <tbody>
+        <tr><td>Framework</td><td>React Native (Expo SDK 55)</td><td><code>app.config</code>: sdkVersion "55.0.0"</td></tr>
+        <tr><td>JS Engine</td><td>Hermes v96</td><td>File type of <code>index.android.bundle</code> (~15.6 MB)</td></tr>
+        <tr><td>Syntax Highlighting</td><td>Highlight.js</td><td>hljs-* CSS classes, internal mode constants</td></tr>
+        <tr><td>Styling</td><td>NativeWind (Tailwind CSS for RN)</td><td>Tailwind utility classes throughout bundle</td></tr>
+        <tr><td>Graphics</td><td>React Native Skia</td><td>RNSkiaPackage in PackageList.smali</td></tr>
+        <tr><td>WebView</td><td>react-native-community/webview</td><td>RNCWebViewPackage in PackageList.smali</td></tr>
+        <tr><td>Animations</td><td>React Native Reanimated</td><td>Worklet references in bundle</td></tr>
+        <tr><td>Navigation</td><td>expo-router (file-based)</td><td>File-based routing patterns</td></tr>
+        <tr><td>Crash Reporting</td><td>Sentry (@sentry/react-native)</td><td>Sentry plugin in app.config</td></tr>
+        <tr><td>Payments</td><td>React Native IAP</td><td>In-App Purchase module references</td></tr>
+        <tr><td>Audio</td><td>React Native Audio API</td><td>Audio module for voice input</td></tr>
+        <tr><td>Local Storage</td><td>expo-sqlite</td><td>SQLite references in bundle</td></tr>
+        <tr><td>File Handling</td><td>react-native-blob-util</td><td>Blob utility references</td></tr>
+        <tr><td>Widgets</td><td>Voltra</td><td>Widget framework references for iOS/Android</td></tr>
+        <tr><td>Auth</td><td>Ory/Kratos + Google Sign-In</td><td>Kratos identity refs + Google SSO package</td></tr>
+        <tr><td>React Compiler</td><td>React Compiler (enabled)</td><td>Compiler hints in bundle metadata</td></tr>
+    </tbody>
+</table>
+
+<h2>Fonts</h2>
+
+<div class="card">
+    <h3>Bundled Typefaces</h3>
+    <table>
+        <thead><tr><th>Font</th><th>Style</th><th>Purpose</th></tr></thead>
+        <tbody>
+            <tr><td><strong>VCROSDMono</strong></td><td>Regular (monospace, retro/pixel)</td><td>Code display font</td></tr>
+            <tr><td><strong>Devicon</strong></td><td>Icon font</td><td>Programming language icons in code blocks</td></tr>
+            <tr><td><strong>Lucide</strong></td><td>Icon font</td><td>UI icons throughout the app</td></tr>
+            <tr><td><strong>Roboto Medium Numbers</strong></td><td>Medium (numbers only)</td><td>Numeric displays, line numbers</td></tr>
+            <tr><td><strong>Material Symbols</strong></td><td>Variable (via expo-google-fonts)</td><td>System UI icons</td></tr>
+        </tbody>
+    </table>
+    <p>
+        <strong>Notable:</strong> VCROSDMono is an unconventional choice for a code font &mdash; it is a retro/pixel-style
+        monospace typeface. This gives Le Chat's code blocks a distinctive visual identity compared to the standard
+        JetBrains Mono or Fira Code used by most developer tools.
+    </p>
+</div>
+
+<h2>Rendering Surface Analysis</h2>
+
+<div class="card">
+    <h3>React Native Text (Primary) + Possible Skia Canvas</h3>
+    <p>
+        Code highlighting in Le Chat is rendered using <strong>React Native's native Text components</strong> with
+        styled spans. The evidence supports this conclusion:
+    </p>
+    <ul>
+        <li><strong>NativeWind/Tailwind styling</strong> &mdash; Token colors are applied via utility classes mapped to RN styles</li>
+        <li><strong>No WebView for code</strong> &mdash; RNCWebView exists but the WebView bridge patterns (<code>window.ReactNativeWebView?.postMessage</code>) reference auth/challenge flows, not code rendering</li>
+        <li><strong>React Native Skia available</strong> &mdash; <code>com/shopify/reactnative/skia/RNSkiaPackage</code> is registered; may be used for custom code block chrome, backgrounds, or canvas-based features</li>
+        <li><strong>No native Android highlighting</strong> &mdash; No <code>ForegroundColorSpan</code>, <code>SpannableString</code>, or Compose text styling in native classes</li>
+    </ul>
+    <p>
+        This is the same pattern used by Claude and Perplexity: tokenize with a JS library (hljs), then render tokens
+        as colored text spans in the native UI framework. Le Chat differs in that it does this entirely within the
+        React Native JS layer, without needing a native Android bridge for the rendering step.
+    </p>
+</div>
+
+<h2>Native Kotlin/Java Layer</h2>
+
+<div class="card">
+    <h3>Custom Native Modules</h3>
+    <table>
+        <thead><tr><th>Class</th><th>Purpose</th></tr></thead>
+        <tbody>
+            <tr><td><code>ai.mistral.chat.LeChatQuickSettingsTileService</code></td><td>Android Quick Settings tile for fast access</td></tr>
+            <tr><td><code>ai.mistral.helpers.MaiBackgroundTaskModule</code></td><td>Background task execution (likely for streaming)</td></tr>
+            <tr><td><code>ai.mistral.helpers.MaiIntentInboxModule</code></td><td>Intent/share handling from other apps</td></tr>
+            <tr><td><code>ai.mistral.helpers.MaiPasteInputViewModule</code></td><td>Custom paste/input handling</td></tr>
+            <tr><td><code>ai.mistral.helpers.MaiHelpersPackage</code></td><td>RN native package for helper modules</td></tr>
+            <tr><td><code>com.pairip.licensecheck</code></td><td>Play Integrity / license verification</td></tr>
+        </tbody>
+    </table>
+    <p>
+        Notably, none of the native modules relate to syntax highlighting or text rendering. All code highlighting
+        logic lives exclusively in the JavaScript layer.
+    </p>
+</div>
+
+<h2>Features Observed</h2>
+
+<div class="card">
+    <ul>
+        <li><strong>"Vibe Code" workflow</strong> &mdash; dedicated coding workflow with intro modal (<code>vibeCodeWorkflow</code>, <code>VibeCodeWorkflowIntroModalPage</code>)</li>
+        <li><strong>"New Code Session"</strong> &mdash; standalone code generation sessions</li>
+        <li><strong>Deep Research</strong> &mdash; multi-step research agent (<code>deep_research_event</code>)</li>
+        <li><strong>Agent/Workflow system</strong> &mdash; multiple agent orchestration references</li>
+        <li><strong>Canvas/Artifacts</strong> &mdash; persistent artifact management</li>
+        <li><strong>Web search integration</strong> &mdash; real-time web search in responses</li>
+        <li><strong>Image analysis</strong> &mdash; camera + photo library input</li>
+        <li><strong>Voice input</strong> &mdash; speech recognition + audio API</li>
+        <li><strong>Share extension</strong> &mdash; receive shared content from other apps</li>
+        <li><strong>Widgets</strong> &mdash; Voltra-based home screen widgets</li>
+        <li><strong>Quick Settings tile</strong> &mdash; one-tap access from notification shade</li>
+        <li><strong>Streaming responses</strong> &mdash; real-time token streaming from Mistral models</li>
+        <li><strong>Multi-language UI</strong> &mdash; 8 languages (en, fr, de, es, pl, it, pt-BR, nl)</li>
+    </ul>
+</div>
+
+<h2>Comparison with Other Approaches</h2>
+
+<table>
+    <thead>
+        <tr><th>Dimension</th><th>Le Chat (hljs + RN Text)</th><th>Native Compose Library</th></tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>Tokenization</td>
+            <td>Highlight.js (JavaScript)</td>
+            <td>Platform-native parser (e.g., TreeSitter, regex)</td>
+        </tr>
+        <tr>
+            <td>Rendering</td>
+            <td>RN Text components with styled spans</td>
+            <td>Compose Text with AnnotatedString</td>
+        </tr>
+        <tr>
+            <td>Language Support</td>
+            <td>Extensive (hljs bundles many grammars)</td>
+            <td>Limited to bundled grammars</td>
+        </tr>
+        <tr>
+            <td>Performance</td>
+            <td>JS thread overhead, bridge serialization</td>
+            <td>Direct native rendering, no bridge cost</td>
+        </tr>
+        <tr>
+            <td>Memory</td>
+            <td>Higher (15.6 MB JS bundle + RN runtime)</td>
+            <td>Lower (in-process, no JS VM)</td>
+        </tr>
+        <tr>
+            <td>Startup</td>
+            <td>Moderate (Hermes pre-compilation helps)</td>
+            <td>Fast (immediate native render)</td>
+        </tr>
+        <tr>
+            <td>Code Sharing</td>
+            <td>Cross-platform (iOS/Android/Web from one codebase)</td>
+            <td>Platform-specific or KMP</td>
+        </tr>
+        <tr>
+            <td>Theme Support</td>
+            <td>Tailwind utility classes (flexible)</td>
+            <td>Programmatic color mapping</td>
+        </tr>
+        <tr>
+            <td>APK Impact</td>
+            <td>~79 MB total (full app)</td>
+            <td>Minimal library size addition</td>
+        </tr>
+        <tr>
+            <td>Offline</td>
+            <td>Tokenization works offline; needs network for AI</td>
+            <td>Fully offline capable</td>
+        </tr>
+    </tbody>
+</table>
+
+<h2>Key Insights</h2>
+
+<div class="card">
+    <ol>
+        <li><strong>Highlight.js remains popular in RN AI apps.</strong> Even in 2026, Highlight.js is the go-to choice for React Native chat apps that need code highlighting. Its large grammar library and simple API make it ideal for rendering AI-generated code blocks with unknown languages.</li>
+        <li><strong>The "tokenize in JS, render natively" pattern is standard.</strong> Le Chat, Claude, and Perplexity all use the same fundamental approach: parse code with a JS library (hljs or similar), then render tokens as colored text spans. The differences are in where the rendering happens (RN Text vs. native Android views).</li>
+        <li><strong>WebView is avoided for code rendering.</strong> Despite having RNCWebView available, Le Chat uses it only for auth flows. Native text rendering provides better scroll performance, accessibility, and text selection for code blocks in a chat interface.</li>
+        <li><strong>React Native Skia adds a Compose-like canvas.</strong> The inclusion of Skia suggests Le Chat may draw custom UI elements (code block decorations, backgrounds, copy buttons) using GPU-accelerated canvas operations rather than standard RN views.</li>
+        <li><strong>Large hljs grammar set impacts bundle size.</strong> The 15.6 MB Hermes bundle (vs. Replit's 7.5 MB) partly reflects bundling many Highlight.js language grammars. A native library can offer more selective grammar loading.</li>
+        <li><strong>"Vibe Code" represents a new category.</strong> Le Chat's dedicated coding workflow goes beyond simple code display &mdash; it is an agent-driven code generation experience that requires robust highlighting for the output.</li>
+        <li><strong>Unconventional font choice signals brand differentiation.</strong> VCROSDMono (retro pixel monospace) is a deliberate stylistic choice that makes Le Chat's code blocks visually distinct from competitors using standard developer fonts.</li>
+    </ol>
+</div>
+
+<h2>Conclusions</h2>
+
+<div class="card">
+    <p>
+        Le Chat demonstrates the prevailing pattern for AI chat apps on mobile: use a well-established JavaScript syntax
+        highlighting library (Highlight.js) for tokenization, then render the tokens using the app's native UI components.
+        This trades some performance (JS thread parsing overhead) for maximum language coverage and cross-platform code reuse.
+    </p>
+    <p>
+        For a native Compose highlighting library, Le Chat's approach validates the market need: a purpose-built native
+        solution could offer the same breadth of language support with better performance characteristics (no JS bridge,
+        direct AnnotatedString rendering, lazy tokenization), while being usable by both native Android apps and
+        Kotlin Multiplatform projects that want to avoid the React Native / JS runtime dependency entirely.
+    </p>
+    <p>
+        The 30+ hljs token classes found provide a useful reference for ensuring comprehensive token type coverage
+        in any highlighting library implementation.
+    </p>
+</div>
+
+<div class="footer">
+    <p>Analysis performed: 2026-05-24 | APK version: 1.21.2 (12102159) | Tool: apktool 3.0.2</p>
+    <p>See <a href="lechat-technical-reference.html">Technical Reference</a> for detailed evidence.</p>
+</div>
+
+</body>
+</html>

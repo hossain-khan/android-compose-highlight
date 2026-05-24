@@ -55,6 +55,7 @@
   .badge-hljs { background: #e8f5e9; color: #2e7d32; }
   .badge-server { background: #e3f2fd; color: #1565c0; }
   .badge-none { background: #fafafa; color: #86868b; border: 1px solid #e5e5e7; }
+  .badge-cm6 { background: #fef3c7; color: #92400e; }
 
   .comparison-table { width: 100%; border-collapse: collapse; margin: 24px 0; font-size: 0.85rem; }
   .comparison-table th {
@@ -85,11 +86,11 @@
 <body>
 
 <h1>Android Syntax Highlighting Analysis</h1>
-<p class="subtitle">How top AI &amp; developer Android apps implement in-app code syntax highlighting &mdash; April 2026</p>
+<p class="subtitle">How top AI &amp; developer Android apps implement in-app code syntax highlighting &mdash; April&ndash;May 2026</p>
 
 <div class="summary-box">
-  <p>This project investigates how five major Android apps render syntax-highlighted source code in chat responses. Each APK was extracted from a device via ADB, decoded with apktool, and analyzed through static inspection of smali bytecode, bundled assets, and resource files.</p>
-  <p>Three of five apps use <strong>Highlight.js</strong> running in a hidden WebView for tokenization, but differ significantly in how they render the result: Claude and Perplexity parse the HTML output into native Compose spans, while ChatGPT renders entirely in a WebView. GitHub takes a completely different approach with server-side highlighting. Gemini delegates everything to the Google App (AGSA) and has no local highlighting capability.</p>
+  <p>This project investigates how major Android apps render syntax-highlighted source code. Each APK was extracted from a device via ADB, decoded with apktool, and analyzed through static inspection of smali bytecode, bundled assets, and resource files.</p>
+  <p><strong>Highlight.js dominates</strong> &mdash; four of seven apps use it, but with varying approaches: Claude and Perplexity use a hidden WebView for tokenization then render natively with Compose spans; ChatGPT renders entirely in a WebView; and Le Chat (Mistral) runs hljs directly in the React Native JS thread and renders with RN Text components. GitHub uses server-side highlighting, Replit embeds a full <strong>CodeMirror 6</strong> web IDE, and Gemini delegates everything to the Google App (AGSA).</p>
 </div>
 
 <h2>At a Glance</h2>
@@ -145,6 +146,30 @@
       <td>Base16 Tomorrow / Night</td>
       <td>192</td>
       <td>Native (Compose spans)</td>
+    </tr>
+    <tr>
+      <td class="col-app">Replit</td>
+      <td><span class="method-tag method-client">Client</span></td>
+      <td>CodeMirror 6 / Lezer</td>
+      <td>CM6 themes (CSS)</td>
+      <td>All (Lezer grammars)</td>
+      <td>WebView (full IDE)</td>
+    </tr>
+    <tr>
+      <td class="col-app">Le Chat</td>
+      <td><span class="method-tag method-client">Client</span></td>
+      <td>Highlight.js (bundled)</td>
+      <td>Custom (NativeWind)</td>
+      <td>Many (full grammars)</td>
+      <td>Native (RN Text + Skia)</td>
+    </tr>
+    <tr>
+      <td class="col-app">Kimi</td>
+      <td><span class="method-tag method-client">Client</span></td>
+      <td>Prism4j (pure JVM)</td>
+      <td>Custom (Markwon themes)</td>
+      <td>9+ (JVM grammars)</td>
+      <td>Native (SpannableStringBuilder)</td>
     </tr>
   </tbody>
 </table>
@@ -213,20 +238,59 @@
     </div>
   </div>
 
+  <div class="app-card">
+    <div class="app-name">Replit <span class="badge badge-cm6">CodeMirror 6</span></div>
+    <div class="app-pkg">com.replit.app</div>
+    <div class="app-desc">
+      React Native (Expo SDK 54) app that embeds its full web IDE inside a WebView. Uses CodeMirror 6 with Lezer incremental parsing for syntax highlighting. No native highlighting code &mdash; the entire workspace is web-rendered. Bundles Hack and JetBrains Mono fonts.
+    </div>
+    <div class="app-links">
+      <a class="link-report" href="replit-analysis-report.html">Analysis Report</a>
+      <a class="link-reference" href="replit-technical-reference.html">Technical Reference</a>
+    </div>
+  </div>
+
+  <div class="app-card">
+    <div class="app-name">Le Chat <span class="badge badge-hljs">Highlight.js</span></div>
+    <div class="app-pkg">ai.mistral.chat</div>
+    <div class="app-desc">
+      React Native (Expo SDK 55) app by Mistral AI. Bundles Highlight.js with full language grammars directly in the Hermes bytecode. Tokenization runs in JS and renders natively via React Native Text components styled with NativeWind (Tailwind). Also bundles React Native Skia and Devicon font for language icons.
+    </div>
+    <div class="app-links">
+      <a class="link-report" href="lechat-analysis-report.html">Analysis Report</a>
+      <a class="link-reference" href="lechat-technical-reference.html">Technical Reference</a>
+    </div>
+  </div>
+
+  <div class="app-card">
+    <div class="app-name">Kimi <span class="badge badge-cm6">Prism4j</span></div>
+    <div class="app-pkg">com.moonshot.kimichat</div>
+    <div class="app-desc">
+      Native Kotlin app with Compose Multiplatform. Uses <strong>Prism4j</strong> (pure JVM port of PrismJS) for tokenization &mdash; no WebView or JS engine needed. Renders via <code>SpannableStringBuilder</code> with Markwon for markdown. The most architecturally similar to this library. Ships GeistMono font and JLatexMath for LaTeX.
+    </div>
+    <div class="app-links">
+      <a class="link-report" href="kimi-analysis-report.html">Analysis Report</a>
+      <a class="link-reference" href="kimi-technical-reference.html">Technical Reference</a>
+    </div>
+  </div>
+
 </div>
 
 <h2>Key Findings</h2>
 
 <div class="summary-box">
-  <p><strong>Highlight.js dominates.</strong> Three of the four apps that implement highlighting use Highlight.js, but each at a different version (v11.9.0, v11.10.0, v11.11.1). None use alternatives like Prism.js or Shiki.</p>
-  <p><strong>Hidden WebView is the standard pattern.</strong> All three Highlight.js apps run the library in an off-screen WebView, but differ in how they load it: ChatGPT uses file:// URLs, Claude uses Base64 data: URLs, and Perplexity uses WebViewAssetLoader with the appassets.androidplatform.net scheme.</p>
-  <p><strong>Native rendering is the trend.</strong> Claude and Perplexity both convert Highlight.js HTML output into native Jetpack Compose spans (AnnotatedString), giving them native text selection, accessibility, and performance. ChatGPT keeps everything in the WebView. GitHub uses native spans too, but from server-provided HTML.</p>
-  <p><strong>Perplexity is the most sophisticated.</strong> It produces both light and dark AnnotatedStrings from a single JS call, uses runtime CSS parsing instead of hardcoded color maps, ships commercial monospace fonts, and is on the newest Highlight.js version.</p>
-  <p><strong>Gemini is a shell.</strong> The 5 MB APK contains zero functionality &mdash; it exists only to launch the Google App where the real Gemini experience (and any highlighting) lives.</p>
+  <p><strong>Highlight.js dominates.</strong> Four of eight apps use Highlight.js. Kimi uses Prism4j (JVM port of PrismJS) &mdash; the only pure-JVM tokenizer. Replit uses CodeMirror 6/Lezer. No app uses Shiki.</p>
+  <p><strong>Hidden WebView is common but not universal.</strong> ChatGPT, Claude, and Perplexity run hljs in an off-screen WebView, each loading it differently (file://, Base64 data:, WebViewAssetLoader). Le Chat takes a different approach &mdash; running highlight.js directly in the React Native JS thread without a separate WebView for tokenization.</p>
+  <p><strong>Native rendering is the trend.</strong> Claude and Perplexity convert hljs HTML into native Compose spans. Le Chat renders via RN Text components with NativeWind styles. ChatGPT keeps everything in the WebView. GitHub uses native spans from server-provided HTML.</p>
+  <p><strong>Perplexity is the most sophisticated native implementation.</strong> It produces both light and dark AnnotatedStrings from a single JS call, uses runtime CSS parsing instead of hardcoded color maps, and ships commercial monospace fonts.</p>
+  <p><strong>Le Chat is the newest entrant.</strong> Mistral's app (Expo SDK 55, React Compiler enabled) bundles hljs grammars directly in Hermes bytecode and uses React Native Skia for potential custom rendering. It also ships Devicon for language icons &mdash; a nice UX touch.</p>
+  <p><strong>Gemini is a shell.</strong> The 5 MB APK contains zero functionality &mdash; it exists only to launch the Google App where the real Gemini experience lives.</p>
+  <p><strong>Kimi is the most native approach.</strong> Moonshot AI's Kimi uses Prism4j (pure JVM tokenizer) + Markwon (native markdown renderer) + SpannableStringBuilder for code highlighting. Zero WebView overhead, zero JS bridge &mdash; the most architecturally similar to what this library aims to achieve. Built with Compose Multiplatform for cross-platform code sharing.</p>
+  <p><strong>Replit chose code-reuse over native UX.</strong> As a full IDE app, Replit wraps their web-based CodeMirror 6 editor in a WebView with Lezer parsing (27+ token types), validating that native syntax highlighting on Android is hard enough that even well-funded teams avoid building it from scratch.</p>
 </div>
 
 <footer>
-  <p>Analysis performed via static APK inspection &mdash; ADB extraction, apktool 3.0.2 decoding, smali bytecode analysis. No runtime instrumentation or decompilation tools were used. April 2026.</p>
+  <p>Analysis performed via static APK inspection &mdash; ADB extraction, apktool 3.0.2 decoding, smali bytecode analysis. No runtime instrumentation or decompilation tools were used. April&ndash;May 2026.</p>
 </footer>
 
 </body>
