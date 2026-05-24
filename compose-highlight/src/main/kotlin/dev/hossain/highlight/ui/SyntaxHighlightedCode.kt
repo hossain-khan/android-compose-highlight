@@ -19,6 +19,7 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -339,8 +340,13 @@ fun SyntaxHighlightedCode(
                 }
             }
 
-            // Code content with horizontal scroll
-            Box(modifier = Modifier.horizontalScroll(rememberScrollState())) {
+            // Code content with horizontal scroll. Scroll position resets to 0 when code
+            // changes, but survives configuration changes via rememberScrollState (saveable).
+            val scrollState = rememberScrollState()
+            LaunchedEffect(code) {
+                scrollState.scrollTo(0)
+            }
+            Box(modifier = Modifier.horizontalScroll(scrollState)) {
                 val highlighted = highlightedState.value
                 val placeholderContent = placeholder
                 val shouldShowPlaceholder = highlighted == null && placeholderContent != null && !highlightFailed

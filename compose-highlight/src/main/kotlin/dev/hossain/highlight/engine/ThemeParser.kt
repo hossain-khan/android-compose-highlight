@@ -43,7 +43,7 @@ object ThemeParser {
                 context.assets
                     .open(cssAssetPath)
                     .bufferedReader()
-                    .readText()
+                    .use { it.readText() }
             parse(css)
         } catch (e: Exception) {
             emptyMap()
@@ -64,7 +64,7 @@ object ThemeParser {
             context.assets
                 .open(cssAssetPath)
                 .bufferedReader()
-                .readText()
+                .use { it.readText() }
         return parse(css)
     }
 

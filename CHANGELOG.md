@@ -4,6 +4,23 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Fixed
+- **`ThemeParser` - close InputStream after reading CSS assets** - `context.assets.open(...)`
+  streams in both `parse(Context, String)` and `parseAsset(Context, String)` were not explicitly
+  closed. Under repeated theme loading (configuration changes, multi-screen apps), unclosed streams
+  could exhaust file descriptors. Both now use `.use { it.readText() }` for deterministic cleanup.
+
+- **`SyntaxHighlightedCode` - reset horizontal scroll position on code change** -
+  `rememberScrollState()` preserved scroll position when the `code` parameter changed. A user
+  who scrolled right on a long line would stay scrolled on the next code snippet. A
+  `LaunchedEffect(code)` now calls `scrollTo(0)` when code changes, resetting the position while
+  preserving state restoration across configuration changes (rememberScrollState is saveable).
+
+- **`HtmlToAnnotatedString` - remove redundant private `buildAnnotatedString` shadow** - A private
+  function reimplemented the standard `androidx.compose.ui.text.buildAnnotatedString` verbatim
+  with a misleading comment ("without Compose runtime"). The standard library function is already
+  available and is now used directly.
+
 ### Performance
 
 - **`SyntaxHighlightedCode` - stable lambda instances for slot defaults** - The `effectiveCopyButton` lambda and the default `languageLabel` lambda were allocated fresh on every recomposition, preventing the copy button and language label subtrees from being skipped by the Compose runtime. Both are now resolved via a sentinel pattern and wrapped in `remember`, keeping lambda instances stable across recompositions. This reduces unnecessary recomposition work in `LazyColumn` scenarios with many code blocks on screen.

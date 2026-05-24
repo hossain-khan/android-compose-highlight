@@ -3,6 +3,7 @@ package dev.hossain.highlight.engine
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
 import org.jsoup.nodes.TextNode
@@ -303,10 +304,3 @@ internal data class TimedConvertBothResult(
     val htmlParseDuration: Duration,
     val treeWalkDuration: Duration,
 )
-
-// Extension to use buildAnnotatedString pattern without Compose runtime
-private fun buildAnnotatedString(block: AnnotatedString.Builder.() -> Unit): AnnotatedString {
-    val builder = AnnotatedString.Builder()
-    builder.block()
-    return builder.toAnnotatedString()
-}
