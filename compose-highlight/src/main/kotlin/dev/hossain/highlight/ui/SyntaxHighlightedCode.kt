@@ -5,6 +5,7 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,7 +14,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.Surface
@@ -339,8 +339,10 @@ fun SyntaxHighlightedCode(
                 }
             }
 
-            // Code content with horizontal scroll
-            Box(modifier = Modifier.horizontalScroll(rememberScrollState())) {
+            // Code content with horizontal scroll. Scroll state is keyed on code so that
+            // the position resets to 0 when the code block displays new content.
+            val scrollState = remember(code) { ScrollState(0) }
+            Box(modifier = Modifier.horizontalScroll(scrollState)) {
                 val highlighted = highlightedState.value
                 val placeholderContent = placeholder
                 val shouldShowPlaceholder = highlighted == null && placeholderContent != null && !highlightFailed
