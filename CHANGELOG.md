@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.22.1] - 2026-05-24
+
 ### Fixed
 - **`ThemeParser` - close InputStream after reading CSS assets** - `context.assets.open(...)`
   streams in both `parse(Context, String)` and `parseAsset(Context, String)` were not explicitly
