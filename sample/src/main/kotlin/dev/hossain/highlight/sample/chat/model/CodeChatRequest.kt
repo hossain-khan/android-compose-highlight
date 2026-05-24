@@ -14,6 +14,11 @@ internal data class CodeChatRequest(
     val sessionId: String,
     val conversationHistory: List<ChatMessage>,
 ) {
+    companion object {
+        /** Matches remaining C0 control characters after named escapes have been applied. */
+        private val CONTROL_CHAR_PATTERN = Regex("[\\u0000-\\u001F]")
+    }
+
     /**
      * Serializes this request to a JSON string for use as an HTTP request body.
      */
@@ -43,6 +48,6 @@ internal data class CodeChatRequest(
                 .replace("\r", "\\r")
                 .replace("\t", "\\t")
         // Escape remaining control characters (U+0000 through U+001F) as \uXXXX.
-        return "\"${escaped.replace(Regex("[\\u0000-\\u001F]")) { "\\u${it.value[0].code.toString(16).padStart(4, '0')}" }}\""
+        return "\"${escaped.replace(CONTROL_CHAR_PATTERN) { "\\u${it.value[0].code.toString(16).padStart(4, '0')}" }}\""
     }
 }

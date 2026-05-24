@@ -65,12 +65,75 @@ internal object SseStreamParser {
         return if (rawValue.isEmpty()) null else unescapeJsonString(rawValue)
     }
 
-    private fun unescapeJsonString(escaped: String): String =
-        escaped
-            // Double-backslash must be replaced first to avoid corrupting other sequences.
-            .replace("\\\\", "\\")
-            .replace("\\n", "\n")
-            .replace("\\r", "\r")
-            .replace("\\t", "\t")
-            .replace("\\\"", "\"")
+    private fun unescapeJsonString(escaped: String): String {
+        // Single-pass RFC 8259 compliant unescape.
+        val sb = StringBuilder(escaped.length)
+        var i = 0
+        while (i < escaped.length) {
+            val ch = escaped[i]
+            if (ch == '\\' && i + 1 < escaped.length) {
+                when (escaped[i + 1]) {
+                    '"' -> {
+                        sb.append('"')
+                        i += 2
+                    }
+
+                    '\\' -> {
+                        sb.append('\\')
+                        i += 2
+                    }
+
+                    '/' -> {
+                        sb.append('/')
+                        i += 2
+                    }
+
+                    'b' -> {
+                        sb.append('\b')
+                        i += 2
+                    }
+
+                    'f' -> {
+                        sb.append('\u000C')
+                        i += 2
+                    }
+
+                    'n' -> {
+                        sb.append('\n')
+                        i += 2
+                    }
+
+                    'r' -> {
+                        sb.append('\r')
+                        i += 2
+                    }
+
+                    't' -> {
+                        sb.append('\t')
+                        i += 2
+                    }
+
+                    'u' -> {
+                        if (i + 5 < escaped.length) {
+                            val hex = escaped.substring(i + 2, i + 6)
+                            sb.append(hex.toInt(16).toChar())
+                            i += 6
+                        } else {
+                            sb.append(ch)
+                            i++
+                        }
+                    }
+
+                    else -> {
+                        sb.append(ch)
+                        i++
+                    }
+                }
+            } else {
+                sb.append(ch)
+                i++
+            }
+        }
+        return sb.toString()
+    }
 }
