@@ -34,6 +34,8 @@ internal sealed class DemoTab(
 
     data object Engine : DemoTab("Engine")
 
+    data object Chat : DemoTab("AI Chat")
+
     companion object {
         val all by lazy {
             listOf(
@@ -48,6 +50,7 @@ internal sealed class DemoTab(
                 LanguageDiscoverability,
                 Advanced,
                 Engine,
+                Chat,
             )
         }
     }

@@ -43,6 +43,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import dev.hossain.highlight.engine.HighlightTheme
+import dev.hossain.highlight.sample.chat.ui.ChatDemoTab
 import dev.hossain.highlight.sample.perf.PerfActivity
 import dev.hossain.highlight.sample.sections.AdvancedEngineSection
 import dev.hossain.highlight.sample.sections.AllThemesSection
@@ -308,6 +309,10 @@ fun SampleScreen() {
 
                         DemoTab.Engine -> {
                             item { EngineInfoSection() }
+                        }
+
+                        DemoTab.Chat -> {
+                            item { ChatDemoTab(modifier = Modifier.fillMaxWidth()) }
                         }
                     }
                 }

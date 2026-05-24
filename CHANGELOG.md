@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+- **Sample app - LLM chat streaming demo tab** - Added a new "AI Chat" tab to the sample app
+  demonstrating real-time streaming responses from the Hossain Dev Bytes AI API
+  (`POST https://hossain.dev/api/ai-code-chat`). The demo uses Server-Sent Events (SSE) for
+  token streaming, supports multi-turn conversation history, enforces a 2000-character prompt
+  limit, and handles error cases (rate limiting, network errors, API errors) gracefully. The
+  implementation uses `HttpURLConnection` with `kotlinx.coroutines.flow.Flow` on `Dispatchers.IO`
+  and a `ViewModel` for lifecycle-aware state management.
+
 ## [0.22.1] - 2026-05-24
 
 ### Fixed
