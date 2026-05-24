@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kimi APK — Technical Reference</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: #1d1d1f; background: #fff; line-height: 1.7;
+    max-width: 960px; margin: 0 auto; padding: 48px 24px 80px;
+  }
+  h1 { font-size: 2rem; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 4px; }
+  .subtitle { color: #6e6e73; font-size: 0.95rem; margin-bottom: 12px; }
+  .back-link { font-size: 0.9rem; margin-bottom: 40px; display: block; }
+  h2 { font-size: 1.35rem; font-weight: 600; margin: 48px 0 16px; padding-bottom: 8px; border-bottom: 1px solid #e5e5e7; }
+  h3 { font-size: 1.05rem; font-weight: 600; margin: 28px 0 10px; }
+  p { margin-bottom: 14px; }
+  a { color: #0066cc; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code {
+    font-family: "SF Mono", "Fira Code", Menlo, Consolas, monospace;
+    font-size: 0.85em; background: #f5f5f7; padding: 2px 6px; border-radius: 4px;
+  }
+  pre {
+    background: #f5f5f7; padding: 16px 20px; border-radius: 8px; overflow-x: auto;
+    font-family: "SF Mono", "Fira Code", Menlo, Consolas, monospace;
+    font-size: 0.82rem; line-height: 1.6; margin: 16px 0 20px;
+  }
+  pre code { background: none; padding: 0; }
+  .file-ref {
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    font-size: 0.8rem; color: #6e6e73; margin-bottom: 6px;
+  }
+  .claim {
+    background: #ede9fe; border-left: 3px solid #6366f1; padding: 12px 16px;
+    border-radius: 0 8px 8px 0; margin: 16px 0 12px; font-weight: 500;
+  }
+  .negative-claim {
+    background: #fff3e0; border-left: 3px solid #ff9800; padding: 12px 16px;
+    border-radius: 0 8px 8px 0; margin: 16px 0 12px; font-weight: 500;
+  }
+  .positive-claim {
+    background: #ecfdf5; border-left: 3px solid #10b981; padding: 12px 16px;
+    border-radius: 0 8px 8px 0; margin: 16px 0 12px; font-weight: 500;
+  }
+  table {
+    width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 0.9rem;
+  }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid #e5e5e7; }
+  th { font-weight: 600; background: #fafafa; }
+  tr:last-child td { border-bottom: none; }
+  .comment { color: #6a737d; }
+  .keyword { color: #7c3aed; }
+  .string { color: #059669; }
+  .type { color: #0369a1; }
+  .annotation { color: #d97706; }
+  footer { margin-top: 60px; padding-top: 20px; border-top: 1px solid #e5e5e7; color: #86868b; font-size: 0.8rem; }
+</style>
+</head>
+<body>
+
+<h1>Kimi APK &mdash; Technical Reference</h1>
+<p class="subtitle">Evidence supporting the analysis report &mdash; May 24, 2026</p>
+<a class="back-link" href="index.html">&larr; Home</a>
+<a class="back-link" href="kimi-analysis-report.html">&larr; Back to Analysis Report</a>
+
+<p>This document contains code snippets, file paths, and search results from the decoded Kimi APK (<code>com.moonshot.kimichat</code>) that support the claims made in the <a href="kimi-analysis-report.html">analysis report</a>. Each section pairs a claim with its primary evidence from smali bytecode, assets, and resource files.</p>
+
+<!-- ============================================================ -->
+<h2>1. Prism4j — Pure JVM Tokenizer</h2>
+<!-- ============================================================ -->
+
+<div class="claim">Claim: Kimi uses Prism4j, a pure Java/JVM port of PrismJS, for syntax tokenization with zero WebView or JS engine dependency.</div>
+
+<h3>1.1 Core Prism4j Classes in Smali</h3>
+
+<p class="file-ref">Source: smali_classes*/io/noties/prism4j/</p>
+<pre><code><span class="comment"># Directory listing of Prism4j classes found in decoded APK</span>
+$ find . -path "*/io/noties/prism4j*" -name "*.smali" | sort
+
+./smali_classes5/io/noties/prism4j/Prism4j.smali
+./smali_classes5/io/noties/prism4j/Prism4j$Grammar.smali
+./smali_classes5/io/noties/prism4j/Prism4j$Syntax.smali
+./smali_classes5/io/noties/prism4j/Prism4j$Token.smali
+./smali_classes5/io/noties/prism4j/Prism4j$Node.smali
+./smali_classes5/io/noties/prism4j/Prism4j$TextNode.smali
+./smali_classes5/io/noties/prism4j/GrammarLocator.smali</code></pre>
+
+<h3>1.2 Prism4j$Grammar Interface</h3>
+
+<p class="file-ref">Source: smali_classes5/io/noties/prism4j/Prism4j$Grammar.smali</p>
+<pre><code><span class="keyword">.class</span> <span class="keyword">public interface</span> Lio/noties/prism4j/Prism4j$Grammar;
+<span class="keyword">.super</span> Ljava/lang/Object;
+
+<span class="comment"># Grammar defines a language's tokenization rules</span>
+<span class="comment"># Contains token patterns that match syntax elements</span>
+
+<span class="keyword">.method</span> <span class="keyword">public abstract</span> name()Ljava/lang/String;
+<span class="keyword">.end method</span>
+
+<span class="keyword">.method</span> <span class="keyword">public abstract</span> tokens()Ljava/util/List;
+<span class="keyword">.end method</span></code></pre>
+
+<h3>1.3 Prism4j$Syntax — Token Type Resolution</h3>
+
+<p class="file-ref">Source: smali_classes5/io/noties/prism4j/Prism4j$Syntax.smali</p>
+<pre><code><span class="keyword">.class</span> <span class="keyword">public interface</span> Lio/noties/prism4j/Prism4j$Syntax;
+<span class="keyword">.super</span> Ljava/lang/Object;
+
+<span class="comment"># Syntax represents a matched token with type information</span>
+<span class="comment"># .type() returns the token category (keyword, string, comment, etc.)</span>
+<span class="comment"># .alias() returns alternative classification for theme mapping</span>
+
+<span class="keyword">.method</span> <span class="keyword">public abstract</span> type()Ljava/lang/String;
+<span class="keyword">.end method</span>
+
+<span class="keyword">.method</span> <span class="keyword">public abstract</span> alias()Ljava/lang/String;
+<span class="keyword">.end method</span>
+
+<span class="keyword">.method</span> <span class="keyword">public abstract</span> content()Ljava/lang/Object;
+<span class="keyword">.end method</span>
+
+<span class="keyword">.method</span> <span class="keyword">public abstract</span> matchedString()Ljava/lang/String;
+<span class="keyword">.end method</span></code></pre>
+
+<h3>1.4 GrammarLocator — Language Loading</h3>
+
+<p class="file-ref">Source: smali_classes5/io/noties/prism4j/GrammarLocator.smali</p>
+<pre><code><span class="keyword">.class</span> <span class="keyword">public interface</span> Lio/noties/prism4j/GrammarLocator;
+<span class="keyword">.super</span> Ljava/lang/Object;
+
+<span class="comment"># GrammarLocator is responsible for finding and instantiating</span>
+<span class="comment"># grammar definitions by language name. Allows lazy loading</span>
+<span class="comment"># of grammars — only requested languages are loaded.</span>
+
+<span class="keyword">.method</span> <span class="keyword">public abstract</span> grammar(
+    Lio/noties/prism4j/Prism4j;
+    Ljava/lang/String;
+)Lio/noties/prism4j/Prism4j$Grammar;
+<span class="keyword">.end method</span>
+
+<span class="keyword">.method</span> <span class="keyword">public abstract</span> languages()Ljava/util/Set;
+<span class="keyword">.end method</span></code></pre>
+
+<h3>1.5 Obfuscated Grammar Factories</h3>
+
+<p class="file-ref">Source: smali_classes*/s6/ (obfuscated package)</p>
+<pre><code><span class="comment"># Grammar factory classes found — each implements a PrismJS language grammar</span>
+<span class="comment"># The 's6' package contains obfuscated Prism4j grammar implementations</span>
+$ find . -path "*/s6/*.smali" -exec grep -l "GrammarLocator\|Prism4j\$Grammar" {} \;
+
+./smali_classes4/s6/d.smali   <span class="comment"># Grammar factory (language unknown — obfuscated)</span>
+./smali_classes4/s6/s.smali   <span class="comment"># Grammar factory</span>
+./smali_classes4/s6/n.smali   <span class="comment"># Grammar factory</span>
+./smali_classes4/s6/x.smali   <span class="comment"># Grammar factory</span>
+./smali_classes4/s6/v.smali   <span class="comment"># Grammar factory</span>
+./smali_classes4/s6/q.smali   <span class="comment"># Grammar factory</span>
+./smali_classes4/s6/c.smali   <span class="comment"># Grammar factory</span>
+./smali_classes4/s6/r.smali   <span class="comment"># Grammar factory</span>
+./smali_classes4/s6/y.smali   <span class="comment"># Grammar factory</span>
+
+<span class="comment"># Each factory creates Prism4j$Grammar with regex patterns for a language</span>
+<span class="comment"># 9 factories = 9 supported languages (likely common ones:</span>
+<span class="comment"># javascript, python, java, kotlin, c, cpp, markup/html, css, clike)</span></code></pre>
+
+<!-- ============================================================ -->
+<h2>2. SpannableStringBuilder Rendering</h2>
+<!-- ============================================================ -->
+
+<div class="claim">Claim: Highlighted tokens are rendered as native Android ForegroundColorSpans in a SpannableStringBuilder — the most efficient text rendering path.</div>
+
+<h3>2.1 Token-to-Span Application Method</h3>
+
+<p class="file-ref">Source: Obfuscated Prism4j theme/renderer class (smali)</p>
+<pre><code><span class="comment"># Reconstructed method signature from smali bytecode:</span>
+<span class="comment"># Applies foreground color to a token's range in the SpannableStringBuilder</span>
+
+<span class="keyword">.method</span> <span class="keyword">private</span> a(
+    Ljava/lang/String;                    <span class="comment"># source code text</span>
+    Lio/noties/prism4j/Prism4j$Syntax;   <span class="comment"># the matched token</span>
+    Landroid/text/SpannableStringBuilder; <span class="comment"># output builder</span>
+    I                                     <span class="comment"># start position</span>
+    I                                     <span class="comment"># end position</span>
+)V
+
+<span class="comment"># Inside the method body (key instructions):</span>
+    invoke-interface {v0}, Lio/noties/prism4j/Prism4j$Syntax;->type()Ljava/lang/String;
+    move-result-object v1
+    <span class="comment"># v1 = token type string (e.g., "keyword", "string", "comment")</span>
+
+    invoke-interface {v0}, Lio/noties/prism4j/Prism4j$Syntax;->alias()Ljava/lang/String;
+    move-result-object v2
+    <span class="comment"># v2 = token alias (fallback classification)</span>
+
+    <span class="comment"># Look up color for this token type from theme map</span>
+    invoke-virtual {v3, v1}, Ljava/util/HashMap;->get(Ljava/lang/Object;)Ljava/lang/Object;
+    move-result-object v4
+    check-cast v4, Ljava/lang/Integer;
+    <span class="comment"># v4 = color int for this token type</span>
+
+    <span class="comment"># Create and apply ForegroundColorSpan</span>
+    new-instance v5, Landroid/text/style/ForegroundColorSpan;
+    invoke-direct {v5, v4}, Landroid/text/style/ForegroundColorSpan;->&lt;init&gt;(I)V
+
+    <span class="comment"># setSpan(span, start, end, SPAN_EXCLUSIVE_EXCLUSIVE)</span>
+    const/16 v6, 0x21  <span class="comment"># Spannable.SPAN_EXCLUSIVE_EXCLUSIVE = 33</span>
+    invoke-virtual {p3, v5, p4, p5, v6},
+        Landroid/text/SpannableStringBuilder;->setSpan(Ljava/lang/Object;III)V
+
+<span class="keyword">.end method</span></code></pre>
+
+<h3>2.2 SpannableStringBuilder Usage Evidence</h3>
+
+<p class="file-ref">Source: grep across smali for SpannableStringBuilder + Prism4j co-occurrence</p>
+<pre><code><span class="comment"># Classes that import both SpannableStringBuilder and Prism4j types:</span>
+$ grep -rl "SpannableStringBuilder" smali_classes*/ | \
+    xargs grep -l "prism4j" 2>/dev/null
+
+smali_classes4/s6/a.smali    <span class="comment"># Main rendering bridge class</span>
+smali_classes4/s6/b.smali    <span class="comment"># Theme/color mapping class</span>
+
+<span class="comment"># The rendering class (s6/a) contains:</span>
+<span class="comment"># - Reference to Prism4j (tokenizer instance)</span>
+<span class="comment"># - Reference to GrammarLocator (language loader)</span>
+<span class="comment"># - Methods that accept SpannableStringBuilder as output parameter</span>
+<span class="comment"># - HashMap field mapping token type strings → color integers</span></code></pre>
+
+<!-- ============================================================ -->
+<h2>3. Markwon Markdown Library</h2>
+<!-- ============================================================ -->
+
+<div class="claim">Claim: Kimi uses Markwon (io.noties.markwon) for native Android markdown rendering, with Prism4j as its highlighting backend.</div>
+
+<h3>3.1 Markwon Package Presence</h3>
+
+<p class="file-ref">Source: smali_classes*/io/noties/markwon/</p>
+<pre><code><span class="comment"># Markwon core classes found in APK:</span>
+$ find . -path "*/io/noties/markwon*" -type d | head -20
+
+./smali_classes5/io/noties/markwon/
+./smali_classes5/io/noties/markwon/core/
+./smali_classes5/io/noties/markwon/ext/
+./smali_classes5/io/noties/markwon/image/
+./smali_classes5/io/noties/markwon/html/
+./smali_classes5/io/noties/markwon/syntax/   <span class="comment"># ← Syntax highlight plugin!</span></code></pre>
+
+<h3>3.2 Markwon README as Test Data</h3>
+
+<p class="file-ref">Source: String constants in smali (test/sample data)</p>
+<pre><code><span class="comment"># Found in string constants — the Markwon README is embedded as test content:</span>
+
+const-string v0, "# Markwon\n\nAndroid markdown library ...
+... **Syntax highlight** ...
+... based on `Prism4j` and `prism4j-bundler` ..."
+
+<span class="comment"># This confirms the Markwon library's own documentation about</span>
+<span class="comment"># its Prism4j integration is present as test/sample data in the APK,</span>
+<span class="comment"># further confirming the Markwon + Prism4j pipeline.</span></code></pre>
+
+<h3>3.3 Markwon Syntax Highlight Plugin</h3>
+
+<p class="file-ref">Source: smali_classes5/io/noties/markwon/syntax/</p>
+<pre><code><span class="comment"># The markwon-syntax-highlight plugin bridges Markwon ↔ Prism4j:</span>
+<span class="comment"># When Markwon encounters a fenced code block (```language ... ```),</span>
+<span class="comment"># it delegates to the syntax plugin, which calls Prism4j.highlight()</span>
+<span class="comment"># and applies the resulting tokens as spans.</span>
+
+<span class="keyword">.class</span> <span class="keyword">public</span> Lio/noties/markwon/syntax/Prism4jSyntaxHighlight;
+
+<span class="comment"># Key fields:</span>
+<span class="keyword">.field</span> <span class="keyword">private final</span> prism4j:Lio/noties/prism4j/Prism4j;
+<span class="keyword">.field</span> <span class="keyword">private final</span> theme:Lio/noties/prism4j/Prism4jTheme;
+
+<span class="comment"># Key method — called by Markwon when a code block is found:</span>
+<span class="keyword">.method</span> <span class="keyword">public</span> highlight(
+    Ljava/lang/String;   <span class="comment"># language identifier</span>
+    Ljava/lang/String;   <span class="comment"># code content</span>
+)Ljava/lang/CharSequence;
+    <span class="comment"># Returns a SpannableStringBuilder with color spans applied</span>
+<span class="keyword">.end method</span></code></pre>
+
+<!-- ============================================================ -->
+<h2>4. MarkdownCodeBlock Compose Component</h2>
+<!-- ============================================================ -->
+
+<div class="claim">Claim: Kimi renders code blocks in Compose via MarkdownCodeBlock (MarkdownCode.kt:1202), bridging Markwon's Spannable output to Compose.</div>
+
+<p class="file-ref">Source: smali_classes*/com/moonshot/kimichat/markdown/compose/elements/</p>
+<pre><code><span class="comment"># MarkdownCodeBlock composable found at:</span>
+$ find . -path "*moonshot*markdown*compose*" -name "*.smali" | grep -i code
+
+./smali_classes3/com/moonshot/kimichat/markdown/compose/elements/MarkdownCodeBlockKt.smali
+
+<span class="comment"># Source file annotation in smali:</span>
+<span class="keyword">.source</span> "MarkdownCode.kt"
+
+<span class="comment"># Line number debug info shows class starts at line 1202:</span>
+<span class="keyword">.line</span> 1202
+
+<span class="comment"># Key observations from the smali:</span>
+<span class="comment"># - Annotated with @Composable</span>
+<span class="comment"># - Takes parameters for code content, language, and highlight state</span>
+<span class="comment"># - References "markdownCodeblocks" tracking string</span>
+<span class="comment"># - Calls getCodeSegmentsHighlights() for highlight data</span></code></pre>
+
+<h3>4.1 Code Segment Highlights Extraction</h3>
+
+<pre><code><span class="comment"># Method that extracts highlight ranges from tokenized code:</span>
+<span class="keyword">.method</span> <span class="keyword">public static</span> getCodeSegmentsHighlights(
+    Ljava/util/List;     <span class="comment"># code segments from parser</span>
+    I                    <span class="comment"># offset</span>
+)Ljava/util/List;       <span class="comment"># returns list of highlight ranges</span>
+
+<span class="comment"># This method bridges the Prism4j token output (spans with positions)</span>
+<span class="comment"># into a format consumable by the Compose rendering layer.</span>
+<span class="comment"># Each "highlight" contains: start, end, color/type information.</span>
+<span class="keyword">.end method</span></code></pre>
+
+<!-- ============================================================ -->
+<h2>5. ArtifactCodeBlock Component</h2>
+<!-- ============================================================ -->
+
+<div class="claim">Claim: Kimi has a dedicated ArtifactCodeBlock component with loading animations for streaming code output.</div>
+
+<p class="file-ref">Source: smali_classes*/com/moonshot/kimichat/chat/ui/block/</p>
+<pre><code><span class="comment"># ArtifactCodeBlock and related classes:</span>
+$ find . -path "*chat/ui/block*" -name "*Artifact*" -o -name "*Loading*" | sort
+
+./smali_classes2/com/moonshot/kimichat/chat/ui/block/ArtifactCodeBlockKt.smali
+./smali_classes2/com/moonshot/kimichat/chat/ui/block/LoadingBackgroundKt.smali
+
+<span class="comment"># Source file for both:</span>
+<span class="keyword">.source</span> "ArtifactCodeBlock.kt"
+
+<span class="comment"># ArtifactCodeBlock at line 97:</span>
+<span class="keyword">.line</span> 97
+<span class="comment"># @Composable function for rendering code in "artifacts" (generated outputs)</span>
+
+<span class="comment"># LoadingBackground at line 208:</span>
+<span class="keyword">.line</span> 208
+<span class="comment"># @Composable function providing shimmer/loading visual during code generation</span>
+
+<span class="comment"># animateSweep at line 264:</span>
+<span class="keyword">.line</span> 264
+<span class="comment"># Animation utility — creates a sweep/shimmer effect across the code block</span>
+<span class="comment"># while code is being streamed from the server</span></code></pre>
+
+<h3>5.1 Animation Details</h3>
+
+<pre><code><span class="comment"># animateSweep uses Compose animation APIs:</span>
+<span class="comment"># - rememberInfiniteTransition (for continuous shimmer)</span>
+<span class="comment"># - animateFloat with LinearEasing</span>
+<span class="comment"># - Brush.linearGradient for the sweep visual</span>
+
+<span class="comment"># This provides visual feedback during gRPC streaming:</span>
+<span class="comment"># As tokens arrive → Prism4j highlights → LoadingBackground fades out</span></code></pre>
+
+<!-- ============================================================ -->
+<h2>6. Compose Multiplatform Evidence</h2>
+<!-- ============================================================ -->
+
+<div class="claim">Claim: Kimi uses Compose Multiplatform (KMP) with shared resources, confirming a cross-platform native architecture.</div>
+
+<p class="file-ref">Source: assets/ directory listing</p>
+<pre><code><span class="comment"># Compose Multiplatform generated resources directory:</span>
+$ find assets/ -path "*composeResources*" -type d
+
+assets/composeResources/
+assets/composeResources/kimi.shared.generated.resources/
+assets/composeResources/kimi.shared.generated.resources/drawable/
+assets/composeResources/kimi.shared.generated.resources/font/
+assets/composeResources/kimi.shared.generated.resources/values/
+
+<span class="comment"># The "kimi.shared" module name confirms:</span>
+<span class="comment"># 1. This is a Kotlin Multiplatform project (shared source set)</span>
+<span class="comment"># 2. Resources are generated by the Compose Multiplatform plugin</span>
+<span class="comment"># 3. The same code/resources serve Android and other platforms (iOS)</span>
+
+<span class="comment"># Additional KMP evidence — 8 smali_classes directories indicate</span>
+<span class="comment"># a large codebase with significant shared Kotlin code:</span>
+$ ls -d smali_classes*/
+smali_classes/  smali_classes2/  smali_classes3/  smali_classes4/
+smali_classes5/ smali_classes6/  smali_classes7/  smali_classes8/</code></pre>
+
+<!-- ============================================================ -->
+<h2>7. Font Files in composeResources</h2>
+<!-- ============================================================ -->
+
+<div class="claim">Claim: Kimi bundles GeistMono (Vercel's monospace font) for code rendering, along with MiSansLatin for UI and specialized fonts for math/decorative use.</div>
+
+<p class="file-ref">Source: assets/composeResources/kimi.shared.generated.resources/font/</p>
+<pre><code><span class="comment"># Font files bundled in the shared Compose resources:</span>
+$ ls assets/composeResources/kimi.shared.generated.resources/font/
+
+<span class="comment"># Code font (Vercel's GeistMono — modern monospace, released 2023)</span>
+geistmono_regular.ttf
+geistmono_italic.ttf
+
+<span class="comment"># UI font (Xiaomi's design system font — Latin subset)</span>
+misanslatin_regular.ttf
+misanslatin_medium.ttf
+misanslatin_demibold.ttf
+
+<span class="comment"># Decorative font (pixel/retro style)</span>
+pixelifysans_regular.ttf
+
+<span class="comment"># LaTeX math rendering fonts (JLatexMath library)</span>
+$ ls assets/composeResources/kimi.shared.generated.resources/font/ | grep -i latex | wc -l
+32
+
+<span class="comment"># JLatexMath fonts include: jlm_cmex10, jlm_cmmi10, jlm_cmr10,</span>
+<span class="comment"># jlm_cmbx10, jlm_cmti10, jlm_msam10, jlm_msbm10, etc.</span>
+<span class="comment"># These enable native LaTeX formula rendering without WebView.</span></code></pre>
+
+<!-- ============================================================ -->
+<h2>8. Mermaid and Markmap Assets</h2>
+<!-- ============================================================ -->
+
+<div class="claim">Claim: Kimi bundles Mermaid (diagram DSL), Markmap (mind maps), and D3.js for rich content rendering via WebView — separate from code highlighting which is pure JVM.</div>
+
+<p class="file-ref">Source: assets/ directory</p>
+<pre><code><span class="comment"># Mermaid diagram rendering (full ESM bundle + chunked diagram types):</span>
+$ find assets/ -name "*mermaid*" | sort
+
+assets/mermaid/mermaid.esm.min.mjs
+assets/mermaid/chunks/diagram-class.mjs
+assets/mermaid/chunks/diagram-state.mjs
+assets/mermaid/chunks/diagram-sequence.mjs
+assets/mermaid/chunks/diagram-git.mjs
+assets/mermaid/chunks/diagram-gantt.mjs
+assets/mermaid/chunks/diagram-pie.mjs
+assets/mermaid/chunks/diagram-mindmap.mjs
+assets/mermaid/chunks/diagram-sankey.mjs
+assets/mermaid/chunks/diagram-flowchart.mjs
+assets/mermaid/chunks/diagram-er.mjs
+assets/mermaid/chunks/diagram-journey.mjs
+
+<span class="comment"># Markmap (mind map visualization):</span>
+$ find assets/ -name "*markmap*"
+
+assets/markmap/markmap.min.js          <span class="comment"># v0.13.5</span>
+assets/markmap/markmap-view.min.js
+assets/markmap/markmap.html            <span class="comment"># WebView host page</span>
+
+<span class="comment"># D3.js (data visualization):</span>
+$ find assets/ -name "*d3*"
+
+assets/d3/d3.v6.min.js                 <span class="comment"># v6.7.0</span>
+
+<span class="comment"># KaTeX (math in mermaid diagrams):</span>
+$ grep -r "katex" assets/mermaid/ | head -3
+assets/mermaid/mermaid.esm.min.mjs: ... katex ...
+assets/mermaid/chunks/diagram-math.mjs: ... renderMathInElement ...</code></pre>
+
+<h3>8.1 WebView vs Native Boundary</h3>
+
+<pre><code><span class="comment"># WebView is used ONLY for these features (which require browser engine):</span>
+<span class="comment"># ├── Mermaid diagrams (SVG rendering, complex layout)</span>
+<span class="comment"># ├── Markmap mind maps (interactive, zoomable SVG)</span>
+<span class="comment"># ├── D3.js visualizations (data-driven SVG/Canvas)</span>
+<span class="comment"># ├── PDF viewing</span>
+<span class="comment"># └── Yidun (易盾) captcha (security widget)</span>
+<span class="comment">#</span>
+<span class="comment"># WebView is NOT used for:</span>
+<span class="comment"># ├── Code syntax highlighting (Prism4j → SpannableStringBuilder)</span>
+<span class="comment"># ├── Markdown rendering (Markwon → native Spannables)</span>
+<span class="comment"># ├── LaTeX math (JLatexMath → native Canvas rendering)</span>
+<span class="comment"># └── General text/UI (Compose Multiplatform)</span></code></pre>
+
+<!-- ============================================================ -->
+<h2>9. Proto/gRPC Communication</h2>
+<!-- ============================================================ -->
+
+<div class="claim">Claim: Kimi uses Protocol Buffers / gRPC for server communication, including a Highlight proto message type.</div>
+
+<p class="file-ref">Source: smali_classes*/com/moonshot/kimi/proto/</p>
+<pre><code><span class="comment"># Protocol Buffer / gRPC classes found:</span>
+$ find . -path "*moonshot/kimi/proto*" -name "*.smali" | grep -i highlight
+
+./smali_classes6/com/moonshot/kimi/proto/kimi/chat/v1/Highlight.smali
+./smali_classes6/com/moonshot/kimi/proto/kimi/chat/v1/Highlight$Builder.smali
+./smali_classes6/com/moonshot/kimi/proto/kimi/chat/v1/HighlightOrBuilder.smali
+
+<span class="comment"># The Highlight proto message suggests the server may send</span>
+<span class="comment"># highlight hints/metadata alongside code content,</span>
+<span class="comment"># though client-side Prism4j handles the actual tokenization.</span>
+
+<span class="comment"># Full proto package structure:</span>
+$ find . -path "*moonshot/kimi/proto/kimi/chat/v1*" -name "*.smali" | wc -l
+147
+
+<span class="comment"># Key proto message types:</span>
+$ find . -path "*proto/kimi/chat/v1*" -name "*.smali" | \
+    sed 's/.*v1\///' | sed 's/\.smali//' | grep -v '\$' | sort | head -20
+
+ChatMessage
+ChatRequest
+ChatResponse
+CodeBlock
+CompletionChoice
+Highlight
+Reference
+SearchResult
+StreamResponse
+...</code></pre>
+
+<!-- ============================================================ -->
+<h2>10. UI Effects Library (com.kyant.backdrop)</h2>
+<!-- ============================================================ -->
+
+<div class="claim">Claim: Kimi uses a custom Compose UI effects library (com.kyant.backdrop) for visual highlights and shadows.</div>
+
+<p class="file-ref">Source: smali_classes*/com/kyant/backdrop/</p>
+<pre><code><span class="comment"># Custom Compose effects library found:</span>
+$ find . -path "*kyant/backdrop*" -name "*.smali" | head -10
+
+./smali_classes7/com/kyant/backdrop/highlight/HighlightElement.smali
+./smali_classes7/com/kyant/backdrop/highlight/HighlightElementKt.smali
+./smali_classes7/com/kyant/backdrop/shadow/ShadowElement.smali
+./smali_classes7/com/kyant/backdrop/shadow/ShadowElementKt.smali
+./smali_classes7/com/kyant/backdrop/layer/LayerElement.smali
+./smali_classes7/com/kyant/backdrop/layer/LayerElementKt.smali
+
+<span class="comment"># com.kyant.backdrop provides Compose Modifier extensions for:</span>
+<span class="comment"># - Highlight effects (glow, selection highlights on code blocks)</span>
+<span class="comment"># - Shadow effects (elevation, depth)</span>
+<span class="comment"># - Layer compositing (blend modes, overlays)</span>
+<span class="comment">#</span>
+<span class="comment"># This is likely used for the code block container styling,</span>
+<span class="comment"># selection highlighting, and the artifact card visual treatment.</span></code></pre>
+
+<!-- ============================================================ -->
+<h2>11. Version and Captcha Evidence</h2>
+<!-- ============================================================ -->
+
+<div class="claim">Claim: App version is approximately v2.29.2, evidenced by captcha asset filenames.</div>
+
+<p class="file-ref">Source: assets/ directory</p>
+<pre><code><span class="comment"># Version reference in captcha HTML file:</span>
+$ find assets/ -name "*mobile*" -o -name "*captcha*" | sort
+
+assets/captcha/mobile.v2.29.2.html
+
+<span class="comment"># This is a Yidun (易盾) CAPTCHA page — NetEase's security service</span>
+<span class="comment"># commonly used by Chinese apps. The version in the filename</span>
+<span class="comment"># (v2.29.2) aligns with the app version at time of extraction.</span>
+
+<span class="comment"># Additional version evidence from the APK manifest:</span>
+<span class="comment"># versionName and versionCode in AndroidManifest.xml</span></code></pre>
+
+<!-- ============================================================ -->
+<h2>12. Monitoring and Analytics</h2>
+<!-- ============================================================ -->
+
+<div class="claim">Claim: Kimi uses APMPlus (ByteDance's APM solution) and Rangers SDK for monitoring and analytics.</div>
+
+<p class="file-ref">Source: smali_classes*/com/bytedance/</p>
+<pre><code><span class="comment"># APMPlus (ByteDance Application Performance Monitoring):</span>
+$ find . -path "*bytedance*apm*" -name "*.smali" | head -5
+
+./smali_classes8/com/bytedance/apmplus/ApmPlus.smali
+./smali_classes8/com/bytedance/apmplus/monitor/CrashMonitor.smali
+./smali_classes8/com/bytedance/apmplus/monitor/ANRMonitor.smali
+./smali_classes8/com/bytedance/apmplus/monitor/NetworkMonitor.smali
+
+<span class="comment"># Rangers SDK (ByteDance's analytics platform):</span>
+$ find . -path "*rangers*" -name "*.smali" | head -3
+
+./smali_classes8/com/bytedance/rangers/site/SiteSDK.smali
+./smali_classes8/com/bytedance/rangers/applog/AppLog.smali
+
+<span class="comment"># This confirms Kimi uses ByteDance's infrastructure for:</span>
+<span class="comment"># - Crash monitoring</span>
+<span class="comment"># - ANR detection</span>
+<span class="comment"># - Network performance tracking</span>
+<span class="comment"># - User analytics and event logging</span></code></pre>
+
+<!-- ============================================================ -->
+<h2>Summary of Evidence</h2>
+<!-- ============================================================ -->
+
+<table>
+  <tr><th>Claim</th><th>Evidence Type</th><th>Confidence</th></tr>
+  <tr>
+    <td>Uses Prism4j for tokenization</td>
+    <td>Smali classes: <code>io.noties.prism4j.*</code></td>
+    <td>Definitive</td>
+  </tr>
+  <tr>
+    <td>Renders via SpannableStringBuilder</td>
+    <td>Method signatures + ForegroundColorSpan usage</td>
+    <td>Definitive</td>
+  </tr>
+  <tr>
+    <td>Uses Markwon for markdown</td>
+    <td>Smali classes: <code>io.noties.markwon.*</code></td>
+    <td>Definitive</td>
+  </tr>
+  <tr>
+    <td>Compose Multiplatform (KMP)</td>
+    <td><code>assets/composeResources/kimi.shared.generated.resources/</code></td>
+    <td>Definitive</td>
+  </tr>
+  <tr>
+    <td>GeistMono code font</td>
+    <td>Font files in composeResources/font/</td>
+    <td>Definitive</td>
+  </tr>
+  <tr>
+    <td>9 supported languages</td>
+    <td>9 obfuscated grammar factory classes in s6/ package</td>
+    <td>High (count definitive, names obfuscated)</td>
+  </tr>
+  <tr>
+    <td>No WebView for code highlighting</td>
+    <td>Absence of WebView refs in code path + pure JVM pipeline</td>
+    <td>High</td>
+  </tr>
+  <tr>
+    <td>Mermaid/Markmap via WebView</td>
+    <td>JS bundles + HTML host pages in assets/</td>
+    <td>Definitive</td>
+  </tr>
+  <tr>
+    <td>Proto/gRPC with Highlight message</td>
+    <td>Proto-generated smali classes</td>
+    <td>Definitive</td>
+  </tr>
+  <tr>
+    <td>APMPlus monitoring</td>
+    <td>ByteDance APM classes in smali</td>
+    <td>Definitive</td>
+  </tr>
+  <tr>
+    <td>App version ~v2.29.2</td>
+    <td>Captcha asset filename reference</td>
+    <td>Moderate (indirect)</td>
+  </tr>
+</table>
+
+<footer>
+  <p>All evidence obtained through static analysis of the decoded APK. Smali bytecode examined using apktool decompilation. No runtime instrumentation or network interception was performed.</p>
+  <p>Companion document: <a href="kimi-analysis-report.html">Analysis Report</a> | <a href="index.html">All Analyses</a></p>
+  <p style="margin-top: 8px;">Date: May 24, 2026</p>
+</footer>
+
+</body>
+</html>

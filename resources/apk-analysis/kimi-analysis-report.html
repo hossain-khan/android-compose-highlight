@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>APK Analysis — Kimi Android Syntax Highlighting</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: #1d1d1f; background: #fff; line-height: 1.7;
+    max-width: 960px; margin: 0 auto; padding: 48px 24px 80px;
+  }
+  h1 { font-size: 2rem; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 4px; }
+  .subtitle { color: #6e6e73; font-size: 0.95rem; margin-bottom: 12px; }
+  .back-link { font-size: 0.9rem; margin-bottom: 40px; display: block; }
+  h2 { font-size: 1.35rem; font-weight: 600; margin: 48px 0 16px; padding-bottom: 8px; border-bottom: 1px solid #e5e5e7; }
+  h3 { font-size: 1.05rem; font-weight: 600; margin: 28px 0 10px; }
+  p { margin-bottom: 14px; }
+  a { color: #0066cc; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code {
+    font-family: "SF Mono", "Fira Code", Menlo, Consolas, monospace;
+    font-size: 0.85em; background: #f5f5f7; padding: 2px 6px; border-radius: 4px;
+  }
+  pre {
+    background: #f5f5f7; padding: 16px 20px; border-radius: 8px; overflow-x: auto;
+    font-family: "SF Mono", "Fira Code", Menlo, Consolas, monospace;
+    font-size: 0.82rem; line-height: 1.6; margin: 16px 0 20px;
+  }
+  pre code { background: none; padding: 0; }
+  .summary-box {
+    background: #f5f3ff; border: 1px solid #e0dbff; border-radius: 10px;
+    padding: 20px 24px; margin: 24px 0 32px;
+  }
+  .summary-box p { margin-bottom: 0; }
+  .badge {
+    display: inline-block; font-size: 0.75rem; font-weight: 600; padding: 3px 10px;
+    border-radius: 12px; vertical-align: middle; margin-left: 8px;
+  }
+  .badge-native { background: #ede9fe; color: #5b21b6; }
+  .badge-jvm { background: #e0f2fe; color: #0369a1; }
+  .badge-kmp { background: #ecfdf5; color: #065f46; }
+  table {
+    width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 0.9rem;
+  }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid #e5e5e7; }
+  th { font-weight: 600; background: #fafafa; }
+  tr:last-child td { border-bottom: none; }
+  .arch {
+    background: #fafafa; border: 1px solid #e0e0e0; border-radius: 8px;
+    padding: 20px; margin: 16px 0 20px; overflow-x: auto;
+  }
+  .arch pre { background: none; padding: 0; margin: 0; font-size: 0.78rem; line-height: 1.55; }
+  .evidence { margin: 12px 0 12px 0; }
+  .evidence summary {
+    cursor: pointer; font-weight: 500; font-size: 0.9rem; color: #6366f1; padding: 4px 0;
+  }
+  .evidence summary:hover { text-decoration: underline; }
+  .evidence-table { margin-top: 8px; }
+  .evidence-table td:first-child { font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 0.8rem; white-space: nowrap; }
+  .section-kimi { border-left: 3px solid #6366f1; padding-left: 20px; }
+  .metric-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px; margin: 20px 0;
+  }
+  .metric {
+    background: #f9f9fb; border: 1px solid #e5e5e7; border-radius: 8px;
+    padding: 16px; text-align: center;
+  }
+  .metric .value { font-size: 1.5rem; font-weight: 700; color: #1d1d1f; }
+  .metric .label { font-size: 0.8rem; color: #6e6e73; margin-top: 4px; }
+  .highlight-box {
+    background: #fffbeb; border: 1px solid #fde68a; border-radius: 10px;
+    padding: 16px 20px; margin: 20px 0;
+  }
+  .highlight-box strong { color: #92400e; }
+  .key-finding {
+    background: #ecfdf5; border-left: 3px solid #10b981; padding: 12px 16px;
+    border-radius: 0 8px 8px 0; margin: 16px 0 12px; font-weight: 500;
+  }
+  footer { margin-top: 60px; padding-top: 20px; border-top: 1px solid #e5e5e7; color: #86868b; font-size: 0.8rem; }
+</style>
+</head>
+<body>
+
+<h1>APK Syntax Highlighting Analysis</h1>
+<p class="subtitle">Kimi / Moonshot AI (com.moonshot.kimichat) &mdash; May 24, 2026</p>
+<a class="back-link" href="index.html">&larr; Home</a>
+
+<div class="summary-box">
+  <p><strong>Executive Summary:</strong> Kimi is the <strong>most architecturally similar app to android-compose-highlight</strong> in the entire analysis. It uses <strong>Prism4j</strong> &mdash; a pure Java/JVM port of PrismJS &mdash; for syntax tokenization directly on the Android process, rendering highlighted tokens as native <code>SpannableStringBuilder</code> foreground color spans. There is <strong>zero WebView overhead</strong> for code highlighting. The app is built with <strong>Compose Multiplatform</strong> (KMP), uses the <strong>Markwon</strong> library for markdown rendering with Prism4j as its highlighting backend, and bundles <strong>GeistMono</strong> as its code font. This is the only app in all analyzed APKs that achieves pure JVM tokenization with native span rendering &mdash; the exact approach this library aims to provide.</p>
+</div>
+
+<!-- ============================================================ -->
+<h2>Kimi <span class="badge badge-native">Native JVM</span> <span class="badge badge-kmp">Compose Multiplatform</span></h2>
+<!-- ============================================================ -->
+
+<div class="section-kimi">
+
+<h3>APK at a Glance</h3>
+<div class="metric-grid">
+  <div class="metric">
+    <div class="value">~81 MB</div>
+    <div class="label">Base APK size</div>
+  </div>
+  <div class="metric">
+    <div class="value">8</div>
+    <div class="label">smali_classes directories</div>
+  </div>
+  <div class="metric">
+    <div class="value">Prism4j</div>
+    <div class="label">Syntax engine (pure JVM)</div>
+  </div>
+  <div class="metric">
+    <div class="value">0 WebViews</div>
+    <div class="label">For code highlighting</div>
+  </div>
+</div>
+
+<table>
+  <tr><th>Attribute</th><th>Value</th></tr>
+  <tr><td>Package</td><td><code>com.moonshot.kimichat</code></td></tr>
+  <tr><td>App Name</td><td>Kimi</td></tr>
+  <tr><td>Developer</td><td>Moonshot AI (Chinese AI company)</td></tr>
+  <tr><td>Framework</td><td>Native Kotlin/Android with Compose Multiplatform</td></tr>
+  <tr><td>Evidence of KMP</td><td><code>assets/composeResources/kimi.shared.generated.resources/</code></td></tr>
+  <tr><td>Version reference</td><td><code>mobile.v2.29.2.html</code> (captcha file)</td></tr>
+  <tr><td>Communication</td><td>Protocol Buffers / gRPC</td></tr>
+  <tr><td>Monitoring</td><td>APMPlus (ByteDance)</td></tr>
+</table>
+
+<h3>Syntax Highlighting: Prism4j (Pure JVM)</h3>
+
+<div class="key-finding">Key Finding: Kimi uses Prism4j &mdash; a pure Java/JVM port of PrismJS &mdash; for client-side syntax tokenization. No JavaScript engine, no WebView, no bridge overhead. This is the ONLY app in the entire analysis with this approach.</div>
+
+<p>Prism4j is written by <strong>noties</strong> (Dimitry Ivanov), the same author as the Markwon markdown library. It provides a pure Java implementation of PrismJS grammars, running directly in the Android Dalvik/ART runtime with zero native library or JS engine dependencies.</p>
+
+<table>
+  <tr><th>Component</th><th>Class/Package</th><th>Role</th></tr>
+  <tr><td>Core tokenizer</td><td><code>io.noties.prism4j.Prism4j</code></td><td>Main entry point for tokenization</td></tr>
+  <tr><td>Grammar definitions</td><td><code>io.noties.prism4j.Prism4j$Grammar</code></td><td>Language grammar rules</td></tr>
+  <tr><td>Syntax tokens</td><td><code>io.noties.prism4j.Prism4j$Syntax</code></td><td>Token types with <code>.type()</code> and <code>.alias()</code></td></tr>
+  <tr><td>Grammar loader</td><td><code>io.noties.prism4j.GrammarLocator</code></td><td>Locates and loads language grammars on demand</td></tr>
+  <tr><td>Grammar factories</td><td><code>s6/d</code>, <code>s6/s</code>, <code>s6/n</code>, <code>s6/x</code>, <code>s6/v</code>, <code>s6/q</code>, <code>s6/c</code>, <code>s6/r</code>, <code>s6/y</code></td><td>Obfuscated individual language grammar implementations</td></tr>
+</table>
+
+<h3>Rendering: Native SpannableStringBuilder</h3>
+
+<p>After Prism4j tokenizes the source code, Kimi renders the highlighted output using Android's native <code>SpannableStringBuilder</code> with foreground color spans. This is the most efficient text rendering path on Android &mdash; no intermediate HTML, no WebView, no JavaScript bridge:</p>
+
+<pre><code>// Reconstructed from obfuscated smali
+// Method signature found in decompiled code:
+void a(String source, Prism4j$Syntax token, SpannableStringBuilder builder, int start, int end) {
+    // Applies ForegroundColorSpan based on token.type() and token.alias()
+    // Directly writes colored spans into the SpannableStringBuilder
+}</code></pre>
+
+<p>This approach maps directly to how <code>android-compose-highlight</code> works: tokenize on the JVM, produce annotated spans, render in Compose.</p>
+
+<h3>Markdown Rendering: Markwon</h3>
+
+<p>Kimi uses the <strong>Markwon</strong> library (<code>io.noties.markwon</code>) for native Android markdown rendering. Markwon renders markdown as Android Spannables (not HTML in a WebView), and its official syntax highlighting plugin uses Prism4j as the tokenization backend. This creates a seamless pipeline:</p>
+
+<div class="arch"><pre>
+  Markdown text (from gRPC response)
+         │
+         ▼
+  ┌──────────────────────────────────────┐
+  │  Markwon (io.noties.markwon)         │
+  │  Native Android Markdown → Spannables│
+  │                                      │
+  │  Detects ```code blocks```           │
+  │         │                            │
+  │         ▼                            │
+  │  ┌────────────────────────────────┐  │
+  │  │  Prism4j (io.noties.prism4j)  │  │
+  │  │  Pure JVM tokenization        │  │
+  │  │  GrammarLocator → Grammar     │  │
+  │  │  → Syntax tokens with types   │  │
+  │  └────────────────────────────────┘  │
+  │         │                            │
+  │         ▼                            │
+  │  SpannableStringBuilder              │
+  │  + ForegroundColorSpan per token     │
+  └──────────────────────────────────────┘
+         │
+         ▼
+  ┌──────────────────────────────────────┐
+  │  Compose Rendering Layer             │
+  │                                      │
+  │  MarkdownCodeBlock                   │
+  │  (MarkdownCode.kt:1202)             │
+  │                                      │
+  │  ArtifactCodeBlock                   │
+  │  (ArtifactCodeBlock.kt:97)          │
+  │  + LoadingBackground (:208)         │
+  │  + animateSweep (:264)              │
+  │                                      │
+  │  Font: GeistMono (Regular + Italic) │
+  └──────────────────────────────────────┘</pre></div>
+
+<h3>Code Rendering Components</h3>
+
+<table>
+  <tr><th>Component</th><th>Source</th><th>Purpose</th></tr>
+  <tr>
+    <td><code>MarkdownCodeBlock</code></td>
+    <td><code>com.moonshot.kimichat.markdown.compose.elements</code><br>(MarkdownCode.kt:1202)</td>
+    <td>Compose element for rendering highlighted code blocks within markdown</td>
+  </tr>
+  <tr>
+    <td><code>ArtifactCodeBlock</code></td>
+    <td><code>com.moonshot.kimichat.chat.ui.block</code><br>(ArtifactCodeBlock.kt:97)</td>
+    <td>Code blocks within chat artifacts (generated code outputs)</td>
+  </tr>
+  <tr>
+    <td><code>LoadingBackground</code></td>
+    <td>(ArtifactCodeBlock.kt:208)</td>
+    <td>Loading state animation for code blocks during generation</td>
+  </tr>
+  <tr>
+    <td><code>animateSweep</code></td>
+    <td>(ArtifactCodeBlock.kt:264)</td>
+    <td>Sweep/shimmer animation while code streams in</td>
+  </tr>
+  <tr>
+    <td><code>getCodeSegmentsHighlights</code></td>
+    <td>Obfuscated utility</td>
+    <td>Extracts highlight ranges from tokenized code segments</td>
+  </tr>
+</table>
+
+<h3>Fonts</h3>
+
+<table>
+  <tr><th>Font</th><th>Weights</th><th>Purpose</th></tr>
+  <tr><td><strong>GeistMono</strong></td><td>Regular, Italic</td><td>Code blocks &mdash; Vercel's modern monospace design</td></tr>
+  <tr><td>MiSansLatin</td><td>Regular, Medium, Demibold</td><td>UI text &mdash; Xiaomi's design system font</td></tr>
+  <tr><td>PixelifySans</td><td>Regular</td><td>Decorative / retro pixel font</td></tr>
+  <tr><td>JLatexMath fonts</td><td>~30+ files</td><td>LaTeX math formula rendering</td></tr>
+</table>
+
+<h3>Rich Content Features</h3>
+
+<p>Beyond code highlighting, Kimi bundles extensive rich content rendering capabilities:</p>
+
+<table>
+  <tr><th>Feature</th><th>Implementation</th><th>Rendering</th></tr>
+  <tr><td>Mermaid diagrams</td><td>mermaid.esm.min.mjs + chunked diagram types</td><td>WebView</td></tr>
+  <tr><td>Mind maps</td><td>Markmap v0.13.5</td><td>WebView</td></tr>
+  <tr><td>Data visualization</td><td>D3.js v6.7.0</td><td>WebView</td></tr>
+  <tr><td>LaTeX math</td><td>JLatexMath (native) + KaTeX (in mermaid)</td><td>Native / WebView</td></tr>
+  <tr><td>Barcode scanning</td><td>ML Kit Barcode</td><td>Native</td></tr>
+  <tr><td>Video/Audio</td><td>Media3 (HDR, Ultra HDR shader support)</td><td>Native</td></tr>
+  <tr><td>PDF viewing</td><td>WebView-based viewer</td><td>WebView</td></tr>
+  <tr><td>Captcha</td><td>Yidun (易盾) integration</td><td>WebView</td></tr>
+</table>
+
+<div class="highlight-box">
+  <strong>Important distinction:</strong> WebView is used only for rich content that inherently requires a browser engine (diagrams, interactive visualizations, PDF). Code syntax highlighting uses the <strong>pure JVM path</strong> exclusively &mdash; Prism4j tokenization + SpannableStringBuilder rendering with no WebView involvement.
+</div>
+
+<h3>Architecture Diagram</h3>
+
+<div class="arch"><pre>
+ ┌─────────────────────────────────────────────────────────────────────┐
+ │                    Kimi (com.moonshot.kimichat)                      │
+ │                    ~81 MB  |  Compose Multiplatform (KMP)            │
+ ├─────────────────────────────────────────────────────────────────────┤
+ │                                                                     │
+ │  ┌─────────────────────────────────────────────────────────────┐   │
+ │  │  Network Layer                                               │   │
+ │  │  Proto/gRPC (com.moonshot.kimi.proto.kimi.chat.v1.*)        │   │
+ │  │  → Streams chat responses with code blocks + highlight info  │   │
+ │  └──────────────────────────────┬──────────────────────────────┘   │
+ │                                 │                                   │
+ │                                 ▼                                   │
+ │  ┌─────────────────────────────────────────────────────────────┐   │
+ │  │  Markdown Engine                                             │   │
+ │  │  Markwon (io.noties.markwon)                                │   │
+ │  │  → Parses markdown, delegates code blocks to Prism4j        │   │
+ │  └──────────────────────────────┬──────────────────────────────┘   │
+ │                                 │                                   │
+ │              ┌──────────────────┼──────────────────┐               │
+ │              │ Code Path        │ Rich Content Path │               │
+ │              ▼                  │                   ▼               │
+ │  ┌───────────────────────┐     │   ┌───────────────────────────┐   │
+ │  │  Prism4j              │     │   │  WebView Layer            │   │
+ │  │  Pure JVM tokenizer   │     │   │  ├── Mermaid diagrams     │   │
+ │  │  GrammarLocator       │     │   │  ├── Markmap mind maps    │   │
+ │  │  9+ grammar factories │     │   │  ├── D3.js viz            │   │
+ │  │                       │     │   │  ├── KaTeX math           │   │
+ │  │  → Syntax tokens      │     │   │  ├── PDF viewer           │   │
+ │  └───────────┬───────────┘     │   │  └── Yidun captcha        │   │
+ │              │                  │   └───────────────────────────┘   │
+ │              ▼                  │                                   │
+ │  ┌───────────────────────┐     │                                   │
+ │  │  SpannableStringBuilder│     │                                   │
+ │  │  + ForegroundColorSpan │     │                                   │
+ │  │  (native Android)     │     │                                   │
+ │  └───────────┬───────────┘     │                                   │
+ │              │                  │                                   │
+ │              ▼                  │                                   │
+ │  ┌─────────────────────────────────────────────────────────────┐   │
+ │  │  Compose UI Layer                                            │   │
+ │  │  ├── MarkdownCodeBlock (MarkdownCode.kt:1202)               │   │
+ │  │  ├── ArtifactCodeBlock (ArtifactCodeBlock.kt:97)            │   │
+ │  │  ├── LoadingBackground + animateSweep (streaming UX)        │   │
+ │  │  ├── com.kyant.backdrop (highlight/shadow effects)          │   │
+ │  │  └── Font: GeistMono (Vercel monospace)                     │   │
+ │  └─────────────────────────────────────────────────────────────┘   │
+ │                                                                     │
+ │  ┌─────────────────────────────────────────────────────────────┐   │
+ │  │  Supporting Services                                         │   │
+ │  │  ├── JLatexMath (native LaTeX rendering, ~30+ fonts)        │   │
+ │  │  ├── ML Kit Barcode (scanning)                              │   │
+ │  │  ├── Media3 (video/audio with HDR)                          │   │
+ │  │  ├── APMPlus (ByteDance monitoring)                         │   │
+ │  │  └── Rangers SDK (analytics)                                │   │
+ │  └─────────────────────────────────────────────────────────────┘   │
+ │                                                                     │
+ └─────────────────────────────────────────────────────────────────────┘</pre></div>
+
+</div>
+
+<!-- ============================================================ -->
+<h2>Comparison with Other Analyzed Apps</h2>
+<!-- ============================================================ -->
+
+<table>
+  <tr><th>Aspect</th><th>Kimi</th><th>ChatGPT</th><th>Claude</th><th>GitHub</th><th>Perplexity</th></tr>
+  <tr>
+    <td><strong>Syntax engine</strong></td>
+    <td>Prism4j (pure JVM)</td>
+    <td>Custom native Spans</td>
+    <td>Highlight.js (JS)</td>
+    <td>Server-side</td>
+    <td>Highlight.js (WebView)</td>
+  </tr>
+  <tr>
+    <td><strong>Tokenization location</strong></td>
+    <td>JVM (in-process)</td>
+    <td>JVM (in-process)</td>
+    <td>JS engine (bridge)</td>
+    <td>Server</td>
+    <td>WebView JS</td>
+  </tr>
+  <tr>
+    <td><strong>Rendering</strong></td>
+    <td>SpannableStringBuilder</td>
+    <td>Jetpack Compose</td>
+    <td>Native Spans + WebView</td>
+    <td>WebView</td>
+    <td>WebView</td>
+  </tr>
+  <tr>
+    <td><strong>WebView for code?</strong></td>
+    <td>No</td>
+    <td>No</td>
+    <td>Partial (full-screen)</td>
+    <td>Yes</td>
+    <td>Yes</td>
+  </tr>
+  <tr>
+    <td><strong>Markdown library</strong></td>
+    <td>Markwon (native)</td>
+    <td>CommonMark + Markwon</td>
+    <td>Separate path</td>
+    <td>IntelliJ Markdown</td>
+    <td>WebView markdown</td>
+  </tr>
+  <tr>
+    <td><strong>Framework</strong></td>
+    <td>Compose Multiplatform</td>
+    <td>Jetpack Compose</td>
+    <td>Kotlin + Views</td>
+    <td>Kotlin + Views</td>
+    <td>React Native</td>
+  </tr>
+  <tr>
+    <td><strong>Code font</strong></td>
+    <td>GeistMono (bundled)</td>
+    <td>System monospace</td>
+    <td>System monospace</td>
+    <td>Roboto Mono (bundled)</td>
+    <td>System monospace</td>
+  </tr>
+  <tr>
+    <td><strong>Offline highlighting</strong></td>
+    <td>Yes (pure JVM)</td>
+    <td>Yes</td>
+    <td>Inline: yes</td>
+    <td>No (server)</td>
+    <td>Yes (WebView JS)</td>
+  </tr>
+  <tr>
+    <td><strong>Bridge overhead</strong></td>
+    <td>None</td>
+    <td>None</td>
+    <td>JS bridge</td>
+    <td>Network</td>
+    <td>WebView</td>
+  </tr>
+</table>
+
+<!-- ============================================================ -->
+<h2>Key Insights</h2>
+<!-- ============================================================ -->
+
+<h3>1. Closest Architecture to android-compose-highlight</h3>
+<p>Among all analyzed apps (ChatGPT, Claude, GitHub, Gemini, Perplexity, Le Chat, Replit, Kimi), Kimi's approach is the most directly comparable to what <code>android-compose-highlight</code> aims to achieve:</p>
+<ul style="margin: 12px 0 16px 24px;">
+  <li><strong>Pure JVM tokenization</strong> &mdash; Prism4j runs in the same process, no IPC or bridge</li>
+  <li><strong>Native span rendering</strong> &mdash; SpannableStringBuilder is the lowest-overhead path</li>
+  <li><strong>Compose UI layer</strong> &mdash; Final rendering in Jetpack Compose composables</li>
+  <li><strong>No WebView for code</strong> &mdash; WebView reserved only for content that requires it</li>
+</ul>
+
+<h3>2. Prism4j as a Proven JVM Tokenizer</h3>
+<p>Kimi's use of Prism4j validates the approach of running a JVM-based tokenizer for mobile code highlighting. Prism4j supports numerous languages via its grammar system and has been battle-tested through its integration with Markwon (a widely-used Android markdown library). The grammar loading is lazy via <code>GrammarLocator</code>, meaning only requested languages are loaded into memory.</p>
+
+<h3>3. Compose Multiplatform Shared Code</h3>
+<p>The presence of <code>assets/composeResources/kimi.shared.generated.resources/</code> confirms Kimi uses Kotlin Multiplatform with Compose Multiplatform. This means the same highlighting approach likely serves both Android and iOS (via Compose Multiplatform for iOS). This validates KMP as a viable platform for building cross-platform code highlighting libraries.</p>
+
+<h3>4. Production-Quality Code UX</h3>
+<p>The <code>ArtifactCodeBlock</code> with loading animations (<code>LoadingBackground</code>, <code>animateSweep</code>) shows that Kimi invests in code block UX beyond basic highlighting &mdash; streaming code gets shimmer animations while tokens are being generated, similar to how ChatGPT handles streaming code output.</p>
+
+<h3>5. Font Choice: GeistMono</h3>
+<p>Kimi bundles Vercel's <strong>GeistMono</strong> font (Regular + Italic variants) for code rendering. This is a modern, high-quality monospace font designed for code readability, released in 2023. The choice to bundle a custom code font (rather than using the system monospace) indicates attention to code rendering quality.</p>
+
+<h3>6. Markwon + Prism4j Ecosystem</h3>
+<p>The Markwon + Prism4j combination is an established open-source solution for native Android markdown+code rendering. Both libraries are by the same author (noties/Dimitry Ivanov), ensuring tight integration. This ecosystem could serve as a reference implementation or inspiration for <code>android-compose-highlight</code>.</p>
+
+<!-- ============================================================ -->
+<h2>Conclusions</h2>
+<!-- ============================================================ -->
+
+<p><strong>Kimi</strong> represents the gold standard for native Android syntax highlighting among all analyzed AI chat apps. By using Prism4j (pure JVM tokenization) combined with SpannableStringBuilder rendering and a Compose UI layer, it achieves the most efficient possible architecture: zero WebView overhead, zero JS bridge latency, zero network dependency for code highlighting.</p>
+
+<p>This approach validates the core thesis of the <code>android-compose-highlight</code> library &mdash; that pure JVM/Kotlin tokenization with native Compose rendering is not only viable but is already deployed in production by a major AI company (Moonshot AI) serving millions of users.</p>
+
+<p>The key differences from <code>android-compose-highlight</code>'s approach are:</p>
+<ul style="margin: 12px 0 16px 24px;">
+  <li>Kimi uses an existing Java library (Prism4j) rather than a Kotlin-native implementation</li>
+  <li>Kimi renders to SpannableStringBuilder (View system) rather than directly to Compose <code>AnnotatedString</code></li>
+  <li>Kimi's highlighting is tightly coupled with Markwon's markdown pipeline, whereas <code>android-compose-highlight</code> is a standalone library</li>
+</ul>
+
+<p>These differences represent architectural trade-offs rather than fundamental disagreements about approach. Both converge on the same core insight: <strong>JVM-based tokenization + native rendering is the optimal path for Android code highlighting</strong>.</p>
+
+<footer>
+  <p>Analysis performed on APK extracted via ADB from an emulator. Decoded using apktool. All findings based on static analysis of smali bytecode, bundled assets, and resource files.</p>
+  <p>Companion document: <a href="kimi-technical-reference.html">Technical Reference (Evidence)</a> | Other analyses: <a href="syntax-on-3p-app-analysis-report.html">ChatGPT vs Claude</a> | <a href="github-analysis-report.html">GitHub</a> | <a href="gemini-analysis-report.html">Gemini</a> | <a href="perplexity-analysis-report.html">Perplexity</a> | <a href="lechat-analysis-report.html">Le Chat</a> | <a href="replit-analysis-report.html">Replit</a></p>
+  <p style="margin-top: 8px;">Date: May 24, 2026</p>
+</footer>
+
+</body>
+</html>

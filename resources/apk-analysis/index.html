@@ -163,6 +163,14 @@
       <td>Many (full grammars)</td>
       <td>Native (RN Text + Skia)</td>
     </tr>
+    <tr>
+      <td class="col-app">Kimi</td>
+      <td><span class="method-tag method-client">Client</span></td>
+      <td>Prism4j (pure JVM)</td>
+      <td>Custom (Markwon themes)</td>
+      <td>9+ (JVM grammars)</td>
+      <td>Native (SpannableStringBuilder)</td>
+    </tr>
   </tbody>
 </table>
 
@@ -254,17 +262,30 @@
     </div>
   </div>
 
+  <div class="app-card">
+    <div class="app-name">Kimi <span class="badge badge-cm6">Prism4j</span></div>
+    <div class="app-pkg">com.moonshot.kimichat</div>
+    <div class="app-desc">
+      Native Kotlin app with Compose Multiplatform. Uses <strong>Prism4j</strong> (pure JVM port of PrismJS) for tokenization &mdash; no WebView or JS engine needed. Renders via <code>SpannableStringBuilder</code> with Markwon for markdown. The most architecturally similar to this library. Ships GeistMono font and JLatexMath for LaTeX.
+    </div>
+    <div class="app-links">
+      <a class="link-report" href="kimi-analysis-report.html">Analysis Report</a>
+      <a class="link-reference" href="kimi-technical-reference.html">Technical Reference</a>
+    </div>
+  </div>
+
 </div>
 
 <h2>Key Findings</h2>
 
 <div class="summary-box">
-  <p><strong>Highlight.js dominates.</strong> Four of the seven apps use Highlight.js. None use alternatives like Prism.js or Shiki. Replit uses CodeMirror 6/Lezer instead.</p>
+  <p><strong>Highlight.js dominates.</strong> Four of eight apps use Highlight.js. Kimi uses Prism4j (JVM port of PrismJS) &mdash; the only pure-JVM tokenizer. Replit uses CodeMirror 6/Lezer. No app uses Shiki.</p>
   <p><strong>Hidden WebView is common but not universal.</strong> ChatGPT, Claude, and Perplexity run hljs in an off-screen WebView, each loading it differently (file://, Base64 data:, WebViewAssetLoader). Le Chat takes a different approach &mdash; running highlight.js directly in the React Native JS thread without a separate WebView for tokenization.</p>
   <p><strong>Native rendering is the trend.</strong> Claude and Perplexity convert hljs HTML into native Compose spans. Le Chat renders via RN Text components with NativeWind styles. ChatGPT keeps everything in the WebView. GitHub uses native spans from server-provided HTML.</p>
   <p><strong>Perplexity is the most sophisticated native implementation.</strong> It produces both light and dark AnnotatedStrings from a single JS call, uses runtime CSS parsing instead of hardcoded color maps, and ships commercial monospace fonts.</p>
   <p><strong>Le Chat is the newest entrant.</strong> Mistral's app (Expo SDK 55, React Compiler enabled) bundles hljs grammars directly in Hermes bytecode and uses React Native Skia for potential custom rendering. It also ships Devicon for language icons &mdash; a nice UX touch.</p>
   <p><strong>Gemini is a shell.</strong> The 5 MB APK contains zero functionality &mdash; it exists only to launch the Google App where the real Gemini experience lives.</p>
+  <p><strong>Kimi is the most native approach.</strong> Moonshot AI's Kimi uses Prism4j (pure JVM tokenizer) + Markwon (native markdown renderer) + SpannableStringBuilder for code highlighting. Zero WebView overhead, zero JS bridge &mdash; the most architecturally similar to what this library aims to achieve. Built with Compose Multiplatform for cross-platform code sharing.</p>
   <p><strong>Replit chose code-reuse over native UX.</strong> As a full IDE app, Replit wraps their web-based CodeMirror 6 editor in a WebView with Lezer parsing (27+ token types), validating that native syntax highlighting on Android is hard enough that even well-funded teams avoid building it from scratch.</p>
 </div>
 
