@@ -85,7 +85,7 @@ class ChatViewModel : ViewModel() {
         Log.d(TAG, "Starting loading state, launching API call")
         _uiState.value = ChatUiState.Loading()
 
-        viewModelScope.launch(Dispatchers.Main) {
+        viewModelScope.launch {
             Log.d(TAG, "In viewModelScope, calling service.chat() with sessionId=${_sessionId.value}")
             service.chat(
                 prompt = prompt,
@@ -98,6 +98,7 @@ class ChatViewModel : ViewModel() {
                     if (currentState is ChatUiState.Loading) {
                         val newResponse = currentState.currentResponse + token
                         Log.v(TAG, "Updating state with response: '${newResponse.take(50)}...' (total length: ${newResponse.length})")
+                        // Dispatch state update to Main thread to trigger recomposition
                         _uiState.value =
                             ChatUiState.Loading(
                                 currentResponse = newResponse,

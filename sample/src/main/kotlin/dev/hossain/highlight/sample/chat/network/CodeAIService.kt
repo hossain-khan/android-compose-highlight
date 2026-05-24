@@ -12,6 +12,7 @@ import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import io.ktor.http.isSuccess
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.yield
 import kotlinx.serialization.json.Json
 
 private const val TAG = "CodeAIService"
@@ -105,8 +106,9 @@ class CodeAIService(
             var processedLines = 0
             var nullTokenLines = 0
             var completedLines = 0
+            var tokensEmitted = 0
             
-            lines.forEach { line ->
+            for (line in lines) {
                 if (line.isNotBlank()) {
                     processedLines++
                     Log.v(TAG, "Processing SSE line: ${line.take(50)}...")
@@ -116,7 +118,7 @@ class CodeAIService(
                         Log.d(TAG, "Stream completed marker received")
                         completedLines++
                         onComplete()
-                        return@forEach
+                        break
                     }
 
                     // Try to extract and emit token
@@ -124,6 +126,13 @@ class CodeAIService(
                     if (token != null) {
                         Log.v(TAG, "Token received: '$token'")
                         onToken(token)
+                        tokensEmitted++
+                        
+                        // Yield every 10 tokens to let the UI thread recompose
+                        // without blocking the coroutine for too long
+                        if (tokensEmitted % 10 == 0) {
+                            yield()
+                        }
                     } else {
                         nullTokenLines++
                         Log.v(TAG, "parseToken returned null for line: ${line.take(50)}...")
@@ -131,7 +140,7 @@ class CodeAIService(
                 }
             }
             
-            Log.d(TAG, "Finished parsing: processedLines=$processedLines, nullTokens=$nullTokenLines, completions=$completedLines")
+            Log.d(TAG, "Finished parsing: processedLines=$processedLines, nullTokens=$nullTokenLines, completions=$completedLines, tokensEmitted=$tokensEmitted")
 
             Log.d(TAG, "Stream processing finished")
 
