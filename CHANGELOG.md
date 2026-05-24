@@ -11,9 +11,10 @@ All notable changes to this project will be documented in this file.
   could exhaust file descriptors. Both now use `.use { it.readText() }` for deterministic cleanup.
 
 - **`SyntaxHighlightedCode` - reset horizontal scroll position on code change** -
-  `rememberScrollState()` had no key, so scroll position persisted when the `code` parameter
-  changed. A user who scrolled right on a long line would stay scrolled on the next code snippet.
-  The scroll state is now keyed on `code` so it resets to position 0 when new content is displayed.
+  `rememberScrollState()` preserved scroll position when the `code` parameter changed. A user
+  who scrolled right on a long line would stay scrolled on the next code snippet. A
+  `LaunchedEffect(code)` now calls `scrollTo(0)` when code changes, resetting the position while
+  preserving state restoration across configuration changes (rememberScrollState is saveable).
 
 - **`HtmlToAnnotatedString` - remove redundant private `buildAnnotatedString` shadow** - A private
   function reimplemented the standard `androidx.compose.ui.text.buildAnnotatedString` verbatim
