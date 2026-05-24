@@ -4,50 +4,27 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Performance
+
+- **`SyntaxHighlightedCode` - stable lambda instances for slot defaults** - The `effectiveCopyButton` lambda and the default `languageLabel` lambda were allocated fresh on every recomposition, preventing the copy button and language label subtrees from being skipped by the Compose runtime. Both are now resolved via a sentinel pattern and wrapped in `remember`, keeping lambda instances stable across recompositions. This reduces unnecessary recomposition work in `LazyColumn` scenarios with many code blocks on screen.
+
 ## [0.22.0] - 2026-05-22
 
 ### Fixed
-- **`WebViewManager` - WebView unavailability now surfaces as `WebViewInitFailed` not
-  `JsExecutionFailed`** - When WebView is not available on the device (Android Go, MDM-disabled,
-  mid-system-update), the `WebView(context)` constructor throws a `RuntimeException`. Previously
-  this raw exception bubbled through `withEngineErrorHandling` and was incorrectly wrapped as
-  `HighlightException.JsExecutionFailed`, making the real cause opaque to callers. The fix wraps
-  the entire WebView construction block in `WebViewManager.initialize()` with a targeted
-  `catch (e: Exception)` that rethrows as `HighlightException.WebViewInitFailed`. Additionally,
-  `HighlightEngine.initialize()` now adds a dedicated `catch (e: HighlightException)` branch to
-  preserve the already-typed exception and avoid double-wrapping it. Both `initialize()` and all
-  `highlight*()` methods now correctly return `Result.failure(WebViewInitFailed(...))` when
-  WebView is unavailable.
-- **`unescapeJsString` - surrogate pair handling for emoji and supplementary Unicode** -
-  `unescapeJsString` decoded each `\uXXXX` sequence independently via `codePoint.toChar()`.
-  Characters above U+FFFF (emoji, mathematical symbols, CJK Extension B, etc.) are encoded by
-  `evaluateJavascript` as UTF-16 surrogate pairs - two consecutive `\uXXXX` sequences. The old
-  code emitted two lone surrogate `Char` values, which Android text rendering (Skia/HarfBuzz)
-  treats as invalid and renders as replacement characters (U+FFFD) or drops silently. Source code
-  containing emoji in comments or string literals (`// TODO: fix this 🐛`) was silently corrupted
-  in the highlighted output. The `'u'` branch now detects a high surrogate (U+D800-U+DBFF)
-  followed by a low surrogate `\uXXXX` (U+DC00-U+DFFF) and combines them into the correct
-  supplementary code point via `appendCodePoint`. Lone surrogates without a valid pair are still
-  emitted as-is (best effort, no crash).
+
+- **`WebViewManager` - WebView unavailability now surfaces as `WebViewInitFailed` not `JsExecutionFailed`** - When WebView is not available on the device (Android Go, MDM-disabled, mid-system-update), the `WebView(context)` constructor throws a `RuntimeException`. Previously this raw exception bubbled through `withEngineErrorHandling` and was incorrectly wrapped as `HighlightException.JsExecutionFailed`, making the real cause opaque to callers. The fix wraps the entire WebView construction block in `WebViewManager.initialize()` with a targeted `catch (e: Exception)` that rethrows as `HighlightException.WebViewInitFailed`. Additionally, `HighlightEngine.initialize()` now adds a dedicated `catch (e: HighlightException)` branch to preserve the already-typed exception and avoid double-wrapping it. Both `initialize()` and all `highlight*()` methods now correctly return `Result.failure(WebViewInitFailed(...))` when WebView is unavailable.
+- **`unescapeJsString` - surrogate pair handling for emoji and supplementary Unicode** - `unescapeJsString` decoded each `\uXXXX` sequence independently via `codePoint.toChar()`. Characters above U+FFFF (emoji, mathematical symbols, CJK Extension B, etc.) are encoded by `evaluateJavascript` as UTF-16 surrogate pairs - two consecutive `\uXXXX` sequences. The old code emitted two lone surrogate `Char` values, which Android text rendering (Skia/HarfBuzz) treats as invalid and renders as replacement characters (U+FFFD) or drops silently. Source code containing emoji in comments or string literals (`// TODO: fix this 🐛`) was silently corrupted in the highlighted output. The `'u'` branch now detects a high surrogate (U+D800-U+DBFF) followed by a low surrogate `\uXXXX` (U+DC00-U+DFFF) and combines them into the correct supplementary code point via `appendCodePoint`. Lone surrogates without a valid pair are still emitted as-is (best effort, no crash).
 
 - **`escapeForJs` - null byte and control character escaping** - `escapeForJs` did not escape
-  null bytes (U+0000) or control characters U+0001-U+001F (excluding `\n`, `\r`, `\t`). A null
-  byte could silently truncate the JS string inside the WebView V8 engine, producing incorrect or
-  partial highlight output with no error signal. ANSI escape codes (U+001B) from terminal output
-  were passed through unescaped. All control characters are now escaped as `\uXXXX` sequences,
-  and tab (`\t`, U+0009) is now explicitly escaped as `\\t`.
+  null bytes (U+0000) or control characters U+0001-U+001F (excluding `\n`, `\r`, `\t`). A null byte could silently truncate the JS string inside the WebView V8 engine, producing incorrect or partial highlight output with no error signal. ANSI escape codes (U+001B) from terminal output were passed through unescaped. All control characters are now escaped as `\uXXXX` sequences, and tab (`\t`, U+0009) is now explicitly escaped as `\\t`.
 - **`HighlightTheme` - content-aware equality** - `equals()` and `hashCode()` previously
   compared themes by `name` only, so two themes with the same name but different CSS content
   were considered equal. This caused `LaunchedEffect(theme)` and `remember(theme)` in
-  `rememberHighlightedCode` to silently skip re-highlighting when switching between same-named
-  themes with different colors. Equality now includes a precomputed `contentIdentity` digest
-  derived from the effective theme content:
+  `rememberHighlightedCode` to silently skip re-highlighting when switching between same-named themes with different colors. Equality now includes a precomputed `contentIdentity` digest derived from the effective theme content:
   - `fromCss(cssText, name)` - identity uses a SHA-256-based digest of `cssText`
   - `fromAsset(context, assetPath, name)` - identity uses a SHA-256-based digest of `assetPath`
-  - `fromColorMap(name, colorMap, ...)` - identity uses a SHA-256-based digest of the effective
-    color map after optional `.hljs` background/text overrides are applied
-  - Built-in factories (`tomorrow`, `tomorrowNight`, `atomOneDark`, `atomOneLight`) - identity
-    uses their fixed asset path
+  - `fromColorMap(name, colorMap, ...)` - identity uses a SHA-256-based digest of the effective color map after optional `.hljs` background/text overrides are applied
+  - Built-in factories (`tomorrow`, `tomorrowNight`, `atomOneDark`, `atomOneLight`) - identity uses their fixed asset path
 
   Two themes with the same name and the same content are still considered equal, preserving
   memoization for the common case of re-creating the same theme across recompositions.
@@ -62,6 +39,7 @@ All notable changes to this project will be documented in this file.
 ## [0.21.0] - 2026-05-22
 
 ### Changed (Breaking)
+
 - **`SyntaxHighlightedCode` slot parameter rename** - `languageLabelContent` renamed to
   `languageLabel` and `copyButtonContent` renamed to `copyButton` to match Material 3 naming
   conventions (`TextField.label`, `Scaffold.topBar`, etc.). The `@Composable` type annotation
@@ -92,6 +70,7 @@ All notable changes to this project will be documented in this file.
   ```
 
 ### Added
+
 - `CodeBlockStyle` gains two new fields: `fallbackBackgroundColor: Color` (default `Color(0xFF1E1E1E)`)
   and `fallbackTextColor: Color` (default `Color(0xFFCCCCCC)`). These are used by
   `SyntaxHighlightedCode` when the active theme's CSS has no `.hljs { background: ... }` or
@@ -115,6 +94,7 @@ All notable changes to this project will be documented in this file.
   `SyntaxHighlightedCodeDefaults.fallbackTextColor` are also exposed.
 
 ### Fixed
+
 - **`ThemeParser` font-weight numeric values** - Previously only `font-weight: bold` and
   `font-weight: 700` mapped to `FontWeight.Bold`; other numeric values (e.g. `600`, `800`, `900`)
   were silently ignored. Now any numeric weight >= 600 maps to `FontWeight.Bold` and any numeric
@@ -177,10 +157,12 @@ All notable changes to this project will be documented in this file.
   ```
 
 ### Performance
+
 - `HtmlToAnnotatedString.convertTimed()` and theme color map resolution now run on `Dispatchers.Default` instead of the main thread. For large code blocks with hundreds of spans, this eliminates the risk of dropped frames during parsing. WebView JS calls remain on `Dispatchers.Main` as required by Android.
 - `highlightAuto()` now releases the serializing mutex before the CPU-intensive HTML parsing step, allowing other highlight calls to proceed sooner.
 
 ### Fixed
+
 - Added jsoup keep rules to `consumer-rules.pro` so consuming apps with R8 minification enabled
   do not encounter runtime crashes (`ClassNotFoundException`, `NoSuchMethodError`) from stripped
   or obfuscated jsoup classes. Rules cover `org.jsoup.Jsoup`, `org.jsoup.parser.**`,
@@ -189,6 +171,7 @@ All notable changes to this project will be documented in this file.
 ## [0.20.0] - 2026-05-20
 
 ### Added
+
 - `HighlightLanguage.fromExtension(ext)` utility - maps file extensions to Highlight.js language names without a WebView round-trip (e.g. `"kt"` -> `"kotlin"`)
 - `HighlightEngine.highlightAuto()` - highlights code with automatic language detection via `hljs.highlightAuto()`, returns `AutoHighlightResult` with `detectedLanguage`
 - `HighlightEngine.getLanguage()` - looks up a language by name or alias via `hljs.getLanguage()`, returns `HighlightLanguageInfo` (name + aliases list) or null if not found
@@ -203,6 +186,7 @@ All notable changes to this project will be documented in this file.
 ## [0.19.1] - 2026-05-18
 
 ### Fixed
+
 - **`CodeBlockStyle.copyButtonSize` now takes effect on the default copy button** - previously
   the value was stored in `CodeBlockStyle` but never forwarded to `SyntaxHighlightedCodeDefaults.CopyButton`,
   so changing it had no visible impact. The default button now correctly reads `style.copyButtonSize`.
@@ -214,6 +198,7 @@ All notable changes to this project will be documented in this file.
 ## [0.19.0] - 2026-05-17
 
 ### Changed (Breaking)
+
 - **`SyntaxHighlightedCode` - slot API hardening** - replaced boolean visibility flags and partial
   slot parameters with full composable slots:
   - `showLanguageLabel: Boolean` removed; replaced by `languageLabelContent: (@Composable () -> Unit)?`
@@ -226,21 +211,15 @@ All notable changes to this project will be documented in this file.
   - `Surface` now explicitly sets `contentColor = textColor` so `LocalContentColor.current` resolves
     correctly inside both slots.
 
-### Added
-- **`SyntaxHighlightedCodeDefaults.CopyButton`** - public composable helper that renders the
-  default `⧉` copy icon inside an `IconButton`. Accepts `onClick`, `tint`, `contentDescription`,
-  and `size` parameters so callers can compose on top of the default look.
-- **`SyntaxHighlightedCodeDefaults.LanguageLabel`** - public composable helper that renders
-  the language badge. Accepts `language`, `color`, and `fontSize` parameters. Useful for
-  toggling visibility at runtime without reconstructing the full default style.
-
 ### Fixed
+
 - **Private `LineNumberedCode` composable** - now accepts `modifier: Modifier = Modifier` and
   applies it to the root `Row`, consistent with Compose modifier conventions.
 
 ## [0.18.0] - 2026-05-16
 
 ### Added
+
 - **`HighlightTimings` data class** - Per-layer timing breakdown for a single highlight call.
   Each field is a `kotlin.time.Duration` measured via `measureTimedValue` at each pipeline stage:
   - `jsBridge` - `evaluateJavascript()` round-trip into WebView running highlight.js
@@ -256,6 +235,12 @@ All notable changes to this project will be documented in this file.
 - **`HtmlHighlightResult.jsBridgeDuration` / `jsonUnescapeDuration`** - `Duration` fields on
   `HtmlHighlightResult` exposing JS bridge and JSON unescape timings directly for callers that
   use `highlightToHtml()`. Default to `Duration.ZERO` if not populated (backwards compatible).
+- **`SyntaxHighlightedCodeDefaults.CopyButton`** - public composable helper that renders the
+  default `⧉` copy icon inside an `IconButton`. Accepts `onClick`, `tint`, `contentDescription`,
+  and `size` parameters so callers can compose on top of the default look.
+- **`SyntaxHighlightedCodeDefaults.LanguageLabel`** - public composable helper that renders
+  the language badge. Accepts `language`, `color`, and `fontSize` parameters. Useful for
+  toggling visibility at runtime without reconstructing the full default style.
 
 ## [0.17.2] - 2026-05-16
 
