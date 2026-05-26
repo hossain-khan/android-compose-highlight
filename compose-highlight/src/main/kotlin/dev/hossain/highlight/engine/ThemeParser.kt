@@ -71,83 +71,281 @@ object ThemeParser {
     /**
      * Parses CSS text directly into a color map.
      * Extracts [SpanStyle] for each `.hljs-*` selector block.
+     *
+     * Implementation: a small recursive-descent parser over a hand-written tokenizer.
+     * Highlight.js theme CSS uses a strict, predictable subset of CSS — flat top-level rules,
+     * occasional `@media` / `@supports` / `@keyframes` blocks, no nested rules — so a tiny
+     * grammar handles every known theme without pulling in a full CSS engine.
+     *
+     * The parser:
+     * 1. Skips comments and at-rule blocks (so `@media` rules can't clobber main rules).
+     * 2. Walks each top-level `selectors { declarations }` rule.
+     * 3. Filters individual selectors: only standalone `.hljs[-...]` chains are accepted;
+     *    descendant combinators, pseudo-elements (`::selection`), and pseudo-classes (`:hover`)
+     *    are skipped.
+     * 4. Delegates declaration parsing to [parseDeclarations] (unchanged).
+     * 5. Merges into the result map via [mergeSpanStyle] so split rules for the same selector
+     *    accumulate (CSS cascade behaviour).
      */
     fun parse(cssText: String): Map<String, SpanStyle> {
         if (cssText.isBlank()) return emptyMap()
-
-        // Strip CSS comments first so that @ signs inside comment blocks
-        // (e.g. author emails like @ericwbailey) are not mistaken for at-rules.
-        val withoutComments = cssText.replace(Regex("""/\*[^*]*\*+(?:[^/*][^*]*\*+)*/"""), "")
-
-        // Strip @at-rules and their entire content blocks (e.g. @media, @supports, @keyframes).
-        // Without this, inner rules like `.hljs-keyword { font-weight:700 }` inside a
-        // @media block would overwrite the real color entry parsed from the main stylesheet.
-        // The pattern handles one level of nested braces (sufficient for all known hljs themes).
-        val withoutAtRules =
-            withoutComments.replace(
-                Regex("""@[a-zA-Z][^{]*\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}"""),
-                "",
-            )
-
-        if (withoutAtRules.isBlank()) return emptyMap()
+        val rules = CssParser(cssText).parseStylesheet()
+        if (rules.isEmpty()) return emptyMap()
 
         val result = mutableMapOf<String, SpanStyle>()
-        // Match each CSS rule block: selectors { declarations }
-        val rulePattern = Regex("""([^{}]+)\{([^{}]*)\}""")
+        for (rule in rules) {
+            val spanStyle = parseDeclarations(rule.declarations) ?: continue
+            for (selector in rule.selectors) {
+                applyHljsSelector(result, selector, spanStyle)
+            }
+        }
+        return result
+    }
 
-        // Matches a full hljs class selector including multi-hyphen names and dot-joined compound classes.
-        // Examples: .hljs, .hljs-keyword, .hljs-template-tag, .hljs-meta-keyword, .hljs-title.function_
-        // Stops at whitespace (descendant combinator) and at a second .hljs (which would be a new selector token).
-        val selectorPattern = Regex("""\.hljs[-\w]*(?:\.(?!hljs)[\w][-\w.]*)*""")
+    /**
+     * Applies [spanStyle] to [result] for [selector] if it is an acceptable standalone
+     * `.hljs[-...]` (or compound `.hljs-x.y`) selector. Selectors with descendant combinators,
+     * pseudo-elements, or pseudo-classes are silently ignored — they describe context-specific
+     * styling and must not overwrite the base entries.
+     */
+    private fun applyHljsSelector(
+        result: MutableMap<String, SpanStyle>,
+        selector: String,
+        spanStyle: SpanStyle,
+    ) {
+        val trimmed = selector.trim()
+        if (trimmed.isEmpty()) return
 
-        rulePattern.findAll(withoutAtRules).forEach { matchResult ->
-            val selectorsPart = matchResult.groupValues[1]
-            val declarations = matchResult.groupValues[2]
+        // Reject pseudo-elements (::selection) and pseudo-classes (:hover).
+        // A bare `:` followed by an identifier is a pseudo-class; `::` is a pseudo-element.
+        if ("::" in trimmed) return
+        if (PSEUDO_CLASS_REGEX.containsMatchIn(trimmed)) return
 
-            val spanStyle = parseDeclarations(declarations) ?: return@forEach
+        // Reject descendant / combinator selectors (whitespace, `>`, `+`, `~`).
+        // E.g. `.hljs mark`, `.hljs > a`, `.hljs-meta .hljs-keyword` are all skipped.
+        if (trimmed.any { it.isWhitespace() }) return
+        if ('>' in trimmed || '+' in trimmed || '~' in trimmed) return
 
-            // Split into individual selectors (comma-separated) and process each independently.
-            // This prevents descendant selectors like `.hljs-meta .hljs-keyword` from
-            // overwriting the standalone `.hljs-keyword` entry with a context-specific style.
-            selectorsPart.split(",").forEach { individualSelector ->
-                val trimmed = individualSelector.trim()
+        // Must start with `.` (class selector) and the leading class must be `hljs` or `hljs-…`.
+        if (!trimmed.startsWith('.')) return
+        val match = HLJS_SELECTOR_REGEX.matchEntire(trimmed) ?: return
+        val raw = match.value.trimStart('.')
 
-                // Skip pseudo-element and pseudo-class selectors (::selection, :hover, etc.).
-                // Without this check, a rule like `.hljs::selection { background: #aabbcc }`
-                // strips the pseudo-element and incorrectly overwrites `result["hljs"]`
-                // with the selection-highlight color instead of the real background color.
-                if (trimmed.contains("::") || trimmed.contains(Regex(""":(?!:)[a-z]"""))) return@forEach
+        // Merge so that split rules for the same selector accumulate correctly.
+        // Later rule values take precedence (CSS cascade).
+        result[raw] = mergeSpanStyle(result[raw], spanStyle)
 
-                // Skip descendant/combinator selectors - any selector containing whitespace
-                // is context-specific (e.g. `.hljs mark`, `.hljs a`, `.hljs-meta .hljs-keyword`)
-                // and must not overwrite a standalone class entry.
-                if (trimmed.contains(" ")) return@forEach
+        // Compound key (e.g. "hljs-title.function_") also publishes its primary head
+        // (e.g. "hljs-title") as a fallback if no explicit entry exists yet.
+        val primary = raw.substringBefore('.')
+        if (primary != raw && !result.containsKey(primary)) {
+            result[primary] = mergeSpanStyle(result[primary], spanStyle)
+        }
+    }
 
-                val matches = selectorPattern.findAll(trimmed).toList()
+    // Validates a full hljs selector chain: `.hljs`, `.hljs-keyword`, `.hljs-title.function_`, …
+    // Stops if a non-leading class doesn't start with `.` or is itself `hljs` (which would mean
+    // two separate hljs tokens — still ok in compound form, but we already rejected whitespace).
+    private val HLJS_SELECTOR_REGEX = Regex("""\.hljs(?:-[\w-]+)?(?:\.[\w][\w-]*)*""")
 
-                // Skip context-specific descendant selectors entirely.
-                // If a selector has two separate .hljs-* tokens (separated by whitespace),
-                // it's a descendant rule that only applies in a specific nested context.
-                if (matches.size >= 2) return@forEach
+    // Matches a single colon followed by a pseudo-class identifier, but NOT `::` (pseudo-element).
+    private val PSEUDO_CLASS_REGEX = Regex(""":(?!:)[a-zA-Z]""")
 
-                matches.forEach { selectorMatch ->
-                    val raw = selectorMatch.value.trimStart('.')
-                    // Merge with any existing entry so that split rules for the same selector
-                    // accumulate correctly (e.g. a theme may set `background` in one rule and
-                    // `color` in a separate rule for `.hljs`; both values must be retained).
-                    // Later-rule values take precedence over earlier ones (CSS cascade).
-                    result[raw] = mergeSpanStyle(result[raw], spanStyle)
-                    // Also store under the primary class for compound selectors
-                    // e.g. "hljs-title.function_" → also store "hljs-title" as fallback
-                    val primary = raw.substringBefore('.')
-                    if (primary != raw && !result.containsKey(primary)) {
-                        result[primary] = mergeSpanStyle(result[primary], spanStyle)
+    /** A single CSS rule: comma-separated selector list and the raw declarations block. */
+    private data class CssRule(val selectors: List<String>, val declarations: String)
+
+    /**
+     * Hand-written CSS tokenizer + parser for the subset used by highlight.js themes.
+     *
+     * Grammar (informal): a stylesheet is a sequence of comments, at-rules, or top-level rules.
+     * A rule is `selector_list { declarations }`. A selector list is comma-separated selectors.
+     * An at-rule is `@ident prelude { ...nested... }` or `@ident prelude;`.
+     *
+     * Rejected at the rule-application stage rather than here: pseudo-elements/classes,
+     * descendant combinators. Declarations are returned verbatim so [parseDeclarations] can
+     * keep its existing regex-based approach unchanged.
+     */
+    private class CssParser(private val src: String) {
+        private var pos: Int = 0
+        private val len: Int = src.length
+
+        fun parseStylesheet(): List<CssRule> {
+            val rules = mutableListOf<CssRule>()
+            skipTrivia()
+            while (pos < len) {
+                when {
+                    startsWithCommentHere() -> skipComment()
+                    src[pos] == '@' -> skipAtRule()
+                    src[pos] == '}' -> {
+                        // Stray closing brace: stop. Defensive — should not happen in valid CSS.
+                        break
                     }
+                    else -> {
+                        val rule = readRule() ?: break
+                        rules.add(rule)
+                    }
+                }
+                skipTrivia()
+            }
+            return rules
+        }
+
+        /** Reads a single top-level rule (selector list + declarations). */
+        private fun readRule(): CssRule? {
+            val selectorsRaw = readUntilOpenBrace() ?: return null
+            // Consume the '{'
+            if (pos >= len || src[pos] != '{') return null
+            pos++
+            val declarations = readDeclarations()
+            // Consume the '}'
+            if (pos < len && src[pos] == '}') pos++
+            val selectors = splitTopLevelByComma(selectorsRaw)
+            return CssRule(selectors, declarations)
+        }
+
+        /**
+         * Reads characters until the next top-level `{`. Skips comments (which may contain `{`
+         * or `}`). Returns the raw text (with comments removed) or `null` if EOF is reached
+         * before a `{` is found.
+         */
+        private fun readUntilOpenBrace(): String? {
+            val sb = StringBuilder()
+            while (pos < len) {
+                if (startsWithCommentHere()) {
+                    skipComment()
+                    continue
+                }
+                val c = src[pos]
+                if (c == '{') return sb.toString()
+                if (c == '}') return null // Unbalanced — abort
+                sb.append(c)
+                pos++
+            }
+            return null
+        }
+
+        /** Reads declarations until the matching top-level `}`. Strips comments. */
+        private fun readDeclarations(): String {
+            val sb = StringBuilder()
+            while (pos < len) {
+                if (startsWithCommentHere()) {
+                    skipComment()
+                    continue
+                }
+                val c = src[pos]
+                if (c == '}') break
+                if (c == '{') {
+                    // Defensive — declarations should not contain `{`. If they do, skip the
+                    // nested block to keep the outer parser in a sane state.
+                    skipBalancedBlock()
+                    continue
+                }
+                sb.append(c)
+                pos++
+            }
+            return sb.toString()
+        }
+
+        /**
+         * Skips a complete `@…{…}` at-rule (including any nested blocks). hljs themes use one
+         * level of nesting at most (`@media { .hljs-x {…} }`); we still walk arbitrary nesting
+         * defensively.
+         */
+        private fun skipAtRule() {
+            // Skip the '@' and the prelude up to '{' or ';'.
+            pos++ // '@'
+            while (pos < len) {
+                if (startsWithCommentHere()) {
+                    skipComment()
+                    continue
+                }
+                val c = src[pos]
+                if (c == ';') {
+                    pos++
+                    return
+                }
+                if (c == '{') {
+                    skipBalancedBlock()
+                    return
+                }
+                pos++
+            }
+        }
+
+        /** Assumes [pos] is on `{`. Consumes it and everything up to and including the matching `}`. */
+        private fun skipBalancedBlock() {
+            if (pos >= len || src[pos] != '{') return
+            pos++ // opening '{'
+            var depth = 1
+            while (pos < len && depth > 0) {
+                if (startsWithCommentHere()) {
+                    skipComment()
+                    continue
+                }
+                when (src[pos]) {
+                    '{' -> {
+                        depth++
+                        pos++
+                    }
+                    '}' -> {
+                        depth--
+                        pos++
+                    }
+                    else -> pos++
                 }
             }
         }
 
-        return result
+        private fun startsWithCommentHere(): Boolean = pos + 1 < len && src[pos] == '/' && src[pos + 1] == '*'
+
+        /** Assumes [pos] points at the start of a CSS comment. Skips through the closing comment marker. */
+        private fun skipComment() {
+            pos += 2
+            while (pos + 1 < len) {
+                if (src[pos] == '*' && src[pos + 1] == '/') {
+                    pos += 2
+                    return
+                }
+                pos++
+            }
+            pos = len
+        }
+
+        /** Skips whitespace only (comments are handled at use-site so they're stripped from declarations). */
+        private fun skipTrivia() {
+            while (pos < len && src[pos].isWhitespace()) pos++
+        }
+
+        /**
+         * Splits a selector list by top-level commas. CSS Selectors Level 3 doesn't permit
+         * parentheses in non-functional selectors, but `:is(...)`, `:where(...)`, `:not(...)`
+         * etc. would. hljs themes don't use these, so a parenthesis-aware split is enough
+         * insurance against future themes adopting them.
+         */
+        private fun splitTopLevelByComma(raw: String): List<String> {
+            val out = mutableListOf<String>()
+            val sb = StringBuilder()
+            var paren = 0
+            for (c in raw) {
+                when {
+                    c == '(' -> {
+                        paren++
+                        sb.append(c)
+                    }
+                    c == ')' -> {
+                        if (paren > 0) paren--
+                        sb.append(c)
+                    }
+                    c == ',' && paren == 0 -> {
+                        out.add(sb.toString())
+                        sb.clear()
+                    }
+                    else -> sb.append(c)
+                }
+            }
+            if (sb.isNotEmpty()) out.add(sb.toString())
+            return out
+        }
     }
 
     /**
