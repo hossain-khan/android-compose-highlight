@@ -152,7 +152,10 @@ object ThemeParser {
     private val PSEUDO_CLASS_REGEX = Regex(""":(?!:)[a-zA-Z]""")
 
     /** A single CSS rule: comma-separated selector list and the raw declarations block. */
-    private data class CssRule(val selectors: List<String>, val declarations: String)
+    private data class CssRule(
+        val selectors: List<String>,
+        val declarations: String,
+    )
 
     /**
      * Hand-written CSS tokenizer + parser for the subset used by highlight.js themes.
@@ -165,7 +168,9 @@ object ThemeParser {
      * descendant combinators. Declarations are returned verbatim so [parseDeclarations] can
      * keep its existing regex-based approach unchanged.
      */
-    private class CssParser(private val src: String) {
+    private class CssParser(
+        private val src: String,
+    ) {
         private var pos: Int = 0
         private val len: Int = src.length
 
@@ -174,12 +179,19 @@ object ThemeParser {
             skipTrivia()
             while (pos < len) {
                 when {
-                    startsWithCommentHere() -> skipComment()
-                    src[pos] == '@' -> skipAtRule()
+                    startsWithCommentHere() -> {
+                        skipComment()
+                    }
+
+                    src[pos] == '@' -> {
+                        skipAtRule()
+                    }
+
                     src[pos] == '}' -> {
                         // Stray closing brace: stop. Defensive — should not happen in valid CSS.
                         break
                     }
+
                     else -> {
                         val rule = readRule() ?: break
                         rules.add(rule)
@@ -287,11 +299,15 @@ object ThemeParser {
                         depth++
                         pos++
                     }
+
                     '}' -> {
                         depth--
                         pos++
                     }
-                    else -> pos++
+
+                    else -> {
+                        pos++
+                    }
                 }
             }
         }
@@ -332,15 +348,20 @@ object ThemeParser {
                         paren++
                         sb.append(c)
                     }
+
                     c == ')' -> {
                         if (paren > 0) paren--
                         sb.append(c)
                     }
+
                     c == ',' && paren == 0 -> {
                         out.add(sb.toString())
                         sb.clear()
                     }
-                    else -> sb.append(c)
+
+                    else -> {
+                        sb.append(c)
+                    }
                 }
             }
             if (sb.isNotEmpty()) out.add(sb.toString())
