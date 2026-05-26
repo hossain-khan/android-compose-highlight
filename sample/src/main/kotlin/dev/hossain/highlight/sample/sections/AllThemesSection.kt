@@ -26,7 +26,7 @@ import dev.hossain.highlight.sample.JAVASCRIPT_EXTENDED_SNIPPET
 import dev.hossain.highlight.ui.SyntaxHighlightedCode
 
 /**
- * Showcases all 256 bundled highlight.js 11.11.1 themes.
+ * Showcases all bundled highlight.js themes included in sample app assets.
  *
  * Theme names are discovered at runtime from the sample app's `assets/themes/`
  * directory. A searchable dropdown lets the user pick any theme; the code block below updates live.
