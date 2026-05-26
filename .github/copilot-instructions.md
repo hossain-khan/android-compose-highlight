@@ -53,11 +53,11 @@ npx markdownlint --fix CHANGELOG.md
 3. **Line length** - Keep lines reasonably wrapped for readability; long bullet items should wrap to multiple indented lines instead of becoming hard to review.
 4. **Long bullet wrapping pattern** - Convert long single-line items like:
    ```
-   - **Item** — [500+ char explanation with multiple concepts]
+   - **Item** - [500+ char explanation with multiple concepts]
    ```
    To indented multi-line format:
    ```
-   - **Item** — [Explanation line 1]
+   - **Item** - [Explanation line 1]
      [Explanation line 2 indented by 2 spaces]
      [Explanation line 3 indented by 2 spaces]
    ```
