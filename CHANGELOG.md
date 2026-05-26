@@ -210,6 +210,11 @@ All notable changes to this project will be documented in this file.
   )
   ```
 
+- Added jsoup keep rules to `consumer-rules.pro` so consuming apps with R8 minification
+  enabled do not encounter runtime crashes (`ClassNotFoundException`, `NoSuchMethodError`)
+  from stripped or obfuscated jsoup classes. Rules cover `org.jsoup.Jsoup`,
+  `org.jsoup.parser.**`, `org.jsoup.nodes.**`, and `org.jsoup.select.**`.
+
 ### Performance
 
 - `HtmlToAnnotatedString.convertTimed()` and theme color map resolution now run on
@@ -218,13 +223,6 @@ All notable changes to this project will be documented in this file.
   on `Dispatchers.Main` as required by Android.
 - `highlightAuto()` now releases the serializing mutex before the CPU-intensive HTML
   parsing step, allowing other highlight calls to proceed sooner.
-
-### Fixed
-
-- Added jsoup keep rules to `consumer-rules.pro` so consuming apps with R8 minification
-  enabled do not encounter runtime crashes (`ClassNotFoundException`, `NoSuchMethodError`)
-  from stripped or obfuscated jsoup classes. Rules cover `org.jsoup.Jsoup`,
-  `org.jsoup.parser.**`, `org.jsoup.nodes.**`, and `org.jsoup.select.**`.
 
 ## [0.20.0] - 2026-05-20
 
@@ -671,6 +669,34 @@ All notable changes to this project will be documented in this file.
 - **`rememberHighlightedCode` timing is now measured inside the engine** — `durationMs` in
   `HighlightResult` reflects pure highlight time (JS round-trip + HTML parse), not
   coroutine-scheduling overhead.
+- **`CodeBlockStyle` gains a `textStyle: TextStyle` property** — font family, font size,
+  and line height are now configured via `CodeBlockStyle.textStyle` (defaulting to
+  `SyntaxHighlightedCodeDefaults.codeTextStyle`: monospace, 13 sp, 20 sp line height).
+- **`SyntaxHighlightedCode`: removed `fontFamily`, `fontSize`, `lineHeight` parameters**
+  — these three top-level parameters are replaced by `CodeBlockStyle.textStyle`.
+  Consolidating typography into `CodeBlockStyle` follows established Compose library
+  patterns (e.g. Material 3, Haze) where all visual style is expressed through a single
+  style object.
+
+  **Migration:** replace individual parameters with `style = CodeBlockStyle(textStyle = ...)`:
+
+  ```kotlin
+  // Before
+  SyntaxHighlightedCode(code = snippet, language = "kotlin", fontSize = 15.sp,
+                        lineHeight = 24.sp)
+
+  // After
+  SyntaxHighlightedCode(
+      code     = snippet,
+      language = "kotlin",
+      style    = CodeBlockStyle(
+          textStyle = SyntaxHighlightedCodeDefaults.codeTextStyle.copy(
+              fontSize   = 15.sp,
+              lineHeight = 24.sp,
+          ),
+      ),
+  )
+  ```
 
 ### Removed
 
@@ -801,6 +827,15 @@ All notable changes to this project will be documented in this file.
     (Material 3 color map)
   - **Advanced**: `rememberHighlightedCodeBothThemes()` — pre-highlights for both light
     and dark in one JS call for instant theme switching
+- JVM unit tests for `HighlightTheme`: `fromCss`, `fromColorMap`, lazy `colorMap`,
+  `backgroundColor`, `defaultTextColor`, `equals`/`hashCode`/`toString`, and
+  defensive-copy behavior
+- JVM unit tests for all `HighlightException` variants: message content, cause
+  preservation, and the `TIMEOUT_SECONDS` constant
+- Additional `ThemeParser` tests: `rgb()` color format, `background-color` property,
+  `font-weight: 700`, 8-digit hex colors, and descendant-selector skipping
+- Additional `HtmlToAnnotatedString` tests: non-span element wrapping, HTML entity
+  decoding, and base-style application
 
 ### Changed
 
@@ -812,18 +847,6 @@ All notable changes to this project will be documented in this file.
   - `startUpWebView()` and `WebViewStartUpConfig` APIs graduated to stable.
   - `NavigationListener` / `WebViewCompat.addNavigationListener()` graduated to stable.
   - `minSdk` for the webkit library increased to 24 (matches this library's `minSdk`).
-
-### Added
-
-- JVM unit tests for `HighlightTheme`: `fromCss`, `fromColorMap`, lazy `colorMap`,
-  `backgroundColor`, `defaultTextColor`, `equals`/`hashCode`/`toString`, and
-  defensive-copy behavior
-- JVM unit tests for all `HighlightException` variants: message content, cause
-  preservation, and the `TIMEOUT_SECONDS` constant
-- Additional `ThemeParser` tests: `rgb()` color format, `background-color` property,
-  `font-weight: 700`, 8-digit hex colors, and descendant-selector skipping
-- Additional `HtmlToAnnotatedString` tests: non-span element wrapping, HTML entity
-  decoding, and base-style application
 
 ### Fixed
 
@@ -842,9 +865,6 @@ All notable changes to this project will be documented in this file.
   pass. The old approach applied `\n` → newline before `\\` → `\`, which incorrectly
   converted `\n` (a literal backslash + 'n' in JSON) to a newline instead of `\n`. The
   new implementation also adds support for `\r` → CR and `\/` → `/` escape sequences.
-
-### Changed
-
 - **`HighlightThemeProvider`: shared engine for the whole subtree** — the provider now
   creates one `HighlightEngine` (one hidden WebView) for its entire subtree and provides
   it via an internal `LocalHighlightEngine` CompositionLocal. Previously, every
