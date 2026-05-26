@@ -2,14 +2,13 @@ package dev.hossain.highlight.ui
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
-import androidx.compose.ui.platform.LocalContext
 import dev.hossain.highlight.engine.HighlightTheme
 
 /**
  * Creates and remembers the built-in Base16 Tomorrow (light) [HighlightTheme].
  *
- * Resolves [LocalContext] internally so callers do not need to pass a [android.content.Context].
- * CSS parsing is performed at most once (lazily on first use) and cached.
+ * Backed by a precompiled color map generated at build time, so no CSS parsing happens at
+ * runtime and no [android.content.Context] is needed.
  *
  * ```kotlin
  * HighlightThemeProvider(
@@ -21,16 +20,13 @@ import dev.hossain.highlight.engine.HighlightTheme
  * @return A stable [HighlightTheme] instance remembered across recompositions.
  */
 @Composable
-fun rememberTomorrowTheme(): HighlightTheme {
-    val context = LocalContext.current
-    return remember { HighlightTheme.tomorrow(context.applicationContext) }
-}
+fun rememberTomorrowTheme(): HighlightTheme = remember { HighlightTheme.tomorrow() }
 
 /**
  * Creates and remembers the built-in Base16 Tomorrow Night (dark) [HighlightTheme].
  *
- * Resolves [LocalContext] internally so callers do not need to pass a [android.content.Context].
- * CSS parsing is performed at most once (lazily on first use) and cached.
+ * Backed by a precompiled color map generated at build time, so no CSS parsing happens at
+ * runtime and no [android.content.Context] is needed.
  *
  * ```kotlin
  * val result by rememberHighlightedCodeBothThemes(
@@ -44,16 +40,13 @@ fun rememberTomorrowTheme(): HighlightTheme {
  * @return A stable [HighlightTheme] instance remembered across recompositions.
  */
 @Composable
-fun rememberTomorrowNightTheme(): HighlightTheme {
-    val context = LocalContext.current
-    return remember { HighlightTheme.tomorrowNight(context.applicationContext) }
-}
+fun rememberTomorrowNightTheme(): HighlightTheme = remember { HighlightTheme.tomorrowNight() }
 
 /**
  * Creates and remembers the built-in Atom One Dark [HighlightTheme].
  *
- * Resolves [LocalContext] internally so callers do not need to pass a [android.content.Context].
- * CSS parsing is performed at most once (lazily on first use) and cached.
+ * Backed by a precompiled color map generated at build time, so no CSS parsing happens at
+ * runtime and no [android.content.Context] is needed.
  *
  * ```kotlin
  * HighlightThemeProvider(
@@ -64,16 +57,13 @@ fun rememberTomorrowNightTheme(): HighlightTheme {
  * @return A stable [HighlightTheme] instance remembered across recompositions.
  */
 @Composable
-fun rememberAtomOneDarkTheme(): HighlightTheme {
-    val context = LocalContext.current
-    return remember { HighlightTheme.atomOneDark(context.applicationContext) }
-}
+fun rememberAtomOneDarkTheme(): HighlightTheme = remember { HighlightTheme.atomOneDark() }
 
 /**
  * Creates and remembers the built-in Atom One Light [HighlightTheme].
  *
- * Resolves [LocalContext] internally so callers do not need to pass a [android.content.Context].
- * CSS parsing is performed at most once (lazily on first use) and cached.
+ * Backed by a precompiled color map generated at build time, so no CSS parsing happens at
+ * runtime and no [android.content.Context] is needed.
  *
  * ```kotlin
  * HighlightThemeProvider(
@@ -84,7 +74,4 @@ fun rememberAtomOneDarkTheme(): HighlightTheme {
  * @return A stable [HighlightTheme] instance remembered across recompositions.
  */
 @Composable
-fun rememberAtomOneLightTheme(): HighlightTheme {
-    val context = LocalContext.current
-    return remember { HighlightTheme.atomOneLight(context.applicationContext) }
-}
+fun rememberAtomOneLightTheme(): HighlightTheme = remember { HighlightTheme.atomOneLight() }

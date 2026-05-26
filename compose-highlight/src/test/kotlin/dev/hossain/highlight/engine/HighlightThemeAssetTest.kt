@@ -18,43 +18,43 @@ class HighlightThemeAssetTest {
     private val contextWithThrowingAssets get() = ThrowingAssetsContext(context)
 
     @Test
-    fun `tomorrow factory produces valid colorMap from asset`() {
-        val theme = HighlightTheme.tomorrow(context)
+    fun `tomorrow factory produces valid colorMap`() {
+        val theme = HighlightTheme.tomorrow()
         assertThat(theme.colorMap).isNotEmpty()
         assertThat(theme.colorMap).containsKey("hljs")
         assertThat(theme.colorMap).containsKey("hljs-keyword")
     }
 
     @Test
-    fun `tomorrowNight factory produces valid colorMap from asset`() {
-        val theme = HighlightTheme.tomorrowNight(context)
+    fun `tomorrowNight factory produces valid colorMap`() {
+        val theme = HighlightTheme.tomorrowNight()
         assertThat(theme.colorMap).isNotEmpty()
         assertThat(theme.colorMap).containsKey("hljs")
     }
 
     @Test
-    fun `atomOneDark factory produces valid colorMap from asset`() {
-        val theme = HighlightTheme.atomOneDark(context)
+    fun `atomOneDark factory produces valid colorMap`() {
+        val theme = HighlightTheme.atomOneDark()
         assertThat(theme.colorMap).isNotEmpty()
         assertThat(theme.colorMap).containsKey("hljs")
     }
 
     @Test
-    fun `atomOneLight factory produces valid colorMap from asset`() {
-        val theme = HighlightTheme.atomOneLight(context)
+    fun `atomOneLight factory produces valid colorMap`() {
+        val theme = HighlightTheme.atomOneLight()
         assertThat(theme.colorMap).isNotEmpty()
         assertThat(theme.colorMap).containsKey("hljs")
     }
 
     @Test
     fun `tomorrow theme has light background`() {
-        val theme = HighlightTheme.tomorrow(context)
+        val theme = HighlightTheme.tomorrow()
         assertThat(theme.backgroundColor).isNotEqualTo(Color.Unspecified)
     }
 
     @Test
     fun `tomorrowNight theme has dark background`() {
-        val theme = HighlightTheme.tomorrowNight(context)
+        val theme = HighlightTheme.tomorrowNight()
         assertThat(theme.backgroundColor).isNotEqualTo(Color.Unspecified)
     }
 
@@ -66,14 +66,15 @@ class HighlightThemeAssetTest {
     }
 
     @Test
-    fun `built-in factories normalize to applicationContext`() {
-        val context = contextWithThrowingAssets
+    fun `built-in factories require no Context and never touch assets`() {
+        // Built-in themes are precompiled at build time — even a Context whose getAssets()
+        // throws should be irrelevant because none of the four built-in factories take one.
         val themes =
             listOf(
-                HighlightTheme.tomorrow(context),
-                HighlightTheme.tomorrowNight(context),
-                HighlightTheme.atomOneDark(context),
-                HighlightTheme.atomOneLight(context),
+                HighlightTheme.tomorrow(),
+                HighlightTheme.tomorrowNight(),
+                HighlightTheme.atomOneDark(),
+                HighlightTheme.atomOneLight(),
             )
 
         themes.forEach { theme ->

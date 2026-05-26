@@ -38,8 +38,8 @@ class SyntaxHighlightedCodeTest {
     fun composableRendersWithoutCrash() {
         composeTestRule.setContent {
             HighlightThemeProvider(
-                lightHighlightTheme = HighlightTheme.tomorrow(context),
-                darkHighlightTheme = HighlightTheme.tomorrowNight(context),
+                lightHighlightTheme = HighlightTheme.tomorrow(),
+                darkHighlightTheme = HighlightTheme.tomorrowNight(),
             ) {
                 SyntaxHighlightedCode(
                     code = sampleCode,
@@ -127,8 +127,8 @@ class SyntaxHighlightedCodeTest {
 
         composeTestRule.setContent {
             HighlightThemeProvider(
-                lightHighlightTheme = HighlightTheme.tomorrow(context),
-                darkHighlightTheme = HighlightTheme.tomorrowNight(context),
+                lightHighlightTheme = HighlightTheme.tomorrow(),
+                darkHighlightTheme = HighlightTheme.tomorrowNight(),
             ) {
                 SyntaxHighlightedCode(
                     code = sampleCode,
@@ -216,8 +216,8 @@ class SyntaxHighlightedCodeTest {
 
         composeTestRule.setContent {
             HighlightThemeProvider(
-                lightHighlightTheme = HighlightTheme.tomorrow(context),
-                darkHighlightTheme = HighlightTheme.tomorrowNight(context),
+                lightHighlightTheme = HighlightTheme.tomorrow(),
+                darkHighlightTheme = HighlightTheme.tomorrowNight(),
             ) {
                 SyntaxHighlightedCode(
                     code = sampleCode,

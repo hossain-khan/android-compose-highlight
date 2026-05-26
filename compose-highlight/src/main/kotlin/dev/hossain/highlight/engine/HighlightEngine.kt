@@ -103,7 +103,7 @@ import kotlin.time.measureTimedValue
  *     val result = engine.highlight(
  *         code     = "val x = 42",
  *         language = "kotlin",
- *         theme    = HighlightTheme.atomOneDark(context.applicationContext),
+ *         theme    = HighlightTheme.atomOneDark(),
  *     )
  *     result.onSuccess { highlighted ->
  *         display(highlighted.annotated)            // AnnotatedString
@@ -123,8 +123,8 @@ import kotlin.time.measureTimedValue
  * engine.highlightBothThemes(
  *     code       = sourceCode,
  *     language   = "typescript",
- *     lightTheme = HighlightTheme.tomorrow(context.applicationContext),
- *     darkTheme  = HighlightTheme.tomorrowNight(context.applicationContext),
+ *     lightTheme = HighlightTheme.tomorrow(),
+ *     darkTheme  = HighlightTheme.tomorrowNight(),
  * ).onSuccess { result ->
  *     val display = if (isDark) result.dark else result.light
  * }
@@ -302,8 +302,8 @@ class HighlightEngine(
      * engine.highlightBothThemes(
      *     code       = sourceCode,
      *     language   = "typescript",
-     *     lightTheme = HighlightTheme.tomorrow(context.applicationContext),
-     *     darkTheme  = HighlightTheme.tomorrowNight(context.applicationContext),
+     *     lightTheme = HighlightTheme.tomorrow(),
+     *     darkTheme  = HighlightTheme.tomorrowNight(),
      * ).onSuccess { result ->
      *     val display = if (isDark) result.dark else result.light
      * }

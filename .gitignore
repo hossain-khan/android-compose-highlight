@@ -1,6 +1,9 @@
 # Gradle files
 .gradle/
 build/
+# buildSrc has a Kotlin package named "build" — explicitly un-ignore those sources.
+!buildSrc/src/main/kotlin/dev/hossain/highlight/build/
+!buildSrc/src/main/kotlin/dev/hossain/highlight/build/**
 
 # Local configuration file (sdk path, etc)
 local.properties

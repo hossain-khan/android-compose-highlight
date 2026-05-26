@@ -124,13 +124,13 @@ fun SampleScreen() {
                 ),
                 ThemePair(
                     name = "Tomorrow",
-                    light = HighlightTheme.tomorrow(appContext),
-                    dark = HighlightTheme.tomorrowNight(appContext),
+                    light = HighlightTheme.tomorrow(),
+                    dark = HighlightTheme.tomorrowNight(),
                 ),
                 ThemePair(
                     name = "Atom One",
-                    light = HighlightTheme.atomOneLight(appContext),
-                    dark = HighlightTheme.atomOneDark(appContext),
+                    light = HighlightTheme.atomOneLight(),
+                    dark = HighlightTheme.atomOneDark(),
                 ),
             )
         }
