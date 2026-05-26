@@ -15,7 +15,7 @@ import org.junit.runner.RunWith
 class HighlightEngineTest {
     private lateinit var engine: HighlightEngine
     private val context = InstrumentationRegistry.getInstrumentation().targetContext
-    private val lightTheme by lazy { HighlightTheme.tomorrow(context) }
+    private val lightTheme by lazy { HighlightTheme.tomorrow() }
 
     @Before
     fun setUp() {
@@ -138,7 +138,7 @@ class HighlightEngineTest {
     @Test
     fun highlightBothThemesProducesBothResults() =
         runBlocking {
-            val darkTheme = HighlightTheme.tomorrowNight(context)
+            val darkTheme = HighlightTheme.tomorrowNight()
             val result =
                 engine.highlightBothThemes(
                     code = "val x = 42",
@@ -490,7 +490,7 @@ class HighlightEngineTest {
     @Test
     fun highlightBothThemesProducesSameTextAsTwoIndependentCalls() =
         runBlocking {
-            val darkTheme = HighlightTheme.tomorrowNight(context)
+            val darkTheme = HighlightTheme.tomorrowNight()
             val code = "fun add(a: Int, b: Int) = a + b"
             val language = "kotlin"
 

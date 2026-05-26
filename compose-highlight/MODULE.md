@@ -32,7 +32,8 @@ Engine layer (public)
 
 Internal implementation
   |- WebViewManager                     Hidden WebView lifecycle + bridge page
-  |- ThemeParser                        CSS selector to SpanStyle parsing
+  |- ThemeParser                        CSS selector to SpanStyle parsing (recursive descent)
+  |- GeneratedThemes                    Build-time precompiled color maps for the four built-ins
   |- HtmlToAnnotatedString              jsoup HTML to AnnotatedString conversion
   \- escapeForJs() / unescapeJsString() and related helpers
 ```
@@ -40,12 +41,71 @@ Internal implementation
 **How highlighting works:**
 1. `WebViewManager` loads `bridge.html` from `assets/compose-highlight/` into a hidden `WebView` on the Main thread.
 2. `HighlightEngine` serializes JS calls with a `Mutex` and invokes Highlight.js through `evaluateJavascript()`.
-3. `HighlightTheme` lazily parses CSS into a selector-to-`SpanStyle` map on first use.
+3. `HighlightTheme` resolves its color map. The four built-in themes (`tomorrow`, `tomorrowNight`, `atomOneDark`, `atomOneLight`) read from precompiled `GeneratedThemes` constants and never touch the runtime parser. Custom themes loaded through `HighlightTheme.fromAsset` or `HighlightTheme.fromCss` lazily parse their CSS via `ThemeParser` on first `colorMap` access.
 4. `HtmlToAnnotatedString` walks the returned HTML and applies theme styles to build a Compose `AnnotatedString`.
 
 **Shared engine via `HighlightThemeProvider`:** one provider creates one `HighlightEngine`, which means one hidden `WebView` for the entire subtree. `rememberHighlightEngine()` reuses that shared engine inside the provider and creates a standalone engine only when used outside one.
 
 **Asset loading:** `WebViewAssetLoader` maps `https://appassets.androidplatform.net/assets/` to the app's packaged assets. This avoids the script restrictions that apply to `file://` URLs.
+
+## Themes
+
+Three runtime paths produce a `HighlightTheme`. Pick the one that matches where the CSS comes from:
+
+| Factory | Takes `Context`? | When to use |
+|---|---|---|
+| `HighlightTheme.tomorrow()` etc. | no | One of the four bundled themes. Precompiled at build time, no runtime CSS parsing. |
+| `HighlightTheme.fromAsset(context, assetPath, name)` | yes | CSS file shipped in the consumer app's `assets/` folder. Parsed lazily on first `colorMap` access. |
+| `HighlightTheme.fromCss(cssText, name)` | no | CSS string fetched at runtime (network, generated, etc.). Parsed lazily. |
+| `HighlightTheme.fromColorMap(name, colorMap, ...)` | no | Theme built programmatically (Material 3 dynamic color, custom palettes, etc.). No parsing. |
+
+The four built-in themes (`tomorrow`, `tomorrowNight`, `atomOneDark`, `atomOneLight`) and their `remember*Theme()` Compose helpers do not require a `Context` because their color maps are baked into compiled bytecode at build time.
+
+### Built-in theme precompilation pipeline
+
+Built-in themes follow this build-time path:
+
+```
+Source CSS (committed)                    src/main/assets/compose-highlight/themes/*.css
+        |
+        v Gradle: :compose-highlight:generateThemes
+        |   uses buildSrc/CssThemeParser (mirrors runtime ThemeParser)
+        v
+GeneratedThemes.kt (gitignored)           build/generated/source/themes/main/.../GeneratedThemes.kt
+        |
+        v Kotlin compile (wired via AGP variant Sources API)
+        v
+GeneratedThemes.class                     classes.jar inside the published AAR
+```
+
+The four CSS files are still shipped in the AAR (about 4 KB total) so the runtime `fromAsset(...)` path keeps working for anyone who references those asset paths directly. None of the four built-in factory methods reads them at runtime.
+
+A parity test (`GeneratedThemesParityTest`) compares each precompiled map against `ThemeParser.parseAsset(...)` output for the matching CSS file, and asserts that the embedded `*_IDENTITY` hash equals what runtime `contentDigest64("asset", path)` would compute. The two parsers cannot be unified (the runtime parser depends on `androidx.compose.ui` types unavailable to a Gradle build classpath), so the parity test is the only thing keeping them in sync. If the test fails after editing the runtime parser, regenerate the file with `./gradlew :compose-highlight:generateThemes`. If it fails after editing the buildSrc parser, the buildSrc parser has drifted and that drift is the bug.
+
+### Adding a new built-in theme
+
+The codegen task (`buildSrc/.../GenerateThemesTask.kt`) does not auto-discover CSS files. It iterates a hardcoded `THEME_INPUTS` list, so dropping a CSS file into the assets folder ships it in the AAR but does not produce a precompiled constant or factory.
+
+To add a fifth built-in (replace `dracula` with the actual theme name):
+
+1. Drop the CSS at `compose-highlight/src/main/assets/compose-highlight/themes/dracula.css`.
+2. Add an entry to `THEME_INPUTS` in `buildSrc/src/main/kotlin/dev/hossain/highlight/build/GenerateThemesTask.kt`:
+   ```kotlin
+   "DRACULA" to "dracula.css",
+   ```
+3. Add the factory in `HighlightTheme.kt`:
+   ```kotlin
+   fun dracula(): HighlightTheme =
+       HighlightTheme(
+           name = "dracula",
+           colorMapProvider = { GeneratedThemes.DRACULA },
+           contentIdentity = GeneratedThemes.DRACULA_IDENTITY,
+       )
+   ```
+4. Add `rememberDraculaTheme()` in `HighlightThemeComposables.kt`.
+5. Add a parity test entry in `GeneratedThemesParityTest.kt`.
+
+The friction is intentional. A new built-in is an API decision, not "I dropped a file in the folder." Themes that should be available to consumers but do not warrant a built-in factory can stay as plain CSS in the assets folder and ship via `fromAsset`.
 
 ## Implementation conventions
 
@@ -55,7 +115,7 @@ Internal implementation
 
 **`android.util.Log` is banned in library code paths used by JVM tests.** Android logging calls in JVM-tested paths trigger "Method ... in android.util.Log not mocked" failures.
 
-**Always prefer `applicationContext`.** `HighlightEngine` retains a `Context` through `WebViewManager`, and `HighlightTheme` factories may retain one through lazy providers. Internals defensively normalize to `applicationContext`, but call sites should still pass `context.applicationContext`.
+**Always prefer `applicationContext`.** `HighlightEngine` retains a `Context` through `WebViewManager`, and CSS-backed `HighlightTheme` factories (`fromAsset`) retain one through lazy providers. Internals defensively normalize to `applicationContext`, but call sites should still pass `context.applicationContext`. The four built-in theme factories (`tomorrow()` etc.) take no `Context` since they read from precompiled constants.
 
 **WebView work stays on the Main thread.** `WebViewManager` initialization, destruction, and JS evaluation are all dispatched to the Main thread. Theme parsing and HTML-to-`AnnotatedString` conversion run off the Main thread on `Dispatchers.Default`.
 
@@ -63,7 +123,7 @@ Internal implementation
 
 **`SyntaxHighlightedCode` needs a theme source.** Its `theme` parameter defaults to `LocalHighlightTheme.current`, which throws if there is no `HighlightThemeProvider`. Wrap usage in `HighlightThemeProvider { ... }` or pass an explicit `theme`.
 
-**`HighlightTheme` is lazy.** CSS parsing happens on first `colorMap` access, not when the theme instance is constructed.
+**`HighlightTheme` defers work.** For CSS-backed themes (`fromAsset`, `fromCss`), CSS parsing happens on first `colorMap` access, not when the theme instance is constructed. Built-in themes (`tomorrow()` etc.) skip parsing entirely and return their precompiled `GeneratedThemes` constants on first access.
 
 **CompositionLocals use `staticCompositionLocalOf`.** `LocalHighlightTheme`, `LocalLightHighlightTheme`, `LocalDarkHighlightTheme`, and internal `LocalHighlightEngine` all use static locals because they hold long-lived objects rather than frequently mutating reactive values.
 

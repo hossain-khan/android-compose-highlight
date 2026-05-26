@@ -87,16 +87,15 @@ fun rememberHighlightEngine(): HighlightEngine {
  *
  * ## Theme creation
  *
- * Create [HighlightTheme] instances inside `remember` so CSS parsing does not repeat on every
- * recomposition:
+ * Built-in themes are precompiled and need no [android.content.Context]:
  *
  * ```kotlin
- * val context = LocalContext.current
- * val theme = remember(context) { HighlightTheme.tomorrow(context.applicationContext) }
+ * val theme = remember { HighlightTheme.tomorrow() }
  * val highlighted by rememberHighlightedCode(code, "kotlin", theme)
  * ```
  *
- * Or use the built-in convenience functions which handle this internally:
+ * For custom CSS-backed themes, wrap creation in `remember` so CSS parsing does not repeat on
+ * every recomposition. Or use the built-in convenience functions which handle this internally:
  *
  * ```kotlin
  * val highlighted by rememberHighlightedCode(code, "kotlin", rememberTomorrowTheme())

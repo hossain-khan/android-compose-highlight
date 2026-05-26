@@ -19,14 +19,17 @@ import kotlin.time.measureTimedValue
  *
  * ## Built-in themes
  *
+ * The four built-in themes are precompiled at build time — they do not parse CSS at
+ * runtime and do not require a [Context]:
+ *
  * ```kotlin
  * // Light themes
- * HighlightTheme.tomorrow(context)
- * HighlightTheme.atomOneLight(context)
+ * HighlightTheme.tomorrow()
+ * HighlightTheme.atomOneLight()
  *
  * // Dark themes
- * HighlightTheme.tomorrowNight(context)
- * HighlightTheme.atomOneDark(context)
+ * HighlightTheme.tomorrowNight()
+ * HighlightTheme.atomOneDark()
  * ```
  *
  * ## Custom theme from an asset file
@@ -185,78 +188,65 @@ class HighlightTheme private constructor(
         /**
          * Built-in Base16 Tomorrow light theme.
          *
-         * The provided [context] is defensively normalized to `applicationContext` before being
-         * retained by the lazy theme provider.
+         * Uses a precompiled color map generated at build time from the bundled
+         * `tomorrow.css` — the runtime CSS parser is never invoked. No [Context] is required.
          *
-         * @param context Any [Context]; normalized to `applicationContext` internally.
          * @return A [HighlightTheme] backed by the bundled `tomorrow.css`.
          */
-        fun tomorrow(context: Context): HighlightTheme {
-            val appContext = context.applicationContext
-            val assetPath = "compose-highlight/themes/tomorrow.css"
-            return HighlightTheme(
+        fun tomorrow(): HighlightTheme =
+            HighlightTheme(
                 name = "tomorrow",
-                colorMapProvider = { ThemeParser.parseAsset(appContext, assetPath) },
-                contentIdentity = contentDigest64("asset", assetPath),
+                colorMapProvider = { GeneratedThemes.TOMORROW },
+                contentIdentity = GeneratedThemes.TOMORROW_IDENTITY,
             )
-        }
 
         /**
          * Built-in Base16 Tomorrow Night dark theme.
          *
-         * The provided [context] is defensively normalized to `applicationContext` before being
-         * retained by the lazy theme provider.
+         * Uses a precompiled color map generated at build time from the bundled
+         * `tomorrow-night.css` — the runtime CSS parser is never invoked. No [Context] is
+         * required.
          *
-         * @param context Any [Context]; normalized to `applicationContext` internally.
          * @return A [HighlightTheme] backed by the bundled `tomorrow-night.css`.
          */
-        fun tomorrowNight(context: Context): HighlightTheme {
-            val appContext = context.applicationContext
-            val assetPath = "compose-highlight/themes/tomorrow-night.css"
-            return HighlightTheme(
+        fun tomorrowNight(): HighlightTheme =
+            HighlightTheme(
                 name = "tomorrow-night",
-                colorMapProvider = { ThemeParser.parseAsset(appContext, assetPath) },
-                contentIdentity = contentDigest64("asset", assetPath),
+                colorMapProvider = { GeneratedThemes.TOMORROW_NIGHT },
+                contentIdentity = GeneratedThemes.TOMORROW_NIGHT_IDENTITY,
             )
-        }
 
         /**
          * Built-in Atom One Dark theme.
          *
-         * The provided [context] is defensively normalized to `applicationContext` before being
-         * retained by the lazy theme provider.
+         * Uses a precompiled color map generated at build time from the bundled
+         * `atom-one-dark.css` — the runtime CSS parser is never invoked. No [Context] is
+         * required.
          *
-         * @param context Any [Context]; normalized to `applicationContext` internally.
          * @return A [HighlightTheme] backed by the bundled `atom-one-dark.css`.
          */
-        fun atomOneDark(context: Context): HighlightTheme {
-            val appContext = context.applicationContext
-            val assetPath = "compose-highlight/themes/atom-one-dark.css"
-            return HighlightTheme(
+        fun atomOneDark(): HighlightTheme =
+            HighlightTheme(
                 name = "atom-one-dark",
-                colorMapProvider = { ThemeParser.parseAsset(appContext, assetPath) },
-                contentIdentity = contentDigest64("asset", assetPath),
+                colorMapProvider = { GeneratedThemes.ATOM_ONE_DARK },
+                contentIdentity = GeneratedThemes.ATOM_ONE_DARK_IDENTITY,
             )
-        }
 
         /**
          * Built-in Atom One Light theme.
          *
-         * The provided [context] is defensively normalized to `applicationContext` before being
-         * retained by the lazy theme provider.
+         * Uses a precompiled color map generated at build time from the bundled
+         * `atom-one-light.css` — the runtime CSS parser is never invoked. No [Context] is
+         * required.
          *
-         * @param context Any [Context]; normalized to `applicationContext` internally.
          * @return A [HighlightTheme] backed by the bundled `atom-one-light.css`.
          */
-        fun atomOneLight(context: Context): HighlightTheme {
-            val appContext = context.applicationContext
-            val assetPath = "compose-highlight/themes/atom-one-light.css"
-            return HighlightTheme(
+        fun atomOneLight(): HighlightTheme =
+            HighlightTheme(
                 name = "atom-one-light",
-                colorMapProvider = { ThemeParser.parseAsset(appContext, assetPath) },
-                contentIdentity = contentDigest64("asset", assetPath),
+                colorMapProvider = { GeneratedThemes.ATOM_ONE_LIGHT },
+                contentIdentity = GeneratedThemes.ATOM_ONE_LIGHT_IDENTITY,
             )
-        }
 
         /**
          * Custom theme loaded from a Highlight.js CSS file in the app's `assets/` folder.

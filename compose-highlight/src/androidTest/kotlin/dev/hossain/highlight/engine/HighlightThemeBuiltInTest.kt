@@ -14,15 +14,15 @@ class HighlightThemeBuiltInTest {
 
     @Test
     fun tomorrowAndTomorrowNightHaveDifferentBackgroundColors() {
-        val light = HighlightTheme.tomorrow(context)
-        val dark = HighlightTheme.tomorrowNight(context)
+        val light = HighlightTheme.tomorrow()
+        val dark = HighlightTheme.tomorrowNight()
         assertThat(light.backgroundColor).isNotEqualTo(dark.backgroundColor)
     }
 
     @Test
     fun atomOneLightAndAtomOneDarkHaveDifferentBackgroundColors() {
-        val light = HighlightTheme.atomOneLight(context)
-        val dark = HighlightTheme.atomOneDark(context)
+        val light = HighlightTheme.atomOneLight()
+        val dark = HighlightTheme.atomOneDark()
         assertThat(light.backgroundColor).isNotEqualTo(dark.backgroundColor)
     }
 
@@ -30,10 +30,10 @@ class HighlightThemeBuiltInTest {
     fun allFourThemesHaveDistinctNames() {
         val names =
             listOf(
-                HighlightTheme.tomorrow(context).name,
-                HighlightTheme.tomorrowNight(context).name,
-                HighlightTheme.atomOneDark(context).name,
-                HighlightTheme.atomOneLight(context).name,
+                HighlightTheme.tomorrow().name,
+                HighlightTheme.tomorrowNight().name,
+                HighlightTheme.atomOneDark().name,
+                HighlightTheme.atomOneLight().name,
             )
         assertThat(names.toSet()).hasSize(4)
     }

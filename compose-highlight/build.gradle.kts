@@ -1,3 +1,4 @@
+import dev.hossain.highlight.build.GenerateThemesTask
 import org.gradle.testing.jacoco.tasks.JacocoReport
 import org.gradle.testing.jacoco.tasks.JacocoCoverageVerification
 
@@ -68,6 +69,42 @@ android {
 
 kotlin {
     jvmToolchain(17)
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// Build-time precompilation of bundled hljs themes.
+//
+// The four built-in CSS themes (tomorrow, tomorrow-night, atom-one-dark, atom-one-light)
+// are parsed by buildSrc's CssThemeParser and emitted as a Kotlin source file so the
+// runtime ThemeParser is never invoked for these themes. See buildSrc/.
+// ────────────────────────────────────────────────────────────────────────────
+val generateThemes = tasks.register<GenerateThemesTask>("generateThemes") {
+    cssDir.set(layout.projectDirectory.dir("src/main/assets/compose-highlight/themes"))
+    outputDir.set(layout.buildDirectory.dir("generated/source/themes/main"))
+}
+
+// AGP 9: use the variant Sources API. addGeneratedSourceDirectory takes a TaskProvider so
+// AGP wires the task dependency for every consumer (compileKotlin, lint, dokka, annotation
+// extraction, etc.) automatically.
+androidComponents {
+    onVariants { variant ->
+        variant.sources.kotlin?.addGeneratedSourceDirectory(
+            generateThemes,
+            GenerateThemesTask::outputDir,
+        )
+    }
+}
+
+// kotlinter walks the source set too — exclude the generated tree so its formatting rules
+// don't bicker with the emitter's output. We control its formatting at the emitter side.
+// Use invariantSeparatorsPath so the substring match works on Windows where File.absolutePath
+// uses backslashes.
+private val GENERATED_THEMES_PATH_FRAGMENT = "generated/source/themes"
+tasks.withType<org.jmailen.gradle.kotlinter.tasks.LintTask>().configureEach {
+    exclude { it.file.invariantSeparatorsPath.contains(GENERATED_THEMES_PATH_FRAGMENT) }
+}
+tasks.withType<org.jmailen.gradle.kotlinter.tasks.FormatTask>().configureEach {
+    exclude { it.file.invariantSeparatorsPath.contains(GENERATED_THEMES_PATH_FRAGMENT) }
 }
 
 if (providers.gradleProperty("composeReports").orNull == "true") {
