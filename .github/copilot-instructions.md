@@ -43,14 +43,14 @@ npx markdownlint --fix CHANGELOG.md
 
 ## CHANGELOG.md Markdown Formatting
 
-**Markdown linting configuration** (`.markdownlintrc`):
-- `MD013` - Line length set to 120 characters (instead of default 80) to accommodate detailed technical descriptions
-- `MD024` - Duplicate headings disabled (required for changelog format where each version section has `### Fixed`, `### Added`, `### Changed`, etc.)
+**Markdown linting usage:**
+- This repository currently documents running `markdownlint` directly against `CHANGELOG.md`: `npx markdownlint CHANGELOG.md`
+- No repository markdownlint config file is referenced in these instructions, so do not assume a `.markdownlintrc` is present
 
 **CHANGELOG.md formatting rules:**
-1. **Blank lines around section headings** - Every heading (`### Fixed`, `### Added`, `### Changed`, `### Performance`, `### Infrastructure`, etc.) must be surrounded by blank lines (one before, one after). These are enforced by MD022 and MD032 rules.
-2. **Blank lines around code fences** - All code blocks (triple backticks) must be surrounded by blank lines.
-3. **Line length** - Maximum 120 characters per line. Long bullet items must wrap to multiple indented lines rather than exceeding this limit.
+1. **Blank lines around section headings** - Every heading (`### Fixed`, `### Added`, `### Changed`, `### Performance`, `### Infrastructure`, etc.) should be surrounded by blank lines (one before, one after).
+2. **Blank lines around code fences** - All code blocks (triple backticks) should be surrounded by blank lines.
+3. **Line length** - Keep lines reasonably wrapped for readability; long bullet items should wrap to multiple indented lines instead of becoming hard to review.
 4. **Long bullet wrapping pattern** - Convert long single-line items like:
    ```
    - **Item** — [500+ char explanation with multiple concepts]
