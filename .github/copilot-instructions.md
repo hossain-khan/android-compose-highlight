@@ -9,6 +9,12 @@
 # Auto-fix formatting
 ./gradlew formatKotlin
 
+# Lint markdown (markdownlint-cli) - validates CHANGELOG.md and other markdown files
+npx markdownlint CHANGELOG.md
+
+# Auto-fix markdown formatting
+npx markdownlint --fix CHANGELOG.md
+
 # JVM unit tests (fast, no device needed)
 ./gradlew :compose-highlight:test
 
@@ -34,6 +40,29 @@
 # Generate Dokka API docs → docs/api/
 ./gradlew :compose-highlight:dokkaGeneratePublicationHtml
 ```
+
+## CHANGELOG.md Markdown Formatting
+
+**Markdown linting configuration** (`.markdownlintrc`):
+- `MD013` - Line length set to 120 characters (instead of default 80) to accommodate detailed technical descriptions
+- `MD024` - Duplicate headings disabled (required for changelog format where each version section has `### Fixed`, `### Added`, `### Changed`, etc.)
+
+**CHANGELOG.md formatting rules:**
+1. **Blank lines around section headings** - Every heading (`### Fixed`, `### Added`, `### Changed`, `### Performance`, `### Infrastructure`, etc.) must be surrounded by blank lines (one before, one after). These are enforced by MD022 and MD032 rules.
+2. **Blank lines around code fences** - All code blocks (triple backticks) must be surrounded by blank lines.
+3. **Line length** - Maximum 120 characters per line. Long bullet items must wrap to multiple indented lines rather than exceeding this limit.
+4. **Long bullet wrapping pattern** - Convert long single-line items like:
+   ```
+   - **Item** — [500+ char explanation with multiple concepts]
+   ```
+   To indented multi-line format:
+   ```
+   - **Item** — [Explanation line 1]
+     [Explanation line 2 indented by 2 spaces]
+     [Explanation line 3 indented by 2 spaces]
+   ```
+5. **No spaces inside code spans** - Code spans must not have spaces between backticks and content: `` `code` `` not `` ` code ` ``.
+6. **Run `markdownlint` before committing** - Always verify no violations remain: `npx markdownlint CHANGELOG.md`
 
 ## Architecture
 
