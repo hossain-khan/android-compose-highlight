@@ -66,9 +66,11 @@ class HighlightThemeAssetTest {
     }
 
     @Test
-    fun `built-in factories require no Context and never touch assets`() {
-        // Built-in themes are precompiled at build time — even a Context whose getAssets()
-        // throws should be irrelevant because none of the four built-in factories take one.
+    fun `built-in factories produce non-empty colorMap with hljs base entry`() {
+        // The "no Context, no asset I/O" guarantee for built-in themes is enforced by the type
+        // system — the factories simply don't take a Context any more, so there's no Android
+        // entry point through which they could read an asset. This test is the runtime smoke
+        // check that the precompiled maps are populated and carry the expected base entry.
         val themes =
             listOf(
                 HighlightTheme.tomorrow(),

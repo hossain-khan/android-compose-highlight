@@ -97,11 +97,14 @@ androidComponents {
 
 // kotlinter walks the source set too — exclude the generated tree so its formatting rules
 // don't bicker with the emitter's output. We control its formatting at the emitter side.
+// Use invariantSeparatorsPath so the substring match works on Windows where File.absolutePath
+// uses backslashes.
+private val GENERATED_THEMES_PATH_FRAGMENT = "generated/source/themes"
 tasks.withType<org.jmailen.gradle.kotlinter.tasks.LintTask>().configureEach {
-    exclude { it.file.absolutePath.contains("generated/source/themes") }
+    exclude { it.file.invariantSeparatorsPath.contains(GENERATED_THEMES_PATH_FRAGMENT) }
 }
 tasks.withType<org.jmailen.gradle.kotlinter.tasks.FormatTask>().configureEach {
-    exclude { it.file.absolutePath.contains("generated/source/themes") }
+    exclude { it.file.invariantSeparatorsPath.contains(GENERATED_THEMES_PATH_FRAGMENT) }
 }
 
 if (providers.gradleProperty("composeReports").orNull == "true") {

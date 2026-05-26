@@ -50,22 +50,42 @@ class GeneratedThemesParityTest {
         assertParity("compose-highlight/themes/atom-one-light.css", GeneratedThemes.ATOM_ONE_LIGHT)
     }
 
+    // ── Identity parity ───────────────────────────────────────────────────────────────────────────
+    // HighlightTheme.equals compares (name, contentIdentity). The runtime fromAsset factory
+    // computes contentIdentity via contentDigest64("asset", path); the buildSrc generator
+    // reproduces that same hash and embeds it as a Long literal. If those two computations
+    // ever drift, the equality check below fails — the test is a real parity assertion, not
+    // a tautology over two copies of the same constant.
+
     @Test
-    fun `tomorrow factory carries precompiled identity`() {
-        assertThat(HighlightTheme.tomorrow().hashCode()).isNotEqualTo(0) // sanity
-        // Two tomorrow() instances share the precompiled identity, so they must be equal.
-        assertThat(HighlightTheme.tomorrow()).isEqualTo(HighlightTheme.tomorrow())
+    fun `tomorrow identity matches runtime fromAsset hash`() {
+        assertThat(HighlightTheme.tomorrow())
+            .isEqualTo(HighlightTheme.fromAsset(context, "compose-highlight/themes/tomorrow.css", "tomorrow"))
     }
 
     @Test
-    fun `tomorrowNight factory carries precompiled identity`() {
-        assertThat(HighlightTheme.tomorrowNight()).isEqualTo(HighlightTheme.tomorrowNight())
+    fun `tomorrowNight identity matches runtime fromAsset hash`() {
+        assertThat(HighlightTheme.tomorrowNight())
+            .isEqualTo(HighlightTheme.fromAsset(context, "compose-highlight/themes/tomorrow-night.css", "tomorrow-night"))
+    }
+
+    @Test
+    fun `atomOneDark identity matches runtime fromAsset hash`() {
+        assertThat(HighlightTheme.atomOneDark())
+            .isEqualTo(HighlightTheme.fromAsset(context, "compose-highlight/themes/atom-one-dark.css", "atom-one-dark"))
+    }
+
+    @Test
+    fun `atomOneLight identity matches runtime fromAsset hash`() {
+        assertThat(HighlightTheme.atomOneLight())
+            .isEqualTo(HighlightTheme.fromAsset(context, "compose-highlight/themes/atom-one-light.css", "atom-one-light"))
     }
 
     @Test
     fun `different built-in themes are not equal`() {
-        // Identity hashes should differ across themes, so a light theme and dark theme
-        // never compare equal even though both use the same precompiled-asset identity scheme.
+        // Sanity: every built-in carries a distinct identity hash, so the equality check above
+        // is meaningful — it fails if the buildSrc hash collides with anything other than the
+        // matching runtime-computed value.
         assertThat(HighlightTheme.tomorrow()).isNotEqualTo(HighlightTheme.tomorrowNight())
         assertThat(HighlightTheme.atomOneLight()).isNotEqualTo(HighlightTheme.atomOneDark())
     }
