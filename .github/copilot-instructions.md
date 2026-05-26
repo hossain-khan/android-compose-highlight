@@ -9,6 +9,12 @@
 # Auto-fix formatting
 ./gradlew formatKotlin
 
+# Lint markdown (markdownlint-cli) - validates CHANGELOG.md and other markdown files
+npx markdownlint CHANGELOG.md
+
+# Auto-fix markdown formatting
+npx markdownlint --fix CHANGELOG.md
+
 # JVM unit tests (fast, no device needed)
 ./gradlew :compose-highlight:test
 
@@ -34,6 +40,33 @@
 # Generate Dokka API docs → docs/api/
 ./gradlew :compose-highlight:dokkaGeneratePublicationHtml
 ```
+
+## CHANGELOG.md Markdown Formatting
+
+**Markdown linting usage:**
+- This repository currently documents running `markdownlint` directly against `CHANGELOG.md`: `npx markdownlint CHANGELOG.md`
+- No repository markdownlint config file is referenced in these instructions, so do not assume a `.markdownlintrc` is present
+
+**CHANGELOG.md formatting rules:**
+1. **Blank lines around section headings** - Every heading (`### Fixed`, `### Added`, `### Changed`, `### Performance`, `### Infrastructure`, etc.) should be surrounded by blank lines (one before, one after).
+2. **Blank lines around code fences** - All code blocks (triple backticks) should be surrounded by blank lines.
+3. **Line length** - Keep lines reasonably wrapped for readability; long bullet items should wrap to multiple indented lines instead of becoming hard to review.
+4. **Long bullet wrapping pattern** - Convert long single-line items like:
+
+   ```
+   - **Item** - [500+ char explanation with multiple concepts]
+   ```
+
+   To indented multi-line format:
+
+   ```
+   - **Item** - [Explanation line 1]
+     [Explanation line 2 indented by 2 spaces]
+     [Explanation line 3 indented by 2 spaces]
+   ```
+
+5. **No spaces inside code spans** - Code spans must not have spaces between backticks and content: `` `code` `` not `` ` code ` ``.
+6. **Run `markdownlint` before committing** - Always verify no violations remain: `npx markdownlint CHANGELOG.md`
 
 ## Architecture
 
