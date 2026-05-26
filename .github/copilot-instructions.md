@@ -52,15 +52,19 @@ npx markdownlint --fix CHANGELOG.md
 2. **Blank lines around code fences** - All code blocks (triple backticks) should be surrounded by blank lines.
 3. **Line length** - Keep lines reasonably wrapped for readability; long bullet items should wrap to multiple indented lines instead of becoming hard to review.
 4. **Long bullet wrapping pattern** - Convert long single-line items like:
+
    ```
    - **Item** - [500+ char explanation with multiple concepts]
    ```
+
    To indented multi-line format:
+
    ```
    - **Item** - [Explanation line 1]
      [Explanation line 2 indented by 2 spaces]
      [Explanation line 3 indented by 2 spaces]
    ```
+
 5. **No spaces inside code spans** - Code spans must not have spaces between backticks and content: `` `code` `` not `` ` code ` ``.
 6. **Run `markdownlint` before committing** - Always verify no violations remain: `npx markdownlint CHANGELOG.md`
 
