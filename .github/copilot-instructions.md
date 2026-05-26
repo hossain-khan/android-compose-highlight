@@ -44,14 +44,19 @@ npx markdownlint --fix CHANGELOG.md
 ## CHANGELOG.md Markdown Formatting
 
 **Markdown linting usage:**
-- This repository currently documents running `markdownlint` directly against `CHANGELOG.md`: `npx markdownlint CHANGELOG.md`
-- No repository markdownlint config file is referenced in these instructions, so do not assume a `.markdownlintrc` is present
+- Run `npx markdownlint CHANGELOG.md` to validate all formatting rules before committing
+- The repository includes `.markdownlintrc` configuration that enforces changelog-specific rules
+
+**.markdownlintrc configuration:**
+- `MD013`: Line length limit of 120 characters (vs. default 80) to accommodate detailed technical changelog entries
+- `MD024`: `siblings_only: true` - Prevents duplicate section headings (e.g., multiple `### Fixed`) within the same release version. Allows the same heading across different versions, which is normal for changelogs
 
 **CHANGELOG.md formatting rules:**
-1. **Blank lines around section headings** - Every heading (`### Fixed`, `### Added`, `### Changed`, `### Performance`, `### Infrastructure`, etc.) should be surrounded by blank lines (one before, one after).
-2. **Blank lines around code fences** - All code blocks (triple backticks) should be surrounded by blank lines.
-3. **Line length** - Keep lines reasonably wrapped for readability; long bullet items should wrap to multiple indented lines instead of becoming hard to review.
-4. **Long bullet wrapping pattern** - Convert long single-line items like:
+1. **No duplicate headings within a version** — Each release (`## [X.Y.Z]`) should have at most one of each section heading type (`### Fixed`, `### Added`, `### Changed`, etc.). If your changes span multiple categories, consolidate them under a single section heading with multiple bullet items. This rule is enforced by MD024 with `siblings_only: true`.
+2. **Blank lines around section headings** — Every heading (`### Fixed`, `### Added`, `### Changed`, `### Performance`, `### Infrastructure`, etc.) should be surrounded by blank lines (one before, one after).
+3. **Blank lines around code fences** — All code blocks (triple backticks) should be surrounded by blank lines.
+4. **Line length** — Keep lines reasonably wrapped for readability; long bullet items should wrap to multiple indented lines instead of becoming hard to review. The 120-character limit allows technical explanations to stay together without excessive wrapping.
+5. **Long bullet wrapping pattern** — Convert long single-line items like:
 
    ```
    - **Item** - [500+ char explanation with multiple concepts]
@@ -65,8 +70,8 @@ npx markdownlint --fix CHANGELOG.md
      [Explanation line 3 indented by 2 spaces]
    ```
 
-5. **No spaces inside code spans** - Code spans must not have spaces between backticks and content: `` `code` `` not `` ` code ` ``.
-6. **Run `markdownlint` before committing** - Always verify no violations remain: `npx markdownlint CHANGELOG.md`
+6. **No spaces inside code spans** — Code spans must not have spaces between backticks and content: `` `code` `` not `` ` code ` ``.
+7. **Run `markdownlint` before committing** — Always verify no violations remain: `npx markdownlint CHANGELOG.md`
 
 ## Architecture
 
