@@ -61,7 +61,8 @@ HighlightThemeProvider(darkHighlightTheme = theme) { ... }
 ```
 
 !!! note
-    Always call `context.applicationContext` - never pass an Activity context to `HighlightTheme` factories, as the theme is retained beyond the Activity's lifecycle.
+    `HighlightTheme.fromAsset()` normalizes the passed `Context` to `applicationContext` internally.
+    Passing `applicationContext` at call sites is still recommended for clarity.
 
 ## Custom theme from raw CSS
 

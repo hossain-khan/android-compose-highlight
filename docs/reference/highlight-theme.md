@@ -8,10 +8,10 @@ The color map is lazily initialized and cached - CSS parsing happens at most onc
 
 | Factory | Style | `remember` helper |
 |---|---|---|
-| `HighlightTheme.tomorrow(context)` | Light | `rememberTomorrowTheme()` |
-| `HighlightTheme.tomorrowNight(context)` | Dark | `rememberTomorrowNightTheme()` |
-| `HighlightTheme.atomOneDark(context)` | Dark | `rememberAtomOneDarkTheme()` |
-| `HighlightTheme.atomOneLight(context)` | Light | `rememberAtomOneLightTheme()` |
+| `HighlightTheme.tomorrow()` | Light | `rememberTomorrowTheme()` |
+| `HighlightTheme.tomorrowNight()` | Dark | `rememberTomorrowNightTheme()` |
+| `HighlightTheme.atomOneDark()` | Dark | `rememberAtomOneDarkTheme()` |
+| `HighlightTheme.atomOneLight()` | Light | `rememberAtomOneLightTheme()` |
 
 Always use the `remember*` helpers inside composables so the CSS is not re-parsed on every recomposition:
 
@@ -46,7 +46,8 @@ HighlightThemeProvider(lightHighlightTheme = theme) { ... }
 ```
 
 !!! note
-    Always pass `applicationContext` to `HighlightTheme` factories.
+    `HighlightTheme.fromAsset()` normalizes the passed `Context` to `applicationContext` internally.
+    Passing `applicationContext` at call sites is still recommended for clarity.
 
 !!! note
     `fromAsset()` is lazy - CSS parsing happens on first use, not at factory-call time.

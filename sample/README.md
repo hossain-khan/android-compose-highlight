@@ -45,7 +45,7 @@ sample/
 | **Callbacks** | `onHighlightComplete` and `onCopyClick` in action |
 | **Placeholder** | `placeholder` slot of `SyntaxHighlightedCode` — default, dimmed text, and loading label |
 | **Themes** | `HighlightTheme` factory methods demonstrated side-by-side |
-| **All Themes** | Scrollable showcase of all 256 bundled highlight.js themes with live preview |
+| **All Themes** | Scrollable showcase of all bundled highlight.js themes with live preview |
 | **Lang Discover** | Language detection and manual language selection with filter chips |
 | **Advanced** | `rememberHighlightedCodeBothThemes` for instant light/dark switching |
 | **Engine** | `HighlightEngine.highlightJsVersion` and `supportedLanguages` |
