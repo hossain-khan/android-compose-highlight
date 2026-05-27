@@ -27,9 +27,9 @@ class LayoutVariantsScreenshotTest {
 
     @Test
     fun layout_default() {
-        capture(name = "layout_default") {
+        capture(name = "layout_default") { code ->
             SyntaxHighlightedCode(
-                code = TestSnippets.KOTLIN_SAMPLE,
+                code = code,
                 language = "kotlin",
                 theme = HighlightTheme.tomorrow(),
             )
@@ -38,9 +38,9 @@ class LayoutVariantsScreenshotTest {
 
     @Test
     fun layout_with_line_numbers() {
-        capture(name = "layout_with_line_numbers") {
+        capture(name = "layout_with_line_numbers") { code ->
             SyntaxHighlightedCode(
-                code = TestSnippets.KOTLIN_SAMPLE,
+                code = code,
                 language = "kotlin",
                 theme = HighlightTheme.tomorrow(),
                 showLineNumbers = true,
@@ -52,9 +52,9 @@ class LayoutVariantsScreenshotTest {
     fun layout_headerless() {
         // No language label, no copy button - useful for inline code blocks where the header
         // would be visual noise.
-        capture(name = "layout_headerless") {
+        capture(name = "layout_headerless") { code ->
             SyntaxHighlightedCode(
-                code = TestSnippets.KOTLIN_SAMPLE,
+                code = code,
                 language = "kotlin",
                 theme = HighlightTheme.tomorrow(),
                 languageLabel = null,
@@ -66,9 +66,9 @@ class LayoutVariantsScreenshotTest {
     @Test
     fun layout_language_label_only() {
         // Language label visible, copy button hidden.
-        capture(name = "layout_language_label_only") {
+        capture(name = "layout_language_label_only") { code ->
             SyntaxHighlightedCode(
-                code = TestSnippets.KOTLIN_SAMPLE,
+                code = code,
                 language = "kotlin",
                 theme = HighlightTheme.tomorrow(),
                 copyButton = null,
@@ -78,13 +78,14 @@ class LayoutVariantsScreenshotTest {
 
     private fun capture(
         name: String,
-        content: @Composable () -> Unit,
+        content: @Composable (code: String) -> Unit,
     ) {
+        val snippet = TestSnippets.load("kotlin_sample")
         composeTestRule.captureHighlightedScreenshot(
             name = name,
-            fixtureHtml = TestHljsFixtures.KOTLIN_SAMPLE_HTML,
+            fixtureHtml = snippet.highlightedHtml,
         ) {
-            ScreenshotScaffold { content() }
+            ScreenshotScaffold { content(snippet.code) }
         }
     }
 }

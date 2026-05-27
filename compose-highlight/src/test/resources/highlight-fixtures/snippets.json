@@ -1,0 +1,14 @@
+{
+  "kotlin_sample": {
+    "language": "kotlin",
+    "code": "// Greets the caller by name.\nfun greet(name: String) {\n    val message = \"Hello, $name!\"\n    println(message)\n}\ngreet(\"World\")"
+  },
+  "python_sample": {
+    "language": "python",
+    "code": "# Compute factorial recursively.\ndef factorial(n: int) -> int:\n    if n <= 1:\n        return 1\n    return n * factorial(n - 1)\n\nprint(factorial(5))  # 120"
+  },
+  "json_sample": {
+    "language": "json",
+    "code": "{\n  \"name\": \"compose-highlight\",\n  \"version\": \"0.5.0\",\n  \"tags\": [\"kotlin\", \"compose\", \"syntax\"],\n  \"stable\": true,\n  \"minSdk\": 24\n}"
+  }
+}
