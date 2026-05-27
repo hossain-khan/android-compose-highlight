@@ -7,6 +7,7 @@ import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import androidx.annotation.VisibleForTesting
 import androidx.webkit.WebViewAssetLoader
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
@@ -75,6 +76,16 @@ internal class WebViewManager(
 
     /** Returns the ready WebView. Suspends until bridge.html has finished loading. */
     suspend fun getReadyWebView(): WebView = readyDeferred.await()
+
+    /**
+     * Returns the underlying [WebView] **synchronously** for test-only inspection, or `null`
+     * if [initialize] has not yet been called. Tests use this to reach into the hidden WebView
+     * via Robolectric's `Shadows.shadowOf(...)` without reflection.
+     *
+     * Production code must not call this. Use [getReadyWebView] (suspending) instead.
+     */
+    @VisibleForTesting(otherwise = VisibleForTesting.NONE)
+    internal fun webViewForTest(): WebView? = webView
 
     /**
      * Creates the WebView on the Main thread and loads bridge.html.

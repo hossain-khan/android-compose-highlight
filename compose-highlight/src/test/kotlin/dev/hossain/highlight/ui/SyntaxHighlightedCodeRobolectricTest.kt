@@ -1,6 +1,5 @@
 package dev.hossain.highlight.ui
 
-import android.webkit.WebView
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.test.assertIsDisplayed
@@ -279,8 +278,8 @@ class SyntaxHighlightedCodeRobolectricTest {
         val engine = capturedEngine ?: error("Engine was not captured during composition")
 
         // After waitForIdle(), WebViewManager.initialize() has run on the Main thread.
-        // The WebView has been created - retrieve it via reflection.
-        val webView = extractWebViewFromEngine(engine)
+        // The WebView has been created - retrieve it via the test-only accessor.
+        val webView = engine.webViewForTest()
         assertThat(webView).isNotNull()
         val nonNullWebView = requireNotNull(webView)
 
@@ -309,26 +308,4 @@ class SyntaxHighlightedCodeRobolectricTest {
 
         engine.destroy()
     }
-
-    /**
-     * Extracts the internal [WebView] from a [HighlightEngine] via reflection.
-     *
-     * [HighlightEngine] holds a private [WebViewManager], which itself holds a private
-     * `@Volatile var webView`. This helper is needed in tests because neither field is
-     * exposed publicly. After [HighlightEngine] calls `initialize()` on the Main thread,
-     * the `webView` field is populated and can be retrieved here.
-     *
-     * Returns `null` if the field cannot be found or if the WebView has not been created yet.
-     */
-    private fun extractWebViewFromEngine(engine: HighlightEngine): WebView? =
-        try {
-            val managerField = HighlightEngine::class.java.getDeclaredField("manager")
-            managerField.isAccessible = true
-            val manager = managerField.get(engine) ?: return null
-            val webViewField = manager.javaClass.getDeclaredField("webView")
-            webViewField.isAccessible = true
-            webViewField.get(manager) as? WebView
-        } catch (e: ReflectiveOperationException) {
-            null
-        }
 }

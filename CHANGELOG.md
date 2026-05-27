@@ -6,14 +6,17 @@ All notable changes to this project will be documented in this file.
 
 ### Tests
 
-- **Roborazzi screenshot regression suite for `SyntaxHighlightedCode`** - 11 goldens
-  committed under `compose-highlight/src/test/snapshots/images/` (~276 KB total) and verified
-  by CI on every PR with a 0.05% pixel-diff tolerance. Coverage:
+- **Roborazzi screenshot regression suite for `SyntaxHighlightedCode`** - 13 goldens
+  committed under `compose-highlight/src/test/snapshots/images/` and verified by CI on every
+  PR with a 0.05% pixel-diff tolerance. Coverage:
   - 4 built-in themes (Tomorrow, Tomorrow Night, Atom One Dark, Atom One Light) on the same
     Kotlin sample so diffs only reflect color-map differences.
   - 4 layout variants on the Tomorrow theme: default, line numbers on, headerless,
     language-label-only.
   - 3 languages on Tomorrow: Kotlin, Python, JSON, exercising token-class breadth.
+  - 2 non-happy-path render states: error fallback (highlight failed, plain code shown
+    inside the Surface) and custom placeholder (highlight in flight, caller-supplied
+    placeholder shown with line-number gutter preserved).
 - **HTML token fixtures captured from the bundled `highlight.min.js`** instead of driving
   the real WebView from JVM tests. This isolates "is the visual rendering of
   `AnnotatedString` stable?" from "does highlight.js still tokenize correctly?" - the latter
@@ -30,6 +33,18 @@ All notable changes to this project will be documented in this file.
   `ubuntu-latest` so contributors who hit macOS-vs-Linux Skia rendering drift can refresh
   the canonical baseline without needing Docker locally.
 - **`compose-highlight/SCREENSHOT_TESTS.md`** documents the full workflow.
+- **`HighlightEngine.webViewForTest()`** - new `@VisibleForTesting(otherwise = NONE)
+  internal fun` exposes the underlying WebView to tests without reflection. Replaces the
+  brittle `getDeclaredField`-based reflection helpers in `SyntaxHighlightedCodeRobolectricTest`
+  and the screenshot test helper. Production code cannot call it; Android Lint flags any
+  non-test call site.
+- **Wall-clock-bounded post-callback drain** in
+  `HighlightScreenshotTestHelpers.captureHighlightedScreenshot`. The previous
+  `repeat(200) { idleMainLooper + waitForIdle }` cap is replaced with: (1) wait until
+  `engine.isInitialized` flips to `true`, bounded by a 5-second wall-clock timeout; (2)
+  pump 200 more idle cycles so the State write, recomposition, and AnimatedContent fade
+  settle. Goldens stay byte-identical; failures now surface as a clear timeout error
+  instead of cryptic "spans = 0" symptoms.
 
 ### Refactored
 
