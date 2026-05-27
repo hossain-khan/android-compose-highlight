@@ -13,11 +13,13 @@ a side-by-side diff image.
 | Built-in themes | `BuiltInThemesScreenshotTest.kt` | 4 |
 | Layout variants | `LayoutVariantsScreenshotTest.kt` | 4 |
 | Language breadth | `LanguageBreadthScreenshotTest.kt` | 3 |
+| Error fallback + custom placeholder | `ErrorAndPlaceholderScreenshotTest.kt` | 2 |
 
 The suite is intentionally small. It covers the four built-in themes, the four most-used layout
-knobs (line numbers, headerless, label-only header, default), and three languages that exercise
-breadth of token classes (Kotlin, Python, JSON). Adding more goldens has diminishing returns
-and increases the chance of OS-rendering drift breaking CI.
+knobs (line numbers, headerless, label-only header, default), three languages that exercise
+breadth of token classes (Kotlin, Python, JSON), and the two non-happy-path render states
+(error fallback, custom placeholder). Adding more goldens has diminishing returns and increases
+the chance of OS-rendering drift breaking CI.
 
 ## Workflow
 
@@ -106,29 +108,42 @@ The `refreshHljsFixtures` task **requires Node.js 18+** on the contributor's PAT
 runs print a clear message naming Node as the missing dependency. CI does not need Node since
 it only verifies the committed fixtures.
 
-### Why the helper drains the looper 200 times
+### Why the helper drains the looper after the JS callback
 
 `SyntaxHighlightedCode` runs a four-stage async pipeline on every recomposition: JS callback
 on `Dispatchers.Main` -> jsoup parse on `Dispatchers.Default` -> state write on `Main` ->
-recomposition. Under v2 `createComposeRule`'s `StandardTestDispatcher`, each `Dispatcher` hop
-is a separate scheduler turn. A single `waitForIdle()` only drains the recomposition queue;
-it does not run scheduler-queued continuations. The drain loop in
-`HighlightScreenshotTestHelpers.captureHighlightedScreenshot` interleaves `ShadowLooper.idleMainLooper()`
-and `waitForIdle()` enough times to let every hop complete before capture.
+recomposition + AnimatedContent fade. Under v2 `createComposeRule`'s `StandardTestDispatcher`,
+each `Dispatcher` hop is a separate scheduler turn. A single `waitForIdle()` only drains the
+recomposition queue; it does not run scheduler-queued continuations.
 
-The 200 cap is defensive: in practice the engine completes within ~10 cycles. If a future
-change introduces a longer pipeline (e.g. an additional dispatcher hop) the cap may need to
-grow. If the test fails with "WebView was not created" or "AnimatedContent shows null", first
-double-check that the cap is high enough.
+The drain in `HighlightScreenshotTestHelpers.captureHighlightedScreenshot` works in two
+phases:
+
+1. **Wait for `engine.isInitialized` to flip to `true`.** This is a `StateFlow<Boolean>` that
+   the engine sets after `WebViewManager` finishes loading bridge.html and the engine has
+   walked past the WebView round-trip stages. Bounded by a 5-second wall-clock timeout
+   (`DRAIN_TIMEOUT_MS`). If it never flips, a `check()` fails with a clear message naming
+   the likely cause: a future Compose BOM that added another dispatcher hop.
+
+2. **Pump 200 more idle cycles** (`POST_INIT_STABILITY_TURNS`) so the State write,
+   recomposition, and AnimatedContent fade settle to a stable frame before capture. Most
+   cycles are no-ops; this empirically matches the previous `repeat(200)` behavior so
+   committed goldens stay byte-identical.
+
+If a screenshot test fails with "engine.isInitialized never flipped to true within 5000ms"
+or with cryptic "spans = 0" symptoms, that is the signal that one of the dispatcher hops
+isn't completing. Check whether a recent Compose BOM bump added a new hop to
+`SyntaxHighlightedCode`, `rememberHighlightedCode`, or the engine's coroutine path; bump
+`DRAIN_TIMEOUT_MS` only as a last resort.
 
 ### Why bypass `HighlightThemeProvider`
 
 The screenshot helper passes `theme` directly to `SyntaxHighlightedCode` instead of wrapping
 it in `HighlightThemeProvider`. The provider creates its own engine via `remember { ... }`
 and overrides the `LocalHighlightEngine` we install for test injection - so the WebView the
-test pulls out via reflection would never be the one the provider's engine drives. Direct
-theme parameter avoids the provider's internal engine machinery without changing what is
-actually rendered.
+test pulls out via `engine.webViewForTest()` would never be the one the provider's engine
+drives. Direct theme parameter avoids the provider's internal engine machinery without
+changing what is actually rendered.
 
 ### Pixel-diff threshold
 
@@ -138,10 +153,10 @@ catching real color and layout regressions. If goldens recorded on one Linux run
 verify on another at this threshold, the right move is to re-record on the canonical platform,
 not to relax the threshold.
 
-## Future work
+### Test-only WebView accessor
 
-The audit punch list still has one related item open: replacing the test-only WebView
-reflection helper (`extractWebViewFromEngine`) with a `@VisibleForTesting internal` accessor
-on `WebViewManager`. Until that lands, the reflection helper is centralised in
-`HighlightScreenshotTestHelpers.kt` to limit blast radius if `WebViewManager` field names
-change.
+`HighlightEngine.webViewForTest()` is a `@VisibleForTesting(otherwise = NONE) internal fun`
+that exposes the underlying `WebView` to test code without reflection. The screenshot
+helper and `SyntaxHighlightedCodeRobolectricTest` both use it to drive the engine
+deterministically via `Shadows.shadowOf(webView)`. Production code must never call it; the
+`VisibleForTesting` annotation makes Android Lint flag any non-test call site.

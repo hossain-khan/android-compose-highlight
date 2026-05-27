@@ -2,6 +2,7 @@ package dev.hossain.highlight.engine
 
 import android.content.Context
 import android.webkit.WebView
+import androidx.annotation.VisibleForTesting
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import dev.hossain.highlight.ui.rememberHighlightEngine
@@ -135,6 +136,17 @@ class HighlightEngine(
 ) : Closeable {
     // Use applicationContext to avoid retaining an Activity context in the long-lived WebView.
     private val manager = WebViewManager(context.applicationContext)
+
+    /**
+     * Returns the underlying [WebView] **synchronously** for test-only inspection, or `null`
+     * if the engine has not yet been initialized. Tests use this to drive the hidden WebView
+     * via Robolectric's `Shadows.shadowOf(...)` without reflection.
+     *
+     * Production code must not call this. Use [highlight], [highlightToHtml], etc., which
+     * all suspend on the engine's normal initialization path.
+     */
+    @VisibleForTesting(otherwise = VisibleForTesting.NONE)
+    internal fun webViewForTest(): WebView? = manager.webViewForTest()
 
     // Serializes concurrent evaluateJavascript() calls — WebView handles one at a time.
     private val mutex = Mutex()
