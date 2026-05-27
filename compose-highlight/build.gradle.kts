@@ -8,6 +8,7 @@ plugins {
     alias(libs.plugins.kotlinter)
     alias(libs.plugins.dokka)
     alias(libs.plugins.maven.publish)
+    alias(libs.plugins.roborazzi)
     jacoco
 }
 
@@ -95,7 +96,7 @@ androidComponents {
     }
 }
 
-// kotlinter walks the source set too — exclude the generated tree so its formatting rules
+// kotlinter walks the source set too - exclude the generated tree so its formatting rules
 // don't bicker with the emitter's output. We control its formatting at the emitter side.
 // Use invariantSeparatorsPath so the substring match works on Windows where File.absolutePath
 // uses backslashes.
@@ -105,6 +106,22 @@ tasks.withType<org.jmailen.gradle.kotlinter.tasks.LintTask>().configureEach {
 }
 tasks.withType<org.jmailen.gradle.kotlinter.tasks.FormatTask>().configureEach {
     exclude { it.file.invariantSeparatorsPath.contains(GENERATED_THEMES_PATH_FRAGMENT) }
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// Roborazzi screenshot regression tests.
+//
+// Goldens live under src/test/snapshots/images/ and are committed to git.
+// The pixel-diff change threshold is configured per-test inside
+// HighlightScreenshotTestHelpers.kt (the Gradle DSL only owns outputDir).
+//
+// Workflow:
+//   ./gradlew :compose-highlight:recordRoborazziDebug   - rewrites goldens
+//   ./gradlew :compose-highlight:verifyRoborazziDebug   - fails on drift
+// See compose-highlight/SCREENSHOT_TESTS.md for the full guide.
+// ────────────────────────────────────────────────────────────────────────────
+roborazzi {
+    outputDir.set(layout.projectDirectory.dir("src/test/snapshots/images"))
 }
 
 if (providers.gradleProperty("composeReports").orNull == "true") {
@@ -138,6 +155,8 @@ dependencies {
     testImplementation(libs.robolectric)
     testImplementation(libs.androidx.compose.ui.test.junit4)
     testImplementation(libs.androidx.test.ext.junit)
+    testImplementation(libs.roborazzi)
+    testImplementation(libs.roborazzi.compose)
 
     androidTestImplementation(composeBom)
     androidTestImplementation(libs.truth)

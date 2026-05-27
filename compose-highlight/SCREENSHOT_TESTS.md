@@ -1,0 +1,117 @@
+# Screenshot regression tests
+
+The `compose-highlight` library uses [Roborazzi](https://github.com/takahirom/roborazzi)
+to lock down the visual rendering of `SyntaxHighlightedCode` across themes, layout variants,
+and languages. Goldens live under `compose-highlight/src/test/snapshots/images/` and are
+committed to git. CI runs `verifyRoborazziDebug` on every PR; failures are reported with
+a side-by-side diff image.
+
+## What is covered
+
+| Suite | File | Goldens |
+|---|---|---|
+| Built-in themes | `BuiltInThemesScreenshotTest.kt` | 4 |
+| Layout variants | `LayoutVariantsScreenshotTest.kt` | 4 |
+| Language breadth | `LanguageBreadthScreenshotTest.kt` | 3 |
+
+The suite is intentionally small. It covers the four built-in themes, the four most-used layout
+knobs (line numbers, headerless, label-only header, default), and three languages that exercise
+breadth of token classes (Kotlin, Python, JSON). Adding more goldens has diminishing returns
+and increases the chance of OS-rendering drift breaking CI.
+
+## Workflow
+
+### Verify locally
+
+```bash
+./gradlew :compose-highlight:verifyRoborazziDebug
+```
+
+Diff images on failure land under `compose-highlight/build/outputs/roborazzi/`. The
+`*_compare.png` files show Reference / Diff / New side by side.
+
+### Update goldens after an intentional visual change
+
+If you made a deliberate visual change (theme tweak, layout adjustment, header rework):
+
+```bash
+./gradlew :compose-highlight:recordRoborazziDebug
+git add compose-highlight/src/test/snapshots/images/
+git commit
+```
+
+Inspect the regenerated PNGs visually before committing; the goldens are reviewed in the PR
+as binary diffs.
+
+### OS rendering caveat
+
+Skia font hinting differs between macOS, Linux, and Windows. Goldens recorded on one OS will
+not pixel-match on another. **Always record on Linux for the canonical CI baseline.**
+
+If you record on macOS or Windows and push, CI will fail with rendering drift. Two options to
+recover:
+
+1. **Use the GitHub Actions workflow.** Trigger
+   [Record Roborazzi screenshots](../.github/workflows/record-screenshots.yml)
+   from the Actions tab. It runs `recordRoborazziDebug` on `ubuntu-latest` and opens a PR with
+   the regenerated PNGs. Merge that PR and re-run CI on your branch.
+2. **Record locally inside Docker.** Run `./gradlew :compose-highlight:recordRoborazziDebug`
+   in a `ubuntu:24.04` Docker container with JDK 17 installed. More setup, but bypasses the
+   workflow PR dance.
+
+The workflow approach is preferred since it produces a peer-reviewable diff and keeps the
+canonical baseline in CI's exact environment.
+
+## Internals
+
+### Why hand-built HTML fixtures, not real engine round-trips
+
+The screenshot suite isolates two questions: "is the visual rendering of `AnnotatedString`
+stable across themes and layout variants?" The orthogonal question - "does highlight.js still
+tokenize Kotlin/Python/JSON correctly?" - is covered by the managed-device instrumented tests
+under `src/androidTest/`. Driving the real WebView from a JVM screenshot test would couple
+those two concerns and add flakiness without coverage benefit.
+
+The fixtures live in `TestHljsFixtures.kt` and were captured from real engine output at
+authoring time. They need a one-time refresh if `highlight.min.js` is upgraded; the fixture
+file's KDoc walks through how.
+
+### Why the helper drains the looper 200 times
+
+`SyntaxHighlightedCode` runs a four-stage async pipeline on every recomposition: JS callback
+on `Dispatchers.Main` -> jsoup parse on `Dispatchers.Default` -> state write on `Main` ->
+recomposition. Under v2 `createComposeRule`'s `StandardTestDispatcher`, each `Dispatcher` hop
+is a separate scheduler turn. A single `waitForIdle()` only drains the recomposition queue;
+it does not run scheduler-queued continuations. The drain loop in
+`HighlightScreenshotTestHelpers.captureHighlightedScreenshot` interleaves `ShadowLooper.idleMainLooper()`
+and `waitForIdle()` enough times to let every hop complete before capture.
+
+The 200 cap is defensive: in practice the engine completes within ~10 cycles. If a future
+change introduces a longer pipeline (e.g. an additional dispatcher hop) the cap may need to
+grow. If the test fails with "WebView was not created" or "AnimatedContent shows null", first
+double-check that the cap is high enough.
+
+### Why bypass `HighlightThemeProvider`
+
+The screenshot helper passes `theme` directly to `SyntaxHighlightedCode` instead of wrapping
+it in `HighlightThemeProvider`. The provider creates its own engine via `remember { ... }`
+and overrides the `LocalHighlightEngine` we install for test injection - so the WebView the
+test pulls out via reflection would never be the one the provider's engine drives. Direct
+theme parameter avoids the provider's internal engine machinery without changing what is
+actually rendered.
+
+### Pixel-diff threshold
+
+The threshold is set to 0.05% (0.0005) inside `HighlightScreenshotTestHelpers.captureHighlightedScreenshot`.
+This absorbs minor font-hinting jitter (sub-pixel anti-aliasing variations) while still
+catching real color and layout regressions. If goldens recorded on one Linux runner fail to
+verify on another at this threshold, the right move is to re-record on the canonical platform,
+not to relax the threshold.
+
+## Future work
+
+The audit punch list still has one related item open: replacing the test-only WebView
+reflection helper (`extractWebViewFromEngine`) with a `@VisibleForTesting internal` accessor
+on `WebViewManager`. Until that lands, the reflection helper is centralised in
+`HighlightScreenshotTestHelpers.kt` to limit blast radius if `WebViewManager` field names
+change.

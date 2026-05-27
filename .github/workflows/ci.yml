@@ -90,6 +90,20 @@ jobs:
         if: steps.changes.outputs.code == 'true'
         run: ./gradlew :compose-highlight:testDebugUnitTest
 
+      - name: Verify Roborazzi screenshots
+        if: steps.changes.outputs.code == 'true'
+        run: ./gradlew :compose-highlight:verifyRoborazziDebug
+
+      - name: Upload Roborazzi diff images on failure
+        if: failure() && steps.changes.outputs.code == 'true'
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: roborazzi-diff-images
+          path: |
+            compose-highlight/build/outputs/roborazzi/
+            compose-highlight/build/reports/roborazzi/
+          if-no-files-found: ignore
+
       - name: Accept Android SDK licenses
         if: steps.changes.outputs.code == 'true'
         run: yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses

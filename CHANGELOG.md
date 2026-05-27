@@ -4,6 +4,42 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Tests
+
+- **Roborazzi screenshot regression suite for `SyntaxHighlightedCode`** - 11 goldens
+  committed under `compose-highlight/src/test/snapshots/images/` (~276 KB total) and verified
+  by CI on every PR with a 0.05% pixel-diff tolerance. Coverage:
+  - 4 built-in themes (Tomorrow, Tomorrow Night, Atom One Dark, Atom One Light) on the same
+    Kotlin sample so diffs only reflect color-map differences.
+  - 4 layout variants on the Tomorrow theme: default, line numbers on, headerless,
+    language-label-only.
+  - 3 languages on Tomorrow: Kotlin, Python, JSON, exercising token-class breadth.
+- **Hand-built HTML token fixtures** instead of driving the real WebView from JVM tests.
+  This isolates "is the visual rendering of `AnnotatedString` stable?" from "does
+  highlight.js still tokenize correctly?" - the latter remains covered by managed-device
+  instrumented tests.
+- **`record-screenshots.yml` `workflow_dispatch` job** re-records goldens on
+  `ubuntu-latest` so contributors who hit macOS-vs-Linux Skia rendering drift can refresh
+  the canonical baseline without needing Docker locally.
+- **`compose-highlight/SCREENSHOT_TESTS.md`** documents the full workflow.
+
+### Refactored
+
+- **`ThemeParser` - replace regex CSS parser with a small recursive-descent implementation.**
+  No public API change; no AAR size impact beyond ~200 LOC of parser code.
+  - **Removed:** three brittle regexes (one to strip CSS comments, one to strip `@`-rule
+    blocks, one to extract rules) plus post-processing to filter pseudo-classes,
+    pseudo-elements, and descendant combinators.
+  - **Added:** a hand-written tokenizer that skips comments and at-rule blocks via
+    arbitrary-depth balanced-brace tracking, plus a recursive-descent walker that visits
+    each top-level `selectors { declarations }` rule and validates individual selectors
+    against a single small `HLJS_SELECTOR_REGEX`.
+  - **Behavior preserved verbatim:** `@media` / `@supports` / `@keyframes` blocks skipped,
+    `::pseudo` and `:pseudo` selectors rejected, descendant combinators rejected, compound
+    selectors handled, comma-separated selector lists with parenthesis-aware splitting,
+    split-rule `mergeSpanStyle` accumulation. All 385 existing parser tests pass on first
+    compile-clean run.
+
 ## [0.22.1] - 2026-05-24
 
 ### Fixed

@@ -19,6 +19,7 @@ kotlinter = "5.5.0"
 leakcanary = "2.14"
 vanniktech-publish = "0.36.0"
 robolectric = "4.16.1"
+roborazzi = "1.63.0"
 truth = "1.4.5"
 
 [libraries]
@@ -46,6 +47,8 @@ kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutine
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
 leakcanary-android = { module = "com.squareup.leakcanary:leakcanary-android", version.ref = "leakcanary" }
 robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
+roborazzi = { module = "io.github.takahirom.roborazzi:roborazzi", version.ref = "roborazzi" }
+roborazzi-compose = { module = "io.github.takahirom.roborazzi:roborazzi-compose", version.ref = "roborazzi" }
 truth = { module = "com.google.truth:truth", version.ref = "truth" }
 
 [plugins]
@@ -56,3 +59,4 @@ compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
 kotlinter = { id = "org.jmailen.kotlinter", version.ref = "kotlinter" }
 maven-publish = { id = "com.vanniktech.maven.publish", version.ref = "vanniktech-publish" }
+roborazzi = { id = "io.github.takahirom.roborazzi", version.ref = "roborazzi" }
