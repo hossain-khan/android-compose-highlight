@@ -14,10 +14,18 @@ All notable changes to this project will be documented in this file.
   - 4 layout variants on the Tomorrow theme: default, line numbers on, headerless,
     language-label-only.
   - 3 languages on Tomorrow: Kotlin, Python, JSON, exercising token-class breadth.
-- **Hand-built HTML token fixtures** instead of driving the real WebView from JVM tests.
-  This isolates "is the visual rendering of `AnnotatedString` stable?" from "does
-  highlight.js still tokenize correctly?" - the latter remains covered by managed-device
-  instrumented tests.
+- **HTML token fixtures captured from the bundled `highlight.min.js`** instead of driving
+  the real WebView from JVM tests. This isolates "is the visual rendering of
+  `AnnotatedString` stable?" from "does highlight.js still tokenize correctly?" - the latter
+  remains covered by managed-device instrumented tests.
+  - `src/test/resources/highlight-fixtures/snippets.json` is the single source of truth for
+    snippet code.
+  - `compose-highlight/scripts/generate-hljs-fixtures.js` loads the bundled hljs via Node's
+    `vm` module and writes one `<name>.html` per snippet. Wrapped by the
+    `refreshHljsFixtures` Gradle task. Requires Node.js 18+.
+  - Contributors run `./gradlew :compose-highlight:refreshHljsFixtures` after editing
+    snippets or upgrading `highlight.min.js`; both `*.html` and `*.png` are committed to git.
+    CI only verifies.
 - **`record-screenshots.yml` `workflow_dispatch` job** re-records goldens on
   `ubuntu-latest` so contributors who hit macOS-vs-Linux Skia rendering drift can refresh
   the canonical baseline without needing Docker locally.

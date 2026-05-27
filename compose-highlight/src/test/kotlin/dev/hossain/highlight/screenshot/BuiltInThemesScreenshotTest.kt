@@ -59,14 +59,15 @@ class BuiltInThemesScreenshotTest {
         name: String,
         theme: HighlightTheme,
     ) {
+        val snippet = TestSnippets.load("kotlin_sample")
         composeTestRule.captureHighlightedScreenshot(
             name = name,
-            fixtureHtml = TestHljsFixtures.KOTLIN_SAMPLE_HTML,
+            fixtureHtml = snippet.highlightedHtml,
         ) {
             ScreenshotScaffold {
                 SyntaxHighlightedCode(
-                    code = TestSnippets.KOTLIN_SAMPLE,
-                    language = "kotlin",
+                    code = snippet.code,
+                    language = snippet.language,
                     theme = theme,
                 )
             }

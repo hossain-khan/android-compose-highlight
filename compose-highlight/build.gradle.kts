@@ -124,6 +124,21 @@ roborazzi {
     outputDir.set(layout.projectDirectory.dir("src/test/snapshots/images"))
 }
 
+// Refresh the hand-captured highlight.js HTML fixtures used by the screenshot tests.
+// The script loads the bundled highlight.min.js via Node's vm module and writes one *.html
+// per snippet in snippets.json. Run this whenever snippets.json changes or after upgrading
+// the bundled highlight.min.js. See compose-highlight/SCREENSHOT_TESTS.md.
+tasks.register<Exec>("refreshHljsFixtures") {
+    group = "verification"
+    description = "Regenerate src/test/resources/highlight-fixtures/*.html from the bundled highlight.min.js. Requires Node.js 18+."
+    workingDir = projectDir
+    commandLine("node", "scripts/generate-hljs-fixtures.js")
+    inputs.file("scripts/generate-hljs-fixtures.js")
+    inputs.file("src/test/resources/highlight-fixtures/snippets.json")
+    inputs.file("src/main/assets/compose-highlight/highlight.min.js")
+    outputs.dir("src/test/resources/highlight-fixtures")
+}
+
 if (providers.gradleProperty("composeReports").orNull == "true") {
     composeCompiler {
         reportsDestination = layout.buildDirectory.dir("compose_compiler")

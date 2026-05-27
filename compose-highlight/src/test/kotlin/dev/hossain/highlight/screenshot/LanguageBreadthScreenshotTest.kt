@@ -25,48 +25,32 @@ class LanguageBreadthScreenshotTest {
 
     @Test
     fun lang_kotlin() {
-        capture(
-            name = "lang_kotlin",
-            code = TestSnippets.KOTLIN_SAMPLE,
-            language = "kotlin",
-            fixtureHtml = TestHljsFixtures.KOTLIN_SAMPLE_HTML,
-        )
+        capture(name = "lang_kotlin", snippetName = "kotlin_sample")
     }
 
     @Test
     fun lang_python() {
-        capture(
-            name = "lang_python",
-            code = TestSnippets.PYTHON_SAMPLE,
-            language = "python",
-            fixtureHtml = TestHljsFixtures.PYTHON_SAMPLE_HTML,
-        )
+        capture(name = "lang_python", snippetName = "python_sample")
     }
 
     @Test
     fun lang_json() {
-        capture(
-            name = "lang_json",
-            code = TestSnippets.JSON_SAMPLE,
-            language = "json",
-            fixtureHtml = TestHljsFixtures.JSON_SAMPLE_HTML,
-        )
+        capture(name = "lang_json", snippetName = "json_sample")
     }
 
     private fun capture(
         name: String,
-        code: String,
-        language: String,
-        fixtureHtml: String,
+        snippetName: String,
     ) {
+        val snippet = TestSnippets.load(snippetName)
         composeTestRule.captureHighlightedScreenshot(
             name = name,
-            fixtureHtml = fixtureHtml,
+            fixtureHtml = snippet.highlightedHtml,
         ) {
             ScreenshotScaffold {
                 SyntaxHighlightedCode(
-                    code = code,
-                    language = language,
+                    code = snippet.code,
+                    language = snippet.language,
                     theme = HighlightTheme.tomorrow(),
                 )
             }
