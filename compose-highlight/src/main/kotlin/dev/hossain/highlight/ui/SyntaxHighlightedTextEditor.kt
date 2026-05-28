@@ -102,6 +102,10 @@ fun SyntaxHighlightedTextEditor(
     val engine = rememberHighlightEngine()
     var highlighted by remember { mutableStateOf<AnnotatedString?>(null) }
 
+    // Clear stale spans immediately when language or theme changes so wrong-language
+    // (or wrong-theme) highlights are never visible during the debounce window.
+    LaunchedEffect(language, theme) { highlighted = null }
+
     val backgroundColor =
         remember(theme) {
             theme.backgroundColor.takeIf { it != Color.Unspecified }
