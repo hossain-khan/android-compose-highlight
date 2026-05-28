@@ -48,9 +48,9 @@ internal sealed class DemoTab(
                 Themes,
                 AllThemes,
                 LanguageDiscoverability,
+                LiveEditor,
                 Advanced,
                 Engine,
-                LiveEditor,
             )
         }
     }

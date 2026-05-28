@@ -9,9 +9,11 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -31,11 +33,8 @@ import dev.hossain.highlight.ui.SyntaxHighlightedTextEditor
 private val DEMO_LANGUAGES =
     listOf(
         "kotlin",
-        "python",
         "javascript",
-        "sql",
         "json",
-        "xml",
     )
 
 private val INITIAL_CODE_BY_LANGUAGE =
@@ -141,6 +140,20 @@ internal fun LiveEditorSection() {
 
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         SubSectionHeader("Live Syntax Highlighting Editor")
+
+        // Experimental feature banner
+        Surface(
+            color = MaterialTheme.colorScheme.tertiaryContainer,
+            shape = RoundedCornerShape(8.dp),
+        ) {
+            Text(
+                text = "\u26a0\ufe0f Experimental - This feature uses @ExperimentalHighlightApi and may change in future releases.",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onTertiaryContainer,
+                modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+            )
+        }
+
         Text(
             text = "Edit the code below - syntax highlighting updates as you type.",
             style = MaterialTheme.typography.bodySmall,
