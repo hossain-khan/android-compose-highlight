@@ -95,19 +95,39 @@ fun SyntaxHighlightedTextEditor(
     }
 
     // Merge highlight spans into the TextFieldValue while preserving cursor and selection.
-    // Only apply the highlight result when its text exactly matches the current value text.
-    // If the user typed a new character while the previous highlight result is still cached,
-    // the stale AnnotatedString has a different length than value.text, which would make the
-    // cursor selection out of bounds and freeze the field. Plain text is shown instead until
-    // the debounced highlight call for the new text completes.
-    val displayValue =
-        remember(value, highlighted) {
-            value.copy(
-                annotatedString =
-                    highlighted?.takeIf { it.text == value.text }
-                        ?: AnnotatedString(value.text),
-            )
+    //
+    // Three cases:
+    // 1. No highlight result yet - show plain text (first render or error).
+    // 2. Highlight text exactly matches current text - apply spans directly (steady state).
+    // 3. Text has changed since the last highlight result (user is typing, debounce pending) -
+    //    clip old spans to the new text length and apply them. Spans before any edit point
+    //    remain correctly colored; only the newly typed characters briefly have no span.
+    //    This gives the illusion of live highlighting - 90%+ of the block stays colored while
+    //    only the new characters wait for the next debounced highlight call.
+    val currentText = value.text
+    val annotated =
+        when {
+            highlighted == null -> {
+                AnnotatedString(currentText)
+            }
+
+            highlighted!!.text == currentText -> {
+                highlighted!!
+            }
+
+            else -> {
+                // Reuse old spans clipped to the new text length so the cursor offset
+                // is always in bounds, preserving editability.
+                val builder = AnnotatedString.Builder(currentText)
+                highlighted!!.spanStyles.forEach { range ->
+                    val start = range.start.coerceAtMost(currentText.length)
+                    val end = range.end.coerceAtMost(currentText.length)
+                    if (start < end) builder.addStyle(range.item, start, end)
+                }
+                builder.toAnnotatedString()
+            }
         }
+    val displayValue = value.copy(annotatedString = annotated)
 
     BasicTextField(
         value = displayValue,
