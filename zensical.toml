@@ -23,6 +23,7 @@ nav = [
   { "API Reference"   = [
       "reference/index.md",
       "reference/syntax-highlighted-code.md",
+      "reference/syntax-highlighted-text-editor.md",
       "reference/code-block-style.md",
       "reference/highlight-theme.md",
       "reference/highlight-engine.md",

@@ -49,6 +49,7 @@ import dev.hossain.highlight.sample.sections.AllThemesSection
 import dev.hossain.highlight.sample.sections.CallbacksSection
 import dev.hossain.highlight.sample.sections.EngineInfoSection
 import dev.hossain.highlight.sample.sections.LanguageDiscoverabilitySection
+import dev.hossain.highlight.sample.sections.LiveEditorSection
 import dev.hossain.highlight.sample.sections.PlaceholderSection
 import dev.hossain.highlight.sample.sections.SectionHeader
 import dev.hossain.highlight.sample.sections.StylingSection
@@ -308,6 +309,10 @@ fun SampleScreen() {
 
                         DemoTab.Engine -> {
                             item { EngineInfoSection() }
+                        }
+
+                        DemoTab.LiveEditor -> {
+                            item { LiveEditorSection() }
                         }
                     }
                 }
