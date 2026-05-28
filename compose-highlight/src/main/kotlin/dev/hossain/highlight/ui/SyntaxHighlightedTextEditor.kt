@@ -95,12 +95,17 @@ fun SyntaxHighlightedTextEditor(
     }
 
     // Merge highlight spans into the TextFieldValue while preserving cursor and selection.
-    // When no highlight result is available yet, fall back to plain text so the editor
-    // is always interactive, even before the first highlight call completes.
+    // Only apply the highlight result when its text exactly matches the current value text.
+    // If the user typed a new character while the previous highlight result is still cached,
+    // the stale AnnotatedString has a different length than value.text, which would make the
+    // cursor selection out of bounds and freeze the field. Plain text is shown instead until
+    // the debounced highlight call for the new text completes.
     val displayValue =
         remember(value, highlighted) {
             value.copy(
-                annotatedString = highlighted ?: AnnotatedString(value.text),
+                annotatedString =
+                    highlighted?.takeIf { it.text == value.text }
+                        ?: AnnotatedString(value.text),
             )
         }
 
