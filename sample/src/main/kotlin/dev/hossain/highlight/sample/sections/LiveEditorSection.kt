@@ -141,15 +141,15 @@ internal fun LiveEditorSection() {
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         SubSectionHeader("Live Syntax Highlighting Editor")
 
-        // Experimental feature banner
+        // Experimental feature info banner
         Surface(
-            color = MaterialTheme.colorScheme.tertiaryContainer,
+            color = MaterialTheme.colorScheme.secondaryContainer,
             shape = RoundedCornerShape(8.dp),
         ) {
             Text(
-                text = "\u26a0\ufe0f Experimental - This feature uses @ExperimentalHighlightApi and may change in future releases.",
+                text = "\u2139\ufe0f Experimental - This feature uses @ExperimentalHighlightApi and may change in future releases.",
                 style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onTertiaryContainer,
+                color = MaterialTheme.colorScheme.onSecondaryContainer,
                 modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
             )
         }
