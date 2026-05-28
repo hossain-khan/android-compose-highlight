@@ -12,6 +12,12 @@ All notable changes to this project will be documented in this file.
   Falls back to plain monospace text while a highlight result is in flight or on error.
   A new **Live Editor** demo tab in the sample app showcases the composable across
   6 languages (Kotlin, Python, JavaScript, SQL, JSON, XML).
+  Marked `@ExperimentalHighlightApi` - callers must opt in with
+  `@OptIn(ExperimentalHighlightApi::class)`.
+
+- **`ExperimentalHighlightApi`** - new `@RequiresOptIn` annotation for APIs that are not yet
+  stable. Applied to `SyntaxHighlightedTextEditor` for now; may be applied to future APIs
+  before they graduate to stable.
 
 ## [0.23.0] - 2026-05-27
 

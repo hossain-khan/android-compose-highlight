@@ -23,6 +23,10 @@ import dev.hossain.highlight.engine.HighlightTheme
 import kotlinx.coroutines.delay
 
 /**
+ * This composable is marked **experimental** ([ExperimentalHighlightApi]). Call sites must
+ * opt in with `@OptIn(ExperimentalHighlightApi::class)` or propagate the annotation. The API
+ * surface (parameters, defaults, behavior) may change in future releases.
+ *
  * A syntax-highlighted code editor composable built on [BasicTextField].
  *
  * As the user types, the visible text is re-highlighted in the background using the
@@ -87,6 +91,7 @@ import kotlinx.coroutines.delay
  *   highlight call. Defaults to 150 ms - a good balance between responsiveness and avoiding
  *   unnecessary WebView calls on fast typists.
  */
+@ExperimentalHighlightApi
 @Composable
 fun SyntaxHighlightedTextEditor(
     value: TextFieldValue,

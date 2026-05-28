@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalHighlightApi::class)
+
 package dev.hossain.highlight.sample.sections
 
 import androidx.compose.foundation.border
@@ -23,6 +25,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import dev.hossain.highlight.ui.ExperimentalHighlightApi
 import dev.hossain.highlight.ui.SyntaxHighlightedTextEditor
 
 private val DEMO_LANGUAGES =
