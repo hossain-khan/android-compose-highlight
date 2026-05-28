@@ -5,6 +5,7 @@ This section documents the public API of `compose-highlight`.
 | Class / Function | Description |
 |---|---|
 | [`SyntaxHighlightedCode`](syntax-highlighted-code.md) | Primary composable - renders a styled, highlighted code block |
+| [`SyntaxHighlightedTextEditor`](syntax-highlighted-text-editor.md) | **Experimental** - editable code field with live syntax highlighting as the user types |
 | [`HighlightThemeProvider`](syntax-highlighted-code.md#highlightthemeprovider) | Provides a shared theme and engine to a composable subtree |
 | [`CodeBlockStyle`](code-block-style.md) | Visual style configuration (shape, padding, font, copy button size) |
 | [`SyntaxHighlightedCodeDefaults`](code-block-style.md#syntaxhighlightedcodedefaults) | Default constants and helper composables (`CopyButton`, `LanguageLabel`) |
@@ -17,6 +18,7 @@ This section documents the public API of `compose-highlight`.
 | [`HighlightTimings`](../guides/performance.md#timing-callbacks) | Per-stage timing breakdown (`jsBridge`, `jsonUnescape`, `htmlParse`, `treeWalk`, `themeParse`, `total`) |
 | [`HighlightLanguageInfo`](highlight-engine.md#highlightlanguageinfo) | Metadata returned by `HighlightEngine.getLanguage()` |
 | [`HighlightException`](highlight-engine.md) | Sealed exception hierarchy for all engine errors |
+| [`ExperimentalHighlightApi`](syntax-highlighted-text-editor.md#experimentalhighlightapi) | Opt-in annotation for experimental APIs |
 | [`rememberHighlightedCode`](syntax-highlighted-code.md#rememberhighlightedcode) | Composable helper - highlights code and returns an `AnnotatedString` state |
 | [`rememberHighlightedCodeBothThemes`](syntax-highlighted-code.md#rememberhighlightedcodeboththemes) | Highlights once, produces light + dark variants |
 | [`rememberHighlightEngine`](highlight-engine.md#rememberhighlightengine) | Returns the shared or standalone `HighlightEngine` for the current composition |
