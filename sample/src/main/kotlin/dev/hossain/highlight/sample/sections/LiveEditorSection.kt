@@ -170,6 +170,7 @@ internal fun LiveEditorSection() {
                         color = MaterialTheme.colorScheme.outline,
                         shape = RoundedCornerShape(8.dp),
                     ),
+            shape = RoundedCornerShape(8.dp),
             contentPadding = PaddingValues(12.dp),
             textStyle =
                 TextStyle(

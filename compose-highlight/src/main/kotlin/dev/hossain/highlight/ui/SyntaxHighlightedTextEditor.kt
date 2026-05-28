@@ -12,6 +12,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
@@ -48,6 +50,7 @@ import kotlinx.coroutines.delay
  *         onValueChange = { editorValue = it },
  *         language    = "kotlin",
  *         modifier    = Modifier.fillMaxWidth().border(1.dp, Color.Gray, RoundedCornerShape(8.dp)),
+ *         shape       = RoundedCornerShape(8.dp),
  *         contentPadding = PaddingValues(12.dp),
  *     )
  * }
@@ -74,6 +77,9 @@ import kotlinx.coroutines.delay
  * @param contentPadding Padding applied *inside* the [Surface], between the background edge and
  *   the text. Defaults to [PaddingValues] of 0.dp (no padding). Use this instead of adding
  *   `.padding()` to [modifier] so the theme background fills the full bordered area.
+ * @param shape Shape used to clip the Surface background. Must match the shape used in any
+ *   `.border()` applied via [modifier] so the background and border align. Defaults to
+ *   [RectangleShape] (no rounding).
  * @param theme The highlight theme to apply. Defaults to [LocalHighlightTheme].
  * @param textStyle Text style for the editor. Defaults to a monospace style. The theme's
  *   foreground color is applied on top of this style when a highlight result is available.
@@ -88,6 +94,7 @@ fun SyntaxHighlightedTextEditor(
     language: String,
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(0.dp),
+    shape: Shape = RectangleShape,
     theme: HighlightTheme = LocalHighlightTheme.current,
     textStyle: TextStyle = TextStyle(fontFamily = FontFamily.Monospace),
     debounceMs: Long = 150L,
@@ -158,6 +165,7 @@ fun SyntaxHighlightedTextEditor(
 
     Surface(
         modifier = modifier,
+        shape = shape,
         color = backgroundColor,
         contentColor = textColor,
     ) {
