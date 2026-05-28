@@ -1,6 +1,7 @@
 package dev.hossain.highlight.ui
 
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -8,6 +9,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
@@ -62,7 +64,7 @@ import kotlinx.coroutines.delay
  * @param value The current [TextFieldValue], including text, cursor position, and selection.
  * @param onValueChange Called whenever the user edits the text or moves the cursor.
  * @param language Highlight.js language identifier (e.g. `"kotlin"`, `"python"`, `"sql"`).
- * @param modifier Modifier applied to the underlying [BasicTextField].
+ * @param modifier Modifier applied to the outer [Surface] container (background, border, size, etc.).
  * @param theme The highlight theme to apply. Defaults to [LocalHighlightTheme].
  * @param textStyle Text style for the editor. Defaults to a monospace style. The theme's
  *   foreground color is applied on top of this style when a highlight result is available.
@@ -82,6 +84,21 @@ fun SyntaxHighlightedTextEditor(
 ) {
     val engine = rememberHighlightEngine()
     var highlighted by remember { mutableStateOf<AnnotatedString?>(null) }
+
+    val backgroundColor =
+        remember(theme) {
+            theme.backgroundColor.takeIf { it != Color.Unspecified }
+                ?: SyntaxHighlightedCodeDefaults.fallbackBackgroundColor
+        }
+    val textColor =
+        remember(theme) {
+            theme.defaultTextColor.takeIf { it != Color.Unspecified }
+                ?: SyntaxHighlightedCodeDefaults.fallbackTextColor
+        }
+
+    // Merge the theme foreground color into the caller-supplied text style so unspanned
+    // characters (newly typed, not yet highlighted) match the theme foreground.
+    val themedTextStyle = remember(theme, textStyle) { textStyle.copy(color = textColor) }
 
     // Re-highlight with debounce whenever the text, language, or theme changes.
     // LaunchedEffect cancels the previous coroutine on each change, so rapid keystrokes
@@ -129,10 +146,15 @@ fun SyntaxHighlightedTextEditor(
         }
     val displayValue = value.copy(annotatedString = annotated)
 
-    BasicTextField(
-        value = displayValue,
-        onValueChange = onValueChange,
+    Surface(
         modifier = modifier,
-        textStyle = textStyle,
-    )
+        color = backgroundColor,
+        contentColor = textColor,
+    ) {
+        BasicTextField(
+            value = displayValue,
+            onValueChange = onValueChange,
+            textStyle = themedTextStyle,
+        )
+    }
 }
