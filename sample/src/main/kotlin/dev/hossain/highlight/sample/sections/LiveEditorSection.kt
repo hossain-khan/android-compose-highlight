@@ -3,10 +3,10 @@ package dev.hossain.highlight.sample.sections
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
@@ -169,7 +169,8 @@ internal fun LiveEditorSection() {
                         width = 1.dp,
                         color = MaterialTheme.colorScheme.outline,
                         shape = RoundedCornerShape(8.dp),
-                    ).padding(12.dp),
+                    ),
+            contentPadding = PaddingValues(12.dp),
             textStyle =
                 TextStyle(
                     fontFamily = FontFamily.Monospace,
