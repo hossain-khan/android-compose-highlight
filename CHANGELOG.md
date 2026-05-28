@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.24.0] - 2026-05-27
+
 ### Added
 
 - **`SyntaxHighlightedTextEditor`** - new public composable built on `BasicTextField` that
