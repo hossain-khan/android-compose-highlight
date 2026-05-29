@@ -292,10 +292,31 @@ internal fun applySnapshotSpans(
     currentText: String,
 ): AnnotatedString {
     val oldText = snapshotAnnotated.text
-    val prefixLen = oldText.commonPrefixWith(currentText).length
 
-    // Compute the common suffix length, clamped so prefix + suffix <= min(oldLen, newLen).
-    val rawSuffixLen = oldText.reversed().commonPrefixWith(currentText.reversed()).length
+    // Use index-based loops instead of commonPrefixWith()/reversed() to avoid allocating
+    // intermediate String copies. commonPrefixWith returns a new substring, and reversed()
+    // copies the entire string before comparing - for large editor content (5-20 KB) this
+    // produces ~4 temporary strings totalling 2x the document size on every recomposition
+    // during the debounce window, increasing GC pressure while the user is typing.
+    // Index loops are O(n) with zero allocations and identical behavior.
+    var prefixLen = 0
+    val minLen = minOf(oldText.length, currentText.length)
+    while (prefixLen < minLen && oldText[prefixLen] == currentText[prefixLen]) {
+        prefixLen++
+    }
+
+    // Walk backwards from both ends to find the common suffix length.
+    var rawSuffixLen = 0
+    var oldIdx = oldText.length - 1
+    var newIdx = currentText.length - 1
+    while (oldIdx >= 0 && newIdx >= 0 && oldText[oldIdx] == currentText[newIdx]) {
+        rawSuffixLen++
+        oldIdx--
+        newIdx--
+    }
+
+    // Clamp so prefix + suffix <= min(oldLen, newLen), preventing overlap when the edit
+    // is smaller than the surrounding unchanged regions.
     val suffixLen =
         rawSuffixLen
             .coerceAtMost(oldText.length - prefixLen)

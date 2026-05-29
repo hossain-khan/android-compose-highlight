@@ -133,7 +133,7 @@ class ApplySnapshotSpansTest {
         // old positions: "fun " 0..4, "data" 13..17
         val snap = snapshot(oldText, Triple(0, 4, red), Triple(13, 17, blue))
 
-        // Insert "// AAAA" after "fun main()\n}\n" - adds 7 chars at position 13
+        // Insert "// AAAAA" after "fun main()\n}\n" - adds 8 chars at position 13
         val newText = "fun main()\n}\n// AAAAAdata class"
         val result = applySnapshotSpans(snap, newText)
 
