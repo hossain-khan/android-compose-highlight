@@ -10,12 +10,14 @@ All notable changes to this project will be documented in this file.
   colors during debounce after mid-text edits** - the previous span-clipping used
   `coerceAtMost(currentText.length)` which only handled append-at-end safely. Mid-text
   insertions or deletions shift characters after the edit point, causing old positional spans to
-  cover the wrong characters. Fixed by computing `commonPrefixWith` between the snapshot text
-  and the current text, and discarding any span whose end falls beyond that unchanged prefix.
-  Append-at-end is unaffected: when the old text is a prefix of the new text, all old spans
-  carry over unchanged. The clipping logic is extracted into `internal fun clipSpansToPrefix`
-  for direct JVM unit testing; 8 new tests cover append-at-end (no regression), insert-in-middle,
-  span-straddling-edit-point, delete-from-middle, and full replacement. Fixes
+  cover the wrong characters, and dropped colors on all lines below the edit point. Fixed with
+  prefix/suffix analysis via `commonPrefixWith`: spans in the unchanged prefix are preserved
+  as-is, spans in the unchanged suffix (lines below the edit) are shifted by the length delta,
+  and spans in the edited region are dropped. Spans straddling the prefix/edit boundary are
+  clipped to the prefix. The logic is extracted into `internal fun applySnapshotSpans` for
+  direct JVM unit testing; 10 new tests cover append-at-end (no regression), insert-in-middle
+  with suffix shift, span-straddling-edit-point clipping, delete-from-middle with suffix shift,
+  multi-line edits preserving colors on lines below, and full replacement/empty cases. Fixes
   [#217](https://github.com/hossain-khan/android-compose-highlight/issues/217).
 
 - **`SyntaxHighlightedTextEditor` - eliminate non-suspending `LaunchedEffect` for stale-span

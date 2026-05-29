@@ -269,26 +269,62 @@ private data class HighlightSnapshot(
 )
 
 /**
- * Clips the span styles from [snapshotAnnotated] onto [currentText], applying only those spans
- * that fall within the **longest common prefix** of the snapshot text and [currentText].
+ * Transfers span styles from [snapshotAnnotated] onto [currentText], preserving spans in
+ * the **unchanged prefix and suffix** regions and discarding spans that cover the edited region.
  *
- * Spans beyond the first edit point are dropped because they are anchored to the old character
- * positions and would map to semantically wrong characters after any insertion or deletion in
- * the middle of the text. Only the unchanged prefix before the edit is guaranteed to be at the
- * same positions in both the old and new text.
+ * The text is split into three regions using the longest common prefix and suffix:
+ * - **Prefix** (before the edit point): spans are at the same positions in both strings -
+ *   apply as-is.
+ * - **Suffix** (after the edit point, unchanged trailing text): spans have shifted by
+ *   `currentText.length - snapshotAnnotated.text.length` - apply with that offset.
+ * - **Changed region** (between prefix and suffix): spans are dropped; they are anchored to
+ *   old positions and would map to wrong characters in the new text.
+ * - **Straddling spans** (start in prefix, end in or past the changed region): clipped to the
+ *   prefix boundary so the unedited leading portion of the token stays colored.
  *
- * For the common **append-at-end** case the entire old text is a prefix of the new text, so
- * all old spans carry over correctly and only the newly appended characters are unstyled.
+ * This keeps syntax colors correct on all lines **above and below** a mid-text edit during the
+ * debounce window, not just lines before the edit. For the common **append-at-end** case the
+ * suffix length is zero and the prefix equals the entire old text, so all old spans carry over
+ * unchanged with no regression.
  */
-internal fun clipSpansToPrefix(
+internal fun applySnapshotSpans(
     snapshotAnnotated: AnnotatedString,
     currentText: String,
 ): AnnotatedString {
-    val prefixLen = snapshotAnnotated.text.commonPrefixWith(currentText).length
+    val oldText = snapshotAnnotated.text
+    val prefixLen = oldText.commonPrefixWith(currentText).length
+
+    // Compute the common suffix length, clamped so prefix + suffix <= min(oldLen, newLen).
+    val rawSuffixLen = oldText.reversed().commonPrefixWith(currentText.reversed()).length
+    val suffixLen =
+        rawSuffixLen
+            .coerceAtMost(oldText.length - prefixLen)
+            .coerceAtMost(currentText.length - prefixLen)
+
+    val oldChangedEnd = oldText.length - suffixLen // first suffix char in old text
+    val delta = currentText.length - oldText.length
+
     val builder = AnnotatedString.Builder(currentText)
     snapshotAnnotated.spanStyles.forEach { range ->
-        val end = range.end.coerceAtMost(prefixLen)
-        if (range.start < end) builder.addStyle(range.item, range.start, end)
+        when {
+            // Entirely within the unchanged prefix - apply as-is.
+            range.end <= prefixLen -> {
+                builder.addStyle(range.item, range.start, range.end)
+            }
+
+            // Entirely within the unchanged suffix - shift by delta.
+            range.start >= oldChangedEnd -> {
+                val newStart = (range.start + delta).coerceAtLeast(0)
+                val newEnd = (range.end + delta).coerceAtMost(currentText.length)
+                if (newStart < newEnd) builder.addStyle(range.item, newStart, newEnd)
+            }
+
+            // Starts in the prefix but extends into the changed region - clip to prefix.
+            range.start < prefixLen -> {
+                builder.addStyle(range.item, range.start, prefixLen)
+            }
+            // Starts in the changed region - drop.
+        }
     }
     return builder.toAnnotatedString()
 }
@@ -305,12 +341,11 @@ internal fun clipSpansToPrefix(
  * - test the highlight pipeline in isolation without a `Surface`/`BasicTextField` in the tree
  *
  * The returned [TextFieldValue] is recomputed each time a new highlight result arrives.
- * Between updates the previous spans are preserved and clipped to the **unchanged common prefix**
- * of the snapshot text and the current text. Only spans whose end falls within that prefix are
- * applied, so spans at or after the first edit point are dropped rather than mapped to wrong
- * characters. For the common append-at-end case all old spans carry over unchanged; for mid-text
- * insertions or deletions only the prefix before the edit point stays colored until the debounce
- * fires and produces a fresh highlight result.
+ * Between updates the previous spans are transferred using a prefix/suffix analysis: spans on
+ * unchanged text before the edit are kept as-is, spans on unchanged text after the edit (lines
+ * below) are shifted by the length delta, and spans in the edited region are dropped. This means
+ * syntax colors on all lines above and below a mid-text edit remain correct during the debounce
+ * window, and only the characters being typed are temporarily unstyled.
  *
  * ## Usage - standalone (with BasicTextField)
  *
@@ -390,15 +425,14 @@ fun rememberSyntaxHighlightedEditorValue(
     //    Stale detection is in-composition: no separate LaunchedEffect needed to clear state.
     // 2. Snapshot text exactly matches current text - apply spans directly (steady state).
     // 3. Text has changed since the last snapshot (user is typing, debounce pending) -
-    //    Only apply old spans within the unchanged prefix (longest common prefix between
-    //    the snapshot text and the current text). Spans at or after the first edit point
-    //    are dropped: they are anchored to the old positions and would map to wrong characters
-    //    after any insertion or deletion in the middle of the text.
+    //    Transfer old spans using prefix+suffix analysis: spans on the unchanged prefix are
+    //    kept as-is, spans on the unchanged suffix (lines below the edit) are shifted by the
+    //    length delta, and spans covering the edited region are dropped.
     //
-    //    For the common append-at-end case, prefixLen == snapshot text length, so all old
-    //    spans carry over correctly and only the new trailing characters are unstyled.
-    //    For mid-text insertions or deletions, only the unchanged prefix stays colored;
-    //    the edited region and everything after it shows plain text until debounce fires.
+    //    For append-at-end the suffix length is zero and all old spans fall in the prefix,
+    //    so they carry over unchanged. For mid-text edits, text on lines above and below the
+    //    edit stays colored; only characters in the edited region become unstyled until debounce
+    //    fires and delivers a fresh highlight result.
     val currentText = value.text
     val snapshot = highlighted
     val annotated =
@@ -412,7 +446,7 @@ fun rememberSyntaxHighlightedEditorValue(
             }
 
             else -> {
-                clipSpansToPrefix(snapshot.annotated, currentText)
+                applySnapshotSpans(snapshot.annotated, currentText)
             }
         }
 
