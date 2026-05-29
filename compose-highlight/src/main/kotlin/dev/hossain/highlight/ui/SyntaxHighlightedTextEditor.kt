@@ -16,6 +16,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
+import dev.hossain.highlight.engine.HighlightException
 import dev.hossain.highlight.engine.HighlightTheme
 
 /**
@@ -88,12 +89,17 @@ import dev.hossain.highlight.engine.HighlightTheme
  *   foreground color is applied on top of this style when a highlight result is available.
  * @param debounceMs Milliseconds to wait after the last keystroke before triggering a new
  *   highlight call. Defaults to 150 ms - a good balance between responsiveness and avoiding
- *   unnecessary WebView calls on fast typists. If this value changes at runtime the new
- *   delay is picked up on the next highlight cycle without restarting the effect.
+ *   unnecessary WebView calls on fast typists. If `debounceMs` changes, the new value is used
+ *   on the next keystroke. The currently running debounce window is unaffected (the original
+ *   delay completes with its captured-at-suspension value).
  * @param onHighlightComplete Optional callback invoked each time a highlight cycle completes
  *   successfully. Receives the resulting [AnnotatedString] with syntax spans applied. Useful
  *   for testing (wait until the first result arrives) and for observing the highlight output
  *   without owning the editor's text state. Defaults to `null` (no callback).
+ * @param onError Optional callback invoked with the [HighlightException] when a highlight cycle
+ *   fails. The editor falls back to plain text on failure regardless of whether this callback
+ *   is set - it is purely observational. Use it to log failures, show a snackbar, or record
+ *   analytics. Defaults to `null` (no callback).
  *
  * **Note on [shape]:** if you pass a custom [Shape] (e.g. `RoundedCornerShape(8.dp)`), wrap
  * it in `remember` at the call site so that a new instance is not created on every
@@ -112,6 +118,7 @@ fun SyntaxHighlightedTextEditor(
     textStyle: TextStyle = TextStyle(fontFamily = FontFamily.Monospace),
     debounceMs: Long = 150L,
     onHighlightComplete: ((AnnotatedString) -> Unit)? = null,
+    onError: ((HighlightException) -> Unit)? = null,
 ) {
     val displayValue =
         rememberSyntaxHighlightedEditorValue(
@@ -120,6 +127,7 @@ fun SyntaxHighlightedTextEditor(
             theme = theme,
             debounceMs = debounceMs,
             onHighlightComplete = onHighlightComplete,
+            onError = onError,
         )
 
     val backgroundColor =

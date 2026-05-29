@@ -4,6 +4,44 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Fixed
+
+- **`SyntaxHighlightedTextEditor` / `rememberSyntaxHighlightedEditorValue` - preserve span
+  suffix tail on three-region mid-text edits** - when a single span covered the unchanged
+  prefix, the edited region, AND the unchanged suffix (common for multi-line strings, block
+  comments, and template literals), the algorithm clipped the span to the prefix end and
+  silently dropped the unchanged suffix tail. During the debounce window the trailing portion
+  of the token visibly lost its colour, even though the suffix characters and span coordinates
+  were recoverable by shifting with delta. Fixed by adding a fourth `when` branch that emits
+  both unchanged tails: the prefix tail at original coordinates and the suffix tail shifted by
+  delta. Two new unit tests in `ApplySnapshotSpansTest` lock down the new branch (one with
+  delta=0, one with delta+2). The existing
+  `insert in middle - span straddling edit point is clipped to prefix` test was renamed to
+  `insert in middle - span straddling edit keeps both unchanged tails` and updated to assert
+  the new (correct) behaviour, plus a new
+  `insert in middle - span ending at the edit point is clipped to prefix only` test keeps the
+  prefix-only-clip branch covered.
+
+- **Editor `debounceMs` KDoc was misleading** - both `SyntaxHighlightedTextEditor` and
+  `rememberSyntaxHighlightedEditorValue` claimed *"the new delay is picked up on the next
+  highlight cycle without restarting the effect."* In practice the `LaunchedEffect` is keyed
+  on `value.text`, so it restarts on every keystroke; `delay(currentDebounceMs)` reads the
+  value at suspension and a mid-sleep change is captured for that delay. KDoc corrected to:
+  *"If `debounceMs` changes, the new value is used on the next keystroke. The currently running
+  debounce window is unaffected."*
+
+### Added
+
+- **`onError` callback on `SyntaxHighlightedTextEditor` and `rememberSyntaxHighlightedEditorValue`** -
+  optional `((HighlightException) -> Unit)?` parameter, defaults to `null`. Mirrors the shape
+  already used by `rememberHighlightedCode` and `rememberHighlightedCodeBothThemes`. The editor
+  still falls back to plain text on failure regardless of whether the callback is set; this is
+  purely observational. Callers can use it to log failures, surface a snackbar, or record
+  analytics. Wired with `rememberUpdatedState` so a changed lambda is invoked without
+  restarting the effect. Unit-tested via a new `RememberSyntaxHighlightedEditorValueRobolectricTest`
+  that drives the `ShadowWebView` callback with `null` to deterministically trigger
+  `HighlightException.JsExecutionFailed`.
+
 ### Infrastructure
 
 - **Upgraded Zensical to 0.0.43** - latest documentation site generator with improved link

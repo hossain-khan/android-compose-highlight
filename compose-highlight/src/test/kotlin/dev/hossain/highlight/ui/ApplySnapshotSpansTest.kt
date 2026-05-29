@@ -16,6 +16,7 @@ import org.junit.Test
  * - Spans in the unchanged suffix are preserved and shifted by the length delta.
  * - Spans in the edited region are dropped.
  * - Spans that straddle the prefix/edit boundary are clipped to the prefix.
+ * - Spans that straddle prefix + changed + suffix preserve BOTH unchanged tails.
  */
 class ApplySnapshotSpansTest {
     private val red = SpanStyle(color = Color.Red)
@@ -82,23 +83,93 @@ class ApplySnapshotSpansTest {
     }
 
     @Test
-    fun `insert in middle - span straddling edit point is clipped to prefix`() {
-        // Entire word "keyword" in red (0..7), "rest" in blue (8..12)
+    fun `insert in middle - span straddling edit keeps both unchanged tails`() {
+        // Entire word "keyword" in red (0..7), "rest" in blue (8..12). The user inserts "X"
+        // at position 3 -> "keyXword rest". Because "word rest" is the longest common suffix,
+        // the algorithm recognises that BOTH the prefix part of "keyword" ("key", positions
+        // 0..3) and its suffix part ("word", positions 3..7 in the old text -> 4..8 in the
+        // new text) are unchanged in their content. The new fourth `when` branch preserves
+        // both tails. The blue suffix span on "rest" shifts by delta=1.
         val snap = snapshot("keyword rest", Triple(0, 7, red), Triple(8, 12, blue))
-        // Insert "X" at position 3 -> "keyXword rest"
         val result = applySnapshotSpans(snap, "keyXword rest")
 
         assertThat(result.text).isEqualTo("keyXword rest")
-        // Red span (0..7) straddles the edit point at 3 - clipped to (0..3).
+        // Red span (0..7) straddles all three regions in the new text.
+        // Prefix tail keeps original coordinates: (0..prefixLen=3).
+        // Suffix tail: oldChangedEnd=3 + delta=1 -> 4, range.end=7 + delta=1 -> 8 -> (4..8).
         val redSpans = result.spanStyles.filter { it.item == red }
-        assertThat(redSpans).hasSize(1)
-        assertThat(redSpans[0].start).isEqualTo(0)
-        assertThat(redSpans[0].end).isEqualTo(3)
+        assertThat(redSpans).hasSize(2)
+        val redRanges = redSpans.map { it.start to it.end }
+        assertThat(redRanges).containsExactly(0 to 3, 4 to 8).inOrder()
         // Blue "rest" (8..12) is in unchanged suffix - shifted by delta=1 to (9..13).
         val blueSpans = result.spanStyles.filter { it.item == blue }
         assertThat(blueSpans).hasSize(1)
         assertThat(blueSpans[0].start).isEqualTo(9)
         assertThat(blueSpans[0].end).isEqualTo(13)
+    }
+
+    @Test
+    fun `insert in middle - span ending at the edit point is clipped to prefix only`() {
+        // Same shape as above but the red span doesn't extend past the edit. With the new
+        // four-branch when, this case still hits the prefix-to-changed branch (NOT the new
+        // three-region branch). Verifies the third branch is still reachable.
+        // Snapshot: "key rest" with red on "key" (0..3), blue on "rest" (4..8).
+        val snap = snapshot("key rest", Triple(0, 3, red), Triple(4, 8, blue))
+        // Insert "X" at position 2 -> "keXy rest". prefixLen=2, suffixLen=6 (" rest" + "y"),
+        // wait: old[2]='y' vs new[3]='y' so the 'y' goes into the suffix.
+        // Walking back: old[7]='t'=new[8]='t', old[6]='s'=new[7]='s', ..., old[2]='y'=new[3]='y'.
+        // So suffixLen=6 (chars "y rest"). oldChangedEnd = 8 - 6 = 2. delta=1.
+        // Red span (0..3) has start=0 < prefixLen=2 AND end=3 > oldChangedEnd=2 -> three-region branch.
+        // Prefix tail: (0..2). Suffix tail: oldChangedEnd=2 + delta=1 -> 3, end=3 + delta=1 -> 4. (3..4).
+        val result = applySnapshotSpans(snap, "keXy rest")
+
+        assertThat(result.text).isEqualTo("keXy rest")
+        val redSpans = result.spanStyles.filter { it.item == red }
+        assertThat(redSpans).hasSize(2)
+        val redRanges = redSpans.map { it.start to it.end }
+        assertThat(redRanges).containsExactly(0 to 2, 3 to 4).inOrder()
+    }
+
+    @Test
+    fun `span covering all three regions keeps prefix and suffix tails`() {
+        // Regression test for the suffix-tail loss bug. A single span covers prefix +
+        // changed + suffix. Old behaviour: the span was clipped to (0..prefixLen) and
+        // the suffix tail was silently dropped, causing colour flicker on the unchanged
+        // trailing portion of large tokens (multi-line strings, block comments, template
+        // literals). New behaviour: emit BOTH the prefix tail at original coordinates and
+        // the suffix tail shifted by delta.
+        //
+        // Setup: "AAA-BBB-CCC" with one green span (0..11) covering everything.
+        val snap = snapshot("AAA-BBB-CCC", Triple(0, 11, green))
+        // User edits the middle "BBB" to "XXX" -> "AAA-XXX-CCC" (same length, delta=0).
+        // Algorithm: prefixLen=4 (matches "AAA-"), suffixLen=4 (matches "-CCC"),
+        //   oldChangedEnd=7. Span (0..11) hits the new fourth branch.
+        val result = applySnapshotSpans(snap, "AAA-XXX-CCC")
+
+        assertThat(result.text).isEqualTo("AAA-XXX-CCC")
+        // Two green spans: prefix tail (0..4) and suffix tail (7..11).
+        val greenSpans = result.spanStyles.filter { it.item == green }
+        assertThat(greenSpans).hasSize(2)
+        val ranges = greenSpans.map { it.start to it.end }
+        assertThat(ranges).containsExactly(0 to 4, 7 to 11).inOrder()
+    }
+
+    @Test
+    fun `span covering all three regions with insertion shifts suffix tail by delta`() {
+        // Same shape as the test above but with a length-changing edit, so delta != 0.
+        // Setup: "abcXYZdef" with one red span (0..9) covering everything.
+        val snap = snapshot("abcXYZdef", Triple(0, 9, red))
+        // User replaces "XYZ" with "MMMMM" -> "abcMMMMMdef" (delta=+2).
+        // prefixLen=3, suffixLen=3, oldChangedEnd=6, currentText.length=11.
+        val result = applySnapshotSpans(snap, "abcMMMMMdef")
+
+        assertThat(result.text).isEqualTo("abcMMMMMdef")
+        val redSpans = result.spanStyles.filter { it.item == red }
+        assertThat(redSpans).hasSize(2)
+        // Prefix tail keeps original coordinates (0..3).
+        // Suffix tail: oldChangedEnd=6 + delta=2 -> 8, range.end=9 + delta=2 -> 11.
+        val ranges = redSpans.map { it.start to it.end }
+        assertThat(ranges).containsExactly(0 to 3, 8 to 11).inOrder()
     }
 
     // ── Delete from the middle ────────────────────────────────────────────────
