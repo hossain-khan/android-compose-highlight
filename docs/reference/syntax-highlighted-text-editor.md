@@ -138,8 +138,10 @@ Inside `rememberSyntaxHighlightedEditorValue`:
 4. While a new result is in flight the composable uses one of three display strategies:
    - **No cached result** - plain monospace text (first render or after language/theme change)
    - **Cached text matches current text** - applies the full cached span set (steady state)
-   - **Text changed since last result** - clips old spans to the new text length; characters
-     before the edit point stay correctly colored, only newly typed characters are briefly unstyled
+   - **Text changed since last result** - applies old spans using prefix/suffix analysis:
+     spans on unchanged text before the edit are kept as-is, spans on unchanged text after
+     the edit (lines below the cursor) are shifted by the length delta, and spans in the
+     edited region are dropped. Only the characters being actively typed are briefly unstyled.
 
 ## Notes
 
