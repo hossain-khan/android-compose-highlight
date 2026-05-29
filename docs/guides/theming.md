@@ -15,7 +15,7 @@ Built-in themes (`tomorrow`, `tomorrowNight`, `atomOneDark`, `atomOneLight`) are
 
 - No `Context` required
 - No runtime CSS parsing
-- Color maps are read from precompiled `GeneratedThemes` constants
+- Color maps are read from precompiled color maps bundled with the library
 
 ## Automatic light/dark switching
 
