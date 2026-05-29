@@ -13,7 +13,6 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import dev.hossain.highlight.engine.HighlightException
@@ -115,8 +114,8 @@ fun SyntaxHighlightedTextEditor(
     contentPadding: PaddingValues = PaddingValues(0.dp),
     shape: Shape = RectangleShape,
     theme: HighlightTheme = LocalHighlightTheme.current,
-    textStyle: TextStyle = TextStyle(fontFamily = FontFamily.Monospace),
-    debounceMs: Long = 150L,
+    textStyle: TextStyle = SyntaxHighlightedTextEditorDefaults.DefaultTextStyle,
+    debounceMs: Long = SyntaxHighlightedTextEditorDefaults.DEBOUNCE_MS,
     onHighlightComplete: ((AnnotatedString) -> Unit)? = null,
     onError: ((HighlightException) -> Unit)? = null,
 ) {

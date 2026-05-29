@@ -443,7 +443,7 @@ fun rememberSyntaxHighlightedEditorValue(
     value: TextFieldValue,
     language: String,
     theme: HighlightTheme = LocalHighlightTheme.current,
-    debounceMs: Long = 150L,
+    debounceMs: Long = SyntaxHighlightedTextEditorDefaults.DEBOUNCE_MS,
     onHighlightComplete: ((AnnotatedString) -> Unit)? = null,
     onError: ((HighlightException) -> Unit)? = null,
 ): TextFieldValue {
