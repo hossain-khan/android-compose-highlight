@@ -277,10 +277,15 @@ private data class HighlightSnapshot(
  *   apply as-is.
  * - **Suffix** (after the edit point, unchanged trailing text): spans have shifted by
  *   `currentText.length - snapshotAnnotated.text.length` - apply with that offset.
- * - **Changed region** (between prefix and suffix): spans are dropped; they are anchored to
- *   old positions and would map to wrong characters in the new text.
- * - **Straddling spans** (start in prefix, end in or past the changed region): clipped to the
- *   prefix boundary so the unedited leading portion of the token stays colored.
+ * - **Changed region** (between prefix and suffix): spans whose start lies here are dropped;
+ *   the start position is invalidated by the edit, so partial revival is unsafe.
+ * - **Prefix-to-suffix straddling spans** (start in prefix, end past the changed region into
+ *   the suffix): both unchanged tails are kept. The prefix tail uses its original coordinates;
+ *   the suffix tail shifts by delta. Without this case, large spans like multi-line strings or
+ *   block comments would lose their colour on the unchanged trailing portion during the
+ *   debounce window.
+ * - **Prefix-to-changed straddling spans** (start in prefix, end in the changed region): clipped
+ *   to the prefix boundary so the unedited leading portion of the token stays coloured.
  *
  * This keeps syntax colors correct on all lines **above and below** a mid-text edit during the
  * debounce window, not just lines before the edit. For the common **append-at-end** case the
@@ -340,11 +345,26 @@ internal fun applySnapshotSpans(
                 if (newStart < newEnd) builder.addStyle(range.item, newStart, newEnd)
             }
 
-            // Starts in the prefix but extends into the changed region - clip to prefix.
+            // Starts in the prefix AND extends past the changed region into the suffix.
+            // Both unchanged tails are recoverable: the prefix tail keeps its original
+            // coordinates, and the suffix tail shifts by delta. Without this branch, the
+            // suffix tail would be silently dropped - visible as colour flicker on the
+            // right-hand side of multi-line strings, block comments, and template
+            // literals while the user is mid-edit.
+            range.start < prefixLen && range.end > oldChangedEnd -> {
+                builder.addStyle(range.item, range.start, prefixLen)
+                val suffixStart = oldChangedEnd + delta
+                val suffixEnd = (range.end + delta).coerceAtMost(currentText.length)
+                if (suffixStart < suffixEnd) builder.addStyle(range.item, suffixStart, suffixEnd)
+            }
+
+            // Starts in the prefix but ends in the changed region - clip to prefix.
             range.start < prefixLen -> {
                 builder.addStyle(range.item, range.start, prefixLen)
             }
-            // Starts in the changed region - drop.
+            // Starts in the changed region - drop. The start position is invalidated by
+            // the edit, so even if the end is in the suffix the span is unsafe to revive
+            // partially. The fresh highlight result will arrive shortly via debounce.
         }
     }
     return builder.toAnnotatedString()
@@ -397,12 +417,19 @@ internal fun applySnapshotSpans(
  * @param language Highlight.js language identifier (e.g. `"kotlin"`, `"python"`, `"sql"`).
  * @param theme The highlight theme to apply. Defaults to [LocalHighlightTheme].
  * @param debounceMs Milliseconds to wait after the last keystroke before triggering a new
- *   highlight call. Defaults to 150 ms. If this value changes at runtime the new delay is
- *   picked up on the next highlight cycle without restarting the effect.
+ *   highlight call. Defaults to 150 ms. If `debounceMs` changes, the new value is used on the
+ *   next keystroke. The currently running debounce window is unaffected (the original delay
+ *   completes with its captured-at-suspension value).
  * @param onHighlightComplete Optional callback invoked each time a highlight cycle completes
  *   successfully. Receives the resulting [AnnotatedString] with syntax spans applied. Useful
  *   for testing (wait until the first result arrives) and for observing the highlight output
  *   without owning the editor's text state.
+ * @param onError Optional callback invoked with the [HighlightException] when a highlight cycle
+ *   fails. The editor falls back to plain text on failure regardless of whether this callback
+ *   is set - it is purely observational. Use it to log failures, show a snackbar, or record
+ *   analytics. Possible failure types: [HighlightException.Timeout],
+ *   [HighlightException.JsExecutionFailed], [HighlightException.WebViewInitFailed],
+ *   [HighlightException.HtmlParseFailed].
  * @return The [TextFieldValue] with syntax-highlight spans applied, preserving
  *   the original cursor position and selection. Falls back to plain text while a highlight
  *   result is in flight, on error, or when the language/theme has just changed. Because this
@@ -418,6 +445,7 @@ fun rememberSyntaxHighlightedEditorValue(
     theme: HighlightTheme = LocalHighlightTheme.current,
     debounceMs: Long = 150L,
     onHighlightComplete: ((AnnotatedString) -> Unit)? = null,
+    onError: ((HighlightException) -> Unit)? = null,
 ): TextFieldValue {
     val engine = rememberHighlightEngine()
     var highlighted by remember { mutableStateOf<HighlightSnapshot?>(null) }
@@ -425,6 +453,7 @@ fun rememberSyntaxHighlightedEditorValue(
     // effect without restarting it (restarting would reset the debounce window mid-keystroke).
     val currentDebounceMs by rememberUpdatedState(debounceMs)
     val currentOnHighlightComplete by rememberUpdatedState(onHighlightComplete)
+    val currentOnError by rememberUpdatedState(onError)
 
     // Re-highlight with debounce whenever the text, language, or theme changes.
     // LaunchedEffect cancels the previous coroutine on each change, so rapid keystrokes
@@ -436,7 +465,10 @@ fun rememberSyntaxHighlightedEditorValue(
             .onSuccess { result ->
                 highlighted = HighlightSnapshot(result.annotated, language, theme)
                 currentOnHighlightComplete?.invoke(result.annotated)
-            }.onFailure { highlighted = null }
+            }.onFailure { error ->
+                highlighted = null
+                (error as? HighlightException)?.let { currentOnError?.invoke(it) }
+            }
     }
 
     // Merge highlight spans into the TextFieldValue while preserving cursor and selection.
