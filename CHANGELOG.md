@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.24.1] - 2026-05-28
+
 ### Fixed
 
 - **`SyntaxHighlightedTextEditor` / `rememberSyntaxHighlightedEditorValue` - fix wrong span
