@@ -11,7 +11,7 @@ All notable changes to this project will be documented in this file.
   `coerceAtMost(currentText.length)` which only handled append-at-end safely. Mid-text
   insertions or deletions shift characters after the edit point, causing old positional spans to
   cover the wrong characters, and dropped colors on all lines below the edit point. Fixed with
-  prefix/suffix analysis via `commonPrefixWith`: spans in the unchanged prefix are preserved
+  prefix/suffix analysis: spans in the unchanged prefix are preserved
   as-is, spans in the unchanged suffix (lines below the edit) are shifted by the length delta,
   and spans in the edited region are dropped. Spans straddling the prefix/edit boundary are
   clipped to the prefix. The logic is extracted into `internal fun applySnapshotSpans` for
