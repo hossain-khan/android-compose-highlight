@@ -379,9 +379,9 @@ class ApplySnapshotSpansTest {
 
     @Test
     fun `edit smaller than prefix plus suffix clamps overlap`() {
-        // Exercises the clamp at lines 320-323. Without it, prefixLen+suffixLen could exceed
-        // min(oldLen, newLen), causing the suffix range to overlap the prefix range and
-        // double-cover characters in the result.
+        // Exercises the prefix+suffix overlap clamp inside applySnapshotSpans. Without it,
+        // prefixLen+suffixLen could exceed min(oldLen, newLen), causing the suffix range to
+        // overlap the prefix range and double-cover characters in the result.
         //
         // Setup: "abab" with red span (0..4). User deletes the second "ab" -> "ab" (delta=-2).
         // prefixLen walks 'a'=='a', 'b'=='b', minLen=2 reached -> prefixLen=2.

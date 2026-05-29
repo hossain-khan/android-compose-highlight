@@ -44,22 +44,13 @@ All notable changes to this project will be documented in this file.
 
 ### Tests
 
-- **Six new unit tests for `applySnapshotSpans`** covering edges that were previously
+- **Seven new unit tests for `applySnapshotSpans`** covering edges that were previously
   untested: prepend at start (suffix branch with delta>0), identical text (no-op),
   both-empty strings, span starting in changed region extending into suffix (deliberately
   dropped because the start position is invalidated), zero-width span at the prefix
   boundary (preserved), zero-width span strictly inside the changed region (dropped), and
-  the prefix+suffix overlap clamp (lines 320-323 of `RememberHelpers.kt`). Test count for
-  this file went from 13 to 20.
-- **`rapidKeystrokesDoNotProduceMultipleHighlightCallbacks`** in
-  `RememberSyntaxHighlightedEditorValueRobolectricTest` asserts the headline guarantee of
-  the debounce-via-LaunchedEffect-cancellation design: 5 rapid `value.text` updates within
-  a single virtual instant must not each fire `onHighlightComplete`. The assertion is
-  `count < 2` rather than `count == 1` because ShadowWebView in Robolectric 4.16 only
-  retains the LAST queued evaluateJavascript callback, and which continuation survives the
-  cancellation cascade depends on internal coroutine dispatch ordering under
-  StandardTestDispatcher. The point is the contract: the design must never produce
-  per-keystroke highlight callbacks. Documented in the test KDoc.
+  the prefix+suffix overlap clamp inside `applySnapshotSpans`. Test count for this file
+  went from 13 to 20.
 
 ### Internal
 
