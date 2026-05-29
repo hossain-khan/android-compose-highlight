@@ -6,6 +6,7 @@ Theme initialization depends on how the theme is created:
 
 - Built-ins (`tomorrow`, `tomorrowNight`, `atomOneDark`, `atomOneLight`) use precompiled color maps and do not parse CSS at runtime.
 - CSS-backed themes (`fromAsset`, `fromCss`) are lazy and parse CSS on first `colorMap` access.
+- Color-map themes (`fromColorMap`) use the provided map and do not parse CSS.
 
 ## Built-in themes
 
