@@ -25,9 +25,10 @@ fun SyntaxHighlightedTextEditor(
     contentPadding: PaddingValues = PaddingValues(0.dp),
     shape: Shape = RectangleShape,
     theme: HighlightTheme = LocalHighlightTheme.current,
-    textStyle: TextStyle = TextStyle(fontFamily = FontFamily.Monospace),
-    debounceMs: Long = 150L,
+    textStyle: TextStyle = SyntaxHighlightedTextEditorDefaults.DefaultTextStyle,
+    debounceMs: Long = SyntaxHighlightedTextEditorDefaults.DEBOUNCE_MS,
     onHighlightComplete: ((AnnotatedString) -> Unit)? = null,
+    onError: ((HighlightException) -> Unit)? = null,
 )
 ```
 
@@ -42,9 +43,10 @@ fun SyntaxHighlightedTextEditor(
 | `contentPadding` | `PaddingValues` | `PaddingValues(0.dp)` | Padding applied inside the `Surface`, between the background edge and the text |
 | `shape` | `Shape` | `RectangleShape` | Clips the `Surface` background. Must match any `.border()` shape in `modifier` |
 | `theme` | `HighlightTheme` | `LocalHighlightTheme.current` | Theme to use. Throws if no `HighlightThemeProvider` is present and no explicit theme is passed |
-| `textStyle` | `TextStyle` | Monospace | Text style for the editor. The theme's foreground color is merged on top |
-| `debounceMs` | `Long` | `150` | Milliseconds to wait after the last keystroke before triggering a highlight call |
+| `textStyle` | `TextStyle` | [`SyntaxHighlightedTextEditorDefaults.DefaultTextStyle`](#syntaxhighlightedtexteditordefaults) (monospace) | Text style for the editor. The theme's foreground color is merged on top. Pre-allocated singleton; copy it to derive customised styles |
+| `debounceMs` | `Long` | [`SyntaxHighlightedTextEditorDefaults.DEBOUNCE_MS`](#syntaxhighlightedtexteditordefaults) (`150`) | Milliseconds to wait after the last keystroke before triggering a highlight call. If `debounceMs` changes, the new value is used on the next keystroke; the currently running debounce window is unaffected |
 | `onHighlightComplete` | `((AnnotatedString) -> Unit)?` | `null` | Called each time a highlight cycle completes. Receives the highlighted `AnnotatedString`. Useful for testing or observing the output without owning the text state |
+| `onError` | `((HighlightException) -> Unit)?` | `null` | Called when a highlight cycle fails. The editor falls back to plain text on failure regardless; this callback is purely observational. Use it to log failures, surface a snackbar, or record analytics |
 
 ## Opting in
 
@@ -139,9 +141,16 @@ Inside `rememberSyntaxHighlightedEditorValue`:
    - **No cached result** - plain monospace text (first render or after language/theme change)
    - **Cached text matches current text** - applies the full cached span set (steady state)
    - **Text changed since last result** - applies old spans using prefix/suffix analysis:
-     spans on unchanged text before the edit are kept as-is, spans on unchanged text after
-     the edit (lines below the cursor) are shifted by the length delta, and spans in the
-     edited region are dropped. Only the characters being actively typed are briefly unstyled.
+     - Spans on unchanged text **before** the edit are kept at their original coordinates.
+     - Spans on unchanged text **after** the edit (lines below the cursor) are shifted by the
+       length delta.
+     - Spans **straddling prefix + edited region + suffix** (large tokens like multi-line
+       strings, block comments, or template literals that span the edit) keep BOTH unchanged
+       tails: the prefix tail at original coordinates and the suffix tail shifted by delta.
+     - Spans whose start lies in the edited region are dropped (the start position is
+       invalidated by the edit, so partial revival is unsafe).
+
+   Only the characters being actively typed are briefly unstyled.
 
 ## Notes
 
@@ -179,10 +188,15 @@ fun rememberSyntaxHighlightedEditorValue(
     value: TextFieldValue,
     language: String,
     theme: HighlightTheme = LocalHighlightTheme.current,
-    debounceMs: Long = 150L,
+    debounceMs: Long = SyntaxHighlightedTextEditorDefaults.DEBOUNCE_MS,
     onHighlightComplete: ((AnnotatedString) -> Unit)? = null,
+    onError: ((HighlightException) -> Unit)? = null,
 ): TextFieldValue
 ```
+
+The `onError` callback receives a typed [`HighlightException`](highlight-engine.md#highlightexception) on
+failure. Possible subtypes: `Timeout`, `JsExecutionFailed`, `WebViewInitFailed`, `HtmlParseFailed`. The
+helper falls back to plain text regardless of whether the callback is set.
 
 The returned `TextFieldValue` is recomputed each time a new highlight result arrives. Because this
 function returns a non-Unit type, the Compose compiler marks it **non-restartable** - all internal
@@ -223,6 +237,42 @@ fun MyEditor() {
 
 ---
 
+## SyntaxHighlightedTextEditorDefaults
+
+Pre-allocated default values used by `SyntaxHighlightedTextEditor` and
+`rememberSyntaxHighlightedEditorValue`. Singletons here let parameter defaults reference a
+shared instance instead of constructing a fresh value per recomposition - relevant for an
+editor that recomposes on every keystroke.
+
+```kotlin
+import dev.hossain.highlight.ui.ExperimentalHighlightApi
+import dev.hossain.highlight.ui.SyntaxHighlightedTextEditorDefaults
+
+@ExperimentalHighlightApi
+object SyntaxHighlightedTextEditorDefaults {
+    val DefaultTextStyle: TextStyle = TextStyle(fontFamily = FontFamily.Monospace)
+    const val DEBOUNCE_MS: Long = 150L
+}
+```
+
+| Member | Description |
+|---|---|
+| `DefaultTextStyle` | Monospace `TextStyle`. Copy it (`DefaultTextStyle.copy(fontSize = 15.sp)`) to derive a customised style without re-declaring `fontFamily` |
+| `DEBOUNCE_MS` | Default debounce window: 150 ms |
+
+```kotlin
+val myEditorStyle = SyntaxHighlightedTextEditorDefaults.DefaultTextStyle.copy(fontSize = 15.sp)
+
+SyntaxHighlightedTextEditor(
+    value = editorValue,
+    onValueChange = { editorValue = it },
+    language = "kotlin",
+    textStyle = myEditorStyle,
+)
+```
+
+---
+
 ## ExperimentalHighlightApi
 
 `@RequiresOptIn` annotation used to mark APIs that are not yet stable. Callers must explicitly opt
@@ -232,6 +282,7 @@ Currently applied to:
 
 - `SyntaxHighlightedTextEditor`
 - `rememberSyntaxHighlightedEditorValue`
+- `SyntaxHighlightedTextEditorDefaults`
 
 APIs marked `@ExperimentalHighlightApi` may change signature, behavior, or be removed in any
 future release without a deprecation cycle.

@@ -42,6 +42,27 @@ All notable changes to this project will be documented in this file.
   that drives the `ShadowWebView` callback with `null` to deterministically trigger
   `HighlightException.JsExecutionFailed`.
 
+### Tests
+
+- **Seven new unit tests for `applySnapshotSpans`** covering edges that were previously
+  untested: prepend at start (suffix branch with delta>0), identical text (no-op),
+  both-empty strings, span starting in changed region extending into suffix (deliberately
+  dropped because the start position is invalidated), zero-width span at the prefix
+  boundary (preserved), zero-width span strictly inside the changed region (dropped), and
+  the prefix+suffix overlap clamp inside `applySnapshotSpans`. Test count for this file
+  went from 13 to 20.
+
+### Internal
+
+- **`SyntaxHighlightedTextEditorDefaults` object** with pre-allocated `DefaultTextStyle`
+  (monospace) and `DEBOUNCE_MS = 150L` constants. The editor's `textStyle` parameter
+  default previously evaluated `TextStyle(fontFamily = FontFamily.Monospace)` on every
+  parent recomposition - a fresh allocation per keystroke (the worst time to allocate).
+  Now both `SyntaxHighlightedTextEditor.textStyle` and `*.debounceMs` route through the
+  singleton, mirroring the pattern `SyntaxHighlightedCodeDefaults` already establishes
+  for the read-only viewer. Annotated `@ExperimentalHighlightApi`. Callers can `copy(...)`
+  the defaults to derive customised styles.
+
 ### Infrastructure
 
 - **Upgraded Zensical to 0.0.43** - latest documentation site generator with improved link

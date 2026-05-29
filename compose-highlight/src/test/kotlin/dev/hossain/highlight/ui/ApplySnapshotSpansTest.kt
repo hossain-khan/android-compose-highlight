@@ -272,4 +272,138 @@ class ApplySnapshotSpansTest {
         assertThat(result.text).isEqualTo("anything")
         assertThat(result.spanStyles).isEmpty()
     }
+
+    // ── Prepend, identical, both-empty, edge cases ───────────────────────────
+
+    @Test
+    fun `prepend at start - all spans shift by delta`() {
+        // The symmetric counterpart of `append at end`. Snapshot has spans starting at the
+        // very front; current text has new content prepended. Every span should fall into
+        // the unchanged-suffix branch and shift by delta.
+        val snap = snapshot("foo", Triple(0, 3, red))
+        // Insert "// " at position 0 -> "// foo".
+        // prefixLen=0 (empty common prefix), suffixLen=3 (entire "foo" matches).
+        // Span (0..3): end=3 > prefixLen=0, start=0 >= oldChangedEnd=0 -> suffix branch.
+        // Shifted by delta=+3 -> (3..6).
+        val result = applySnapshotSpans(snap, "// foo")
+
+        assertThat(result.text).isEqualTo("// foo")
+        assertThat(result.spanStyles).hasSize(1)
+        assertThat(result.spanStyles[0].start).isEqualTo(3)
+        assertThat(result.spanStyles[0].end).isEqualTo(6)
+        assertThat(result.spanStyles[0].item).isEqualTo(red)
+    }
+
+    @Test
+    fun `identical text - all spans transfer cleanly at original offsets`() {
+        // No-op short-circuit. prefixLen walks the entire string, suffixLen clamps to 0,
+        // every span hits the prefix branch and is applied verbatim. Guards a future
+        // refactor against accidentally introducing a copy that loses spans on no-op.
+        val snap = snapshot("hello world", Triple(0, 5, red), Triple(6, 11, blue))
+        val result = applySnapshotSpans(snap, "hello world")
+
+        assertThat(result.text).isEqualTo("hello world")
+        assertThat(result.spanStyles).hasSize(2)
+        val ranges = result.spanStyles.map { Triple(it.start, it.end, it.item) }
+        assertThat(ranges)
+            .containsExactly(
+                Triple(0, 5, red),
+                Triple(6, 11, blue),
+            ).inOrder()
+    }
+
+    @Test
+    fun `both empty strings - returns empty with no spans`() {
+        // minLen=0 so the prefix walk never enters its loop, and the backward suffix walk
+        // never enters either. No spans to iterate. Defensive guard against an off-by-one
+        // regression in either loop's termination condition.
+        val snap = AnnotatedString("")
+        val result = applySnapshotSpans(snap, "")
+
+        assertThat(result.text).isEqualTo("")
+        assertThat(result.spanStyles).isEmpty()
+    }
+
+    @Test
+    fun `span starting in changed region extending into suffix is dropped`() {
+        // Symmetric to the four-branch fix from #228, but verifies the deliberately-dropped
+        // case. A span whose start position is invalidated by the edit cannot be partially
+        // revived even if its end lies in the unchanged suffix - the start coordinate is
+        // unsafe. The fresh highlight result will arrive shortly via debounce.
+        //
+        // Setup: "abcdef" with green span (2..5). User replaces "bcd" with "XY"
+        // -> "aXYef". prefixLen=1 ('a'), suffixLen=2 ('ef'), clamp=2, oldChangedEnd=4.
+        // Span (2..5): end=5 > prefixLen=1, start=2 < oldChangedEnd=4 (not in suffix),
+        // start=2 >= prefixLen=1 (not in prefix or straddling prefix-suffix). Falls
+        // through to the implicit drop branch.
+        val snap = snapshot("abcdef", Triple(2, 5, green))
+        val result = applySnapshotSpans(snap, "aXYef")
+
+        assertThat(result.text).isEqualTo("aXYef")
+        assertThat(result.spanStyles).isEmpty()
+    }
+
+    @Test
+    fun `zero width span at prefix boundary is preserved`() {
+        // Compose's AnnotatedString accepts zero-width SpanStyles. The first when-branch
+        // applies any span where range.end <= prefixLen as-is, including zero-width ones.
+        // Verifies that a (start == end) span exactly at the prefix boundary survives the
+        // transfer. (Zero-width spans inside the changed region are dropped via the
+        // length guards in branches 2 and 4.)
+        val snap = snapshot("abc", Triple(2, 2, red))
+        // Insert "X" at position 2 -> "abXc". prefixLen=2 ('ab'), suffixLen=1 ('c'),
+        // oldChangedEnd=2. Span (2..2): end=2 <= prefixLen=2 -> first branch, applied as-is.
+        val result = applySnapshotSpans(snap, "abXc")
+
+        assertThat(result.text).isEqualTo("abXc")
+        assertThat(result.spanStyles).hasSize(1)
+        assertThat(result.spanStyles[0].start).isEqualTo(2)
+        assertThat(result.spanStyles[0].end).isEqualTo(2)
+    }
+
+    @Test
+    fun `zero width span strictly inside changed region is dropped`() {
+        // A zero-width span where prefixLen < start < oldChangedEnd lies entirely in the
+        // changed region. None of the four when-branches accept it (end > prefixLen,
+        // start < oldChangedEnd, start >= prefixLen, range.end == start so range.end !>
+        // oldChangedEnd). Falls through to the implicit drop branch.
+        val snap = snapshot("abcd", Triple(2, 2, red))
+        // Replace "bc" with "Z" -> "aZd". prefixLen=1 ('a'), suffixLen=1 ('d'),
+        // clamp=1, oldChangedEnd=3. Span (2..2): end=2 > prefixLen=1, start=2 < oldChangedEnd=3.
+        // Three-region branch: start=2 < prefixLen=1? No. Third branch: same condition. Dropped.
+        val result = applySnapshotSpans(snap, "aZd")
+
+        assertThat(result.text).isEqualTo("aZd")
+        assertThat(result.spanStyles).isEmpty()
+    }
+
+    @Test
+    fun `edit smaller than prefix plus suffix clamps overlap`() {
+        // Exercises the prefix+suffix overlap clamp inside applySnapshotSpans. Without it,
+        // prefixLen+suffixLen could exceed min(oldLen, newLen), causing the suffix range to
+        // overlap the prefix range and double-cover characters in the result.
+        //
+        // Setup: "abab" with red span (0..4). User deletes the second "ab" -> "ab" (delta=-2).
+        // prefixLen walks 'a'=='a', 'b'=='b', minLen=2 reached -> prefixLen=2.
+        // Backward walk: old[3]='b'=new[1]='b', old[2]='a'=new[0]='a', old[1]='b' vs (none) ->
+        // rawSuffixLen=2.
+        // Without the clamp: oldChangedEnd would be 4-2=2, and the four-branch case would emit
+        // prefix (0..2) AND suffix (oldChangedEnd+delta=0..range.end+delta=2) = (0..2) -
+        // double-covering the same characters.
+        // With the clamp: min(2, 4-2=2, 2-2=0) = 0. oldChangedEnd=4. Span (0..4):
+        //   end=4 > prefixLen=2, start=0 < oldChangedEnd=4. Three-region branch:
+        //   start=0 < prefixLen=2 && end=4 > oldChangedEnd=4? No (4 > 4 is false).
+        //   Third branch: start=0 < prefixLen=2 -> clip to (0..2). Result has exactly one
+        //   span at (0..2), no double-coverage.
+        val snap = snapshot("abab", Triple(0, 4, red))
+        val result = applySnapshotSpans(snap, "ab")
+
+        assertThat(result.text).isEqualTo("ab")
+        // Exactly one red span; the clamp prevented the suffix branch from also emitting
+        // an overlapping (0..2) range.
+        assertThat(result.spanStyles).hasSize(1)
+        assertThat(result.spanStyles[0].start).isEqualTo(0)
+        assertThat(result.spanStyles[0].end).isEqualTo(2)
+        assertThat(result.spanStyles[0].item).isEqualTo(red)
+    }
 }
