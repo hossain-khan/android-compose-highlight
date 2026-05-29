@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "android-compose-highlight-docs"
+description = "Documentation site for Compose Highlight for Android"
+version = "0.24.1"
+dependencies = [
+    # https://github.com/zensical/zensical/releases
+    # https://pypi.org/project/zensical/
+    "zensical==0.0.43",
+]
+
+[project.optional-dependencies]
+dev = [
+    "zensical==0.0.43",
+]

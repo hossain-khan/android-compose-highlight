@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Infrastructure
+
+- **Upgraded Zensical to 0.0.43** - latest documentation site generator with improved link
+  validation edge cases (dollar signs, GitHub callouts, TOC markers), BOM stripping for
+  UTF-8 files, and theme directory watching improvements.
+
 ## [0.24.1] - 2026-05-28
 
 ### Fixed

@@ -9,6 +9,7 @@
 #   - gradle.properties        (VERSION_NAME)
 #   - README.md                (dependency snippet)
 #   - sample/build.gradle.kts  (versionName, versionCode auto-incremented)
+#   - pyproject.toml           (version)
 #   - CHANGELOG.md             ([Unreleased] renamed to [<version>] - <date>)
 #
 # After running, verify the diff with `git diff`, then:
@@ -68,6 +69,10 @@ echo "- sample/build.gradle.kts versionCode: $CURRENT_CODE -> $NEW_CODE"
 # 5. CHANGELOG.md - rename [Unreleased] to versioned entry
 sed -i '' "s/## \[Unreleased\]/## [Unreleased]\n\n## [$NEW_VERSION] - $DATE/" "$REPO_ROOT/CHANGELOG.md"
 echo "- CHANGELOG.md [Unreleased] -> [$NEW_VERSION] - $DATE"
+
+# 6. pyproject.toml - version
+sed -i '' "s/version = \"$CURRENT_VERSION\"/version = \"$NEW_VERSION\"/" "$REPO_ROOT/pyproject.toml"
+echo "- pyproject.toml version updated"
 
 echo ""
 echo "Done. Verify with: git diff"
