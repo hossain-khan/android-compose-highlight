@@ -279,9 +279,9 @@ private data class HighlightSnapshot(
  * - wrap an `OutlinedTextField` or a third-party editor with syntax highlighting
  * - test the highlight pipeline in isolation without a `Surface`/`BasicTextField` in the tree
  *
- * The returned [State] is updated each time a new highlight result arrives. Between updates
- * the previous spans are preserved and clipped to the current text length, so the editor
- * never flickers or loses color while the user is typing.
+ * The returned [TextFieldValue] is recomputed each time a new highlight result arrives.
+ * Between updates the previous spans are preserved and clipped to the current text length,
+ * so the editor never flickers or loses color while the user is typing.
  *
  * ## Usage - standalone (with BasicTextField)
  *
@@ -292,7 +292,7 @@ private data class HighlightSnapshot(
  *     lightHighlightTheme = HighlightTheme.tomorrow(),
  *     darkHighlightTheme  = HighlightTheme.tomorrowNight(),
  * ) {
- *     val displayValue by rememberSyntaxHighlightedEditorValue(
+ *     val displayValue = rememberSyntaxHighlightedEditorValue(
  *         value    = editorValue,
  *         language = "kotlin",
  *     )
@@ -323,7 +323,7 @@ private data class HighlightSnapshot(
  *   result is in flight, on error, or when the language/theme has just changed. Because this
  *   function is a non-restartable composable (returns a non-Unit type), all internal [State]
  *   reads (including the highlight snapshot) automatically subscribe the caller's recompose
- *   scope — callers should use it like any other composable helper (`val x = rememberXxx()`).
+ *   scope - callers should use it like any other composable helper (`val x = rememberXxx()`).
  */
 @ExperimentalHighlightApi
 @Composable
