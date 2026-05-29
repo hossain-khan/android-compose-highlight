@@ -6,6 +6,18 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+- **`SyntaxHighlightedTextEditor` / `rememberSyntaxHighlightedEditorValue` - fix wrong span
+  colors during debounce after mid-text edits** - the previous span-clipping used
+  `coerceAtMost(currentText.length)` which only handled append-at-end safely. Mid-text
+  insertions or deletions shift characters after the edit point, causing old positional spans to
+  cover the wrong characters. Fixed by computing `commonPrefixWith` between the snapshot text
+  and the current text, and discarding any span whose end falls beyond that unchanged prefix.
+  Append-at-end is unaffected: when the old text is a prefix of the new text, all old spans
+  carry over unchanged. The clipping logic is extracted into `internal fun clipSpansToPrefix`
+  for direct JVM unit testing; 7 new tests cover append-at-end (no regression), insert-in-middle,
+  span-straddling-edit-point, delete-from-middle, and full replacement. Fixes
+  [#217](https://github.com/hossain-khan/android-compose-highlight/issues/217).
+
 - **`SyntaxHighlightedTextEditor` - eliminate non-suspending `LaunchedEffect` for stale-span
   clearing** - introduced a private `HighlightSnapshot` data class that carries the `language`
   and `theme` that produced the cached spans. Stale detection now happens in-composition via a

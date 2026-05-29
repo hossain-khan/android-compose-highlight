@@ -269,6 +269,31 @@ private data class HighlightSnapshot(
 )
 
 /**
+ * Clips the span styles from [snapshotAnnotated] onto [currentText], applying only those spans
+ * that fall within the **longest common prefix** of the snapshot text and [currentText].
+ *
+ * Spans beyond the first edit point are dropped because they are anchored to the old character
+ * positions and would map to semantically wrong characters after any insertion or deletion in
+ * the middle of the text. Only the unchanged prefix before the edit is guaranteed to be at the
+ * same positions in both the old and new text.
+ *
+ * For the common **append-at-end** case the entire old text is a prefix of the new text, so
+ * all old spans carry over correctly and only the newly appended characters are unstyled.
+ */
+internal fun clipSpansToPrefix(
+    snapshotAnnotated: AnnotatedString,
+    currentText: String,
+): AnnotatedString {
+    val prefixLen = snapshotAnnotated.text.commonPrefixWith(currentText).length
+    val builder = AnnotatedString.Builder(currentText)
+    snapshotAnnotated.spanStyles.forEach { range ->
+        val end = range.end.coerceAtMost(prefixLen)
+        if (range.start < end) builder.addStyle(range.item, range.start, end)
+    }
+    return builder.toAnnotatedString()
+}
+
+/**
  * Runs the debounce + syntax-highlight pipeline for a live code editor and returns the
  * display [TextFieldValue] ready to pass directly to `BasicTextField` (or any other text
  * field that accepts [TextFieldValue]).
@@ -361,9 +386,15 @@ fun rememberSyntaxHighlightedEditorValue(
     //    Stale detection is in-composition: no separate LaunchedEffect needed to clear state.
     // 2. Snapshot text exactly matches current text - apply spans directly (steady state).
     // 3. Text has changed since the last snapshot (user is typing, debounce pending) -
-    //    clip old spans to the new text length and apply them. Spans before any edit point
-    //    remain correctly colored; only the newly typed characters briefly have no span.
-    //    This gives the illusion of live highlighting while the debounce window is open.
+    //    Only apply old spans within the unchanged prefix (longest common prefix between
+    //    the snapshot text and the current text). Spans at or after the first edit point
+    //    are dropped: they are anchored to the old positions and would map to wrong characters
+    //    after any insertion or deletion in the middle of the text.
+    //
+    //    For the common append-at-end case, prefixLen == snapshot text length, so all old
+    //    spans carry over correctly and only the new trailing characters are unstyled.
+    //    For mid-text insertions or deletions, only the unchanged prefix stays colored;
+    //    the edited region and everything after it shows plain text until debounce fires.
     val currentText = value.text
     val snapshot = highlighted
     val annotated =
@@ -377,13 +408,7 @@ fun rememberSyntaxHighlightedEditorValue(
             }
 
             else -> {
-                val builder = AnnotatedString.Builder(currentText)
-                snapshot.annotated.spanStyles.forEach { range ->
-                    val start = range.start.coerceAtMost(currentText.length)
-                    val end = range.end.coerceAtMost(currentText.length)
-                    if (start < end) builder.addStyle(range.item, start, end)
-                }
-                builder.toAnnotatedString()
+                clipSpansToPrefix(snapshot.annotated, currentText)
             }
         }
 
