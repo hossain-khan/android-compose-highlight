@@ -73,6 +73,25 @@ npx markdownlint --fix CHANGELOG.md
 6. **No spaces inside code spans** — Code spans must not have spaces between backticks and content: `` `code` `` not `` ` code ` ``.
 7. **Run `markdownlint` before committing** — Always verify no violations remain: `npx markdownlint CHANGELOG.md`
 
+## Docs Changelog Sync
+
+**Keep `docs/changelog.md` in sync with root `CHANGELOG.md`.** The docs site file serves as a curated summary for visitors - it should always contain brief highlights of the **last 5 releases** only. After each release:
+
+1. Add a new `### X.Y.Z - Brief Title` section at the top of the "Recent highlights" block in `docs/changelog.md`
+2. Extract 3-5 key bullet points from the root `CHANGELOG.md` for that release (focus on user-facing features and major fixes)
+3. Keep descriptions brief (1-2 lines per item, no wrapped multi-line format)
+4. Remove the oldest release entry to maintain the "last 5 releases" limit
+5. No markdown linting required for `docs/changelog.md` — it's documentation, not a strict changelog
+
+Example format:
+```markdown
+### 0.25.0 - New theme support
+
+- Added 10 new built-in themes (Dracula, Solarized, etc.)
+- Fixed WebView crash on Android 12 devices
+- Improved theme parsing performance by 40%
+```
+
 ## Architecture
 
 The library has two layers - `engine/` (internal) and `ui/` (public):
