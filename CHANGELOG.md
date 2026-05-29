@@ -33,6 +33,13 @@ All notable changes to this project will be documented in this file.
   `onHighlightComplete` callback after debounce, re-fires on language change, and stale-span
   invalidation on language switch.
 
+- **`rememberSyntaxHighlightedEditorValue()`** - new public `@Composable` helper that extracts
+  the debounce + engine pipeline from `SyntaxHighlightedTextEditor` into a standalone function
+  mirroring the existing `rememberHighlightedCode` pattern. Returns `State<TextFieldValue>`
+  with syntax spans applied and cursor/selection preserved. Enables callers to bring their own
+  layout (`OutlinedTextField`, third-party editor, etc.) without forking the composable.
+  `SyntaxHighlightedTextEditor` now delegates to this helper and acts as a thin layout shell.
+
 ## [0.24.0] - 2026-05-27
 
 ### Added
