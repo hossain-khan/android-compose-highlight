@@ -1,6 +1,6 @@
 # Theming
 
-`compose-highlight` ships four Highlight.js themes out of the box. Themes are backed by CSS files bundled in the library's assets and lazily parsed at first use.
+`compose-highlight` ships four Highlight.js themes out of the box. Those built-ins are precompiled into Kotlin constants at build time, so they do not parse CSS at runtime.
 
 ## Built-in themes
 
@@ -10,6 +10,12 @@
 | Tomorrow Night | Dark | `rememberTomorrowNightTheme()` |
 | Atom One Dark | Dark | `rememberAtomOneDarkTheme()` |
 | Atom One Light | Light | `rememberAtomOneLightTheme()` |
+
+Built-in themes (`tomorrow`, `tomorrowNight`, `atomOneDark`, `atomOneLight`) are fast-path themes:
+
+- No `Context` required
+- No runtime CSS parsing
+- Color maps are read from precompiled color maps bundled with the library
 
 ## Automatic light/dark switching
 
@@ -59,6 +65,8 @@ val theme = HighlightTheme.fromAsset(
 )
 HighlightThemeProvider(darkHighlightTheme = theme) { ... }
 ```
+
+`fromAsset()` is lazy. CSS parsing happens on first use (`theme.colorMap`), not at factory-call time.
 
 !!! note
     `HighlightTheme.fromAsset()` normalizes the passed `Context` to `applicationContext` internally.
@@ -123,7 +131,7 @@ import dev.hossain.highlight.ui.rememberHighlightEngine
 
 val engine = rememberHighlightEngine()
 val fallback = remember(code) { AnnotatedString(code) }
-val (lightAnnotated, darkAnnotated) by produceState(fallback to fallback, code) {
+val themedPair by produceState(fallback to fallback, code) {
     engine.highlightBothThemes(
         code       = code,
         language   = "kotlin",
@@ -131,6 +139,7 @@ val (lightAnnotated, darkAnnotated) by produceState(fallback to fallback, code) 
         darkTheme  = darkTheme,
     ).onSuccess { value = it.light to it.dark }
 }
+val (lightAnnotated, darkAnnotated) = themedPair
 // Switch between lightAnnotated and darkAnnotated instantly
 ```
 

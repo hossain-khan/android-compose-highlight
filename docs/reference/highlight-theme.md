@@ -1,8 +1,12 @@
 # HighlightTheme
 
-Represents a syntax highlighting theme backed by a Highlight.js CSS file.
+Represents a syntax highlighting theme used by the engine to map `hljs-*` tokens to Compose `SpanStyle`s.
 
-The color map is lazily initialized and cached - CSS parsing happens at most once per theme instance.
+Theme initialization depends on how the theme is created:
+
+- Built-ins (`tomorrow`, `tomorrowNight`, `atomOneDark`, `atomOneLight`) use precompiled color maps and do not parse CSS at runtime.
+- CSS-backed themes (`fromAsset`, `fromCss`) are lazy and parse CSS on first `colorMap` access.
+- Color-map themes (`fromColorMap`) use the provided map and do not parse CSS.
 
 ## Built-in themes
 
@@ -13,7 +17,7 @@ The color map is lazily initialized and cached - CSS parsing happens at most onc
 | `HighlightTheme.atomOneDark()` | Dark | `rememberAtomOneDarkTheme()` |
 | `HighlightTheme.atomOneLight()` | Light | `rememberAtomOneLightTheme()` |
 
-Always use the `remember*` helpers inside composables so the CSS is not re-parsed on every recomposition:
+Use the `remember*` helpers inside composables to keep stable theme instances across recompositions:
 
 ```kotlin
 import dev.hossain.highlight.ui.HighlightThemeProvider
