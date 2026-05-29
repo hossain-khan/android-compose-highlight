@@ -27,6 +27,7 @@ fun SyntaxHighlightedTextEditor(
     theme: HighlightTheme = LocalHighlightTheme.current,
     textStyle: TextStyle = TextStyle(fontFamily = FontFamily.Monospace),
     debounceMs: Long = 150L,
+    onHighlightComplete: ((AnnotatedString) -> Unit)? = null,
 )
 ```
 
@@ -43,6 +44,7 @@ fun SyntaxHighlightedTextEditor(
 | `theme` | `HighlightTheme` | `LocalHighlightTheme.current` | Theme to use. Throws if no `HighlightThemeProvider` is present and no explicit theme is passed |
 | `textStyle` | `TextStyle` | Monospace | Text style for the editor. The theme's foreground color is merged on top |
 | `debounceMs` | `Long` | `150` | Milliseconds to wait after the last keystroke before triggering a highlight call |
+| `onHighlightComplete` | `((AnnotatedString) -> Unit)?` | `null` | Called each time a highlight cycle completes. Receives the highlighted `AnnotatedString`. Useful for testing or observing the output without owning the text state |
 
 ## Opting in
 
@@ -120,13 +122,19 @@ fun SqlEditor() {
 
 ## How it works
 
-1. The composable maintains a `highlighted: AnnotatedString?` state and a `TextFieldValue` for the
-   field itself.
-2. A `LaunchedEffect` keyed on `(value.text, language, theme)` waits for `debounceMs` milliseconds,
+`SyntaxHighlightedTextEditor` delegates all pipeline logic to [`rememberSyntaxHighlightedEditorValue()`](#remembersyntaxhighlightededitorvalue)
+and renders the result in a `Surface` + `BasicTextField` layout.
+
+Inside `rememberSyntaxHighlightedEditorValue`:
+
+1. A `LaunchedEffect` keyed on `(value.text, language, theme)` waits for `debounceMs` milliseconds,
    then calls `HighlightEngine.highlight()`. Rapid keystrokes cancel the previous coroutine so only
    one call fires after the user pauses.
-3. When `language` or `theme` changes, a separate `LaunchedEffect` immediately clears the cached
-   spans so stale highlights from a prior language or theme are never shown.
+2. The result is stored as a `HighlightSnapshot(annotated, language, theme)` - a private data class
+   that bundles the highlighted text together with the language and theme that produced it.
+3. Stale snapshot detection is **in-composition**: if `snapshot.language != language` or
+   `snapshot.theme != theme`, the composable falls back to plain text immediately - no separate
+   `LaunchedEffect` is needed to clear state.
 4. While a new result is in flight the composable uses one of three display strategies:
    - **No cached result** - plain monospace text (first render or after language/theme change)
    - **Cached text matches current text** - applies the full cached span set (steady state)
@@ -148,6 +156,71 @@ fun SqlEditor() {
 
 ---
 
+## rememberSyntaxHighlightedEditorValue
+
+A lower-level `@Composable` helper that runs the debounce + highlight pipeline and returns the
+display `TextFieldValue` directly - without rendering any layout. Use this when you want to bring
+your own text field (`OutlinedTextField`, a third-party editor, etc.) instead of the built-in
+`Surface` + `BasicTextField` wrapper.
+
+`SyntaxHighlightedTextEditor` calls this function internally. They share the same behavior.
+
+### Signature
+
+```kotlin
+import dev.hossain.highlight.ui.ExperimentalHighlightApi
+import dev.hossain.highlight.ui.rememberSyntaxHighlightedEditorValue
+
+@ExperimentalHighlightApi
+@Composable
+fun rememberSyntaxHighlightedEditorValue(
+    value: TextFieldValue,
+    language: String,
+    theme: HighlightTheme = LocalHighlightTheme.current,
+    debounceMs: Long = 150L,
+    onHighlightComplete: ((AnnotatedString) -> Unit)? = null,
+): TextFieldValue
+```
+
+The returned `TextFieldValue` is recomputed each time a new highlight result arrives. Because this
+function returns a non-Unit type, the Compose compiler marks it **non-restartable** - all internal
+state reads automatically subscribe the caller's recompose scope. Use it like any other composable
+helper:
+
+```kotlin
+val displayValue = rememberSyntaxHighlightedEditorValue(
+    value    = editorValue,
+    language = "kotlin",
+)
+```
+
+### Usage - custom text field
+
+```kotlin
+@OptIn(ExperimentalHighlightApi::class)
+@Composable
+fun MyEditor() {
+    var editorValue by remember { mutableStateOf(TextFieldValue("fun hello() = println(\"Hello!\")")) }
+
+    HighlightThemeProvider(
+        lightHighlightTheme = rememberTomorrowTheme(),
+        darkHighlightTheme  = rememberTomorrowNightTheme(),
+    ) {
+        val displayValue = rememberSyntaxHighlightedEditorValue(
+            value    = editorValue,
+            language = "kotlin",
+        )
+        OutlinedTextField(
+            value         = displayValue,
+            onValueChange = { editorValue = it },
+            label         = { Text("Code") },
+        )
+    }
+}
+```
+
+---
+
 ## ExperimentalHighlightApi
 
 `@RequiresOptIn` annotation used to mark APIs that are not yet stable. Callers must explicitly opt
@@ -156,6 +229,7 @@ in with `@OptIn(ExperimentalHighlightApi::class)` or propagate the annotation to
 Currently applied to:
 
 - `SyntaxHighlightedTextEditor`
+- `rememberSyntaxHighlightedEditorValue`
 
 APIs marked `@ExperimentalHighlightApi` may change signature, behavior, or be removed in any
 future release without a deprecation cycle.
