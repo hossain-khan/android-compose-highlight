@@ -23,7 +23,7 @@ HighlightThemeProvider(
     darkHighlightTheme  = rememberAtomOneDarkTheme(),
 ) {
     SyntaxHighlightedCode(
-        code            = myCode,
+        code            = "data class Config(val enableHighlight: Boolean = true)",
         language        = "kotlin",
         showLineNumbers = true,
     )
