@@ -4,6 +4,35 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Fixed
+
+- **`SyntaxHighlightedTextEditor` - eliminate non-suspending `LaunchedEffect` for stale-span
+  clearing** - introduced a private `HighlightSnapshot` data class that carries the `language`
+  and `theme` that produced the cached spans. Stale detection now happens in-composition via a
+  field comparison in the `when` block, removing the separate
+  `LaunchedEffect(language, theme) { highlighted = null }` that set state without suspending.
+
+- **`SyntaxHighlightedTextEditor` - fix `debounceMs` stale capture** - wrapped `debounceMs`
+  with `rememberUpdatedState` so a changed value is picked up on the next highlight cycle
+  without restarting the `LaunchedEffect` (which would reset the debounce window mid-keystroke).
+  Same pattern applied to the new `onHighlightComplete` callback to avoid stale captures.
+
+### Added
+
+- **`SyntaxHighlightedTextEditor` - `onHighlightComplete` callback** - optional
+  `(AnnotatedString) -> Unit` fired on each successful highlight cycle. Mirrors the
+  `onHighlightComplete` API on `SyntaxHighlightedCode` and enables deterministic
+  `waitUntil { }` patterns in instrumented tests.
+
+- **`SyntaxHighlightedTextEditor` - test tag on root `Surface`** -
+  `testTag("syntax-highlighted-text-editor")` added to the outer `Surface`, consistent with
+  the `syntax-highlighted-code` tag on `SyntaxHighlightedCode`.
+
+- **`SyntaxHighlightedTextEditorTest`** - 7 new instrumented tests covering: no-crash
+  rendering, empty code, test-tag presence, `onValueChange` contract,
+  `onHighlightComplete` callback after debounce, re-fires on language change, and stale-span
+  invalidation on language switch.
+
 ## [0.24.0] - 2026-05-27
 
 ### Added
