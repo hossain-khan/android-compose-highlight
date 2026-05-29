@@ -16,3 +16,6 @@ dependencies = [
 dev = [
     "zensical==0.0.43",
 ]
+
+[tool.setuptools]
+packages = []
