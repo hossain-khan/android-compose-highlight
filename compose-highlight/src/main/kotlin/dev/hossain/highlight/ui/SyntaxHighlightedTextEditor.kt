@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -114,13 +113,14 @@ fun SyntaxHighlightedTextEditor(
     debounceMs: Long = 150L,
     onHighlightComplete: ((AnnotatedString) -> Unit)? = null,
 ) {
-    val displayValue by rememberSyntaxHighlightedEditorValue(
-        value = value,
-        language = language,
-        theme = theme,
-        debounceMs = debounceMs,
-        onHighlightComplete = onHighlightComplete,
-    )
+    val displayValue =
+        rememberSyntaxHighlightedEditorValue(
+            value = value,
+            language = language,
+            theme = theme,
+            debounceMs = debounceMs,
+            onHighlightComplete = onHighlightComplete,
+        )
 
     val backgroundColor =
         remember(theme) {

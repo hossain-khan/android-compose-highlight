@@ -318,9 +318,12 @@ private data class HighlightSnapshot(
  *   successfully. Receives the resulting [AnnotatedString] with syntax spans applied. Useful
  *   for testing (wait until the first result arrives) and for observing the highlight output
  *   without owning the editor's text state.
- * @return A [State] holding a [TextFieldValue] with syntax-highlight spans applied, preserving
+ * @return The [TextFieldValue] with syntax-highlight spans applied, preserving
  *   the original cursor position and selection. Falls back to plain text while a highlight
- *   result is in flight, on error, or when the language/theme has just changed.
+ *   result is in flight, on error, or when the language/theme has just changed. Because this
+ *   function is a non-restartable composable (returns a non-Unit type), all internal [State]
+ *   reads (including the highlight snapshot) automatically subscribe the caller's recompose
+ *   scope — callers should use it like any other composable helper (`val x = rememberXxx()`).
  */
 @ExperimentalHighlightApi
 @Composable
@@ -330,7 +333,7 @@ fun rememberSyntaxHighlightedEditorValue(
     theme: HighlightTheme = LocalHighlightTheme.current,
     debounceMs: Long = 150L,
     onHighlightComplete: ((AnnotatedString) -> Unit)? = null,
-): State<TextFieldValue> {
+): TextFieldValue {
     val engine = rememberHighlightEngine()
     var highlighted by remember { mutableStateOf<HighlightSnapshot?>(null) }
     // rememberUpdatedState ensures a changed debounceMs or callback is used by the running
@@ -384,5 +387,5 @@ fun rememberSyntaxHighlightedEditorValue(
             }
         }
 
-    return remember(value, annotated) { mutableStateOf(value.copy(annotatedString = annotated)) }
+    return value.copy(annotatedString = annotated)
 }
