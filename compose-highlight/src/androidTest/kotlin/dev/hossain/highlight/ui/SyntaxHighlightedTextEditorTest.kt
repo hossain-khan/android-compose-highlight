@@ -3,10 +3,13 @@ package dev.hossain.highlight.ui
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -73,25 +76,30 @@ class SyntaxHighlightedTextEditorTest {
     @Test
     fun onValueChangeFiresWhenTextChanges() {
         var received: TextFieldValue? = null
-        var editorValue by mutableStateOf(TextFieldValue(sampleCode))
+        var editorValue by mutableStateOf(TextFieldValue(""))
 
         composeTestRule.setContent {
             HighlightThemeProvider {
                 SyntaxHighlightedTextEditor(
                     value = editorValue,
-                    onValueChange = { received = it },
+                    onValueChange = {
+                        received = it
+                        editorValue = it
+                    },
                     language = "kotlin",
                 )
             }
         }
 
-        composeTestRule.runOnIdle { editorValue = TextFieldValue("val x = 1") }
+        // Drive real text input through the UI test API - this exercises the actual BasicTextField
+        // wiring and confirms onValueChange is called in response to user input.
+        composeTestRule
+            .onNode(hasSetTextAction(), useUnmergedTree = true)
+            .performTextInput("val x = 1")
         composeTestRule.waitForIdle()
-        // The new value should have been set via state update
-        assertThat(editorValue.text).isEqualTo("val x = 1")
-        // onValueChange is not called by a programmatic state change - verify it can be called
-        composeTestRule.runOnIdle { received = TextFieldValue("triggered") }
+
         assertThat(received).isNotNull()
+        assertThat(received!!.text).isEqualTo("val x = 1")
     }
 
     @Test
@@ -169,14 +177,27 @@ class SyntaxHighlightedTextEditorTest {
             }
         }
 
-        // Wait for initial highlight
+        // Wait for initial highlight to confirm spans are applied
         composeTestRule.waitUntil(timeoutMillis = 10_000L) { capturedAnnotated != null }
         capturedAnnotated = null
 
-        // Switch to a different language - callback should fire again with new spans
+        // Switch to a different language - the old snapshot is now stale
         composeTestRule.runOnIdle { currentLanguage = "sql" }
-        composeTestRule.waitUntil(timeoutMillis = 10_000L) { capturedAnnotated != null }
 
+        // Immediately after language change (before debounce + highlight complete), the composable
+        // detects in-composition that snapshot.language != language and falls back to plain text.
+        // The LaunchedEffect has restarted but is still inside delay(debounceMs), so no new spans
+        // have arrived yet. Assert that no span styles are present in the displayed text.
+        val editableText =
+            composeTestRule
+                .onNode(hasSetTextAction(), useUnmergedTree = true)
+                .fetchSemanticsNode()
+                .config[SemanticsProperties.EditableText]
+        assertThat(editableText.spanStyles).isEmpty()
+
+        // Now wait for the re-highlight cycle to complete with the new language
+        composeTestRule.waitUntil(timeoutMillis = 10_000L) { capturedAnnotated != null }
         assertThat(capturedAnnotated!!.text).isEqualTo("val x = 1")
+        assertThat(capturedAnnotated!!.spanStyles).isNotEmpty()
     }
 }
