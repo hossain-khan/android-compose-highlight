@@ -68,16 +68,28 @@ internal sealed interface JsResponse {
 }
 
 /**
+ * Default testTag used to find the node to capture. Matches the tag set inside
+ * `SyntaxHighlightedCode`. Editor screenshot tests pass [SYNTAX_HIGHLIGHTED_TEXT_EDITOR_TEST_TAG]
+ * instead.
+ */
+internal const val SYNTAX_HIGHLIGHTED_CODE_TEST_TAG: String = "syntax-highlighted-code"
+
+/** testTag used by `SyntaxHighlightedTextEditor`. */
+internal const val SYNTAX_HIGHLIGHTED_TEXT_EDITOR_TEST_TAG: String = "syntax-highlighted-text-editor"
+
+/**
  * Convenience overload for the success path: injects [fixtureHtml] as the highlight result.
  * All theme/layout/language screenshot tests use this.
  */
 internal fun ComposeContentTestRule.captureHighlightedScreenshot(
     name: String,
     fixtureHtml: String,
+    testTag: String = SYNTAX_HIGHLIGHTED_CODE_TEST_TAG,
     content: @Composable () -> Unit,
 ) = captureHighlightedScreenshot(
     name = name,
     jsResponse = JsResponse.Success(fixtureHtml),
+    testTag = testTag,
     content = content,
 )
 
@@ -109,12 +121,16 @@ internal fun ComposeContentTestRule.captureHighlightedScreenshot(
  *
  * @param name Filename stem (no `.png` suffix). Should match the test method.
  * @param jsResponse Strategy for the WebView's pending `evaluateJavascript` callback.
- * @param content Composable rendering the actual UI under test. Must include exactly one
- *   `SyntaxHighlightedCode` (or anything else carrying the `syntax-highlighted-code` testTag).
+ * @param testTag testTag of the node to capture. Defaults to [SYNTAX_HIGHLIGHTED_CODE_TEST_TAG]
+ *   so existing read-only viewer tests need no changes; editor tests pass
+ *   [SYNTAX_HIGHLIGHTED_TEXT_EDITOR_TEST_TAG].
+ * @param content Composable rendering the actual UI under test. Must include exactly one node
+ *   carrying [testTag].
  */
 internal fun ComposeContentTestRule.captureHighlightedScreenshot(
     name: String,
     jsResponse: JsResponse,
+    testTag: String = SYNTAX_HIGHLIGHTED_CODE_TEST_TAG,
     content: @Composable () -> Unit,
 ) {
     var capturedEngine: HighlightEngine? = null
@@ -231,7 +247,7 @@ internal fun ComposeContentTestRule.captureHighlightedScreenshot(
             "drain loop does not anticipate; bump DRAIN_TIMEOUT_MS or revisit the wait condition."
     }
 
-    onNodeWithTag("syntax-highlighted-code").captureRoboImage(
+    onNodeWithTag(testTag).captureRoboImage(
         filePath = "src/test/snapshots/images/$name.png",
         roborazziOptions =
             RoborazziOptions(

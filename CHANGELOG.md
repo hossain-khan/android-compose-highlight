@@ -51,6 +51,26 @@ All notable changes to this project will be documented in this file.
   boundary (preserved), zero-width span strictly inside the changed region (dropped), and
   the prefix+suffix overlap clamp inside `applySnapshotSpans`. Test count for this file
   went from 13 to 20.
+- **`SyntaxHighlightedTextEditorRobolectricTest`** - new Robolectric test class that mirrors
+  the parity layer `SyntaxHighlightedCodeRobolectricTest` provides for the read-only viewer.
+  Four tests: `LocalInspectionMode` short-circuit (no `LaunchedEffect` fires in `@Preview`),
+  test tag on the outer `Surface`, no-provider error throwing, and `onError` forwarding from
+  the editor to the helper (asserts the editor's `onError = onError` wiring is intact, which
+  the existing `RememberSyntaxHighlightedEditorValueRobolectricTest` test on the helper
+  alone wouldn't catch).
+- **`preservesNonCollapsedSelectionAcrossHighlightCycle`** - new instrumented test in
+  `RememberSyntaxHighlightedEditorValueTest`. The existing
+  `preservesCursorPositionInReturnedValue` only covers a collapsed cursor (`TextRange(5)`);
+  this test uses `TextRange(start = 3, end = 9)` to assert both anchor and focus survive
+  `.copy(annotatedString = ...)`, plus that spans are present afterward (proving the assertion
+  runs on a real post-highlight value).
+- **`SyntaxHighlightedTextEditorScreenshotTest`** - new Roborazzi screenshot regression test
+  class. Four goldens cover the editor's editor-specific surface: default light + dark theme
+  chrome, the rounded `shape` + `contentPadding` interaction documented in the editor's KDoc,
+  and the unique "plain text while highlight is loading" debounce-window state (not present
+  on the read-only viewer). `captureHighlightedScreenshot` now accepts a `testTag` parameter
+  defaulting to `"syntax-highlighted-code"` for backwards compat with existing tests; editor
+  tests pass `"syntax-highlighted-text-editor"`. Screenshot count went from 13 to 17.
 
 ### Internal
 

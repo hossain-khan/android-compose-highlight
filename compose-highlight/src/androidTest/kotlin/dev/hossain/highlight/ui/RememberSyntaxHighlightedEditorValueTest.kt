@@ -155,4 +155,42 @@ class RememberSyntaxHighlightedEditorValueTest {
         assertThat(capturedAnnotated!!.text).isEqualTo("val x = 1")
         assertThat(capturedAnnotated!!.spanStyles).isNotEmpty()
     }
+
+    @Test
+    fun preservesNonCollapsedSelectionAcrossHighlightCycle() {
+        // The existing preservesCursorPositionInReturnedValue test only covers a collapsed
+        // cursor (TextRange(5)). This test uses a non-collapsed selection to assert both
+        // anchor and focus survive .copy(annotatedString = ...) inside the helper - a
+        // regression that mishandled the selection field would slip past the cursor-only test.
+        val initialSelection = TextRange(start = 3, end = 9)
+        val inputValue = TextFieldValue(text = sampleCode, selection = initialSelection)
+        var capturedValue: TextFieldValue? = null
+        var highlightDone = false
+
+        composeTestRule.setContent {
+            HighlightThemeProvider(
+                lightHighlightTheme = HighlightTheme.tomorrow(),
+                darkHighlightTheme = HighlightTheme.tomorrowNight(),
+            ) {
+                capturedValue =
+                    rememberSyntaxHighlightedEditorValue(
+                        value = inputValue,
+                        language = "kotlin",
+                        onHighlightComplete = { highlightDone = true },
+                    )
+            }
+        }
+
+        composeTestRule.waitUntil(timeoutMillis = 10_000L) { highlightDone }
+
+        composeTestRule.runOnIdle {
+            // Both anchor and focus must survive, not just the cursor position.
+            assertThat(capturedValue!!.selection).isEqualTo(initialSelection)
+            assertThat(capturedValue!!.selection.start).isEqualTo(3)
+            assertThat(capturedValue!!.selection.end).isEqualTo(9)
+            // Spans should be present, proving the highlight landed and the assertion above
+            // is checking selection AFTER a real .copy(annotatedString = ...) round-trip.
+            assertThat(capturedValue!!.annotatedString.spanStyles).isNotEmpty()
+        }
+    }
 }
