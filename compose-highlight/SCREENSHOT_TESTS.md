@@ -14,12 +14,15 @@ a side-by-side diff image.
 | Layout variants | `LayoutVariantsScreenshotTest.kt` | 4 |
 | Language breadth | `LanguageBreadthScreenshotTest.kt` | 3 |
 | Error fallback + custom placeholder | `ErrorAndPlaceholderScreenshotTest.kt` | 2 |
+| Editor (`SyntaxHighlightedTextEditor`) | `SyntaxHighlightedTextEditorScreenshotTest.kt` | 4 |
 
 The suite is intentionally small. It covers the four built-in themes, the four most-used layout
 knobs (line numbers, headerless, label-only header, default), three languages that exercise
-breadth of token classes (Kotlin, Python, JSON), and the two non-happy-path render states
-(error fallback, custom placeholder). Adding more goldens has diminishing returns and increases
-the chance of OS-rendering drift breaking CI.
+breadth of token classes (Kotlin, Python, JSON), the two non-happy-path render states (error
+fallback, custom placeholder), and the editor's editor-specific surface (default light/dark
+chrome, rounded `shape` + `contentPadding` interaction, debounce-window plain-text state).
+Adding more goldens has diminishing returns and increases the chance of OS-rendering drift
+breaking CI.
 
 ## Workflow
 
