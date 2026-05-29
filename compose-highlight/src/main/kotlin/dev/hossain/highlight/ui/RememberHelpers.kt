@@ -291,6 +291,23 @@ internal fun applySnapshotSpans(
     snapshotAnnotated: AnnotatedString,
     currentText: String,
 ): AnnotatedString {
+    // --- Issue (#217) and fix summary ---
+    //
+    // Bug: During the debounce window, the editor displays stale spans from the last
+    // highlight snapshot on top of the new (partially edited) text. A naive approach of
+    // clipping all spans to `coerceAtMost(currentText.length)` only works for append-at-end.
+    // For mid-text insertions or deletions, character positions after the edit point shift,
+    // so old spans map to the WRONG characters (wrong colors on the edited region). Worse,
+    // clipping to just the common prefix dropped colors from ALL unchanged lines below the
+    // edit point - e.g., editing a comment on line 4 cleared colors on `data class` line 6.
+    //
+    // Fix: split the text into three regions using the longest common prefix AND suffix.
+    // - Prefix chars (before the edit): same positions in both strings - keep spans as-is.
+    // - Suffix chars (after the edit, unchanged trailing text): shifted by `delta` =
+    //   newLen - oldLen. Lines below the cursor stay correctly colored throughout debounce.
+    // - Changed region (between prefix and suffix): drop spans - positions are invalid.
+    // This correctly handles typing anywhere in a multi-line document with no flicker.
+
     val oldText = snapshotAnnotated.text
     val prefixLen = oldText.commonPrefixWith(currentText).length
 
