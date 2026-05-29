@@ -9,11 +9,13 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
@@ -21,6 +23,18 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import dev.hossain.highlight.engine.HighlightTheme
 import kotlinx.coroutines.delay
+
+/**
+ * Holds the result of a syntax-highlight call together with the [language] and [theme] that
+ * produced it. Stored as local state so the composable can detect in-composition whether the
+ * cached result is still valid for the current language/theme, eliminating the need for a
+ * separate `LaunchedEffect` that resets state asynchronously.
+ */
+private data class HighlightSnapshot(
+    val annotated: AnnotatedString,
+    val language: String,
+    val theme: HighlightTheme,
+)
 
 /**
  * This composable is marked **experimental** ([ExperimentalHighlightApi]). Call sites must
@@ -89,7 +103,16 @@ import kotlinx.coroutines.delay
  *   foreground color is applied on top of this style when a highlight result is available.
  * @param debounceMs Milliseconds to wait after the last keystroke before triggering a new
  *   highlight call. Defaults to 150 ms - a good balance between responsiveness and avoiding
- *   unnecessary WebView calls on fast typists.
+ *   unnecessary WebView calls on fast typists. If this value changes at runtime the new
+ *   delay is picked up on the next highlight cycle without restarting the effect.
+ * @param onHighlightComplete Optional callback invoked each time a highlight cycle completes
+ *   successfully. Receives the resulting [AnnotatedString] with syntax spans applied. Useful
+ *   for testing (wait until the first result arrives) and for observing the highlight output
+ *   without owning the editor's text state. Defaults to `null` (no callback).
+ *
+ * **Note on [shape]:** if you pass a custom [Shape] (e.g. `RoundedCornerShape(8.dp)`), wrap
+ * it in `remember` at the call site so that a new instance is not created on every
+ * recomposition, which would defeat Compose's skipping optimisation.
  */
 @ExperimentalHighlightApi
 @Composable
@@ -103,13 +126,17 @@ fun SyntaxHighlightedTextEditor(
     theme: HighlightTheme = LocalHighlightTheme.current,
     textStyle: TextStyle = TextStyle(fontFamily = FontFamily.Monospace),
     debounceMs: Long = 150L,
+    onHighlightComplete: ((AnnotatedString) -> Unit)? = null,
 ) {
     val engine = rememberHighlightEngine()
-    var highlighted by remember { mutableStateOf<AnnotatedString?>(null) }
-
-    // Clear stale spans immediately when language or theme changes so wrong-language
-    // (or wrong-theme) highlights are never visible during the debounce window.
-    LaunchedEffect(language, theme) { highlighted = null }
+    // HighlightSnapshot carries the language and theme that produced the spans so the
+    // composable can detect in-composition whether the cached result is still valid,
+    // rather than relying on a separate non-suspending LaunchedEffect to clear state.
+    var highlighted by remember { mutableStateOf<HighlightSnapshot?>(null) }
+    // rememberUpdatedState ensures a changed debounceMs is used by the running effect
+    // without restarting it (which would reset the debounce window mid-keystroke).
+    val currentDebounceMs by rememberUpdatedState(debounceMs)
+    val currentOnHighlightComplete by rememberUpdatedState(onHighlightComplete)
 
     val backgroundColor =
         remember(theme) {
@@ -130,39 +157,43 @@ fun SyntaxHighlightedTextEditor(
     // LaunchedEffect cancels the previous coroutine on each change, so rapid keystrokes
     // naturally coalesce into a single highlight call after the user pauses.
     LaunchedEffect(value.text, language, theme) {
-        delay(debounceMs)
+        delay(currentDebounceMs)
         engine
             .highlight(value.text, language, theme)
-            .onSuccess { result -> highlighted = result.annotated }
-            .onFailure { highlighted = null }
+            .onSuccess { result ->
+                highlighted = HighlightSnapshot(result.annotated, language, theme)
+                currentOnHighlightComplete?.invoke(result.annotated)
+            }.onFailure { highlighted = null }
     }
 
     // Merge highlight spans into the TextFieldValue while preserving cursor and selection.
     //
     // Three cases:
-    // 1. No highlight result yet - show plain text (first render or error).
-    // 2. Highlight text exactly matches current text - apply spans directly (steady state).
-    // 3. Text has changed since the last highlight result (user is typing, debounce pending) -
+    // 1. No snapshot yet, or snapshot is stale (different language/theme) - show plain text.
+    //    Stale detection is in-composition: no separate LaunchedEffect needed to clear state.
+    // 2. Snapshot text exactly matches current text - apply spans directly (steady state).
+    // 3. Text has changed since the last snapshot (user is typing, debounce pending) -
     //    clip old spans to the new text length and apply them. Spans before any edit point
     //    remain correctly colored; only the newly typed characters briefly have no span.
     //    This gives the illusion of live highlighting - 90%+ of the block stays colored while
     //    only the new characters wait for the next debounced highlight call.
     val currentText = value.text
+    val snapshot = highlighted
     val annotated =
         when {
-            highlighted == null -> {
+            snapshot == null || snapshot.language != language || snapshot.theme != theme -> {
                 AnnotatedString(currentText)
             }
 
-            highlighted!!.text == currentText -> {
-                highlighted!!
+            snapshot.annotated.text == currentText -> {
+                snapshot.annotated
             }
 
             else -> {
                 // Reuse old spans clipped to the new text length so the cursor offset
                 // is always in bounds, preserving editability.
                 val builder = AnnotatedString.Builder(currentText)
-                highlighted!!.spanStyles.forEach { range ->
+                snapshot.annotated.spanStyles.forEach { range ->
                     val start = range.start.coerceAtMost(currentText.length)
                     val end = range.end.coerceAtMost(currentText.length)
                     if (start < end) builder.addStyle(range.item, start, end)
@@ -173,7 +204,7 @@ fun SyntaxHighlightedTextEditor(
     val displayValue = value.copy(annotatedString = annotated)
 
     Surface(
-        modifier = modifier,
+        modifier = modifier.testTag("syntax-highlighted-text-editor"),
         shape = shape,
         color = backgroundColor,
         contentColor = textColor,
