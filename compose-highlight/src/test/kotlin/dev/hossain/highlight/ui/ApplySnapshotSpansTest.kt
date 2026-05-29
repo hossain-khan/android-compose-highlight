@@ -128,7 +128,7 @@ class ApplySnapshotSpansTest {
     @Test
     fun `multiline - editing a line preserves spans on lines below`() {
         // Simulate the real bug: typing on a middle line should keep colors on lines below.
-        // "fun " in red (0..4), "data" in blue (14..18) - with some text between
+        // "fun " in red (0..4), "data" in blue (13..17) - with some text between
         val oldText = "fun main()\n}\ndata class"
         // old positions: "fun " 0..4, "data" 13..17
         val snap = snapshot(oldText, Triple(0, 4, red), Triple(13, 17, blue))
