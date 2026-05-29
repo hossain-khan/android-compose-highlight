@@ -14,7 +14,7 @@ All notable changes to this project will be documented in this file.
   and the current text, and discarding any span whose end falls beyond that unchanged prefix.
   Append-at-end is unaffected: when the old text is a prefix of the new text, all old spans
   carry over unchanged. The clipping logic is extracted into `internal fun clipSpansToPrefix`
-  for direct JVM unit testing; 7 new tests cover append-at-end (no regression), insert-in-middle,
+  for direct JVM unit testing; 8 new tests cover append-at-end (no regression), insert-in-middle,
   span-straddling-edit-point, delete-from-middle, and full replacement. Fixes
   [#217](https://github.com/hossain-khan/android-compose-highlight/issues/217).
 

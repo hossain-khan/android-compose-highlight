@@ -305,8 +305,12 @@ internal fun clipSpansToPrefix(
  * - test the highlight pipeline in isolation without a `Surface`/`BasicTextField` in the tree
  *
  * The returned [TextFieldValue] is recomputed each time a new highlight result arrives.
- * Between updates the previous spans are preserved and clipped to the current text length,
- * so the editor never flickers or loses color while the user is typing.
+ * Between updates the previous spans are preserved and clipped to the **unchanged common prefix**
+ * of the snapshot text and the current text. Only spans whose end falls within that prefix are
+ * applied, so spans at or after the first edit point are dropped rather than mapped to wrong
+ * characters. For the common append-at-end case all old spans carry over unchanged; for mid-text
+ * insertions or deletions only the prefix before the edit point stays colored until the debounce
+ * fires and produces a fresh highlight result.
  *
  * ## Usage - standalone (with BasicTextField)
  *
