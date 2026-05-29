@@ -35,7 +35,7 @@ All notable changes to this project will be documented in this file.
 
 - **`rememberSyntaxHighlightedEditorValue()`** - new public `@Composable` helper that extracts
   the debounce + engine pipeline from `SyntaxHighlightedTextEditor` into a standalone function
-  mirroring the existing `rememberHighlightedCode` pattern. Returns `State<TextFieldValue>`
+  mirroring the existing `rememberHighlightedCode` pattern. Returns `TextFieldValue` directly
   with syntax spans applied and cursor/selection preserved. Enables callers to bring their own
   layout (`OutlinedTextField`, third-party editor, etc.) without forking the composable.
   `SyntaxHighlightedTextEditor` now delegates to this helper and acts as a thin layout shell.
