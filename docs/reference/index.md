@@ -21,6 +21,7 @@ This section documents the public API of `compose-highlight`.
 | [`ExperimentalHighlightApi`](syntax-highlighted-text-editor.md#experimentalhighlightapi) | Opt-in annotation for experimental APIs |
 | [`rememberHighlightedCode`](syntax-highlighted-code.md#rememberhighlightedcode) | Composable helper - highlights code and returns an `AnnotatedString` state |
 | [`rememberHighlightedCodeBothThemes`](syntax-highlighted-code.md#rememberhighlightedcodeboththemes) | Highlights once, produces light + dark variants |
+| [`rememberSyntaxHighlightedEditorValue`](syntax-highlighted-text-editor.md#remembersyntaxhighlightededitorvalue) | **Experimental** - pipeline helper for live editor highlighting; returns `TextFieldValue` with spans applied |
 | [`rememberHighlightEngine`](highlight-engine.md#rememberhighlightengine) | Returns the shared or standalone `HighlightEngine` for the current composition |
 | `rememberTomorrowTheme` | Composable factory for the built-in Tomorrow (light) theme |
 | `rememberTomorrowNightTheme` | Composable factory for the built-in Tomorrow Night (dark) theme |

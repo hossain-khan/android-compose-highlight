@@ -5,12 +5,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberUpdatedState
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
@@ -22,19 +17,6 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import dev.hossain.highlight.engine.HighlightTheme
-import kotlinx.coroutines.delay
-
-/**
- * Holds the result of a syntax-highlight call together with the [language] and [theme] that
- * produced it. Stored as local state so the composable can detect in-composition whether the
- * cached result is still valid for the current language/theme, eliminating the need for a
- * separate `LaunchedEffect` that resets state asynchronously.
- */
-private data class HighlightSnapshot(
-    val annotated: AnnotatedString,
-    val language: String,
-    val theme: HighlightTheme,
-)
 
 /**
  * This composable is marked **experimental** ([ExperimentalHighlightApi]). Call sites must
@@ -54,6 +36,9 @@ private data class HighlightSnapshot(
  *
  * This composable reads the active theme from [LocalHighlightTheme], so a
  * [HighlightThemeProvider] ancestor **must** exist, or you must pass an explicit [theme].
+ *
+ * For custom layout or third-party text fields, use [rememberSyntaxHighlightedEditorValue]
+ * directly to obtain the highlighted [TextFieldValue] without the `Surface` wrapper.
  *
  * ## Usage - inside HighlightThemeProvider (recommended)
  *
@@ -128,15 +113,14 @@ fun SyntaxHighlightedTextEditor(
     debounceMs: Long = 150L,
     onHighlightComplete: ((AnnotatedString) -> Unit)? = null,
 ) {
-    val engine = rememberHighlightEngine()
-    // HighlightSnapshot carries the language and theme that produced the spans so the
-    // composable can detect in-composition whether the cached result is still valid,
-    // rather than relying on a separate non-suspending LaunchedEffect to clear state.
-    var highlighted by remember { mutableStateOf<HighlightSnapshot?>(null) }
-    // rememberUpdatedState ensures a changed debounceMs is used by the running effect
-    // without restarting it (which would reset the debounce window mid-keystroke).
-    val currentDebounceMs by rememberUpdatedState(debounceMs)
-    val currentOnHighlightComplete by rememberUpdatedState(onHighlightComplete)
+    val displayValue =
+        rememberSyntaxHighlightedEditorValue(
+            value = value,
+            language = language,
+            theme = theme,
+            debounceMs = debounceMs,
+            onHighlightComplete = onHighlightComplete,
+        )
 
     val backgroundColor =
         remember(theme) {
@@ -148,60 +132,7 @@ fun SyntaxHighlightedTextEditor(
             theme.defaultTextColor.takeIf { it != Color.Unspecified }
                 ?: SyntaxHighlightedCodeDefaults.fallbackTextColor
         }
-
-    // Merge the theme foreground color into the caller-supplied text style so unspanned
-    // characters (newly typed, not yet highlighted) match the theme foreground.
     val themedTextStyle = remember(theme, textStyle) { textStyle.copy(color = textColor) }
-
-    // Re-highlight with debounce whenever the text, language, or theme changes.
-    // LaunchedEffect cancels the previous coroutine on each change, so rapid keystrokes
-    // naturally coalesce into a single highlight call after the user pauses.
-    LaunchedEffect(value.text, language, theme) {
-        delay(currentDebounceMs)
-        engine
-            .highlight(value.text, language, theme)
-            .onSuccess { result ->
-                highlighted = HighlightSnapshot(result.annotated, language, theme)
-                currentOnHighlightComplete?.invoke(result.annotated)
-            }.onFailure { highlighted = null }
-    }
-
-    // Merge highlight spans into the TextFieldValue while preserving cursor and selection.
-    //
-    // Three cases:
-    // 1. No snapshot yet, or snapshot is stale (different language/theme) - show plain text.
-    //    Stale detection is in-composition: no separate LaunchedEffect needed to clear state.
-    // 2. Snapshot text exactly matches current text - apply spans directly (steady state).
-    // 3. Text has changed since the last snapshot (user is typing, debounce pending) -
-    //    clip old spans to the new text length and apply them. Spans before any edit point
-    //    remain correctly colored; only the newly typed characters briefly have no span.
-    //    This gives the illusion of live highlighting - 90%+ of the block stays colored while
-    //    only the new characters wait for the next debounced highlight call.
-    val currentText = value.text
-    val snapshot = highlighted
-    val annotated =
-        when {
-            snapshot == null || snapshot.language != language || snapshot.theme != theme -> {
-                AnnotatedString(currentText)
-            }
-
-            snapshot.annotated.text == currentText -> {
-                snapshot.annotated
-            }
-
-            else -> {
-                // Reuse old spans clipped to the new text length so the cursor offset
-                // is always in bounds, preserving editability.
-                val builder = AnnotatedString.Builder(currentText)
-                snapshot.annotated.spanStyles.forEach { range ->
-                    val start = range.start.coerceAtMost(currentText.length)
-                    val end = range.end.coerceAtMost(currentText.length)
-                    if (start < end) builder.addStyle(range.item, start, end)
-                }
-                builder.toAnnotatedString()
-            }
-        }
-    val displayValue = value.copy(annotatedString = annotated)
 
     Surface(
         modifier = modifier.testTag("syntax-highlighted-text-editor"),
