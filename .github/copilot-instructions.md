@@ -166,10 +166,11 @@ Do not commit if any of these fail.
 ./scripts/prepare-release.sh <new-version>
 # Example: ./scripts/prepare-release.sh 0.18.0
 ```
-This script updates all four required files in one step:
+This script updates all five required files in one step:
 - `gradle.properties` - `VERSION_NAME`
 - `README.md` - dependency snippet
 - `sample/build.gradle.kts` - `versionName` and auto-incremented `versionCode`
+- `pyproject.toml` - `version` (keeps docs dependencies in sync with library release)
 - `CHANGELOG.md` - `[Unreleased]` renamed to `[X.Y.Z] - YYYY-MM-DD`
 
 Never update these files manually one-by-one - always use the script to avoid missing files.
