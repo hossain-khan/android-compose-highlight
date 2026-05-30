@@ -164,7 +164,7 @@ value = JSON.stringify({
 ```
 
 `siteRoot` is computed by stripping `/api/` from the Dokka api root, so the palette key
-matches the Zensical site root. Both sites now share the same localStorage key — a toggle on
+matches the Zensical site root. Both sites now share the same localStorage key - a toggle on
 `/` carries into `/api/` and vice versa.
 
 ## Out of scope
