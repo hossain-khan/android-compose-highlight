@@ -24,7 +24,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Check for code changes
+      - name: Check for code and docs changes
         id: changes
         run: |
           if [ "${{ github.event_name }}" = "pull_request" ]; then
@@ -35,6 +35,7 @@ jobs:
           echo "Changed files:"
           echo "$CHANGED"
           CODE_CHANGED=false
+          DOCS_CHANGED=false
           while IFS= read -r file; do
             if [[ "$file" == compose-highlight/src/* || \
                   "$file" == sample/src/* || \
@@ -56,15 +57,42 @@ jobs:
                   "$file" == *.gradle.kts || \
                   "$file" == ".github/workflows/ci.yml" ]]; then
               CODE_CHANGED=true
-              break
+            fi
+
+            if [[ "$file" == docs/* || \
+                  "$file" == zensical.toml || \
+                  "$file" == pyproject.toml || \
+                  "$file" == compose-highlight/dokka-theme/* || \
+                  "$file" == ".github/workflows/docs.yml" ]]; then
+              DOCS_CHANGED=true
             fi
           done <<< "$CHANGED"
           echo "code=$CODE_CHANGED" >> "$GITHUB_OUTPUT"
+          echo "docs=$DOCS_CHANGED" >> "$GITHUB_OUTPUT"
           echo "Code changed: $CODE_CHANGED"
+          echo "Docs changed: $DOCS_CHANGED"
 
-      - name: No code changes - skipping build
+      - name: No code/docs changes - skipping build
+        if: steps.changes.outputs.code == 'false' && steps.changes.outputs.docs == 'false'
+        run: echo "No Android or docs-related files changed. Skipping heavy checks."
+
+      - name: Set up Python
+        if: steps.changes.outputs.docs == 'true'
+        uses: actions/setup-python@v6
+        with:
+          python-version: 3.x
+
+      - name: Install docs dependencies
+        if: steps.changes.outputs.docs == 'true'
+        run: pip install .
+
+      - name: Validate docs build
+        if: steps.changes.outputs.docs == 'true'
+        run: zensical build --clean
+
+      - name: No Android code changes - skipping Android build
         if: steps.changes.outputs.code == 'false'
-        run: echo "Only non-code files changed. Skipping build and test."
+        run: echo "No Android-impacting files changed. Skipping Android build and tests."
 
       - name: Set up JDK 17
         if: steps.changes.outputs.code == 'true'
