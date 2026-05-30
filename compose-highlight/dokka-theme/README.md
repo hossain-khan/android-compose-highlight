@@ -190,6 +190,68 @@ toggle once per site.
   checkbox toggle below ~76rem viewport). Untested; if you browse the API
   reference on mobile, this needs validation.
 
+## Common pitfalls and how to debug them
+
+This section captures the lessons learned from iterating on the retheme. When
+you find a new visual or behavioral issue, start here.
+
+### Symptom → likely cause table
+
+| Symptom | Likely cause | Where to fix |
+|---|---|---|
+| Visual style (font, spacing, color) doesn't apply | Material's `.md-typeset` rule wins the cascade — same specificity, loaded after ours | Add `!important` or write a more specific selector in `zensical-overrides.css` |
+| Element renders in unexpected position | A Ring UI / Dokka script applies inline styles or computed offsets at runtime | Use DevTools to inspect the live element's `style="..."` attribute and computed style; override with a CSS rule that uses higher specificity + `!important` |
+| Element is missing from the page | Element is being hidden by Dokka's stock CSS, OR our hide rule is too aggressive (e.g. `#filter-section` hidden = Members section breaks) | Check console for errors; verify the element is in the DOM via DevTools; if found, check what's hiding it |
+| Sidebar paints over the footer / content | `.md-sidebar__scrollwrap` height is unconstrained — sticky sidebars need explicit height clamp | Bound height via `calc(100vh - <header-height>)` and `overflow-y: auto` |
+| Popup or modal opens at wrong viewport coordinates | Ring UI / React component renders into a body portal target with JS-applied inline `top`/`left`/`margin` | Match the portal element's data attributes (e.g. `[data-test="ring-popup"]`) and override with `position: fixed` + explicit viewport coords + `!important` |
+| Click on a Dokka-internal element (search button, filter, etc.) does nothing | Element is positioned with `pointer-events: none` OR a parent has it; OR Dokka uses a Ring UI wrapper that ignores synthetic clicks | Find the inner functional element (e.g. `#pages-search` inside `#searchBar`) and click *that* instead |
+| Members / tabs / filter buttons fail to render after page load | Dokka's `platform-content-handler.js` ran during `window.load` and threw because something it expected to find was missing or detached | Check console for `Cannot read properties of undefined`. Common causes: hiding `#filter-section` with `display: none` (use off-screen positioning instead), or moving `#content` out of `#main` during an `await` |
+| Icon/chevron is invisible | Dokka SVG uses white fill (intended for its dark theme); on our light theme it disappears | Apply `filter: invert(1)` in light mode, no filter in `.theme-dark` |
+| Asset (logo, font, image) 404s when previewing locally but works on GitHub Pages | Local server is rooted at `docs/api/` instead of `docs/` | Always serve from `docs/`: `cd docs && python3 -m http.server 8765` then open `/api/index.html` |
+| Sidebar/header positioning works at desktop but breaks on narrow viewports | Material's media query at `~76.234375em` (1219px) switches the sidebar to mobile drawer mode; our overrides don't account for this breakpoint | Out of scope for current implementation; mobile drawer requires the `#__drawer` checkbox + label wiring |
+
+### Standard debugging workflow
+
+When something looks off, follow this sequence:
+
+1. **Reproduce locally** (`./gradlew :compose-highlight:dokkaGenerate` then `cd docs && python3 -m http.server 8765`).
+2. **Inspect with DevTools.** Right-click the broken element → Inspect. Look at:
+   - **Computed** tab: which CSS property has the wrong value?
+   - **Styles** tab: which rule(s) are applying that value? Material's bundle (`main.fba56155.min.css`) vs ours (`zensical-overrides.css`)? Inline `style=""` from JS?
+   - **Click "Show all" or check filter**: is our rule there but crossed out (overridden)?
+3. **Check the console** for JS errors. If `platform-content-handler.js` or another Dokka script throws, the page fell back to broken state mid-init. The error stack tells you which selector failed.
+4. **Identify the layer**:
+   - **Pure CSS issue**: edit `zensical-overrides.css`. Use `.md-typeset` scope and `!important` if Material is fighting back.
+   - **DOM structure issue**: edit `dokka-zensical-chrome.js`. The script runs at `DOMContentLoaded` and rebuilds chrome before Dokka's `window.load` scripts run.
+   - **Dokka script side-effect**: an internal Dokka script ran later and modified the DOM. Either prevent it (by keeping the element it expects) or work around it (override its result via post-load CSS or JS).
+5. **Use Playwright Agent CLI** for repeatable validation (the project's tooling preference):
+   ```bash
+   playwright-cli -s=debug open http://localhost:8765/api/<failing-page>
+   playwright-cli -s=debug eval "/* IIFE returning JSON.stringify(...) */"
+   playwright-cli -s=debug screenshot
+   ```
+   Don't trust visual inspection alone — measure with `getBoundingClientRect()`, computed styles, etc.
+
+### Specificity cheat-sheet
+
+When fighting Material's bundle for a property:
+
+| Material rule (typical) | Specificity | Beat with |
+|---|---|---|
+| `.md-typeset li` | 0,1,1 | `.md-typeset ol > li` (still 0,1,2) + `!important`, OR raise to `.md-content__inner .md-typeset li` |
+| `.md-sidebar--primary` (no descendant) | 0,1,0 | `.md-sidebar.md-sidebar--primary` (0,2,0) — naturally wins |
+| Inline `style=""` from Ring UI | 1,0,0,0 | Always need `!important`; CSS specificity can't beat inline without it |
+| `.theme-dark` + descendant | 0,1+ | We're already inside `.theme-dark` for dark mode rules |
+
+### Things that are dangerous to "fix"
+
+A few rules in `zensical-overrides.css` exist to prevent regressions and look weird in isolation. Don't simplify them without understanding why:
+
+- **`#filter-section` and `#searchBar` use `position: absolute; left: -10000px`, NOT `display: none`.** Hiding them with `display: none` makes Dokka's filter init throw and the Members section disappears. Off-screen positioning keeps them addressable so Dokka's scripts don't fail.
+- **The chrome script `await fetch('navigation.html')` BEFORE moving `#content`.** Reversing this order opens a race window where Dokka's `window.load` scripts can observe `#content` detached from the document. Trust the existing ordering.
+- **`.md-sidebar.md-sidebar--primary { height: calc(100vh - 3rem) }`.** The sticky sidebar needs an explicit height clamp; without it, the scrollwrap takes its full intrinsic height and overlaps the footer on short pages.
+- **`#searchBar` is *not* hidden inside `#main`'s overflow.** If you wrap `#searchBar` in something with `overflow: hidden`, the Ring UI search popup may fail to detach into the body portal correctly.
+
 ## Architecture decisions worth knowing
 
 **Async-fetch ordering.** The chrome script `await fetch('navigation.html')`
