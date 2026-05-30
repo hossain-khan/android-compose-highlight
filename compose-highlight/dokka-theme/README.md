@@ -26,6 +26,56 @@ every generated page automatically - Dokka 2.x's `customAssets` mechanism
 auto-injects `<script type="text/javascript" src="..." async="async">` tags
 without needing a `templatesDir` overlay (verified at setup time via probe).
 
+## Mental model
+
+```text
++-------------------------------------------------------------+
+|                     1) BUILD DOKKA HTML                     |
+|   ./gradlew :compose-highlight:dokkaGeneratePublicationHtml |
++------------------------------+------------------------------+
+                               |
+                               v
++-------------------------------------------------------------+
+|                    2) DOKKA OUTPUT TREE                    |
+|  docs/api/                                                   |
+|   - native Dokka content (types, members, signatures)      |
+|   - injected assets from pluginsConfiguration.html:         |
+|       * customStyleSheets                                   |
+|       * customAssets (dokka-zensical-chrome.js)            |
++------------------------------+------------------------------+
+                               |
+                               v
++-------------------------------------------------------------+
+|                    3) BUILD ZENSICAL SITE                  |
+|                 zensical build --clean                      |
+|   (passes docs/api/* through into site/api/* verbatim)      |
++------------------------------+------------------------------+
+                               |
+                               v
++-------------------------------------------------------------+
+|                     4) PUBLISHED ROUTES                     |
+|   /       -> Zensical docs                                  |
+|   /api/   -> Dokka API pages                                |
++------------------------------+------------------------------+
+                               |
+                               v
++-------------------------------------------------------------+
+|                5) CLIENT-SIDE CHROME REWRITE               |
+|   dokka-zensical-chrome.js runs in /api/ pages:             |
+|   - fetches navigation.html                                  |
+|   - wraps Dokka #content with Material-style shell           |
+|   - builds header + sidebar + footer                         |
+|   - wires search delegation + palette toggle sync            |
++------------------------------+------------------------------+
+                               |
+                               v
++-------------------------------------------------------------+
+|                       6) FINAL EXPERIENCE                   |
+|   Zensical-like look and feel on /api/                      |
+|   while preserving native Dokka API content rendering       |
++-------------------------------------------------------------+
+```
+
 ## Reproducible CI flow
 
 The full deploy pipeline runs on `main` push via `.github/workflows/docs.yml`:
