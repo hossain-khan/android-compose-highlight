@@ -336,8 +336,7 @@
             <span class="md-ellipsis">Back to Docs</span>
         `;
         backItem.appendChild(backLink);
-        nav.appendChild(backItem);
-
+        navTree.insertBefore(backItem, navTree.firstChild);
         nav.appendChild(navTree);
         return sidebar;
     }
