@@ -88,6 +88,12 @@ All notable changes to this project will be documented in this file.
 - **Upgraded Zensical to 0.0.43** - latest documentation site generator with improved link
   validation edge cases (dollar signs, GitHub callouts, TOC markers), BOM stripping for
   UTF-8 files, and theme directory watching improvements.
+- **Dokka site retheme overhaul for Zensical parity** - rebuilt Dokka `/api/` chrome to match
+  the main docs site (`/`) using Dokka HTML customization (`customStyleSheets` and
+  `customAssets`), with Material-style header/sidebar/footer injection, shared light/dark
+  palette state between `/` and `/api/`, "Back to Docs" sidebar link, fully expanded API nav,
+  spacing polish for section headers, and expanded retheme architecture/troubleshooting
+  documentation in `compose-highlight/dokka-theme/README.md`.
 
 ## [0.24.1] - 2026-05-28
 
