@@ -29,7 +29,7 @@ import kotlin.math.roundToInt
 object ThemeParser {
     /**
      * Parses a CSS theme file from assets into a color map.
-     * Results are not cached here — callers should use [lazy] to cache per theme.
+     * Results are not cached here - callers should use [lazy] to cache per theme.
      *
      * Silently returns an empty map on any error. Use [parseAsset] if you need to
      * distinguish between a missing file and an empty/unparseable theme.
@@ -73,8 +73,8 @@ object ThemeParser {
      * Extracts [SpanStyle] for each `.hljs-*` selector block.
      *
      * Implementation: a small recursive-descent parser over a hand-written tokenizer.
-     * Highlight.js theme CSS uses a strict, predictable subset of CSS — flat top-level rules,
-     * occasional `@media` / `@supports` / `@keyframes` blocks, no nested rules — so a tiny
+     * Highlight.js theme CSS uses a strict, predictable subset of CSS - flat top-level rules,
+     * occasional `@media` / `@supports` / `@keyframes` blocks, no nested rules - so a tiny
      * grammar handles every known theme without pulling in a full CSS engine.
      *
      * The parser:
@@ -105,7 +105,7 @@ object ThemeParser {
     /**
      * Applies [spanStyle] to [result] for [selector] if it is an acceptable standalone
      * `.hljs[-...]` (or compound `.hljs-x.y`) selector. Selectors with descendant combinators,
-     * pseudo-elements, or pseudo-classes are silently ignored — they describe context-specific
+     * pseudo-elements, or pseudo-classes are silently ignored - they describe context-specific
      * styling and must not overwrite the base entries.
      */
     private fun applyHljsSelector(
@@ -145,7 +145,7 @@ object ThemeParser {
 
     // Validates a full hljs selector chain: `.hljs`, `.hljs-keyword`, `.hljs-title.function_`, …
     // Stops if a non-leading class doesn't start with `.` or is itself `hljs` (which would mean
-    // two separate hljs tokens — still ok in compound form, but we already rejected whitespace).
+    // two separate hljs tokens - still ok in compound form, but we already rejected whitespace).
     private val HLJS_SELECTOR_REGEX = Regex("""\.hljs(?:-[\w-]+)?(?:\.[\w][\w-]*)*""")
 
     // Matches a single colon followed by a pseudo-class identifier, but NOT `::` (pseudo-element).
@@ -188,7 +188,7 @@ object ThemeParser {
                     }
 
                     src[pos] == '}' -> {
-                        // Stray closing brace: stop. Defensive — should not happen in valid CSS.
+                        // Stray closing brace: stop. Defensive - should not happen in valid CSS.
                         break
                     }
 
@@ -229,7 +229,7 @@ object ThemeParser {
                 }
                 val c = src[pos]
                 if (c == '{') return sb.toString()
-                if (c == '}') return null // Unbalanced — abort
+                if (c == '}') return null // Unbalanced - abort
                 sb.append(c)
                 pos++
             }
@@ -247,7 +247,7 @@ object ThemeParser {
                 val c = src[pos]
                 if (c == '}') break
                 if (c == '{') {
-                    // Defensive — declarations should not contain `{`. If they do, skip the
+                    // Defensive - declarations should not contain `{`. If they do, skip the
                     // nested block to keep the outer parser in a sane state.
                     skipBalancedBlock()
                     continue

@@ -27,7 +27,7 @@ import kotlin.time.Duration
  *
  * @property html The raw HTML string produced by Highlight.js, containing
  *   `<span class="hljs-*">` tokens that can be styled by a CSS theme.
- * @property durationMs JavaScript round-trip time in milliseconds — measured from immediately
+ * @property durationMs JavaScript round-trip time in milliseconds - measured from immediately
  *   before `evaluateJavascript()` is called (after WebView is ready and the internal mutex is
  *   acquired) through receipt of the result. Excludes WebView warm-up and queue-wait time.
  *   Equals `jsBridgeDuration.inWholeMilliseconds`.

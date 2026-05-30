@@ -561,7 +561,7 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
-- **`ThemeParser` — pseudo-element/pseudo-class selector leak** — selectors containing `::` or `:`
+- **`ThemeParser` - pseudo-element/pseudo-class selector leak** - selectors containing `::` or `:`
   (e.g. `.hljs::selection`, `.hljs:hover`) were being stripped of the pseudo-part and incorrectly
   stored as the `.hljs` base entry. This caused the selection-highlight background color
   (e.g. `#516d7b` in `base16/atelier-lakeside`) to overwrite the real theme background (`#161b1d`),
@@ -571,38 +571,38 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
-- **Sample app — "All Themes" tab** — new tab that bundles all 256 highlight.js 11.11.1 theme CSS
+- **Sample app - "All Themes" tab** - new tab that bundles all 256 highlight.js 11.11.1 theme CSS
   files as sample app assets. A searchable dropdown lets users pick any theme and instantly
   live-preview it on a code block, similar to the highlightjs.org/demo experience.
-- **Sample app — interactive Styling section** — replaced three static `CodeBlockStyle` demo blocks
+- **Sample app - interactive Styling section** - replaced three static `CodeBlockStyle` demo blocks
   with a single live-preview code block. An `ExtendedFloatingActionButton` (bottom-right) opens a
   `ModalBottomSheet` where all `CodeBlockStyle` parameters can be adjusted and instantly reflected
   in the code block behind it.
-- **Sample app — Themes section** — trimmed to one built-in theme demo and one `fromAsset()` demo
+- **Sample app - Themes section** - trimmed to one built-in theme demo and one `fromAsset()` demo
   that shows its own loading code as the highlighted snippet.
 
 ## [0.16.0] - 2026-05-16
 
 ### Fixed
 
-- **`CancellationException` is no longer swallowed in `HighlightEngine`** — `highlightToHtml`,
+- **`CancellationException` is no longer swallowed in `HighlightEngine`** - `highlightToHtml`,
   `supportedLanguages`, and `highlightJsVersion` previously caught all `Exception` types,
   silently converting parent coroutine cancellations into `Result.failure(JsExecutionFailed(...))`.
   They now rethrow `CancellationException` to respect structured concurrency.
-- **`HighlightException.Timeout` is now actually thrown on timeout** — the same broad
+- **`HighlightException.Timeout` is now actually thrown on timeout** - the same broad
   `catch (e: Exception)` was swallowing `TimeoutCancellationException` (from `withTimeout`),
   making `HighlightException.Timeout` dead code. Timeout is now correctly caught and converted
   to `Result.failure(HighlightException.Timeout())` in all three methods.
 
 ### Performance
 
-- **`SyntaxHighlightedCode` is now `restartable skippable`** — Derived colors and `TextStyle`
+- **`SyntaxHighlightedCode` is now `restartable skippable`** - Derived colors and `TextStyle`
   values (`backgroundColor`, `textColor`, `lineNumberColor`, `themedCodeStyle`,
   `themedLineNumStyle`, `languageLabelStyle`) are now wrapped in `remember(theme, style)` blocks
   so they are only recomputed when the theme or style changes, not on every recomposition.
   This eliminates 6 unnecessary `TextStyle.copy()` / `Color` allocations per recomposition and
   allows the Compose compiler to classify `SyntaxHighlightedCode`, `LineNumberedCode`, and
-  `CopyButton` as `skippable` (previously none were skippable — verified via compiler reports).
+  `CopyButton` as `skippable` (previously none were skippable - verified via compiler reports).
   Result: `knownUnstableArguments` dropped from 4 → 0; skippable composables increased from 0 → 7.
 
 ## [0.15.0] - 2026-05-14
@@ -614,7 +614,7 @@ All notable changes to this project will be documented in this file.
   documented `Result`-based public error model. Migration: replace bare `engine.initialize()`
   calls with `engine.initialize().onFailure { /* handle */ }` or
   `engine.initialize().getOrThrow()` if you want failure to propagate as an exception.
-- **`highlightBothThemes` now parses the HTML once** — `HtmlToAnnotatedString.convertBothThemes()`
+- **`highlightBothThemes` now parses the HTML once** - `HtmlToAnnotatedString.convertBothThemes()`
   replaces the prior double-`convert()` call in `HighlightEngine.highlightBothThemes()`. The HTML
   fragment is parsed into a DOM once and walked once, with two `AnnotatedString.Builder` instances
   updated in parallel (one per theme). This removes a redundant Jsoup parse and a redundant DOM
@@ -622,7 +622,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
-- **Robolectric JVM tests for Compose UI** — Added 13 new unit tests in `src/test/` that run on
+- **Robolectric JVM tests for Compose UI** - Added 13 new unit tests in `src/test/` that run on
   the JVM without an emulator using Robolectric 4.16.1 and the v2 Compose testing APIs
   (`androidx.compose.ui.test.junit4.v2.createComposeRule`).
   - `SyntaxHighlightedCodeRobolectricTest` (8 tests): verifies preview fallback rendering, test
@@ -634,11 +634,11 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
-- **`HighlightTheme` context factories now normalize to `applicationContext` internally** —
+- **`HighlightTheme` context factories now normalize to `applicationContext` internally** -
   `tomorrow`, `tomorrowNight`, `atomOneDark`, `atomOneLight`, and `fromAsset` defensively resolve
   `context.applicationContext` before retaining it in lazy theme providers, preventing accidental
   Activity-context retention when a theme instance outlives an Activity lifecycle.
-- **Sample app preserves top-level demo selections across recreation** — `SampleScreen` now uses
+- **Sample app preserves top-level demo selections across recreation** - `SampleScreen` now uses
   `rememberSaveable` for the light/dark toggle, selected demo tab, and selected theme family so
   those user-facing choices survive configuration changes.
 
@@ -646,19 +646,19 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
-- **LeakCanary integrated into the sample app** — `com.squareup.leakcanary:leakcanary-android:2.14`
+- **LeakCanary integrated into the sample app** - `com.squareup.leakcanary:leakcanary-android:2.14`
   is added as a `debugImplementation` dependency in `sample/build.gradle.kts`. LeakCanary
   automatically detects memory leaks in debug builds and displays a notification with a heap dump
-  analysis when a leak is found. No code changes are required — LeakCanary installs itself via
+  analysis when a leak is found. No code changes are required - LeakCanary installs itself via
   its `ContentProvider`.
 
 ### Changed
 
-- **`SelectionContainer` moved inside `AnimatedContent`** in `SyntaxHighlightedCode` — during the
+- **`SelectionContainer` moved inside `AnimatedContent`** in `SyntaxHighlightedCode` - during the
   plain-text → highlighted crossfade, `SelectionContainer` now wraps only the currently visible
   content rather than both states simultaneously, preventing potential disruption to active text
   selection during the transition animation.
-- **`CodeBlockStyle` annotated `@Stable`** — Compose can now skip recomposition of callers that
+- **`CodeBlockStyle` annotated `@Stable`** - Compose can now skip recomposition of callers that
   pass an unchanged `CodeBlockStyle`. For custom styles constructed inline in a composable, wrap
   them in `remember` to avoid unnecessary recompositions:
 
@@ -673,7 +673,7 @@ All notable changes to this project will be documented in this file.
   creating the WebView (after `webView = view` but before `onPageFinished`), `destroy()` would
   cancel the captured `CompletableDeferred` and replace `readyDeferred` with a fresh instance.
   `onPageFinished` would then skip completing (cancelled deferred is already "completed"), leaving
-  the new deferred permanently unresolved — all subsequent highlight calls would suspend forever.
+  the new deferred permanently unresolved - all subsequent highlight calls would suspend forever.
   Two targeted fixes applied (Option C from the issue report):
   - `readyDeferred` is now `@Volatile` so writes by `destroy()` (any thread) are immediately
     visible to `getReadyWebView()` and `initialize()` on other threads (ARM weak memory model).
@@ -681,7 +681,7 @@ All notable changes to this project will be documented in this file.
     ran while the page was loading, the callback returns early; the next `initialize()` call
     picks up the fresh deferred and completes it normally, fully recovering the engine.
 
-- **U+2028/U+2029 escaping in JS template** — `executeJs` now escapes Unicode Line Separator
+- **U+2028/U+2029 escaping in JS template** - `executeJs` now escapes Unicode Line Separator
   (U+2028) and Paragraph Separator (U+2029) before interpolating code into the JS call.
   Pre-ES2019 WebView engines (Android < 10) treat these as line terminators inside string literals,
   causing a `SyntaxError` / `JsExecutionFailed`. The escape logic has been extracted into a
@@ -692,18 +692,18 @@ All notable changes to this project will be documented in this file.
 - `rememberHighlightedCode` and `rememberHighlightedCodeBothThemes` skip the
   `LaunchedEffect` (and thus never call the WebView engine) when running inside
   an Android Studio Preview, preventing crashes in preview-only code paths.
-- **`WebViewManager.webView` marked `@Volatile`** — prevents stale-read on ARM's weak memory model
+- **`WebViewManager.webView` marked `@Volatile`** - prevents stale-read on ARM's weak memory model
   when `initialize()` checks the field before switching to the Main thread.
-- **`language` parameter escaped in JS template** — `executeJs` now escapes backslashes and single
+- **`language` parameter escaped in JS template** - `executeJs` now escapes backslashes and single
   quotes in `language` before interpolating into the `highlightCode(...)` JS call, closing a minor
   JS-injection vector (defense-in-depth; the WebView has no access to sensitive data).
-- **Accessibility: copy button `contentDescription`** — The copy-to-clipboard `IconButton` inside
+- **Accessibility: copy button `contentDescription`** - The copy-to-clipboard `IconButton` inside
   `SyntaxHighlightedCode` now carries `contentDescription = "Copy code"` so TalkBack announces it
   meaningfully instead of the generic "Button".
-- **Accessibility: `testTag` on outer container** — `SyntaxHighlightedCode` now applies
+- **Accessibility: `testTag` on outer container** - `SyntaxHighlightedCode` now applies
   `testTag("syntax-highlighted-code")` on its outer `Surface`, giving UI-test consumers a stable
   node handle without relying on fragile text or structure queries.
-- **`HighlightThemeProvider` default themes are now remembered** — default parameters now use
+- **`HighlightThemeProvider` default themes are now remembered** - default parameters now use
   `rememberTomorrowTheme()` / `rememberTomorrowNightTheme()` so recomposition no longer allocates
   new `HighlightTheme` wrapper instances when callers rely on defaults.
 
@@ -721,9 +721,9 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
-- **Maven Central publishing** — library is now published to Maven Central (`dev.hossain:compose-highlight`)
+- **Maven Central publishing** - library is now published to Maven Central (`dev.hossain:compose-highlight`)
   in addition to JitPack. GPG signing, sources JAR, and Dokka HTML javadoc JAR are all included.
-- **`PUBLISHING.md`** — end-to-end guide covering prerequisites (Sonatype, GPG, GitHub Secrets),
+- **`PUBLISHING.md`** - end-to-end guide covering prerequisites (Sonatype, GPG, GitHub Secrets),
   release steps, dry-run instructions, local dry run, and Gradle task reference.
 
 ### Infrastructure
@@ -736,11 +736,11 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
-- **`HtmlHighlightResult` data class** — `HighlightEngine.highlightToHtml()` now returns
+- **`HtmlHighlightResult` data class** - `HighlightEngine.highlightToHtml()` now returns
   `Result<HtmlHighlightResult>` instead of `Result<String>`. The result pairs the raw HTML with
   timing data so callers no longer need to measure JS round-trip time manually:
-  - `html: String` — raw HTML with `<span class="hljs-*">` tokens (same content as before, via `.html`)
-  - `durationMs: Long` — JavaScript round-trip time, measured after the WebView is ready
+  - `html: String` - raw HTML with `<span class="hljs-*">` tokens (same content as before, via `.html`)
+  - `durationMs: Long` - JavaScript round-trip time, measured after the WebView is ready
     and the internal mutex is acquired (excludes WebView warm-up and queue-wait time)
 
   **Migration:** replace `.onSuccess { html -> ... }` with `.onSuccess { it.html }`:
@@ -756,7 +756,7 @@ All notable changes to this project will be documented in this file.
   }
   ```
 
-- **`HighlightEngine.isInitialized: StateFlow<Boolean>`** — changed from a plain
+- **`HighlightEngine.isInitialized: StateFlow<Boolean>`** - changed from a plain
   `Boolean` property to a `StateFlow<Boolean>`, enabling Compose composables to observe
   engine initialization reactively without a separate `var engineReady` flag:
 
@@ -768,21 +768,21 @@ All notable changes to this project will be documented in this file.
   **Migration:** replace `engine.isInitialized` with `engine.isInitialized.value` in
   non-Compose contexts; use `engine.isInitialized.collectAsState()` in Compose.
 
-- **`rememberHighlightedCodeBothThemes` now accepts `onHighlightComplete`** — added
+- **`rememberHighlightedCodeBothThemes` now accepts `onHighlightComplete`** - added
   `onHighlightComplete: ((ThemedHighlightResult) -> Unit)?` callback parameter for
   consistency with `rememberHighlightedCode`. Fires after the state is updated on success.
 
-- **`rememberHighlightedCodeBothThemes` now works inside `HighlightThemeProvider`** —
+- **`rememberHighlightedCodeBothThemes` now works inside `HighlightThemeProvider`** -
   `lightTheme` and `darkTheme` parameters now default to `LocalLightHighlightTheme.current`
   and `LocalDarkHighlightTheme.current` respectively, so callers inside a
   `HighlightThemeProvider` no longer need to pass themes explicitly.
 
-- **`LocalLightHighlightTheme` and `LocalDarkHighlightTheme` CompositionLocals** —
+- **`LocalLightHighlightTheme` and `LocalDarkHighlightTheme` CompositionLocals** -
   `HighlightThemeProvider` now provides both the individual light and dark themes via these
   new public CompositionLocals (in addition to the existing `LocalHighlightTheme` for the
   active theme). Useful when composables need both variants simultaneously.
 
-- **`@Composable` theme helpers** — new `rememberTomorrowTheme()`,
+- **`@Composable` theme helpers** - new `rememberTomorrowTheme()`,
   `rememberTomorrowNightTheme()`, `rememberAtomOneDarkTheme()`,
   `rememberAtomOneLightTheme()` functions resolve `LocalContext` internally, removing the
   need for `val context = LocalContext.current` boilerplate at call sites:
@@ -797,25 +797,25 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
-- **`HtmlHighlightResult.durationMs` now measures JS round-trip only** — the timer
+- **`HtmlHighlightResult.durationMs` now measures JS round-trip only** - the timer
   previously started before WebView initialisation and mutex acquisition, so it included
   warm-up and queue-wait time. It now starts immediately before `evaluateJavascript()` is
   called, after the WebView is ready and the internal mutex is held.
 
 ### Sample app improvements
 
-- **Code samples moved to asset files** — 17 language samples previously hardcoded as Kotlin raw
+- **Code samples moved to asset files** - 17 language samples previously hardcoded as Kotlin raw
   strings in `SampleData.kt` are now individual files in `assets/samples/` (e.g. `01_fibonacci.py`,
-  `08_WeatherApp.kt`). Adding a new language sample only requires dropping a file in that folder —
+  `08_WeatherApp.kt`). Adding a new language sample only requires dropping a file in that folder -
   no Kotlin changes needed. Each file has a real extension so IDEs apply syntax highlighting when
   viewing or editing them.
-- **`sample/README.md`** — documents the sample app structure, what each tab demonstrates, and
+- **`sample/README.md`** - documents the sample app structure, what each tab demonstrates, and
   how to add new language samples or custom themes.
-- **Sample app organisation** — `DemoSections.kt` split into a `sections/` package (one file per
+- **Sample app organisation** - `DemoSections.kt` split into a `sections/` package (one file per
   tab); tab routing uses a `DemoTab` sealed class instead of integer indices.
-- **Fixed: Engine tab language list now scrollable** — the 192-language list was clipped at a
+- **Fixed: Engine tab language list now scrollable** - the 192-language list was clipped at a
   fixed height with no scroll. Fixed by adding `verticalScroll` to the list container.
-- **Fixed: App crash on launch (NPE in tab bar)** — `DemoTab.all` companion `val` was evaluated
+- **Fixed: App crash on launch (NPE in tab bar)** - `DemoTab.all` companion `val` was evaluated
   during class init before the `data object` instances were set, resulting in a list of nulls.
   Fixed with `by lazy { }`.
 
@@ -823,25 +823,25 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
-- **`HighlightResult` data class** — `HighlightEngine.highlight()` now returns
+- **`HighlightResult` data class** - `HighlightEngine.highlight()` now returns
   `Result<HighlightResult>` instead of `Result<AnnotatedString>`. The result carries:
-  - `annotated: AnnotatedString` — the highlighted text (same as before, via `.annotated`)
-  - `spanCount: Int` — number of highlight spans; `0` signals a silent failure (unsupported
+  - `annotated: AnnotatedString` - the highlighted text (same as before, via `.annotated`)
+  - `spanCount: Int` - number of highlight spans; `0` signals a silent failure (unsupported
     language or empty input) without an exception
-  - `language: String` — the language identifier that was requested
-  - `durationMs: Long` — pure highlight time (JS call + HTML conversion), excluding
+  - `language: String` - the language identifier that was requested
+  - `durationMs: Long` - pure highlight time (JS call + HTML conversion), excluding
     coroutine-scheduling overhead  
 
   **Migration:** replace `.onSuccess { it }` with `.onSuccess { it.annotated }`.
 
-- **`HighlightEngine.isInitialized: Boolean`** — `true` once the hidden WebView has loaded
+- **`HighlightEngine.isInitialized: Boolean`** - `true` once the hidden WebView has loaded
   `bridge.html`. Removes the need for a manual `var engineReady` flag in calling code.
 
-- **`ThemedHighlightResult.durationMs: Long`** — timing is now included in the result returned
+- **`ThemedHighlightResult.durationMs: Long`** - timing is now included in the result returned
   by `highlightBothThemes` and `rememberHighlightedCodeBothThemes`. Read it directly from the
   state value instead of using a separate callback.
 
-- **`HighlightEngine.supportedLanguages(): Result<List<String>>`** — returns the sorted list of
+- **`HighlightEngine.supportedLanguages(): Result<List<String>>`** - returns the sorted list of
   language identifiers supported by the bundled Highlight.js (190+ languages). Result is fetched
   from the JS engine on the first call and cached for subsequent calls.
 
@@ -851,7 +851,7 @@ All notable changes to this project will be documented in this file.
   }
   ```
 
-- **`HighlightEngine.highlightJsVersion(): Result<String>`** — returns the version string of the
+- **`HighlightEngine.highlightJsVersion(): Result<String>`** - returns the version string of the
   bundled Highlight.js library (e.g. `"11.11.1"`). Cached after the first call.
 
   ```kotlin
@@ -860,13 +860,13 @@ All notable changes to this project will be documented in this file.
   }
   ```
 
-- **Sample app: Engine tab** — new tab in the demo app showcasing `highlightJsVersion()` and
+- **Sample app: Engine tab** - new tab in the demo app showcasing `highlightJsVersion()` and
   `supportedLanguages()`. Displays the bundled Highlight.js version string and a scrollable,
   numbered list of all 192 supported language identifiers.
 
 ### Changed
 
-- **`onHighlightComplete` callback now receives `HighlightResult`** — both
+- **`onHighlightComplete` callback now receives `HighlightResult`** - both
   `SyntaxHighlightedCode` and `rememberHighlightedCode` previously passed `durationMs: Long`
   to the callback; they now pass the full `HighlightResult`. Use `result.durationMs` for
   timing, `result.spanCount` for silent-failure detection.
@@ -881,14 +881,14 @@ All notable changes to this project will be documented in this file.
   onHighlightComplete = { result -> showTiming(result.durationMs) }
   ```
 
-- **`rememberHighlightedCode` timing is now measured inside the engine** — `durationMs` in
+- **`rememberHighlightedCode` timing is now measured inside the engine** - `durationMs` in
   `HighlightResult` reflects pure highlight time (JS round-trip + HTML parse), not
   coroutine-scheduling overhead.
-- **`CodeBlockStyle` gains a `textStyle: TextStyle` property** — font family, font size,
+- **`CodeBlockStyle` gains a `textStyle: TextStyle` property** - font family, font size,
   and line height are now configured via `CodeBlockStyle.textStyle` (defaulting to
   `SyntaxHighlightedCodeDefaults.codeTextStyle`: monospace, 13 sp, 20 sp line height).
 - **`SyntaxHighlightedCode`: removed `fontFamily`, `fontSize`, `lineHeight` parameters**
-  — these three top-level parameters are replaced by `CodeBlockStyle.textStyle`.
+  - these three top-level parameters are replaced by `CodeBlockStyle.textStyle`.
   Consolidating typography into `CodeBlockStyle` follows established Compose library
   patterns (e.g. Material 3, Haze) where all visual style is expressed through a single
   style object.
@@ -915,7 +915,7 @@ All notable changes to this project will be documented in this file.
 
 ### Removed
 
-- **`onHighlightComplete` removed from `rememberHighlightedCodeBothThemes`** — timing is now
+- **`onHighlightComplete` removed from `rememberHighlightedCodeBothThemes`** - timing is now
   available directly on `ThemedHighlightResult.durationMs`, so a separate callback is not
   needed. Read timing from the state value you already hold:
 
@@ -928,7 +928,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
-- **`SyntaxHighlightedCodeDefaults` object** — new top-level object that exposes all default
+- **`SyntaxHighlightedCodeDefaults` object** - new top-level object that exposes all default
   values used by `SyntaxHighlightedCode` and `CodeBlockStyle` (`codeTextStyle`, `shape`,
   `padding`, `headerPadding`, `lineNumberWidth`, `copyButtonSize`). Callers can now discover
   and override individual defaults without hard-coding magic numbers:
@@ -941,11 +941,11 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
-- **`CodeBlockStyle` gains a `textStyle: TextStyle` property** — font family, font size,
+- **`CodeBlockStyle` gains a `textStyle: TextStyle` property** - font family, font size,
   and line height are now configured via `CodeBlockStyle.textStyle` (defaulting to
   `SyntaxHighlightedCodeDefaults.codeTextStyle`: monospace, 13 sp, 20 sp line height).
 - **`SyntaxHighlightedCode`: removed `fontFamily`, `fontSize`, `lineHeight` parameters**
-  — these three top-level parameters are replaced by `CodeBlockStyle.textStyle`.
+  - these three top-level parameters are replaced by `CodeBlockStyle.textStyle`.
   Consolidating typography into `CodeBlockStyle` follows established Compose library
   patterns (e.g. Material 3, Haze) where all visual style is expressed through a single
   style object.
@@ -974,33 +974,33 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
-- **Updated target SDK from 37 to 36** — Android 17 (API 37) is in late beta; using
+- **Updated target SDK from 37 to 36** - Android 17 (API 37) is in late beta; using
   stable API 36 (Android 12) for production compatibility while maintaining minSdk 24.
 
 ## [0.7.0] - 2026-05-09
 
 ### Added
 
-- **`SyntaxHighlightedCode`: `copyButtonIcon` composable slot** — optional parameter
+- **`SyntaxHighlightedCode`: `copyButtonIcon` composable slot** - optional parameter
   `copyButtonIcon: (@Composable (tint: Color) -> Unit)?` that replaces the default `⧉`
   text icon with any composable. Receives the theme-derived `tint` color so custom icons
   blend naturally with the code block background. Defaults to `null` (original `⧉`
   behaviour).
-- **Sample app: performance benchmark screen** — new `PerfActivity`/`PerfScreen` that
+- **Sample app: performance benchmark screen** - new `PerfActivity`/`PerfScreen` that
   highlights all language samples and displays per-block timing (ms), line count, and
   character count as metric chips. Includes a dark/light toggle that clears and re-runs
   all benchmarks so theme changes are reflected in measurements.
-- **Sample app: 8 new language samples** — TypeScript, Rust, Go, Swift, C++, C#, Bash,
+- **Sample app: 8 new language samples** - TypeScript, Rust, Go, Swift, C++, C#, Bash,
   and CSS added to `SampleData`, each using constructs that stress different highlighter
   token types (generics, lifetimes, goroutines, template literals, etc.).
-- **Sample app: Snackbar copy confirmation** — the Languages tab now defines a shared
+- **Sample app: Snackbar copy confirmation** - the Languages tab now defines a shared
   `onCopyClick` handler that copies code to the system clipboard and shows a
   `"Successfully copied source code to clipboard"` Snackbar, demonstrating
   caller-owned copy feedback.
 
 ### Fixed
 
-- **Sample app: edge-to-edge insets on `LazyColumn`s** — both `SampleScreen` and
+- **Sample app: edge-to-edge insets on `LazyColumn`s** - both `SampleScreen` and
   `PerfScreen` now pass bottom (and top) system bar insets to the list's `contentPadding`
   parameter and use `consumeWindowInsets` on the parent container. Previously the inset was
   applied as `Modifier.padding(innerPadding)` on the container, which clipped the list and
@@ -1008,18 +1008,18 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
-- **`SyntaxHighlightedCode`: removed internal copy confirmation UI** — the library no
+- **`SyntaxHighlightedCode`: removed internal copy confirmation UI** - the library no
   longer manages a 2-second "Copied!" flash internally. The `onCopyClick` callback is the
   signal that a copy occurred; callers own the feedback UX (Snackbar, Toast, animated
   indicator, etc.). This is a **behavioural change**: apps that relied on the built-in
   "Copied!" text will need to implement their own confirmation via `onCopyClick`.
-- **Sample app: vector icons throughout** — emoji placeholders in the TopAppBar (theme
+- **Sample app: vector icons throughout** - emoji placeholders in the TopAppBar (theme
   picker, light/dark toggle, benchmark launcher) and perf screen metric chips replaced with
   Material Design vector drawables (`palette_24dp`, `light_mode_24dp`, `mode_night_24dp`,
   `speed_24dp`, `timer_24dp`, `format_line_spacing_24dp`, `type_specimen_24dp`).
-- **Sample app: Atom One dark as default** — both the main screen and the benchmark
+- **Sample app: Atom One dark as default** - both the main screen and the benchmark
   screen now open in dark mode with the Atom One theme instead of the system default.
-- **Sample app: `copyButtonIcon` used in Languages tab** — all code blocks in the
+- **Sample app: `copyButtonIcon` used in Languages tab** - all code blocks in the
   Languages tab now render a `content_copy_24dp` vector icon instead of the default `⧉`
   character.
 
@@ -1027,7 +1027,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
-- **Sample app: comprehensive customization demo** — The sample app now has tabbed
+- **Sample app: comprehensive customization demo** - The sample app now has tabbed
   navigation with seven sections showcasing every public API feature:
   - **Languages**: original multi-language highlight demo (Python, Kotlin, Java, SQL, etc.)
   - **Styling**: `CodeBlockStyle.Default`, `CodeBlockStyle.Compact`, and a custom style
@@ -1037,10 +1037,10 @@ All notable changes to this project will be documented in this file.
     `showCopyButton` on/off
   - **Callbacks**: `onHighlightComplete` (displays millisecond duration) and `onCopyClick`
     (custom handler with inline feedback)
-  - **Themes**: all `HighlightTheme` factory methods — built-in (tomorrow, atom-one),
+  - **Themes**: all `HighlightTheme` factory methods - built-in (tomorrow, atom-one),
     `fromAsset()` (GitHub CSS), `fromCss()` (inline Material 3 CSS), and `fromColorMap()`
     (Material 3 color map)
-  - **Advanced**: `rememberHighlightedCodeBothThemes()` — pre-highlights for both light
+  - **Advanced**: `rememberHighlightedCodeBothThemes()` - pre-highlights for both light
     and dark in one JS call for instant theme switching
 - JVM unit tests for `HighlightTheme`: `fromCss`, `fromColorMap`, lazy `colorMap`,
   `backgroundColor`, `defaultTextColor`, `equals`/`hashCode`/`toString`, and
@@ -1065,28 +1065,28 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
-- **`WebViewManager`: `readyDeferred` lifecycle correctness** — `readyDeferred` is now
+- **`WebViewManager`: `readyDeferred` lifecycle correctness** - `readyDeferred` is now
   a `var` so it can be reset before re-initialization after `destroy()`. The
   WebViewClient closure now captures the deferred as a local variable, preventing it from
   completing a stale deferred on re-initialization. `destroy()` now cancels a pending
   (incomplete) deferred so callers awaiting the WebView in `getReadyWebView()` are not
   left suspended indefinitely.
-- **`HighlightEngine`: Activity context leak** — `HighlightEngine` now always calls
+- **`HighlightEngine`: Activity context leak** - `HighlightEngine` now always calls
   `context.applicationContext` before passing the context to `WebViewManager`, ensuring
   that a long-lived WebView never retains an Activity reference. `HighlightThemeProvider`
   and `rememberHighlightEngine()` also explicitly pass `applicationContext`.
-- **`HighlightEngine`: incorrect JSON unescape ordering** — replaced the sequential
+- **`HighlightEngine`: incorrect JSON unescape ordering** - replaced the sequential
   `String.replace()` chain in `unescapeJsString` with a single character-by-character
   pass. The old approach applied `\n` → newline before `\\` → `\`, which incorrectly
   converted `\n` (a literal backslash + 'n' in JSON) to a newline instead of `\n`. The
   new implementation also adds support for `\r` → CR and `\/` → `/` escape sequences.
-- **`HighlightThemeProvider`: shared engine for the whole subtree** — the provider now
+- **`HighlightThemeProvider`: shared engine for the whole subtree** - the provider now
   creates one `HighlightEngine` (one hidden WebView) for its entire subtree and provides
   it via an internal `LocalHighlightEngine` CompositionLocal. Previously, every
   `SyntaxHighlightedCode` and every `rememberHighlightedCode` call created its own engine.
   On a screen with N code blocks this wasted ~200 ms × N of WebView warm-up time and
   ~2–4 MB × N of memory.
-- **`rememberHighlightEngine()`: uses shared engine when available** — when called inside
+- **`rememberHighlightEngine()`: uses shared engine when available** - when called inside
   `HighlightThemeProvider`, it returns the provider's shared engine (no new WebView, no
   management needed). Outside a provider the previous behavior is unchanged: a standalone
   engine is created and destroyed with the composable.
@@ -1104,13 +1104,13 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
-- `HighlightTheme` now implements `equals()`/`hashCode()` based on `name` — fixes stale
+- `HighlightTheme` now implements `equals()`/`hashCode()` based on `name` - fixes stale
   highlighting when using `LaunchedEffect(theme)` or `remember(theme)`
-- `HighlightTheme` annotated `@Stable` — enables Compose skipping optimisation for composables
+- `HighlightTheme` annotated `@Stable` - enables Compose skipping optimisation for composables
   that receive a theme parameter
 - `rememberHighlightedCode()` and `SyntaxHighlightedCode` now accept
   `onHighlightComplete: ((Long) -> Unit)?` callback for performance metrics
-- New `rememberHighlightedCodeBothThemes()` composable — highlights once for both light and
+- New `rememberHighlightedCodeBothThemes()` composable - highlights once for both light and
   dark themes, enabling instant theme switching
 
 ### Fixed
@@ -1124,9 +1124,9 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
-- `HighlightTheme.fromColorMap()` — supply a theme from any `Map<String, SpanStyle>` (e.g.
+- `HighlightTheme.fromColorMap()` - supply a theme from any `Map<String, SpanStyle>` (e.g.
   Material 3 dynamic color)
-- Theme picker in sample app — switch between GitHub, Tomorrow, and Atom One theme families
+- Theme picker in sample app - switch between GitHub, Tomorrow, and Atom One theme families
 - Sample app uses GitHub and GitHub Dark themes via `HighlightTheme.fromAsset()`,
   demonstrating user-provided custom themes
 
@@ -1139,7 +1139,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
-- JitPack publishing support — library available via `com.github.hossain-khan:android-compose-highlight:0.2.0`
+- JitPack publishing support - library available via `com.github.hossain-khan:android-compose-highlight:0.2.0`
 - Comprehensive KDoc with usage examples on all public API classes
 - `MODULE.md` for Dokka module-level documentation page
 - Dokka API docs published to GitHub Pages via CI

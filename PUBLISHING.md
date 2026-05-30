@@ -36,8 +36,8 @@ Export the **ASCII-armored** private key for CI:
 gpg --export-secret-keys --armor <FULL_FINGERPRINT>
 ```
 
-> ⚠️ Copy the entire output — including the `-----BEGIN PGP PRIVATE KEY BLOCK-----`
-> and `-----END PGP PRIVATE KEY BLOCK-----` lines — directly into the `SIGNING_KEY`
+> ⚠️ Copy the entire output - including the `-----BEGIN PGP PRIVATE KEY BLOCK-----`
+> and `-----END PGP PRIVATE KEY BLOCK-----` lines - directly into the `SIGNING_KEY`
 > GitHub Secret. **Do not base64-encode it.**
 
 ### 3. GitHub Secrets
@@ -46,7 +46,7 @@ Add the following secrets in **Settings → Secrets and variables → Actions**:
 
 | Secret | Value |
 |---|---|
-| `SIGNING_KEY_ID` | Short key ID — last 8 hex chars of the fingerprint (e.g. `F17804D7`) |
+| `SIGNING_KEY_ID` | Short key ID - last 8 hex chars of the fingerprint (e.g. `F17804D7`) |
 | `SIGNING_KEY` | ASCII-armored private key (full `-----BEGIN/END-----` block) |
 | `SIGNING_PASSWORD` | Passphrase used when generating the key |
 | `OSSRH_USERNAME` | Central Portal token username |
@@ -58,7 +58,7 @@ The workflow maps these to `ORG_GRADLE_PROJECT_*` environment variables that the
 
 ## Releasing a new version
 
-### Step 1 — Bump the version
+### Step 1 - Bump the version
 
 Use the release script to update all version references atomically:
 ```bash
@@ -87,7 +87,7 @@ git checkout main && git pull
 git tag 0.18.0 && git push origin 0.18.0
 ```
 
-### Step 2 — Dry run (recommended)
+### Step 2 - Dry run (recommended)
 
 Run the workflow in dry-run mode first to validate all artifacts are produced
 and signed correctly **without uploading anything** to Maven Central:
@@ -111,7 +111,7 @@ Expected output from the validation step:
 ── Result: 8 passed, 0 failed
 ```
 
-### Step 3 — Publish
+### Step 3 - Publish
 
 Once the dry run is green:
 
@@ -130,7 +130,7 @@ The workflow will:
 
 The release typically appears on Maven Central within **10–30 minutes**.
 
-### Step 4 — Verify
+### Step 4 - Verify
 
 Check the release is live:
 ```
@@ -164,6 +164,6 @@ ls -lh ~/.m2/repository/dev/hossain/compose-highlight/0.12.0/
 
 | Task | Description |
 |---|---|
-| `publishToMavenLocal` | Publishes to `~/.m2` — no upload, useful for local testing |
+| `publishToMavenLocal` | Publishes to `~/.m2` - no upload, useful for local testing |
 | `publishAllPublicationsToMavenCentralRepository` | Uploads and releases to Maven Central (used in CI) |
 | `releaseSonatypeStagingRepository` | Releases (publishes) a closed staging repo |

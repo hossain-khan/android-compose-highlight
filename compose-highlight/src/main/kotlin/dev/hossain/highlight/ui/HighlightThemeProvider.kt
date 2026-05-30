@@ -28,7 +28,7 @@ val LocalHighlightTheme =
  * CompositionLocal that provides the light [HighlightTheme] configured in [HighlightThemeProvider].
  *
  * Use this (along with [LocalDarkHighlightTheme]) when you need both variants in a single
- * composable — for example, inside [rememberHighlightedCodeBothThemes].
+ * composable - for example, inside [rememberHighlightedCodeBothThemes].
  *
  * Throws a descriptive error if accessed without a [HighlightThemeProvider] ancestor.
  */
@@ -44,7 +44,7 @@ val LocalLightHighlightTheme =
  * CompositionLocal that provides the dark [HighlightTheme] configured in [HighlightThemeProvider].
  *
  * Use this (along with [LocalLightHighlightTheme]) when you need both variants in a single
- * composable — for example, inside [rememberHighlightedCodeBothThemes].
+ * composable - for example, inside [rememberHighlightedCodeBothThemes].
  *
  * Throws a descriptive error if accessed without a [HighlightThemeProvider] ancestor.
  */
@@ -171,7 +171,7 @@ fun HighlightThemeProvider(
     content: @Composable () -> Unit,
 ) {
     val context = LocalContext.current
-    // One shared engine for the entire subtree — one WebView, not one per code block.
+    // One shared engine for the entire subtree - one WebView, not one per code block.
     val engine = remember { HighlightEngine(context.applicationContext) }
     DisposableEffect(engine) {
         onDispose { engine.destroy() }

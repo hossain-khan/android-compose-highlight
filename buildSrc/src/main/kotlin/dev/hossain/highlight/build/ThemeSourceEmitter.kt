@@ -4,15 +4,15 @@ package dev.hossain.highlight.build
  * Emits a single Kotlin source file containing the precompiled SpanStyle maps for the
  * four bundled hljs themes.
  *
- * The output file is checked in nowhere — it lives under
+ * The output file is checked in nowhere - it lives under
  * `compose-highlight/build/generated/source/themes/main/`, is added to the main Kotlin source
  * set by the Gradle task, and is regenerated whenever the source CSS files change.
  *
  * Format goals:
- * - Plain `mapOf(...)` literals — debuggable, readable in IDE, easy to diff.
+ * - Plain `mapOf(...)` literals - debuggable, readable in IDE, easy to diff.
  * - Source-order preserved (CssThemeParser uses LinkedHashMap), so the generated file diffs
  *   match CSS ordering.
- * - Uses `Color(0xAARRGGBB)` constructor everywhere — same form as the rest of the codebase.
+ * - Uses `Color(0xAARRGGBB)` constructor everywhere - same form as the rest of the codebase.
  */
 internal object ThemeSourceEmitter {
     /**
@@ -81,7 +81,7 @@ internal object ThemeSourceEmitter {
     }
 
     private fun emitColor(argb: Long): String {
-        // 0xAARRGGBB — same form used by the rest of the codebase.
+        // 0xAARRGGBB - same form used by the rest of the codebase.
         // The literal is unsigned (Long) because Color(Long) takes ARGB packed in the low 32 bits.
         return "Color(0x${"%08X".format(argb)})"
     }
@@ -99,7 +99,7 @@ internal object ThemeSourceEmitter {
 internal data class ThemeBuildInput(
     /** Kotlin constant name in `GeneratedThemes`, e.g. `"TOMORROW"`. */
     val constantName: String,
-    /** Asset path the runtime would have loaded — used to compute matching identity hash. */
+    /** Asset path the runtime would have loaded - used to compute matching identity hash. */
     val assetPath: String,
     /** SHA-256-derived identity hash of [assetPath], 64-bit. */
     val contentIdentity: Long,

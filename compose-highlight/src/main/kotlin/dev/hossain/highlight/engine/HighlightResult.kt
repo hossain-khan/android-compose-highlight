@@ -18,7 +18,7 @@ import androidx.compose.ui.text.AnnotatedString
  *     displayText = result.annotated
  *
  *     // Detect silent failures: a spanCount of 0 means the highlighter returned
- *     // plain text — either the language was not recognised or the code was empty.
+ *     // plain text - either the language was not recognised or the code was empty.
  *     if (result.spanCount == 0) {
  *         log("Warning: no highlight tokens produced for language '${result.language}'")
  *     }
@@ -53,11 +53,11 @@ import androidx.compose.ui.text.AnnotatedString
  *
  * @property annotated The syntax-highlighted [AnnotatedString] ready for rendering.
  * @property spanCount Number of [AnnotatedString.spanStyles] entries. A value of `0`
- *   indicates that no tokens were found — the language may be unsupported or the code
+ *   indicates that no tokens were found - the language may be unsupported or the code
  *   was empty (silent failure).
  * @property language The Highlight.js language identifier that was requested
  *   (e.g. `"kotlin"`, `"python"`).
- * @property durationMs Pure highlight time in milliseconds — from the start of the
+ * @property durationMs Pure highlight time in milliseconds - from the start of the
  *   [HighlightEngine.highlight] call through HTML conversion. Excludes coroutine
  *   scheduling overhead that the caller would observe. Equals
  *   `timings.total.inWholeMilliseconds`.

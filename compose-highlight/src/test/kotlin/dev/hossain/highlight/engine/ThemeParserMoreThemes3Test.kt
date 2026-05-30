@@ -19,7 +19,7 @@ import org.robolectric.annotation.Config
  *   SpanStyle merge; `rgba()` for `background-color`; language-scoped descendant selectors skipped
  * - **cybertopia-cherry**: CSS custom properties (`var(--hljs-*)`) gracefully ignored;
  *   font-style/font-weight still parsed when color is a variable
- * - **an-old-hope**: dark Star Wars theme — confidence baseline with 6-digit hex colors
+ * - **an-old-hope**: dark Star Wars theme - confidence baseline with 6-digit hex colors
  * - **atom-one-dark**: very popular theme; `.hljs-class .hljs-title` descendant skipped;
  *   `text-decoration:underline` gracefully ignored
  */

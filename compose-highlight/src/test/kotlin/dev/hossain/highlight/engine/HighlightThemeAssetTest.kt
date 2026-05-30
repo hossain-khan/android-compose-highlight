@@ -68,7 +68,7 @@ class HighlightThemeAssetTest {
     @Test
     fun `built-in factories produce non-empty colorMap with hljs base entry`() {
         // The "no Context, no asset I/O" guarantee for built-in themes is enforced by the type
-        // system — the factories simply don't take a Context any more, so there's no Android
+        // system - the factories simply don't take a Context any more, so there's no Android
         // entry point through which they could read an asset. This test is the runtime smoke
         // check that the precompiled maps are populated and carry the expected base entry.
         val themes =

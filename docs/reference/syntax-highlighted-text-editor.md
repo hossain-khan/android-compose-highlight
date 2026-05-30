@@ -97,7 +97,7 @@ fun SqlEditor() {
         value         = editorValue,
         onValueChange = { editorValue = it },
         language      = "sql",
-        theme         = HighlightTheme.tomorrow(),
+        theme         = rememberTomorrowTheme(),
     )
 }
 ```

@@ -49,7 +49,7 @@ internal object CssThemeParser {
      * bytes interpreted as a Long.
      *
      * Reproducing this here means generated themes carry the same identity the runtime
-     * would have produced — `HighlightTheme.equals` / Compose recomposition keys behave
+     * would have produced - `HighlightTheme.equals` / Compose recomposition keys behave
      * identically before and after this refactor.
      */
     fun assetContentIdentity(assetPath: String): Long {
@@ -450,7 +450,7 @@ internal enum class ParsedFontWeight {
 }
 
 /**
- * Build-time mirror of `androidx.compose.ui.text.SpanStyle` — just the four properties hljs
+ * Build-time mirror of `androidx.compose.ui.text.SpanStyle` - just the four properties hljs
  * theme CSS actually uses. Unset properties are null (analogous to runtime `Color.Unspecified`
  * or null FontWeight/FontStyle).
  *

@@ -22,7 +22,7 @@ object HtmlToAnnotatedString {
      *
      * The `.hljs` base rule's text color (if present in [colorMap]) is applied as an
      * outer span covering the full string. This means callers can render the result with a
-     * plain `Text()` composable without needing to pass an explicit `color` — uncolored tokens
+     * plain `Text()` composable without needing to pass an explicit `color` - uncolored tokens
      * inherit the theme's default text color rather than `LocalContentColor`.
      *
      * @param html HTML fragment output from highlight.js (not a full document)
@@ -72,7 +72,7 @@ object HtmlToAnnotatedString {
     }
 
     /**
-     * Converts highlighted HTML to two [AnnotatedString] values — one per theme — in a single
+     * Converts highlighted HTML to two [AnnotatedString] values - one per theme - in a single
      * DOM parse and traversal pass.
      *
      * Semantically equivalent to calling [convert] twice with different color maps, but more
@@ -125,7 +125,7 @@ object HtmlToAnnotatedString {
         val body = doc.body()
 
         // Each builder gets its own independent base text color from its own color map.
-        // Do NOT share a single base style — light and dark themes have different default colors.
+        // Do NOT share a single base style - light and dark themes have different default colors.
         val lightBaseStyle = lightColorMap["hljs"]?.color?.takeIf { it != Color.Unspecified }?.let { SpanStyle(color = it) }
         val darkBaseStyle = darkColorMap["hljs"]?.color?.takeIf { it != Color.Unspecified }?.let { SpanStyle(color = it) }
 
@@ -268,7 +268,7 @@ object HtmlToAnnotatedString {
         classes: List<String>,
         colorMap: Map<String, SpanStyle>,
     ): SpanStyle? {
-        // Fast-path: exact match (e.g. "hljs-keyword" — the large majority of tokens).
+        // Fast-path: exact match (e.g. "hljs-keyword" - the large majority of tokens).
         colorMap[classAttr]?.let { return it }
         // Compound key (e.g. "hljs-title.function_" for class="hljs-title function_").
         if (classes.size > 1) {
