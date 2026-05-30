@@ -196,9 +196,11 @@ dokka {
         outputDirectory.set(rootDir.resolve("docs/api"))
     }
     // Theme overrides + chrome rewrite that align Dokka's HTML output with the Zensical
-    // Material site at /. The CSS overrides Dokka's color/font variables and hides Dokka's
-    // native chrome; the JS wraps each page's #main in real Material scaffolding. See
-    // compose-highlight/dokka-theme/README.md for refresh procedure and breakage notes.
+    // Material site at /. This uses Dokka's official HTML customization extension points:
+    // https://kotlinlang.org/docs/dokka-html.html#customization
+    // - customStyleSheets: CSS overrides for Dokka variables/chrome
+    // - customAssets: JS wrapper that rebuilds page chrome around #main
+    // See compose-highlight/dokka-theme/README.md for refresh procedure and breakage notes.
     pluginsConfiguration.html {
         customStyleSheets.from(
             layout.projectDirectory.file("dokka-theme/zensical-overrides.css"),
@@ -300,5 +302,4 @@ tasks.register<JacocoReport>("jacocoTestReport") {
         }
     )
 }
-
 
