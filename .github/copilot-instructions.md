@@ -222,34 +222,14 @@ dev.hossain:compose-highlight:<version>
 
 **Writing style - never use the em dash `-` character** in commit messages, code comments, KDoc, CHANGELOG entries, or any other text. Use a regular hyphen/minus `-` instead.
 
-## Docs site
+## Reference docs authoring
 
-The documentation site at https://hossain-khan.github.io/android-compose-highlight/ is built with two tools:
+The `docs/reference/` pages are human-facing guides, while Dokka is the source of truth for exhaustive API details.
 
-- **Zensical** (v0.0.43) - Static site generator for the main docs (Markdown in `docs/`). Configured via `zensical.toml`.
-- **Dokka** - Generates the Kotlin API reference under `docs/api/`, rethemed to match the Zensical chrome via `compose-highlight/dokka-theme/`.
-
-**Local preview:**
-```bash
-# Zensical docs site (main docs)
-zensical serve
-# Open http://localhost:8000
-
-# Dokka API reference (must serve over HTTP, not file://)
-./gradlew :compose-highlight:dokkaGenerate
-cd docs && python3 -m http.server 8765
-# Open http://localhost:8765/api/index.html
-```
-
-**Dokka retheme** (`compose-highlight/dokka-theme/`):
-- `dokka-zensical-chrome.js` - Injects Material-style header, sidebar, and footer around Dokka's content. Includes a "Back to Docs" link in the sidebar pointing to `../index.html`. All sidebar items are expanded by default.
-- `zensical-overrides.css` - Overrides Dokka's CSS variables to match Zensical's light/dark schemes.
-- `zensical-assets/` - Frozen copies of Zensical's Material CSS bundles (pinned by hash).
-- The palette toggle is synced between Zensical (`/`) and Dokka (`/api/`) via a shared localStorage key.
-
-**CI workflow** (`.github/workflows/docs.yml`): Generates Dokka API docs, builds Zensical site, deploys `site/` to GitHub Pages.
-
-**Updating Zensical CSS assets:** When Zensical is upgraded, copy the new hashed CSS files from `site/assets/stylesheets/modern/` into `compose-highlight/dokka-theme/zensical-assets/` and update the references in `compose-highlight/build.gradle.kts`. See `compose-highlight/dokka-theme/README.md` for the full refresh procedure.
+- Keep in `docs/reference/`: when to use an API, usage patterns, examples, and pitfalls.
+- Avoid duplicating full signatures, parameter tables, property tables, or method lists that Dokka already provides.
+- Include a "Full API in Dokka" link near the top of each reference page.
+- Validate docs changes with `zensical build --clean` and fix all link or anchor warnings before merging.
 
 ## Docs site
 
@@ -279,4 +259,3 @@ cd docs && python3 -m http.server 8765
 **CI workflow** (`.github/workflows/docs.yml`): Generates Dokka API docs, builds Zensical site, deploys `site/` to GitHub Pages.
 
 **Updating Zensical CSS assets:** When Zensical is upgraded, copy the new hashed CSS files from `site/assets/stylesheets/modern/` into `compose-highlight/dokka-theme/zensical-assets/` and update the references in `compose-highlight/build.gradle.kts`. See `compose-highlight/dokka-theme/README.md` for the full refresh procedure.
-
