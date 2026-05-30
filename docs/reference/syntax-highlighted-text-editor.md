@@ -194,7 +194,7 @@ fun rememberSyntaxHighlightedEditorValue(
 ): TextFieldValue
 ```
 
-The `onError` callback receives a typed [`HighlightException`](highlight-engine.md#highlightexception) on
+The `onError` callback receives a typed [`HighlightException`](highlight-engine.md) on
 failure. Possible subtypes: `Timeout`, `JsExecutionFailed`, `WebViewInitFailed`, `HtmlParseFailed`. The
 helper falls back to plain text regardless of whether the callback is set.
 

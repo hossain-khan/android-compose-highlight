@@ -286,9 +286,9 @@
             item.appendChild(nestedNav);
         }
 
-        // Auto-expand: if this item contains the active page, mark its toggle checked
-        // so the path to current page is open on first paint.
-        if (containsActive && expandToggle) {
+        // Auto-expand: expand all nested items by default so users can see the full
+        // navigation tree without manually drilling down.
+        if (expandToggle) {
             expandToggle.checked = true;
             ctx.openItems.add(item);
         }
@@ -305,7 +305,7 @@
             .trim();
     }
 
-    function buildPrimarySidebar(navTree) {
+    function buildPrimarySidebar(navTree, apiRoot) {
         const sidebar = document.createElement("div");
         sidebar.className = "md-sidebar md-sidebar--primary";
         sidebar.setAttribute("data-md-component", "sidebar");
@@ -318,7 +318,26 @@
                 </div>
             </div>
         `;
-        sidebar.querySelector(".md-nav--primary").appendChild(navTree);
+        const nav = sidebar.querySelector(".md-nav--primary");
+
+        // Inject "Back to Docs" link at the top of the sidebar
+        const backItem = document.createElement("li");
+        backItem.className = "md-nav__item";
+        const backLink = document.createElement("a");
+        backLink.href = apiRoot + "../index.html";
+        backLink.className = "md-nav__link";
+        backLink.innerHTML = `
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor"
+                 stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                 class="lucide lucide-arrow-left" viewBox="0 0 24 24"
+                 style="width:1.2em;height:1.2em;vertical-align:middle;margin-right:0.3em;">
+                <path d="M19 12H5M12 19l-7-7 7-7"/>
+            </svg>
+            <span class="md-ellipsis">Back to Docs</span>
+        `;
+        backItem.appendChild(backLink);
+        navTree.insertBefore(backItem, navTree.firstChild);
+        nav.appendChild(navTree);
         return sidebar;
     }
 
@@ -445,7 +464,7 @@
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(html, "text/html");
                 const navResult = renderNavTree(doc, apiRoot, location.href);
-                primarySidebar = buildPrimarySidebar(navResult.list);
+                primarySidebar = buildPrimarySidebar(navResult.list, apiRoot);
             }
         } catch (_) {
             // Silent: if navigation.html is unreachable, we just render without the left nav.
