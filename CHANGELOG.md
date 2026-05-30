@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.25.0] - 2026-05-30
+
 ### Fixed
 
 - **`SyntaxHighlightedTextEditor` / `rememberSyntaxHighlightedEditorValue` - preserve span
