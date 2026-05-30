@@ -1,4 +1,15 @@
-# ── Site metadata ──────────────────────────────────────────────────────────────
+# ── Zensical Documentation Site ────────────────────────────────────────────────────
+#
+# Setup Instructions (first time only):
+#   python3 -m venv .venv
+#   source .venv/bin/activate
+#   pip install zensical
+#
+# Local Preview:
+#   zensical serve
+#   Then open http://localhost:8000
+#
+# ── Site metadata ──────────────────────────────────────────────────────────────────
 [project]
 site_name        = "Highlight"
 site_description = "Jetpack Compose syntax highlighting library powered by Highlight.js"
