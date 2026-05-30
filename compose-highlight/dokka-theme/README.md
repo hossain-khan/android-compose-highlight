@@ -260,10 +260,8 @@ prevents a race where Dokka's `platform-content-handler.js` could observe
 `.main-content` detached from the document during the fetch yield, throw,
 and abort `initializeFiltering()` — leaving the Members section hidden.
 
-**Auto-expand path to active page.** When rendering the nav tree, the script
-tracks which `<li>` ancestors contain the active page and pre-checks their
-toggle inputs. The user lands with a visible breadcrumb of context rather
-than having to drill down each time.
+**Fully expanded navigation.** All nested sidebar items are expanded by default so users
+can see the full API tree at a glance without manually drilling down.
 
 **Dokka's white SVG chevron.** `arrow-down.svg` is filled with
 `rgba(255,255,255,0.96)` because Dokka's stock theme is dark. On our light

@@ -286,9 +286,9 @@
             item.appendChild(nestedNav);
         }
 
-        // Auto-expand: if this item contains the active page, mark its toggle checked
-        // so the path to current page is open on first paint.
-        if (containsActive && expandToggle) {
+        // Auto-expand: expand all nested items by default so users can see the full
+        // navigation tree without manually drilling down.
+        if (expandToggle) {
             expandToggle.checked = true;
             ctx.openItems.add(item);
         }
