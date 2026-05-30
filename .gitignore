@@ -11,6 +11,9 @@ local.properties
 # Log/OS Files
 *.log
 
+# Playwright Agent CLI session artifacts (browser snapshots, screenshots, console logs)
+.playwright-cli/
+
 # Android Studio generated files and folders
 captures/
 .externalNativeBuild/

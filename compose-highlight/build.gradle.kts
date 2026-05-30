@@ -195,6 +195,18 @@ dokka {
         // so this ends up at /api/ on the deployed GitHub Pages site.
         outputDirectory.set(rootDir.resolve("docs/api"))
     }
+    // Theme overrides + chrome rewrite that align Dokka's HTML output with the Zensical
+    // Material site at /. The CSS overrides Dokka's color/font variables and hides Dokka's
+    // native chrome; the JS wraps each page's #main in real Material scaffolding. See
+    // compose-highlight/dokka-theme/README.md for refresh procedure and breakage notes.
+    pluginsConfiguration.html {
+        customStyleSheets.from(
+            layout.projectDirectory.file("dokka-theme/zensical-overrides.css"),
+            layout.projectDirectory.file("dokka-theme/zensical-assets/main.fba56155.min.css"),
+            layout.projectDirectory.file("dokka-theme/zensical-assets/palette.dfe2e883.min.css"),
+        )
+        customAssets.from(layout.projectDirectory.file("dokka-theme/dokka-zensical-chrome.js"))
+    }
 }
 
 // Maven Central publishing via vanniktech/gradle-maven-publish-plugin.
