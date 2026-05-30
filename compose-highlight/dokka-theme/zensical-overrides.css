@@ -57,11 +57,38 @@
  */
 
 /* Dokka's #main container needs to lose its native flex layout so our injected
- * .md-container can use Material's grid. */
+ * .md-container can use Material's grid. We also force a column-flex layout so
+ * the footer at the bottom of #main always sits below .md-container — without
+ * this, short pages let .md-container collapse to its content height while the
+ * sticky sidebar inside it paints all the way down, leaving the footer drawn
+ * on top of the sidebar. */
 #main {
-    display: block !important;
+    display: flex !important;
+    flex-direction: column !important;
     grid-template-columns: none !important;
     grid-template-rows: none !important;
+    flex: 1 1 auto !important;
+    overflow: visible !important;
+}
+#main > .md-container {
+    flex: 1 0 auto;
+}
+/* Constrain the sticky sidebar's internal scroll area so it never paints past
+ * the viewport's lower edge. Without this, .md-sidebar__scrollwrap takes the
+ * full intrinsic height of its content (~750px+ for packages with many types),
+ * paints downward beyond the row, and overlaps the footer on short pages.
+ *
+ * Material's default sidebar uses position:fixed below a media-query
+ * breakpoint, where height is bounded explicitly. Our retheme keeps it
+ * position:sticky throughout, so we have to bound it ourselves: viewport
+ * height minus the header bar (~3rem), with internal scrolling for overflow.
+ */
+.md-sidebar.md-sidebar--primary {
+    height: calc(100vh - 3rem);
+}
+.md-sidebar.md-sidebar--primary .md-sidebar__scrollwrap {
+    max-height: 100%;
+    overflow-y: auto;
 }
 
 /* The injected article wraps Dokka's #content. Strip Dokka's outer paddings so
@@ -162,8 +189,11 @@
     width: 16px;
     height: 16px;
     margin-right: 8px;
-    vertical-align: middle;
     flex-shrink: 0;
+    /* Override Dokka's stock .toc--icon { line-height: 32px } which pushes the
+     * icon's content box down inside our flex row. With line-height: 1 the
+     * icon image and the text baseline center cleanly via align-items:center. */
+    line-height: 1;
 }
 .md-sidebar--primary .md-nav__link {
     display: flex;

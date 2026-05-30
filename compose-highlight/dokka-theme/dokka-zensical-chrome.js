@@ -483,15 +483,19 @@
         if (secondarySidebar) mdMainInner.appendChild(secondarySidebar);
         mdMain.appendChild(mdMainInner);
         container.appendChild(mdMain);
-        container.appendChild(buildFooter());
 
         // 4. Atomic-ish swap: hide Dokka's surviving #main children, then append our chrome.
         // Don't innerHTML="" because Dokka's filter init may try to read remaining children
         // (e.g. .filtered-message it created). Hiding via display:none keeps them addressable.
+        // The footer must be a sibling of .md-container (not a child) — Material's footer
+        // CSS positions itself in normal flow below the container; placing it inside
+        // .md-container puts it under the sticky sidebar's painting area, which causes
+        // the sidebar to overlap the footer when the right-side content is short.
         Array.from(main.children).forEach(child => { child.style.display = "none"; });
         const header = buildHeader(apiRoot);
         main.appendChild(header);
         main.appendChild(container);
+        main.appendChild(buildFooter());
         main.setAttribute("data-zensical-chrome", "active");
 
         // 5. Wire palette + search behavior.
