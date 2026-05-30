@@ -10,7 +10,7 @@ permissions:
   contents: read
   pull-requests: read
 
-# Skip the heavy Android build when only docs, assets, scripts, or repo config files change.
+# Skip the heavy Android build when only docs and non-Android files change.
 # A single always-running "Build & Test" job satisfies the required branch protection check
 # in all cases - it exits early with a success message for non-code changes.
 jobs:
@@ -30,17 +30,30 @@ jobs:
           if [ "${{ github.event_name }}" = "pull_request" ]; then
             CHANGED=$(git diff --name-only origin/${{ github.base_ref }}...HEAD)
           else
-            CHANGED=$(git diff --name-only HEAD^1 HEAD 2>/dev/null || git diff --name-only HEAD)
+            CHANGED=$(git diff --name-only ${{ github.event.before }}...${{ github.sha }} 2>/dev/null || git diff --name-only HEAD)
           fi
           echo "Changed files:"
           echo "$CHANGED"
           CODE_CHANGED=false
           while IFS= read -r file; do
-            if [[ "$file" == compose-highlight/* || \
-                  "$file" == sample/* || \
+            if [[ "$file" == compose-highlight/src/* || \
+                  "$file" == sample/src/* || \
+                  "$file" == buildSrc/* || \
                   "$file" == gradle/* || \
-                  "$file" == *.kts || \
+                  "$file" == "gradlew" || \
+                  "$file" == "gradlew.bat" || \
                   "$file" == "gradle.properties" || \
+                  "$file" == "settings.gradle" || \
+                  "$file" == "settings.gradle.kts" || \
+                  "$file" == "build.gradle" || \
+                  "$file" == "build.gradle.kts" || \
+                  "$file" == "compose-highlight/build.gradle.kts" || \
+                  "$file" == "sample/build.gradle.kts" || \
+                  "$file" == "gradle/libs.versions.toml" || \
+                  "$file" == "libs.versions.toml" || \
+                  "$file" == scripts/* || \
+                  "$file" == *.gradle || \
+                  "$file" == *.gradle.kts || \
                   "$file" == ".github/workflows/ci.yml" ]]; then
               CODE_CHANGED=true
               break
