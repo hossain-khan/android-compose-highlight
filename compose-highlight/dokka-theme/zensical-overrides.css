@@ -121,10 +121,16 @@
 }
 
 /* The injected article wraps Dokka's #content. Strip Dokka's outer paddings so
- * .md-content__inner spacing wins. */
+ * .md-content__inner spacing wins, then add a sidebar-to-content gutter on the
+ * outer .md-content__inner so the article breathes away from the sidebar
+ * border. Material's default has zero gap between the two; Dokka pages benefit
+ * from a clearer separation. */
 .md-content__inner #content {
     padding: 0 !important;
     margin: 0 !important;
+}
+.md-content__inner {
+    padding-left: 1.5rem !important;
 }
 
 /* ── Light scheme (Zensical "default") ─────────────────────────────────────── */
@@ -351,6 +357,30 @@ h1, h2, h3, h4, h5, h6,
 .cover h2 {
     font-family: "Inter", "Helvetica", "Arial", sans-serif;
     font-weight: 500;
+}
+
+/* Lists in the article body. Material's stock .md-typeset gives <ol>/<ul>
+ * margin-left: 0 and adds 7.5px between items via .md-typeset li, which
+ * makes lists feel airy and lose the leading number indentation. Dokka's
+ * stock body styles indent the list and pack items tightly. Restore the
+ * indent and tighten inter-item spacing so prose lists in KDoc blocks
+ * read like Dokka's natives without trading away Material's font sizing.
+ *
+ * Material's stylesheet loads after ours and uses .md-typeset specificity
+ * (1 class + 1 element), so we need !important to win the cascade. */
+.md-typeset ol,
+.md-typeset ul {
+    padding-left: 1.5em !important;
+    margin-left: 0 !important;
+}
+.md-typeset ol > li,
+.md-typeset ul > li {
+    margin-bottom: 0 !important;
+    padding-left: 0.25em !important;
+}
+.md-typeset ol > li + li,
+.md-typeset ul > li + li {
+    margin-top: 0.5em !important;
 }
 
 /* Links — underline on hover only, mirroring Material's behavior. */
