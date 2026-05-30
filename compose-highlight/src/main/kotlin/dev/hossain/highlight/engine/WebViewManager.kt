@@ -29,7 +29,7 @@ import kotlinx.coroutines.withContext
  * [WebViewAssetLoader] solves this by serving local app assets over a real `https://` URL.
  *
  * `appassets.androidplatform.net` is the default domain reserved by Android specifically for
- * this purpose — it is safe to use and will never conflict with a real website.
+ * this purpose - it is safe to use and will never conflict with a real website.
  * The [WebViewAssetLoader] intercepts requests to this domain inside [WebViewClient.shouldInterceptRequest]
  * and maps `/assets/` → the app's `assets/` folder, so no real network call is ever made.
  *
@@ -89,8 +89,8 @@ internal class WebViewManager(
 
     /**
      * Creates the WebView on the Main thread and loads bridge.html.
-     * Safe to call multiple times — idempotent after first call.
-     * Safe to call after [destroy] — re-creates the WebView and a fresh deferred.
+     * Safe to call multiple times - idempotent after first call.
+     * Safe to call after [destroy] - re-creates the WebView and a fresh deferred.
      */
     suspend fun initialize() {
         if (webView != null) return

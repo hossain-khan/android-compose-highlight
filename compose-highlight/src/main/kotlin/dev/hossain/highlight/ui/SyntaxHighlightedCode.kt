@@ -66,7 +66,7 @@ private val LineNumberGutterSpacing = 8.dp
  * [HighlightThemeProvider] ancestor **must** exist in the composition tree, or you
  * must pass an explicit [theme] parameter.
  *
- * ## Usage — with HighlightThemeProvider (recommended)
+ * ## Usage - with HighlightThemeProvider (recommended)
  *
  * ```kotlin
  * HighlightThemeProvider(
@@ -81,7 +81,7 @@ private val LineNumberGutterSpacing = 8.dp
  * }
  * ```
  *
- * ## Usage — with an explicit theme
+ * ## Usage - with an explicit theme
  *
  * ```kotlin
  * SyntaxHighlightedCode(
@@ -141,7 +141,7 @@ private val LineNumberGutterSpacing = 8.dp
  *   `testTag("syntax-highlighted-code")` on the outer surface to support UI testing.
  * @param theme The theme to use. Defaults to [LocalHighlightTheme]. Throws if no
  *   [HighlightThemeProvider] is present and no explicit theme is passed.
- * @param style Visual style configuration — shape, padding, line-number column, font, etc.
+ * @param style Visual style configuration - shape, padding, line-number column, font, etc.
  *   Use [CodeBlockStyle.textStyle] to override typography (font family, size, line height).
  *   See [SyntaxHighlightedCodeDefaults] for the default values.
  * @param showLineNumbers Whether to show a line-number gutter on the left.
@@ -162,7 +162,7 @@ private val LineNumberGutterSpacing = 8.dp
  *   ```
  *   Wrap your lambda in `remember` if it captures unstable values.
  * @param onCopyClick Optional custom copy handler. If `null`, copies to the system clipboard.
- *   This callback is your signal that a copy occurred — use it to show your own feedback
+ *   This callback is your signal that a copy occurred - use it to show your own feedback
  *   (e.g. a `Snackbar`, `Toast`, or animated indicator). The library does not show any
  *   built-in "Copied!" confirmation.
  * @param onHighlightComplete Optional callback invoked with a [HighlightResult] when highlighting
@@ -440,7 +440,7 @@ private fun LineNumberedCode(
     val lineNumbers = remember(lineCount) { (1..lineCount).joinToString("\n") }
 
     Row(modifier = modifier.padding(style.padding)) {
-        // Line number gutter — rendered as a single Text to share the same line-height
+        // Line number gutter - rendered as a single Text to share the same line-height
         // behaviour as the code Text, keeping numbers and code visually aligned.
         Text(
             text = lineNumbers,

@@ -13,13 +13,13 @@ import kotlin.time.measureTimedValue
 /**
  * Represents a syntax highlighting theme backed by a Highlight.js CSS file.
  *
- * The color map is lazily initialized and cached — CSS parsing happens at most once per theme.
+ * The color map is lazily initialized and cached - CSS parsing happens at most once per theme.
  * Background and text colors are derived from the already-parsed [colorMap] (the `.hljs` rule),
  * avoiding double-parsing of the CSS file.
  *
  * ## Built-in themes
  *
- * The four built-in themes are precompiled at build time — they do not parse CSS at
+ * The four built-in themes are precompiled at build time - they do not parse CSS at
  * runtime and do not require a [Context]:
  *
  * ```kotlin
@@ -46,7 +46,7 @@ import kotlin.time.measureTimedValue
  * )
  * ```
  *
- * Note: `fromAsset()` is lazy — CSS parsing (and any `ThemeNotFound` error) occurs when the
+ * Note: `fromAsset()` is lazy - CSS parsing (and any `ThemeNotFound` error) occurs when the
  * theme is first applied, not at factory-call time.
  *
  * ## Custom theme from raw CSS
@@ -60,8 +60,8 @@ import kotlin.time.measureTimedValue
  *
  * ## Custom theme from a precomputed color map
  *
- * For maximum control — e.g. deriving colors from Material 3 dynamic color or any other
- * source — you can supply the color map directly:
+ * For maximum control - e.g. deriving colors from Material 3 dynamic color or any other
+ * source - you can supply the color map directly:
  *
  * ```kotlin
  * val colorMap: Map<String, SpanStyle> = mapOf(
@@ -189,7 +189,7 @@ class HighlightTheme private constructor(
          * Built-in Base16 Tomorrow light theme.
          *
          * Uses a precompiled color map generated at build time from the bundled
-         * `tomorrow.css` — the runtime CSS parser is never invoked. No [Context] is required.
+         * `tomorrow.css` - the runtime CSS parser is never invoked. No [Context] is required.
          *
          * @return A [HighlightTheme] backed by the bundled `tomorrow.css`.
          */
@@ -204,7 +204,7 @@ class HighlightTheme private constructor(
          * Built-in Base16 Tomorrow Night dark theme.
          *
          * Uses a precompiled color map generated at build time from the bundled
-         * `tomorrow-night.css` — the runtime CSS parser is never invoked. No [Context] is
+         * `tomorrow-night.css` - the runtime CSS parser is never invoked. No [Context] is
          * required.
          *
          * @return A [HighlightTheme] backed by the bundled `tomorrow-night.css`.
@@ -220,7 +220,7 @@ class HighlightTheme private constructor(
          * Built-in Atom One Dark theme.
          *
          * Uses a precompiled color map generated at build time from the bundled
-         * `atom-one-dark.css` — the runtime CSS parser is never invoked. No [Context] is
+         * `atom-one-dark.css` - the runtime CSS parser is never invoked. No [Context] is
          * required.
          *
          * @return A [HighlightTheme] backed by the bundled `atom-one-dark.css`.
@@ -236,7 +236,7 @@ class HighlightTheme private constructor(
          * Built-in Atom One Light theme.
          *
          * Uses a precompiled color map generated at build time from the bundled
-         * `atom-one-light.css` — the runtime CSS parser is never invoked. No [Context] is
+         * `atom-one-light.css` - the runtime CSS parser is never invoked. No [Context] is
          * required.
          *
          * @return A [HighlightTheme] backed by the bundled `atom-one-light.css`.
@@ -265,7 +265,7 @@ class HighlightTheme private constructor(
          * HighlightThemeProvider(lightHighlightTheme = theme, ...) { ... }
          * ```
          *
-         * Note: loading is lazy — the CSS is parsed on first use, not at factory-call time.
+         * Note: loading is lazy - the CSS is parsed on first use, not at factory-call time.
          * The provided [context] is defensively normalized to `applicationContext` before being
          * retained by the lazy theme provider.
          *

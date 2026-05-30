@@ -37,7 +37,7 @@ abstract class GenerateThemesTask : DefaultTask() {
             check(cssFile.exists()) { "Bundled theme CSS missing: ${cssFile.absolutePath}" }
             val cssText = cssFile.readText(Charsets.UTF_8)
             val entries = CssThemeParser.parse(cssText)
-            check(entries.isNotEmpty()) { "Parser produced no entries for $fileName — runtime would treat this theme as missing." }
+            check(entries.isNotEmpty()) { "Parser produced no entries for $fileName - runtime would treat this theme as missing." }
             val assetPath = "compose-highlight/themes/$fileName"
             ThemeBuildInput(
                 constantName = constantName,

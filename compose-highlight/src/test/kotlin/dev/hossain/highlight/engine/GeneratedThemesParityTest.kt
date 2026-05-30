@@ -23,7 +23,7 @@ import org.robolectric.annotation.Config
  *   `./gradlew :compose-highlight:generateThemes`
  *
  * If it fails after editing the buildSrc parser, the buildSrc parser has drifted from the
- * runtime parser — fix the divergence rather than rubber-stamping the test.
+ * runtime parser - fix the divergence rather than rubber-stamping the test.
  */
 @RunWith(AndroidJUnit4::class)
 @Config(sdk = [30])
@@ -54,7 +54,7 @@ class GeneratedThemesParityTest {
     // HighlightTheme.equals compares (name, contentIdentity). The runtime fromAsset factory
     // computes contentIdentity via contentDigest64("asset", path); the buildSrc generator
     // reproduces that same hash and embeds it as a Long literal. If those two computations
-    // ever drift, the equality check below fails — the test is a real parity assertion, not
+    // ever drift, the equality check below fails - the test is a real parity assertion, not
     // a tautology over two copies of the same constant.
 
     @Test
@@ -84,7 +84,7 @@ class GeneratedThemesParityTest {
     @Test
     fun `different built-in themes are not equal`() {
         // Sanity: every built-in carries a distinct identity hash, so the equality check above
-        // is meaningful — it fails if the buildSrc hash collides with anything other than the
+        // is meaningful - it fails if the buildSrc hash collides with anything other than the
         // matching runtime-computed value.
         assertThat(HighlightTheme.tomorrow()).isNotEqualTo(HighlightTheme.tomorrowNight())
         assertThat(HighlightTheme.atomOneLight()).isNotEqualTo(HighlightTheme.atomOneDark())
@@ -97,7 +97,7 @@ class GeneratedThemesParityTest {
         val runtimeParsed = ThemeParser.parseAsset(context, assetPath)
         // Same set of keys
         assertThat(precompiled.keys).isEqualTo(runtimeParsed.keys)
-        // Same SpanStyle for each key — SpanStyle is a data class so structural equality works
+        // Same SpanStyle for each key - SpanStyle is a data class so structural equality works
         for ((key, expected) in runtimeParsed) {
             assertThat(precompiled[key]).isEqualTo(expected)
         }

@@ -1,4 +1,4 @@
-# Dokka theme — Zensical / MkDocs Material parity
+# Dokka theme - Zensical / MkDocs Material parity
 
 This directory makes the Dokka-generated API reference at `/api/` look like the
 Zensical / MkDocs Material site at `/`. Same header chrome, same nested left
@@ -22,7 +22,7 @@ surrounding chrome is replaced.
 `compose-highlight/build.gradle.kts` (the `dokka { }` block) feeds the three CSS
 files to `pluginsConfiguration.html.customStyleSheets` and the JS file to
 `customAssets`. Dokka emits `<link>` and `<script>` tags into the `<head>` of
-every generated page automatically — Dokka 2.x's `customAssets` mechanism
+every generated page automatically - Dokka 2.x's `customAssets` mechanism
 auto-injects `<script type="text/javascript" src="..." async="async">` tags
 without needing a `templatesDir` overlay (verified at setup time via probe).
 
@@ -31,15 +31,15 @@ without needing a `templatesDir` overlay (verified at setup time via probe).
 The full deploy pipeline runs on `main` push via `.github/workflows/docs.yml`:
 
 1. CI checks out the repo (which includes `compose-highlight/dokka-theme/`).
-2. Runs `./gradlew :compose-highlight:dokkaGeneratePublicationHtml` — Dokka
+2. Runs `./gradlew :compose-highlight:dokkaGeneratePublicationHtml` - Dokka
    reads the `dokka { }` block, copies our CSS + JS into the output, emits the
    `<link>` and `<script>` tags into every generated page.
-3. Runs `zensical build --clean` — Zensical passes the rethemed `docs/api/`
+3. Runs `zensical build --clean` - Zensical passes the rethemed `docs/api/`
    tree through verbatim into `site/api/`.
 4. Uploads `site/` to GitHub Pages.
 
 So **changes to anything in this directory are picked up automatically on the
-next push to `main`** — no manual steps. The Dokka generation step doesn't
+next push to `main`** - no manual steps. The Dokka generation step doesn't
 require Zensical, so the API ref is rethemed even if Zensical hasn't been built
 locally.
 
@@ -64,7 +64,7 @@ dokka {
 
 To **disable** the retheme and revert to Dokka's stock JetBrains chrome,
 comment out or delete the entire `pluginsConfiguration.html { … }` block, then
-regenerate. No file deletions needed — Dokka simply stops loading the assets.
+regenerate. No file deletions needed - Dokka simply stops loading the assets.
 
 To **re-enable**, uncomment the block. The four files in this directory remain
 the source of truth.
@@ -73,7 +73,7 @@ the source of truth.
 
 Generated `docs/api/` is served by a static file server. The injection script
 uses `fetch()` to load `navigation.html`, which **does not work over the
-`file://` protocol** — you must serve over HTTP.
+`file://` protocol** - you must serve over HTTP.
 
 ```bash
 ./gradlew :compose-highlight:dokkaGenerate
@@ -108,49 +108,49 @@ bump will start regenerating the `site/` directory with new filenames
 
 The retheme depends on three sets of selectors. If any change in Dokka or
 Material upgrades, the script silently falls back rather than crashing the
-page — but the Material chrome won't render correctly until the script is
+page - but the Material chrome won't render correctly until the script is
 updated.
 
 **Dokka selectors** (in generated `docs/api/*.html`):
 
-- `#main` — outer wrapper. Script appends our chrome inside it.
-- `#content` (= `.main-content`) — the Dokka content area. Script moves it
+- `#main` - outer wrapper. Script appends our chrome inside it.
+- `#content` (= `.main-content`) - the Dokka content area. Script moves it
   inside `.md-content__inner`.
 - `#leftColumn`, `#navigation-wrapper`, `.library-name`,
-  `.navigation-controls--break`, `#main > .footer` — Dokka's stock chrome.
+  `.navigation-controls--break`, `#main > .footer` - Dokka's stock chrome.
   Hidden via `display: none` in `zensical-overrides.css`.
-- `#filter-section` and `#searchBar` — kept in the DOM but pushed off-screen
+- `#filter-section` and `#searchBar` - kept in the DOM but pushed off-screen
   with `position: absolute; left: -10000px`. **Critical:** these must remain
   reachable so Dokka's `platform-content-handler.js` can populate filters on
   `window.load` (otherwise the Members section gets hidden as "all
   documentation is filtered"), and so search delegation can `.click()` Dokka's
   inner `#pages-search` button.
-- `#pages-search` — the inner Ring-UI button inside `#searchBar`. Material's
+- `#pages-search` - the inner Ring-UI button inside `#searchBar`. Material's
   search icon programmatically clicks this to open Dokka's existing search
-  popup. (Clicking the outer `#searchBar` doesn't work — Ring UI ignores
+  popup. (Clicking the outer `#searchBar` doesn't work - Ring UI ignores
   synthetic clicks on the wrapper.)
-- `navigation.html` (sibling of `index.html` at the API root) — fetched by the
+- `navigation.html` (sibling of `index.html` at the API root) - fetched by the
   script for the sidebar tree. DOM structure:
   `.toc--part > .toc--row > .toc--link > .toc--link-grid > .toc--icon.<type>`
   with `data-nesting-level`. Type icons: `class-kt`, `exception-class`,
   `object`, `function`, `enum-class`, `interface-kt`, `annotation-kt`.
-- `images/arrow-down.svg` — used as the sidebar chevron. The SVG ships
+- `images/arrow-down.svg` - used as the sidebar chevron. The SVG ships
   white-filled (intended for dark theme); we apply `filter: invert(1)` in
   light mode.
 
 **Material selectors** (in the injected DOM):
 
-- `.md-header.md-header--shadow > .md-header__inner.md-grid` — top header.
-- `.md-container > .md-main > .md-main__inner.md-grid` — body grid.
-- `.md-sidebar.md-sidebar--primary` — left nav (width override: `16rem`).
+- `.md-header.md-header--shadow > .md-header__inner.md-grid` - top header.
+- `.md-container > .md-main > .md-main__inner.md-grid` - body grid.
+- `.md-sidebar.md-sidebar--primary` - left nav (width override: `16rem`).
 - `.md-nav.md-nav--primary > .md-nav__list > .md-nav__item.md-nav__item--nested`
-   — sidebar tree items. Each nested item: `<input.md-nav__toggle>` (hidden
+   - sidebar tree items. Each nested item: `<input.md-nav__toggle>` (hidden
    checkbox) + `<div.md-nav__row>` (`<a.md-nav__link>` + `<label.md-nav__chevron>`)
    + `<nav.md-nav>` (children). Chevron rotation driven by
    `:has(> .md-nav__toggle:checked)` on the parent `<li>`.
-- `.md-content > article.md-content__inner.md-typeset` — Dokka content wrap.
-- `.md-footer-meta > .md-footer-meta__inner.md-grid > .md-copyright` — footer.
-- `<button data-palette-target="default|slate">` — palette toggle buttons.
+- `.md-content > article.md-content__inner.md-typeset` - Dokka content wrap.
+- `.md-footer-meta > .md-footer-meta__inner.md-grid > .md-copyright` - footer.
+- `<button data-palette-target="default|slate">` - palette toggle buttons.
   Click handlers swap `data-md-color-scheme` on `<body>`, `theme-dark` class on
   `<html>`, and persist the choice in localStorage.
 
@@ -176,7 +176,7 @@ matches the Zensical site root. Both sites now share the same localStorage key -
 - **Right-side "On this page" TOC.** Dokka pages don't have enough heading
   depth (≥2 H2/H3 inside `#content`) to justify it.
 - **Per-page edit-on-GitHub link.** Dokka pages are generated from KDoc, not
-  markdown — there's no clean source-file mapping.
+  markdown - there's no clean source-file mapping.
 - **Mobile drawer behavior** (the `for="__drawer"` label + `#__drawer`
   checkbox toggle below ~76rem viewport). Untested; if you browse the API
   reference on mobile, this needs validation.
@@ -190,10 +190,10 @@ you find a new visual or behavioral issue, start here.
 
 | Symptom | Likely cause | Where to fix |
 |---|---|---|
-| Visual style (font, spacing, color) doesn't apply | Material's `.md-typeset` rule wins the cascade — same specificity, loaded after ours | Add `!important` or write a more specific selector in `zensical-overrides.css` |
+| Visual style (font, spacing, color) doesn't apply | Material's `.md-typeset` rule wins the cascade - same specificity, loaded after ours | Add `!important` or write a more specific selector in `zensical-overrides.css` |
 | Element renders in unexpected position | A Ring UI / Dokka script applies inline styles or computed offsets at runtime | Use DevTools to inspect the live element's `style="..."` attribute and computed style; override with a CSS rule that uses higher specificity + `!important` |
 | Element is missing from the page | Element is being hidden by Dokka's stock CSS, OR our hide rule is too aggressive (e.g. `#filter-section` hidden = Members section breaks) | Check console for errors; verify the element is in the DOM via DevTools; if found, check what's hiding it |
-| Sidebar paints over the footer / content | `.md-sidebar__scrollwrap` height is unconstrained — sticky sidebars need explicit height clamp | Bound height via `calc(100vh - <header-height>)` and `overflow-y: auto` |
+| Sidebar paints over the footer / content | `.md-sidebar__scrollwrap` height is unconstrained - sticky sidebars need explicit height clamp | Bound height via `calc(100vh - <header-height>)` and `overflow-y: auto` |
 | Popup or modal opens at wrong viewport coordinates | Ring UI / React component renders into a body portal target with JS-applied inline `top`/`left`/`margin` | Match the portal element's data attributes (e.g. `[data-test="ring-popup"]`) and override with `position: fixed` + explicit viewport coords + `!important` |
 | Click on a Dokka-internal element (search button, filter, etc.) does nothing | Element is positioned with `pointer-events: none` OR a parent has it; OR Dokka uses a Ring UI wrapper that ignores synthetic clicks | Find the inner functional element (e.g. `#pages-search` inside `#searchBar`) and click *that* instead |
 | Members / tabs / filter buttons fail to render after page load | Dokka's `platform-content-handler.js` ran during `window.load` and threw because something it expected to find was missing or detached | Check console for `Cannot read properties of undefined`. Common causes: hiding `#filter-section` with `display: none` (use off-screen positioning instead), or moving `#content` out of `#main` during an `await` |
@@ -221,7 +221,7 @@ When something looks off, follow this sequence:
    playwright-cli -s=debug eval "/* IIFE returning JSON.stringify(...) */"
    playwright-cli -s=debug screenshot
    ```
-   Don't trust visual inspection alone — measure with `getBoundingClientRect()`, computed styles, etc.
+   Don't trust visual inspection alone - measure with `getBoundingClientRect()`, computed styles, etc.
 
 ### Specificity cheat-sheet
 
@@ -230,7 +230,7 @@ When fighting Material's bundle for a property:
 | Material rule (typical) | Specificity | Beat with |
 |---|---|---|
 | `.md-typeset li` | 0,1,1 | `.md-typeset ol > li` (still 0,1,2) + `!important`, OR raise to `.md-content__inner .md-typeset li` |
-| `.md-sidebar--primary` (no descendant) | 0,1,0 | `.md-sidebar.md-sidebar--primary` (0,2,0) — naturally wins |
+| `.md-sidebar--primary` (no descendant) | 0,1,0 | `.md-sidebar.md-sidebar--primary` (0,2,0) - naturally wins |
 | Inline `style=""` from Ring UI | 1,0,0,0 | Always need `!important`; CSS specificity can't beat inline without it |
 | `.theme-dark` + descendant | 0,1+ | We're already inside `.theme-dark` for dark mode rules |
 
@@ -249,7 +249,7 @@ A few rules in `zensical-overrides.css` exist to prevent regressions and look we
 *before* moving Dokka's `#content` into the new article scaffolding. This
 prevents a race where Dokka's `platform-content-handler.js` could observe
 `.main-content` detached from the document during the fetch yield, throw,
-and abort `initializeFiltering()` — leaving the Members section hidden.
+and abort `initializeFiltering()` - leaving the Members section hidden.
 
 **Fully expanded navigation.** All nested sidebar items are expanded by default so users
 can see the full API tree at a glance without manually drilling down.
@@ -257,7 +257,7 @@ can see the full API tree at a glance without manually drilling down.
 **Dokka's white SVG chevron.** `arrow-down.svg` is filled with
 `rgba(255,255,255,0.96)` because Dokka's stock theme is dark. On our light
 chrome we apply `filter: invert(1)` so the arrow shows. In dark mode, no
-filter — the arrow appears as authored.
+filter - the arrow appears as authored.
 
 **Frozen Zensical CSS.** Material's class names are extremely stable, but
 Zensical may renumber its bundle hash on each release. We embed a frozen

@@ -14,7 +14,7 @@ using the cdnjs API:
 https://api.cdnjs.com/libraries/highlight.js/11.11.1?fields=files
 ```
 
-Only the **minified** variants (`*.min.css`) are included — one file per theme.
+Only the **minified** variants (`*.min.css`) are included - one file per theme.
 The full list of available themes is also browsable at the
 [highlight.js GitHub repository](https://github.com/highlightjs/highlight.js/tree/main/src/styles).
 

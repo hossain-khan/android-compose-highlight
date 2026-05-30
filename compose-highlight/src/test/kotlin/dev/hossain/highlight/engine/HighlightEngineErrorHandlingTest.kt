@@ -9,7 +9,7 @@ import kotlinx.coroutines.withTimeout
 import org.junit.Test
 
 /**
- * Unit tests for [withEngineErrorHandling] — the shared exception-mapping helper used by
+ * Unit tests for [withEngineErrorHandling] - the shared exception-mapping helper used by
  * [HighlightEngine.highlightToHtml], [HighlightEngine.supportedLanguages], and
  * [HighlightEngine.highlightJsVersion].
  *

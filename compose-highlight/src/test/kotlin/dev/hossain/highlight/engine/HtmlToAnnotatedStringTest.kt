@@ -20,11 +20,11 @@ class HtmlToAnnotatedStringTest {
             "hljs-title.function_" to SpanStyle(color = Color(0xFF4271ae.toInt())),
         )
 
-    /** colorMap without a base .hljs entry — for tests that verify pre-base-style behavior. */
+    /** colorMap without a base .hljs entry - for tests that verify pre-base-style behavior. */
     private val colorMapNoBase =
         colorMap.filterKeys { it != "hljs" }
 
-    // Dark-theme color map used in convertBothThemes tests — different colors than colorMap.
+    // Dark-theme color map used in convertBothThemes tests - different colors than colorMap.
     private val darkBaseColor = Color(0xFFABB2BF.toInt())
     private val darkColorMap =
         mapOf(
@@ -261,7 +261,7 @@ class HtmlToAnnotatedStringTest {
         assertThat(darkBase).hasSize(1)
         assertThat(lightBase[0].item.color).isEqualTo(baseColor)
         assertThat(darkBase[0].item.color).isEqualTo(darkBaseColor)
-        // The two base colors must be distinct — not shared across builders.
+        // The two base colors must be distinct - not shared across builders.
         assertThat(lightBase[0].item.color).isNotEqualTo(darkBase[0].item.color)
     }
 
@@ -310,7 +310,7 @@ class HtmlToAnnotatedStringTest {
     @Test
     fun `convertBothThemes with no base hljs entry produces no full-range spans`() {
         // Use plain text outside the span so the keyword span does not accidentally cover
-        // the full range — we only want to verify the absence of the base .hljs wrap.
+        // the full range - we only want to verify the absence of the base .hljs wrap.
         val html = """x <span class="hljs-keyword">if</span> y"""
         val lightNoBase = colorMap.filterKeys { it != "hljs" }
         val darkNoBase = darkColorMap.filterKeys { it != "hljs" }

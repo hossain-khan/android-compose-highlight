@@ -148,14 +148,14 @@ class HighlightEngine(
     @VisibleForTesting(otherwise = VisibleForTesting.NONE)
     internal fun webViewForTest(): WebView? = manager.webViewForTest()
 
-    // Serializes concurrent evaluateJavascript() calls — WebView handles one at a time.
+    // Serializes concurrent evaluateJavascript() calls - WebView handles one at a time.
     private val mutex = Mutex()
 
-    // Cached result of supportedLanguages() — list is static for a given bundled hljs version.
+    // Cached result of supportedLanguages() - list is static for a given bundled hljs version.
     @Volatile
     private var cachedLanguages: List<String>? = null
 
-    // Cached result of highlightJsVersion() — version is static for the bundled hljs build.
+    // Cached result of highlightJsVersion() - version is static for the bundled hljs build.
     @Volatile
     private var cachedVersion: String? = null
 
@@ -169,7 +169,7 @@ class HighlightEngine(
      * ```kotlin
      * val isReady by engine.isInitialized.collectAsState()
      * if (isReady) {
-     *     // WebView is warm — next highlight call has no init latency
+     *     // WebView is warm - next highlight call has no init latency
      * }
      * ```
      */
@@ -178,11 +178,11 @@ class HighlightEngine(
     /**
      * Warms up the hidden WebView and loads bridge.html.
      *
-     * This is an optional optimization — if not called, the first [highlightToHtml] or
+     * This is an optional optimization - if not called, the first [highlightToHtml] or
      * [highlight] call will initialize automatically. Call this early (e.g. on screen entry)
      * to reduce latency on the first highlight request.
      *
-     * Safe to call multiple times — idempotent.
+     * Safe to call multiple times - idempotent.
      *
      * @return [Result.success] when the WebView load has been started (full readiness is
      *   signalled asynchronously via [isInitialized]), or [Result.failure] wrapping a
@@ -248,14 +248,14 @@ class HighlightEngine(
      * Full pipeline: tokenise → apply theme → convert to [HighlightResult].
      *
      * Combines [highlightToHtml] with colour-map application to produce a ready-to-render
-     * [AnnotatedString]. A [HighlightResult.spanCount] of `0` indicates a silent failure —
+     * [AnnotatedString]. A [HighlightResult.spanCount] of `0` indicates a silent failure -
      * the language may be unsupported or the code was empty; [HighlightResult.annotated]
      * still contains plain text so callers can always render something.
      *
      * ```kotlin
      * engine.highlight(code, "kotlin", theme).onSuccess { result ->
      *     display(result.annotated)
-     *     if (result.spanCount == 0) log("no tokens — language may be unsupported")
+     *     if (result.spanCount == 0) log("no tokens - language may be unsupported")
      *     log("highlighted in ${result.durationMs} ms")
      * }
      * ```
@@ -307,7 +307,7 @@ class HighlightEngine(
      * [androidx.compose.ui.text.AnnotatedString].
      *
      * The JS tokeniser runs **once**; the two colour maps are applied to the same HTML output,
-     * so theme switching after the call returns is instant — no extra WebView round-trip.
+     * so theme switching after the call returns is instant - no extra WebView round-trip.
      *
      * ```kotlin
      * // Inside a coroutine (e.g. viewModelScope.launch or LaunchedEffect):
@@ -373,7 +373,7 @@ class HighlightEngine(
     /**
      * Returns the list of language identifiers supported by the bundled Highlight.js.
      *
-     * The result is fetched from the JS engine on the first call and cached — subsequent calls
+     * The result is fetched from the JS engine on the first call and cached - subsequent calls
      * return the cached list immediately without a WebView round-trip.
      *
      * Automatically initializes the WebView if not yet ready.
@@ -416,7 +416,7 @@ class HighlightEngine(
                                         return@evaluateJavascript
                                     }
                                     // evaluateJavascript serializes a JS array to a JSON array string,
-                                    // e.g. ["kotlin","java",...] — parse with JSONArray.
+                                    // e.g. ["kotlin","java",...] - parse with JSONArray.
                                     try {
                                         val jsonArray = org.json.JSONArray(rawResult)
                                         val languages =
@@ -442,7 +442,7 @@ class HighlightEngine(
     /**
      * Returns the version string of the bundled Highlight.js library (e.g. `"11.11.1"`).
      *
-     * The result is fetched from the JS engine on the first call and cached — subsequent calls
+     * The result is fetched from the JS engine on the first call and cached - subsequent calls
      * return the cached value immediately without a WebView round-trip.
      *
      * Automatically initializes the WebView if not yet ready.
@@ -482,7 +482,7 @@ class HighlightEngine(
                                         )
                                         return@evaluateJavascript
                                     }
-                                    // evaluateJavascript returns a JSON-encoded string — strip quotes.
+                                    // evaluateJavascript returns a JSON-encoded string - strip quotes.
                                     val version = unescapeJsString(rawResult)
                                     cachedVersion = version
                                     continuation.resume(Result.success(version))
@@ -983,7 +983,7 @@ private val CONTROL_CHAR_REGEX = Regex("[\u0000-\u0008\u000B\u000C\u000E-\u001F]
  *
  * @property light Syntax-highlighted [AnnotatedString] styled with the light theme.
  * @property dark Syntax-highlighted [AnnotatedString] styled with the dark theme.
- * @property durationMs Pure highlight time in milliseconds — covers the JS call and a single
+ * @property durationMs Pure highlight time in milliseconds - covers the JS call and a single
  *   HTML conversion pass (light and dark outputs are produced together in one pass). Excludes
  *   coroutine-scheduling overhead.
  * @property timings Per-layer timing breakdown for this highlight call. Always populated.

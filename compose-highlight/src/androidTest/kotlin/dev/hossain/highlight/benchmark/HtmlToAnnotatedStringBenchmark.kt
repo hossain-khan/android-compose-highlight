@@ -60,7 +60,7 @@ class HtmlToAnnotatedStringBenchmark {
         <span class="hljs-built_in">println</span>(adults)
         """.trimIndent()
 
-    // Larger code block — SQL with many token classes
+    // Larger code block - SQL with many token classes
     private val sqlHtml =
         """
         <span class="hljs-keyword">SELECT</span>
@@ -102,7 +102,7 @@ class HtmlToAnnotatedStringBenchmark {
             HtmlToAnnotatedString.convert(sqlHtml, colorMap)
         }
 
-    // Dual-theme benchmarks — measure the single-parse / single-traversal path.
+    // Dual-theme benchmarks - measure the single-parse / single-traversal path.
 
     @Test
     fun convertBothThemesPythonHtml() =

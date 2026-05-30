@@ -19,7 +19,7 @@ import org.junit.runner.RunWith
  * Measures the end-to-end cost of a single highlight call: JS execution in the hidden
  * WebView, JSON-unescaping the result, and returning the raw HTML string.
  *
- * The WebView is initialized once in [@Before] to avoid counting cold-start overhead —
+ * The WebView is initialized once in [@Before] to avoid counting cold-start overhead -
  * use [HighlightEngineWarmupBenchmark] for measuring first-call latency if needed.
  *
  * Note: these benchmarks include async IPC overhead (instrumentation thread → Main thread

@@ -82,7 +82,7 @@ data class CodeBlockStyle(
     /**
      * Text style applied to the code content (font family, size, line height, etc.).
      *
-     * Defaults to [SyntaxHighlightedCodeDefaults.codeTextStyle] — monospace font, 13 sp, 20 sp
+     * Defaults to [SyntaxHighlightedCodeDefaults.codeTextStyle] - monospace font, 13 sp, 20 sp
      * line height. The theme's foreground color is applied on top of this style at render time,
      * so [TextStyle.color] set here is overridden by the active [HighlightTheme].
      */

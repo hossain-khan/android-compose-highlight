@@ -24,7 +24,7 @@ import kotlinx.coroutines.delay
  * Creates and remembers a [HighlightEngine] scoped to the composition.
  *
  * When called inside a [HighlightThemeProvider], returns the **shared** engine that the provider
- * already manages — no extra WebView is created and no extra lifecycle handling is needed.
+ * already manages - no extra WebView is created and no extra lifecycle handling is needed.
  *
  * When called **outside** [HighlightThemeProvider] (e.g. standalone usage without a provider),
  * creates a dedicated engine that is automatically destroyed (releasing the hidden WebView)
@@ -43,7 +43,7 @@ import kotlinx.coroutines.delay
  * ```
  *
  * Prefer [rememberHighlightedCode] for simple use cases. Use [rememberHighlightEngine]
- * directly only when you need lower-level control — for example, calling
+ * directly only when you need lower-level control - for example, calling
  * [HighlightEngine.highlightBothThemes] or reading [HighlightEngine.isInitialized].
  */
 @Composable
@@ -173,7 +173,7 @@ fun rememberHighlightedCode(
  *
  * Unlike calling [rememberHighlightedCode] twice, this runs the JavaScript tokeniser **once**
  * and applies two colour maps to the same HTML output. Theme switching after the result is
- * available is instant — no re-highlighting is needed.
+ * available is instant - no re-highlighting is needed.
  *
  * Returns `null` while highlighting is in progress or if it failed.
  *
