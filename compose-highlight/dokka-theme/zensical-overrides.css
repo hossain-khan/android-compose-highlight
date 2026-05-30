@@ -1,0 +1,303 @@
+/*
+ * Dokka theme overrides aligning the API reference with the project's Zensical site
+ * (Material Design 3 chrome: indigo primary, slate dark, Inter + JetBrains Mono).
+ *
+ * Companion to dokka-zensical-chrome.js, which rewrites the page DOM at load time to
+ * produce real .md-* scaffolding. This stylesheet (a) loads the Material fonts, (b)
+ * hides Dokka's native chrome so it doesn't flash, (c) overrides Dokka's CSS variables
+ * for both light and dark schemes, (d) keeps Dokka content tables visible inside the
+ * Material content area.
+ *
+ * Loaded via Dokka 2.x `pluginsConfiguration.html.customStyleSheets` in
+ * compose-highlight/build.gradle.kts. See compose-highlight/dokka-theme/README.md.
+ */
+
+@import url("https://fonts.googleapis.com/css?family=Inter:300,400,500,700&family=JetBrains+Mono:400,500,700&display=fallback");
+
+/* ── Hide Dokka's native chrome ─────────────────────────────────────────────
+ * The chrome script wraps Dokka's #content inside Material scaffolding. Hide Dokka's
+ * old top header and sidebar source-of-truth so they don't flash or render twice.
+ *
+ * The Dokka `#leftColumn` sidebar source is also hidden — our chrome script reads
+ * `navigation.html` directly, so the in-DOM sidebar is redundant.
+ *
+ * Critical: we do NOT hide #filter-section or #searchBar with display:none. Dokka's
+ * platform-content-handler.js initializes filter buttons in #filter-section on
+ * window.load and walks .main-content for member visibility. If #filter-section's
+ * children are display:none Dokka's init aborts and the Members section never shows.
+ * Same kind of trap with #searchBar — it must remain interactive so we can delegate
+ * Material's search icon clicks to it. Hide them off-screen instead.
+ */
+#navigation-wrapper,
+#leftColumn,
+.library-name,
+.navigation-controls--break,
+/* Dokka's stock footer (.footer with go-to-top + copyright) — replaced by our
+ * Material .md-footer-meta block injected inside .md-container. */
+#main > .footer,
+.footer--container {
+    display: none !important;
+}
+#filter-section,
+#searchBar {
+    position: absolute !important;
+    left: -10000px !important;
+    top: 0 !important;
+    pointer-events: none;
+}
+/* Re-enable pointer events on #searchBar's children: the Material search delegation
+ * does a programmatic click on #pages-search inside #searchBar; if that subtree is
+ * pointer-events:none, clicks would bubble to the underlying page chrome instead. */
+#searchBar * {
+    pointer-events: auto;
+}
+
+/* The chrome script removes Dokka's <header id="navigation-wrapper"> from the page
+ * entirely once the wrap is done; until then this rule keeps it from showing.
+ */
+
+/* Dokka's #main container needs to lose its native flex layout so our injected
+ * .md-container can use Material's grid. */
+#main {
+    display: block !important;
+    grid-template-columns: none !important;
+    grid-template-rows: none !important;
+}
+
+/* The injected article wraps Dokka's #content. Strip Dokka's outer paddings so
+ * .md-content__inner spacing wins. */
+.md-content__inner #content {
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+/* ── Light scheme (Zensical "default") ─────────────────────────────────────── */
+:root {
+    /* Typography — match Material's Inter + JetBrains Mono stack. */
+    --default-font-family: "Inter", "Helvetica", "Arial", system-ui, sans-serif;
+    --default-monospace-font-family: "JetBrains Mono", SFMono-Regular, Consolas,
+        "Liberation Mono", Menlo, monospace;
+    --default-font-size: 16px;
+
+    /* Surfaces — match Material light: pure white body, subtle gray accents. */
+    --background-color: #ffffff;
+    --default-white: #ffffff;
+    --default-gray: #f5f5f5;
+    --default-font-color: rgba(0, 0, 0, 0.87);
+    --header-font-color: rgba(0, 0, 0, 0.87);
+
+    /* Brand — Material indigo 500 / 600. */
+    --color-key-blue: #3f51b5;
+    --color-key-blue-hover: #5c6bc0;
+    --hover-link-color: #3f51b5;
+    --active-tab-border-color: #3f51b5;
+    --active-section-color: #3f51b5;
+    --sidemenu-section-active-color: #3f51b5;
+
+    /* Borders & subtle backgrounds — Material spec values. */
+    --border-color: rgba(0, 0, 0, 0.12);
+    --blockquote-background: rgba(63, 81, 181, 0.04);
+    --navigation-highlight-color: rgba(63, 81, 181, 0.08);
+    --color-background-inline-code: rgba(0, 0, 0, 0.04);
+    --color-background-code-block: rgba(0, 0, 0, 0.04);
+}
+
+/* ── Dark scheme (Zensical "slate") ────────────────────────────────────────── */
+.theme-dark {
+    /* Material slate hue — warm dark gray, not pitch black. */
+    --background-color: #1e2129;
+    --default-white: #1e2129;
+    --color-dark: #2a2e3a;
+    --default-font-color: rgba(255, 255, 255, 0.92);
+    --header-font-color: rgba(255, 255, 255, 0.92);
+
+    /* Indigo 400 reads better than 500 on dark. */
+    --color-key-blue: #7986cb;
+    --color-key-blue-hover: #9fa8da;
+    --hover-link-color: #7986cb;
+    --active-tab-border-color: #7986cb;
+    --active-section-color: var(--default-font-color);
+    --sidemenu-section-active-color: #2a2e3a;
+
+    --border-color: rgba(255, 255, 255, 0.12);
+    --blockquote-background: rgba(255, 255, 255, 0.04);
+    --navigation-highlight-color: rgba(121, 134, 203, 0.12);
+    --color-background-inline-code: rgba(255, 255, 255, 0.08);
+    --color-background-code-block: rgba(0, 0, 0, 0.32);
+}
+
+/* ── Material container width inside Dokka content ──────────────────────────
+ * Dokka constrains content to ~1280px; Material's grid is similar but uses
+ * different selectors. Let the Material CSS bundle handle this for the new
+ * scaffolding; just stop Dokka's content from constraining itself a second time.
+ */
+.md-content #content {
+    max-width: none !important;
+    width: 100% !important;
+}
+
+/* ── Primary sidebar width ──────────────────────────────────────────────────
+ * Material's default `.md-sidebar` width is 12.1rem (~194px), which truncates
+ * names like "HighlightLanguageInfo" and "ThemedHighlightResult" with ellipsis.
+ * Bump to 16rem (~256px) so the canonical type names render in full. The
+ * media-query rule that hides the sidebar offscreen on narrow viewports also
+ * uses 12.1rem, so override that one too — otherwise the sidebar would peek
+ * out from the left edge before the breakpoint kicks in.
+ */
+.md-sidebar.md-sidebar--primary {
+    width: 16rem;
+}
+@media screen and (max-width: 76.234375em) {
+    [dir="ltr"] .md-sidebar.md-sidebar--primary { left: -16rem; }
+    [dir="rtl"] .md-sidebar.md-sidebar--primary { right: -16rem; }
+}
+
+/* ── Sidebar: nesting + expand/collapse + type icons ────────────────────────
+ * Dokka emits class-type icons (.toc--icon.class-kt etc.) from ui-kit.min.css,
+ * which our chrome script clones into each .md-nav__link. Make them render at
+ * a sane size and aligned with the link text.
+ */
+.md-sidebar--primary .md-nav__icon-type {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    margin-right: 8px;
+    vertical-align: middle;
+    flex-shrink: 0;
+}
+.md-sidebar--primary .md-nav__link {
+    display: flex;
+    align-items: center;
+}
+
+/* Hide the generated checkbox; show only the chevron <label> as the toggle UI. */
+.md-sidebar--primary .md-nav__toggle {
+    display: none;
+}
+
+/* Row that holds the link + chevron in one flex strip, so margin-left:auto on
+ * the chevron pushes it to the right edge. Each nested item lays out its row
+ * via this wrapper; non-nested items render the link directly without a row. */
+.md-sidebar--primary .md-nav__row {
+    display: flex;
+    align-items: center;
+}
+.md-sidebar--primary .md-nav__row > .md-nav__link {
+    flex: 1 1 auto;
+    min-width: 0;  /* allow the link to shrink so chevron stays visible */
+}
+
+/* The chevron sits inline with the link, opposite the icon. The arrow-down.svg
+ * Dokka ships is white-filled (intended for dark theme); invert it in light mode
+ * so the arrow is dark on a light background, leave natural for dark theme. */
+.md-sidebar--primary .md-nav__chevron {
+    flex: 0 0 20px;
+    width: 20px;
+    height: 20px;
+    margin-right: 8px;
+    cursor: pointer;
+    background-image: url("../images/arrow-down.svg");
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: 14px;
+    transform: rotate(0);
+    transition: transform 150ms ease;
+    padding: 0 !important;
+    opacity: 0.6;
+    filter: invert(1);
+}
+.theme-dark .md-sidebar--primary .md-nav__chevron {
+    filter: none;
+}
+.md-sidebar--primary .md-nav__chevron:hover {
+    opacity: 1;
+}
+.theme-dark .md-sidebar--primary .md-nav__chevron {
+    filter: invert(1);
+}
+/* When the hidden checkbox is checked, the parent <li> matches :has(:checked).
+ * Use :has() to reach across DOM levels (chevron is inside .md-nav__row, while
+ * toggle is at li-level — they're not direct siblings). */
+.md-sidebar--primary .md-nav__item--nested:has(> .md-nav__toggle:checked) > .md-nav__row > .md-nav__chevron {
+    transform: rotate(180deg);
+}
+
+/* Nested <nav> is collapsed by default. The expand-toggle's :checked state on the
+ * SAME LI as the nav reveals it. */
+.md-sidebar--primary .md-nav__item--nested > .md-nav {
+    display: none;
+}
+.md-sidebar--primary .md-nav__item--nested > .md-nav__toggle:checked ~ .md-nav {
+    display: block;
+}
+
+/* Indent each nesting level a bit; Material defaults are ~12px which feels too far. */
+.md-sidebar--primary .md-nav .md-nav {
+    padding-left: 8px;
+    border-left: 1px solid var(--border-color);
+    margin-left: 12px;
+}
+
+/* Density: shrink padding so more items fit on screen. Dokka's stock sidebar runs
+ * at ~24px row height; Material's defaults are ~36px. Compromise at ~28px. */
+.md-sidebar--primary .md-nav__item {
+    margin: 0;
+    padding: 0;
+}
+.md-sidebar--primary .md-nav__link {
+    padding: 4px 8px !important;
+    font-size: 0.78rem !important;
+    line-height: 1.5 !important;
+    margin: 0 !important;
+}
+
+/* Active item: switch from Material's pale lavender to a more prominent indigo.
+ * The 0.16 alpha keeps it Material-compliant (vs Dokka's solid blue) while making
+ * the current page unmistakably visible. */
+.md-sidebar--primary .md-nav__link--active {
+    background-color: rgba(63, 81, 181, 0.16);
+    color: var(--color-key-blue) !important;
+    font-weight: 500;
+    border-radius: 4px;
+}
+.theme-dark .md-sidebar--primary .md-nav__link--active {
+    background-color: rgba(121, 134, 203, 0.24);
+    color: var(--color-key-blue) !important;
+}
+
+/* ── Tweaks Dokka does not expose as variables ─────────────────────────────── */
+
+/* Code blocks: rounded corners + tighter line-height matching Material's `pre` style. */
+.sample-container,
+.symbol,
+code {
+    border-radius: 4px;
+}
+
+.sample-container,
+pre.symbol {
+    padding: 12px 16px;
+}
+
+/* Inline code — slight horizontal padding so identifiers don't crowd punctuation. */
+:not(pre) > code {
+    padding: 0.15em 0.4em;
+    border-radius: 3px;
+    font-size: 0.92em;
+}
+
+/* Headings — Material uses Inter at 500 weight. */
+h1, h2, h3, h4, h5, h6,
+.cover h1,
+.cover h2 {
+    font-family: "Inter", "Helvetica", "Arial", sans-serif;
+    font-weight: 500;
+}
+
+/* Links — underline on hover only, mirroring Material's behavior. */
+a {
+    text-decoration: none;
+}
+a:hover {
+    text-decoration: underline;
+}
