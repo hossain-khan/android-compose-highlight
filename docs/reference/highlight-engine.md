@@ -1,12 +1,31 @@
 # HighlightEngine
 
-The core engine that manages the hidden WebView and executes Highlight.js highlighting.
+`HighlightEngine` is the low-level API that owns the hidden WebView and runs the highlight.js
+pipeline.
 
-For most use cases, use `SyntaxHighlightedCode` inside a `HighlightThemeProvider` - it handles the engine lifecycle automatically. Use `HighlightEngine` directly only when you need lower-level control, such as highlighting in a ViewModel or outside of Compose.
+For most UI use cases, prefer `SyntaxHighlightedCode` inside `HighlightThemeProvider`. Use
+`HighlightEngine` directly when you need highlighting outside composables, such as in a ViewModel
+or service layer.
 
-## Lifecycle
+Full API in Dokka:
 
-The engine holds a hidden WebView resource and implements `Closeable`. Always call `close()` (or `destroy()`) when done. Inside Compose, use `rememberHighlightEngine()` which calls `destroy()` automatically via `DisposableEffect`. Since highlighting APIs are `suspend`, prefer coroutine-friendly `try/finally` cleanup for scoped usage:
+- [`HighlightEngine`](https://hossain-khan.github.io/android-compose-highlight/api/compose-highlight/dev.hossain.highlight.engine/-highlight-engine/index.html)
+- [`HighlightResult`](https://hossain-khan.github.io/android-compose-highlight/api/compose-highlight/dev.hossain.highlight.engine/-highlight-result/index.html)
+- [`ThemedHighlightResult`](https://hossain-khan.github.io/android-compose-highlight/api/compose-highlight/dev.hossain.highlight.engine/-themed-highlight-result/index.html)
+- [`HighlightLanguageInfo`](https://hossain-khan.github.io/android-compose-highlight/api/compose-highlight/dev.hossain.highlight.engine/-highlight-language-info/index.html)
+- [`AutoHighlightResult`](https://hossain-khan.github.io/android-compose-highlight/api/compose-highlight/dev.hossain.highlight.engine/-auto-highlight-result/index.html)
+- [`rememberHighlightEngine`](https://hossain-khan.github.io/android-compose-highlight/api/compose-highlight/dev.hossain.highlight.ui/remember-highlight-engine.html)
+
+## When to use it
+
+- You need highlighting in non-UI layers.
+- You want direct control over engine initialization and lifetime.
+- You need APIs like language lookup, auto-detection, or HTML-only output.
+
+## Lifecycle and cleanup
+
+The engine holds a hidden WebView and implements `Closeable`. Always call `close()` (or
+`destroy()`) when done.
 
 ```kotlin
 val engine = HighlightEngine(context.applicationContext)
@@ -17,23 +36,18 @@ try {
 }
 ```
 
-## Methods
+In Compose, use `rememberHighlightEngine()` so cleanup is handled automatically.
 
-| Method | Description |
-|---|---|
-| `suspend initialize(): Result<Unit>` | Warms up the WebView. Optional - `highlight()` also initializes on first call. Returns `Result.failure(WebViewInitFailed(...))` if WebView is unavailable |
-| `suspend highlight(code, language, theme)` | Full pipeline: tokenize, apply theme, return `Result<HighlightResult>` (access `.annotated` for the `AnnotatedString`) |
-| `suspend highlightBothThemes(code, language, lightTheme, darkTheme)` | Highlight once, return `Result<ThemedHighlightResult>` (access `.light` and `.dark` for the `AnnotatedString` variants) |
-| `suspend highlightToHtml(code, language)` | Returns `Result<HtmlHighlightResult>` (access `.html` for the HTML string, `.jsBridgeDuration` and `.jsonUnescapeDuration` for timing) |
-| `suspend supportedLanguages()` | Returns the list of languages the bundled Highlight.js supports |
-| `suspend highlightJsVersion()` | Returns the bundled Highlight.js version string |
-| `suspend getLanguage(nameOrAlias)` | Returns `Result<HighlightLanguageInfo?>` - null success means language not recognized |
-| `suspend highlightAuto(code, theme)` | Auto-detect language and highlight, returns `Result<AutoHighlightResult>` |
-| `fun destroy()` | Releases the WebView and clears caches. Idempotent - safe to call multiple times |
-| `fun close()` | Alias for `destroy()`. Implements `Closeable` for IDE resource-leak inspections and explicit cleanup |
-| `val isInitialized: StateFlow<Boolean>` | Observe WebView readiness reactively |
+## Core operations
 
-All suspend methods return `Result<T>` - never throw. Wrap failures in `HighlightException`.
+- `initialize()` - optional warm-up to reduce first highlight latency.
+- `highlight()` - highlight one language and return `Result<HighlightResult>` containing the `AnnotatedString` and timings.
+- `highlightBothThemes()` - tokenize once and generate light and dark variants.
+- `highlightToHtml()` - get highlighted HTML directly.
+- `supportedLanguages()` and `highlightJsVersion()` - runtime capability introspection.
+- `getLanguage()` and `highlightAuto()` - language metadata and auto-detection workflows.
+
+All suspend APIs return `Result<T>` and report failures as `HighlightException`.
 
 ## Usage in a ViewModel
 
@@ -46,7 +60,6 @@ class CodeViewModel(application: Application) : AndroidViewModel(application) {
 
     init {
         viewModelScope.launch {
-            // Optional warm-up to reduce first-call latency
             engine.initialize()
         }
     }
@@ -82,14 +95,12 @@ fun MyCodeBlock(code: String) {
 }
 ```
 
-## Highlight both themes (instant switching)
+## Highlight both themes for instant switching
 
-Tokenizes once, applies two color maps - theme switching has zero extra latency:
+`highlightBothThemes()` tokenizes once and applies both color maps, so theme switching does not
+trigger another JS tokenization pass.
 
 ```kotlin
-import dev.hossain.highlight.ui.rememberTomorrowNightTheme
-import dev.hossain.highlight.ui.rememberTomorrowTheme
-
 engine.highlightBothThemes(
     code       = sourceCode,
     language   = "typescript",
@@ -100,65 +111,11 @@ engine.highlightBothThemes(
 }
 ```
 
-## `HighlightResult`
-
-| Property | Description |
-|---|---|
-| `annotated` | The highlighted `AnnotatedString` |
-| `spanCount` | Number of style spans. `0` = silent failure (unsupported language or empty code) |
-| `language` | The language identifier that was highlighted |
-| `durationMs` | Total wall-clock time in milliseconds |
-| `timings` | Per-stage `HighlightTimings` (jsBridge, jsonUnescape, htmlParse, treeWalk, themeParse, total) |
-
-## `ThemedHighlightResult`
-
-Returned by `highlightBothThemes()`. Holds both light and dark variants produced from a single JS tokenization pass.
-
-| Property | Description |
-|---|---|
-| `light` | Syntax-highlighted `AnnotatedString` styled with the light theme |
-| `dark` | Syntax-highlighted `AnnotatedString` styled with the dark theme |
-| `durationMs` | Total wall-clock time in milliseconds for the full highlight call |
-| `timings` | Per-stage `HighlightTimings` breakdown (same fields as `HighlightResult.timings`) |
-
-## `HighlightLanguageInfo`
-
-Returned by `getLanguage()`. Contains the human-readable display name and registered aliases for a language.
-
-| Property | Description |
-|---|---|
-| `name` | Human-readable display name (e.g. `"Kotlin"`, `"Python"`) - not the language identifier |
-| `aliases` | Registered Highlight.js aliases (e.g. `["kt", "kts"]`) |
-
-```kotlin
-engine.getLanguage("kt").onSuccess { info ->
-    if (info != null) {
-        println("Name: ${info.name}")       // "Kotlin"
-        println("Aliases: ${info.aliases}") // [kt, kts]
-    } else {
-        println("Language not found")
-    }
-}
-```
-
-## `AutoHighlightResult`
-
-Returned by `highlightAuto()`. Contains the highlighted output and the language hljs detected.
-
-| Property | Description |
-|---|---|
-| `annotated` | The highlighted `AnnotatedString` |
-| `detectedLanguage` | Language hljs guessed (may be an empty string if detection failed) |
-| `spanCount` | Number of style spans applied |
-| `durationMs` | Total wall-clock time in milliseconds |
-| `timings` | Per-stage `HighlightTimings` breakdown |
-
 ## Language lookup and auto-detection
 
-### `getLanguage()`
+Use `getLanguage()` to validate names and inspect aliases:
 
 ```kotlin
-// Check if a language is recognized and inspect its aliases
 engine.getLanguage("ts").onSuccess { info ->
     if (info != null) {
         // info.name    = "TypeScript"
@@ -167,23 +124,18 @@ engine.getLanguage("ts").onSuccess { info ->
 }
 ```
 
-### `highlightAuto()`
-
-Use when the language is unknown - hljs will attempt to detect it:
+Use `highlightAuto()` when language is unknown:
 
 ```kotlin
 engine.highlightAuto(code, theme).onSuccess { result ->
-    val language = result.detectedLanguage // e.g. "python" or "" if undetected
+    val language = result.detectedLanguage
     Text(text = result.annotated)
 }
 ```
 
-## `rememberHighlightEngine`
+## Common pitfalls
 
-```kotlin
-@Composable
-fun rememberHighlightEngine(): HighlightEngine
-```
-
-- **Inside `HighlightThemeProvider`**: returns the shared engine (no extra WebView).
-- **Outside a provider**: creates a standalone engine, destroys it when the composable leaves composition.
+- Forgetting `applicationContext` can leak short-lived contexts.
+- Forgetting `close()` in non-Compose code can keep WebView resources alive.
+- Treating `Result.failure` as exceptional flow from the API point of view; this is expected
+  error signaling for this library.
