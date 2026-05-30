@@ -22,15 +22,19 @@ repo_url         = "https://github.com/hossain-khan/android-compose-highlight"
 edit_uri         = "edit/main/docs/"
 extra_css        = ["stylesheets/shiki-kotlin.css"]
 
-[[project.extra_javascript]]
-path = "javascripts/shiki-kotlin.js"
-type = "module"
-async = true
 
 # ── Navigation ─────────────────────────────────────────────────────────────────
 nav = [
   { "Home"            = "index.md" },
   { "Getting Started" = "getting-started.md" },
+  { "Guides" = [
+      "guides/theming.md",
+      "guides/customization.md",
+      "guides/line-numbers.md",
+      "guides/performance.md",
+      "guides/engine-only.md",
+      "guides/language-selection.md",
+  ]},
   { "API Reference"   = [
       "reference/index.md",
       "reference/syntax-highlighted-code.md",
@@ -40,17 +44,15 @@ nav = [
       "reference/highlight-engine.md",
       "reference/highlight-language.md",
   ]},
-  { "Guides" = [
-      "guides/theming.md",
-      "guides/customization.md",
-      "guides/line-numbers.md",
-      "guides/performance.md",
-      "guides/engine-only.md",
-      "guides/language-selection.md",
-  ]},
   { "Changelog" = "changelog.md" },
-  { "Dokka API Docs" = "https://hossain-khan.github.io/android-compose-highlight/api/" },
+  # Requires: ./gradlew :compose-highlight:dokkaGenerate
+  { "Dokka API Docs" = "api/" },
 ]
+
+[[project.extra_javascript]]
+path = "javascripts/shiki-kotlin.js"
+type = "module"
+async = true
 
 # ── Theme ──────────────────────────────────────────────────────────────────────
 [project.theme]
