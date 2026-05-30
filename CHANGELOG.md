@@ -321,7 +321,7 @@ All notable changes to this project will be documented in this file.
   `placeholder` is unchanged - it already followed the shorter convention.
 
   | Before | After |
-  |---|---|
+  | --- | --- |
   | `languageLabelContent` | `languageLabel` |
   | `copyButtonContent` | `copyButton` |
 
