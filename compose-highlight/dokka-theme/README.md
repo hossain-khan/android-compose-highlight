@@ -157,24 +157,15 @@ updated.
 **LocalStorage palette key shape:**
 
 ```
-key   = `${apiRoot.pathname}.__palette`     // e.g. "/android-compose-highlight/api/.__palette"
+key   = `${siteRoot.pathname}.__palette`  // e.g. "/android-compose-highlight/.__palette"
 value = JSON.stringify({
     color: { media: "none", scheme: "default"|"slate", primary: "indigo", accent: "indigo" }
 })
 ```
 
-`apiRoot` is computed by stripping `images/dokka-zensical-chrome.js` from the
-script's own `src` attribute (Dokka emits relative URLs that vary with page
-depth). The script reads/writes only this api-root key — separate from
-Material's own per-directory scoping on `/`. See "Scoping" below.
-
-**Scoping note:** Material's own init script per-pathname-scopes the palette
-key (a flip on `/foo/` doesn't carry to `/bar/`). The chrome script
-deliberately deviates: it anchors the key to `/api/`'s root, so the toggle is
-sticky throughout the API reference regardless of which class detail page the
-user is on. The Zensical site at `/` continues to use Material's own
-per-directory scope, so a flip on `/` does NOT carry into `/api/` — users
-toggle once per site.
+`siteRoot` is computed by stripping `/api/` from the Dokka api root, so the palette key
+matches the Zensical site root. Both sites now share the same localStorage key — a toggle on
+`/` carries into `/api/` and vice versa.
 
 ## Out of scope
 
