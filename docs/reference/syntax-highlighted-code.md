@@ -1,53 +1,36 @@
 # SyntaxHighlightedCode
 
-The primary public composable. Displays syntax-highlighted code in a styled block.
+The primary public composable for rendering syntax-highlighted code blocks in Compose.
 
-Shows unstyled monospace code immediately while async highlighting runs, then fades in the highlighted version when ready - no visible flicker.
+It shows plain monospace text immediately, then swaps to highlighted text when async highlighting
+completes. This keeps first paint fast and avoids visible flicker.
 
-## Signature
+Full API in Dokka:
 
-```kotlin
-import dev.hossain.highlight.engine.HighlightResult
-import dev.hossain.highlight.engine.HighlightTheme
-import dev.hossain.highlight.ui.CodeBlockStyle
+- [`SyntaxHighlightedCode`](https://hossain-khan.github.io/android-compose-highlight/api/compose-highlight/dev.hossain.highlight.ui/-syntax-highlighted-code.html)
+- [`HighlightThemeProvider`](https://hossain-khan.github.io/android-compose-highlight/api/compose-highlight/dev.hossain.highlight.ui/-highlight-theme-provider.html)
+- [`rememberHighlightedCode`](https://hossain-khan.github.io/android-compose-highlight/api/compose-highlight/dev.hossain.highlight.ui/remember-highlighted-code.html)
+- [`rememberHighlightedCodeBothThemes`](https://hossain-khan.github.io/android-compose-highlight/api/compose-highlight/dev.hossain.highlight.ui/remember-highlighted-code-both-themes.html)
 
-@Composable
-fun SyntaxHighlightedCode(
-    code: String,
-    language: String,
-    modifier: Modifier = Modifier,
-    theme: HighlightTheme = LocalHighlightTheme.current,
-    style: CodeBlockStyle = CodeBlockStyle.Default,
-    showLineNumbers: Boolean = false,
-    languageLabel: (@Composable () -> Unit)? = /* default badge */,
-    copyButton: (@Composable (onClick: () -> Unit) -> Unit)? = /* default button */,
-    onCopyClick: ((String) -> Unit)? = null,
-    onHighlightComplete: ((HighlightResult) -> Unit)? = null,
-    onError: ((HighlightException) -> Unit)? = null,
-    placeholder: (@Composable (code: String) -> Unit)? = null,
-)
-```
+## When to use it
 
-## Parameters
+- You want a ready-made code block UI with language badge and copy button.
+- You want theme-aware code rendering with minimal setup.
+- You prefer built-in loading behavior and error fallback over wiring a custom pipeline.
 
-| Parameter | Type | Default | Description |
-|---|---|---|---|
-| `code` | `String` | - | Source code to display |
-| `language` | `String` | - | Highlight.js language identifier (e.g. `"kotlin"`, `"python"`) |
-| `modifier` | `Modifier` | `Modifier` | Modifier for the outer container |
-| `theme` | `HighlightTheme` | `LocalHighlightTheme.current` | Theme to use. Throws if no `HighlightThemeProvider` is present and no explicit theme is passed |
-| `style` | `CodeBlockStyle` | `CodeBlockStyle.Default` | Visual style - shape, padding, font, copy button size |
-| `showLineNumbers` | `Boolean` | `false` | Whether to show a line-number gutter |
-| `languageLabel` | `(@Composable () -> Unit)?` | Default badge | Header language badge slot. `null` hides it |
-| `copyButton` | `(@Composable (onClick: () -> Unit) -> Unit)?` | Default button | Header copy button slot. `null` hides it |
-| `onCopyClick` | `((String) -> Unit)?` | `null` | Custom copy handler. If `null`, copies to system clipboard |
-| `onHighlightComplete` | `((HighlightResult) -> Unit)?` | `null` | Callback invoked with timing and span count after successful highlighting |
-| `onError` | `((HighlightException) -> Unit)?` | `null` | Callback invoked when highlighting fails. Falls back to plain text; purely observational |
-| `placeholder` | `(@Composable (code: String) -> Unit)?` | `null` | Composable rendered while highlighting is in progress. `null` shows raw unstyled code (default behavior) |
+## Key parameters
 
-## Usage
+- `language` - highlight.js language id (`"kotlin"`, `"python"`, `"sql"`, etc).
+- `theme` - pass explicitly, or rely on `HighlightThemeProvider`.
+- `style` - controls code block visuals (`CodeBlockStyle`).
+- `showLineNumbers` - enables line-number gutter.
+- `languageLabel` and `copyButton` - slots for header customization, or `null` to hide.
+- `placeholder` - custom loading content while highlighting is in progress.
+- `onHighlightComplete` and `onError` - observability hooks for metrics and diagnostics.
 
-### With `HighlightThemeProvider` (recommended)
+## Recommended patterns
+
+### Use with `HighlightThemeProvider` (recommended)
 
 ```kotlin
 import dev.hossain.highlight.ui.HighlightThemeProvider
@@ -159,27 +142,11 @@ SyntaxHighlightedCode(
 )
 ```
 
----
+## Why `HighlightThemeProvider` matters
 
-## HighlightThemeProvider
-
-Provides a `HighlightTheme` and a shared `HighlightEngine` to all `SyntaxHighlightedCode` composables in its subtree.
-
-```kotlin
-import dev.hossain.highlight.engine.HighlightTheme
-import dev.hossain.highlight.ui.rememberTomorrowNightTheme
-import dev.hossain.highlight.ui.rememberTomorrowTheme
-
-@Composable
-fun HighlightThemeProvider(
-    darkTheme: Boolean = isSystemInDarkTheme(),
-    lightHighlightTheme: HighlightTheme = rememberTomorrowTheme(),
-    darkHighlightTheme: HighlightTheme = rememberTomorrowNightTheme(),
-    content: @Composable () -> Unit,
-)
-```
-
-Creates **one shared WebView** for the entire subtree. Screens with multiple `SyntaxHighlightedCode` blocks share this single WebView instead of creating one per block - saving ~200 ms warm-up time and ~2-4 MB RAM per extra block.
+`HighlightThemeProvider` creates one shared `HighlightEngine` (one hidden WebView) for its subtree.
+If you render multiple code blocks on one screen, this avoids creating one WebView per block and
+reduces warm-up cost and memory overhead.
 
 ### Force a specific theme mode
 
@@ -195,23 +162,13 @@ HighlightThemeProvider(
 ) { ... }
 ```
 
-## `rememberHighlightedCode`
+## Lower-level Compose helpers
 
-Highlights code in a composable and returns `State<AnnotatedString?>`.
+Use these when you want custom rendering but still want the library's highlight pipeline.
 
-```kotlin
-@Composable
-fun rememberHighlightedCode(
-    code: String,
-    language: String,
-    theme: HighlightTheme = LocalHighlightTheme.current,
-    onHighlightComplete: ((HighlightResult) -> Unit)? = null,
-    onError: ((HighlightException) -> Unit)? = null,
-): State<AnnotatedString?>
-```
+### `rememberHighlightedCode`
 
-Returns `null` while highlighting is still running or if highlighting fails, so callers should
-always render a plain-text fallback.
+Returns highlighted text as `State<AnnotatedString?>`. Render a plain-text fallback while `null`.
 
 ```kotlin
 val highlighted by rememberHighlightedCode(code = snippet, language = "kotlin")
@@ -219,7 +176,7 @@ val highlighted by rememberHighlightedCode(code = snippet, language = "kotlin")
 Text(text = highlighted ?: AnnotatedString(snippet))
 ```
 
-Use `onHighlightComplete` for metrics and `onError` for typed failure handling:
+Use `onHighlightComplete` for metrics and `onError` for typed failure handling.
 
 ```kotlin
 val highlighted by rememberHighlightedCode(
@@ -234,24 +191,10 @@ val highlighted by rememberHighlightedCode(
 )
 ```
 
-## `rememberHighlightedCodeBothThemes`
+### `rememberHighlightedCodeBothThemes`
 
-Highlights once and returns both light and dark variants as `State<ThemedHighlightResult?>`.
-
-```kotlin
-@Composable
-fun rememberHighlightedCodeBothThemes(
-    code: String,
-    language: String,
-    lightTheme: HighlightTheme = LocalLightHighlightTheme.current,
-    darkTheme: HighlightTheme = LocalDarkHighlightTheme.current,
-    onHighlightComplete: ((ThemedHighlightResult) -> Unit)? = null,
-    onError: ((HighlightException) -> Unit)? = null,
-): State<ThemedHighlightResult?>
-```
-
-This is the Compose helper for zero-extra-latency theme switching. It tokenizes the source once,
-then applies both color maps to the same HTML result.
+Highlights once, then returns both light and dark `AnnotatedString` variants so UI theme switching
+can happen without extra highlight latency.
 
 ```kotlin
 val themed by rememberHighlightedCodeBothThemes(
@@ -265,5 +208,5 @@ Text(
 )
 ```
 
-Inside `HighlightThemeProvider`, `lightTheme` and `darkTheme` default from the provider. Outside a
+Inside `HighlightThemeProvider`, light and dark themes default from the provider. Outside a
 provider, pass both themes explicitly.
