@@ -1,23 +1,29 @@
 # HighlightTheme
 
-Represents a syntax highlighting theme used by the engine to map `hljs-*` tokens to Compose `SpanStyle`s.
+`HighlightTheme` maps `hljs-*` token classes to Compose `SpanStyle` values used by the highlight
+pipeline.
 
-Theme initialization depends on how the theme is created:
+Full API in Dokka:
 
-- Built-ins (`tomorrow`, `tomorrowNight`, `atomOneDark`, `atomOneLight`) use precompiled color maps and do not parse CSS at runtime.
-- CSS-backed themes (`fromAsset`, `fromCss`) are lazy and parse CSS on first `colorMap` access.
-- Color-map themes (`fromColorMap`) use the provided map and do not parse CSS.
+- [`HighlightTheme`](https://hossain-khan.github.io/android-compose-highlight/api/compose-highlight/dev.hossain.highlight.engine/-highlight-theme/index.html)
+- [`rememberTomorrowTheme`](https://hossain-khan.github.io/android-compose-highlight/api/compose-highlight/dev.hossain.highlight.ui/remember-tomorrow-theme.html)
+- [`rememberTomorrowNightTheme`](https://hossain-khan.github.io/android-compose-highlight/api/compose-highlight/dev.hossain.highlight.ui/remember-tomorrow-night-theme.html)
+- [`rememberAtomOneDarkTheme`](https://hossain-khan.github.io/android-compose-highlight/api/compose-highlight/dev.hossain.highlight.ui/remember-atom-one-dark-theme.html)
+- [`rememberAtomOneLightTheme`](https://hossain-khan.github.io/android-compose-highlight/api/compose-highlight/dev.hossain.highlight.ui/remember-atom-one-light-theme.html)
 
-## Built-in themes
+## When to use each theme source
 
-| Factory | Style | `remember` helper |
-|---|---|---|
-| `HighlightTheme.tomorrow()` | Light | `rememberTomorrowTheme()` |
-| `HighlightTheme.tomorrowNight()` | Dark | `rememberTomorrowNightTheme()` |
-| `HighlightTheme.atomOneDark()` | Dark | `rememberAtomOneDarkTheme()` |
-| `HighlightTheme.atomOneLight()` | Light | `rememberAtomOneLightTheme()` |
+- Built-in themes (`tomorrow`, `tomorrowNight`, `atomOneDark`, `atomOneLight`): fastest setup,
+  precompiled maps, no CSS parsing at runtime.
+- `fromAsset(...)`: best for shipping a highlight.js CSS file with your app.
+- `fromCss(...)`: useful when CSS comes from network, config, or generated text.
+- `fromColorMap(...)`: best when you want full programmatic control, for example Material 3
+  dynamic color integration.
 
-Use the `remember*` helpers inside composables to keep stable theme instances across recompositions:
+## Recommended usage in Compose
+
+Use `remember*Theme()` helpers inside composables so the theme instance stays stable across
+recompositions.
 
 ```kotlin
 import dev.hossain.highlight.ui.HighlightThemeProvider
@@ -30,38 +36,29 @@ HighlightThemeProvider(
 ) { ... }
 ```
 
-## Custom theme from an asset file
-
-Drop any [Highlight.js CSS theme](https://github.com/highlightjs/highlight.js/tree/main/src/styles) into `src/main/assets/themes/` and load it at runtime:
+## Custom theme from asset CSS
 
 ```kotlin
+import androidx.compose.ui.platform.LocalContext
 import dev.hossain.highlight.engine.HighlightTheme
 import dev.hossain.highlight.ui.HighlightThemeProvider
-import androidx.compose.ui.platform.LocalContext
 
-// src/main/assets/themes/github.css  <- place the CSS here
 val appContext = LocalContext.current.applicationContext
 val theme = HighlightTheme.fromAsset(
     context   = appContext,
     assetPath = "themes/github.css",
     name      = "github",
 )
+
 HighlightThemeProvider(lightHighlightTheme = theme) { ... }
 ```
 
 !!! note
-    `HighlightTheme.fromAsset()` normalizes the passed `Context` to `applicationContext` internally.
-    Passing `applicationContext` at call sites is still recommended for clarity.
-
-!!! note
-    `fromAsset()` is lazy - CSS parsing happens on first use, not at factory-call time.
+    `fromAsset()` is lazy. CSS parsing happens on first theme usage, not at factory call time.
 
 ## Custom theme from raw CSS
 
 ```kotlin
-import dev.hossain.highlight.engine.HighlightTheme
-
-val css = // ... fetch from network or build programmatically
 val theme = HighlightTheme.fromCss(
     cssText = css,
     name    = "my-runtime-theme",
@@ -70,17 +67,7 @@ val theme = HighlightTheme.fromCss(
 
 ## Custom theme from a color map
 
-For full control - e.g. deriving colors from Material 3 dynamic color:
-
 ```kotlin
-import dev.hossain.highlight.engine.HighlightTheme
-
-val colorMap = mapOf(
-    "hljs"          to SpanStyle(color = Color(0xFF24292E), background = Color(0xFFFFFFFF)),
-    "hljs-keyword"  to SpanStyle(color = Color(0xFFD73A49), fontWeight = FontWeight.Bold),
-    "hljs-string"   to SpanStyle(color = Color(0xFF032F62)),
-    "hljs-comment"  to SpanStyle(color = Color(0xFF6A737D), fontStyle = FontStyle.Italic),
-)
 val theme = HighlightTheme.fromColorMap(
     name             = "my-dynamic-theme",
     colorMap         = colorMap,
@@ -89,31 +76,27 @@ val theme = HighlightTheme.fromColorMap(
 )
 ```
 
-## Theme identity
+## Theme identity behavior
 
-`HighlightTheme` uses both `name` and a content identity digest for `equals()` and `hashCode()`. This means:
+`HighlightTheme` equality is based on both `name` and content identity. This gives stable
+memoization while still triggering re-highlighting when CSS content changes.
 
-- Two themes with the same name **and** same CSS content are equal (memoization preserved)
-- Two themes with the same name but **different** CSS content are **not** equal (re-highlighting triggers correctly)
-- Two themes with different names are never equal
+- Same name and same CSS content -> equal.
+- Same name and different CSS content -> not equal.
+- Different names -> not equal.
 
 ```kotlin
 val light = HighlightTheme.fromCss(lightCss, "custom")
 val dark  = HighlightTheme.fromCss(darkCss,  "custom")
-light == dark  // false - same name but different CSS content
+light == dark  // false
 
 val a = HighlightTheme.fromCss(css, "custom")
 val b = HighlightTheme.fromCss(css, "custom")
-a == b         // true  - same name and same CSS content
+a == b         // true
 ```
 
-Compose APIs (`remember`, `LaunchedEffect`) correctly detect theme changes based on this combined identity.
+## Common pitfalls
 
-## Properties
-
-| Property | Description |
-|---|---|
-| `name` | Display name for this theme |
-| `colorMap` | Lazily parsed `Map<String, SpanStyle>` (hljs class name to style) |
-| `backgroundColor` | Background color from the `.hljs` CSS rule |
-| `defaultTextColor` | Default text color from the `.hljs` CSS rule |
+- Passing activity context to long-lived themes in non-Compose layers.
+- Expecting `fromAsset()` parse failures at construction time rather than first use.
+- Recreating custom themes every recomposition instead of `remember`ing stable instances.

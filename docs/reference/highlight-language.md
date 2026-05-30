@@ -1,18 +1,26 @@
 # HighlightLanguage
 
-A pure-Kotlin helper that maps file extensions to Highlight.js language identifiers.
+`HighlightLanguage` is a pure Kotlin helper that maps file extensions to highlight.js language
+identifiers.
 
-This is a **convenience helper only**. The `language` parameter on `SyntaxHighlightedCode` and `HighlightEngine.highlight()` is still a plain `String` - you can always pass any Highlight.js language name directly. `HighlightLanguage` just makes it easier to resolve the right name from a file extension.
+It is a convenience API. `SyntaxHighlightedCode` and `HighlightEngine.highlight()` still accept a
+plain `String` language id, so you can always pass supported highlight.js names directly.
 
-## `fromExtension()`
+Full API in Dokka:
 
-```kotlin
-fun fromExtension(extension: String): String?
-```
+- [`HighlightLanguage`](https://hossain-khan.github.io/android-compose-highlight/api/compose-highlight/dev.hossain.highlight.engine/-highlight-language/index.html)
 
-Returns the Highlight.js language identifier for the given file extension (without a leading dot), or `null` if the extension is not recognized.
+## When to use it
 
-The lookup is case-insensitive and locale-safe (uses `Locale.ROOT`).
+- You have filenames or file extensions and need a best-effort language id.
+- You want locale-safe, case-insensitive extension lookup.
+- You want a simple fallback to `plaintext` for unknown extensions.
+
+## Core behavior
+
+- `fromExtension(extension)` returns a highlight.js language id or `null`.
+- Lookup is case-insensitive and locale-safe (`Locale.ROOT`).
+- Pass extension without a leading dot.
 
 ```kotlin
 HighlightLanguage.fromExtension("kt")   // "kotlin"
@@ -21,12 +29,11 @@ HighlightLanguage.fromExtension("py")   // "python"
 HighlightLanguage.fromExtension("xyz")  // null
 ```
 
-## Usage - resolve language from a filename
+## Recommended usage pattern
 
 ```kotlin
 val file = File("MainActivity.kt")
-val extension = file.extension          // "kt"
-val language = HighlightLanguage.fromExtension(extension) ?: "plaintext"
+val language = HighlightLanguage.fromExtension(file.extension) ?: "plaintext"
 
 SyntaxHighlightedCode(
     code     = file.readText(),
@@ -34,86 +41,14 @@ SyntaxHighlightedCode(
 )
 ```
 
-## Supported extensions
+## Practical guidance
 
-Extensions are grouped by language family below.
+- Prefer mapping by extension only when language is not known from other metadata.
+- For user-selected languages, pass the chosen id directly.
+- For unknown or mixed content, consider `HighlightEngine.highlightAuto()` instead.
 
-| Extensions | Language |
-|---|---|
-| `kt`, `kts` | kotlin |
-| `java` | java |
-| `py`, `pyw`, `pyi` | python |
-| `js`, `mjs`, `cjs`, `jsx` | javascript |
-| `ts`, `mts`, `cts`, `tsx` | typescript |
-| `c`, `h` | c |
-| `cpp`, `cc`, `cxx`, `hpp`, `hh` | cpp |
-| `cs` | csharp |
-| `rs` | rust |
-| `go` | go |
-| `swift` | swift |
-| `rb`, `rbw` | ruby |
-| `php`, `phtml` | php |
-| `scala` | scala |
-| `groovy` | groovy |
-| `gradle` | gradle |
-| `dart` | dart |
-| `ex`, `exs` | elixir |
-| `erl`, `hrl` | erlang |
-| `hs`, `lhs` | haskell |
-| `fs`, `fsi`, `fsx` | fsharp |
-| `ml`, `mli` | ocaml |
-| `clj`, `cljs`, `cljc` | clojure |
-| `lua` | lua |
-| `r` | r |
-| `m`, `mm` | objectivec |
-| `pl`, `pm` | perl |
-| `sh`, `bash`, `zsh` | bash |
-| `ps1`, `psm1`, `psd1` | powershell |
-| `sql` | sql |
-| `html`, `htm` | html |
-| `xhtml`, `xml`, `svg`, `xsl` | xml |
-| `css` | css |
-| `scss` | scss |
-| `less` | less |
-| `json`, `jsonc` | json |
-| `yaml`, `yml` | yaml |
-| `toml` | toml |
-| `md`, `markdown` | markdown |
-| `dockerfile` | dockerfile |
-| `makefile`, `mk` | makefile |
-| `tex`, `latex` | latex |
-| `diff`, `patch` | diff |
-| `ini`, `cfg`, `conf` | ini |
-| `properties` | properties |
-| `vim` | vim |
-| `cmake` | cmake |
-| `proto` | protobuf |
-| `glsl` | glsl |
-| `bat`, `cmd` | dos |
-| `asm`, `s` | x86asm |
-| `graphql`, `gql` | graphql |
-| `txt` | plaintext |
-| `jl` | julia |
-| `nim`, `nims` | nim |
-| `vb` | vbnet |
-| `vbs` | vbscript |
-| `coffee` | coffeescript |
-| `wat` | wasm |
-| `haml` | haml |
-| `hbs`, `handlebars` | handlebars |
-| `styl` | stylus |
-| `cr` | crystal |
-| `elm` | elm |
-| `hx` | haxe |
-| `scm`, `ss` | scheme |
-| `qml` | qml |
-| `d` | d |
-| `f`, `f90`, `f95`, `for` | fortran |
-| `awk` | awk |
-| `tcl`, `tk` | tcl |
-| `lisp`, `lsp` | lisp |
-| `applescript`, `scpt` | applescript |
-| `nix` | nix |
-| `nginx` | nginx |
-| `pgsql` | pgsql |
-| `pro` | prolog |
+## Common pitfalls
+
+- Passing extension with dot (`".kt"`) instead of `"kt"`.
+- Assuming the helper mirrors every upstream highlight.js alias at all times.
+- Forgetting a fallback path (`?: "plaintext"`) for unknown extensions.
