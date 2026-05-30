@@ -26,17 +26,13 @@
         return "";
     }
 
-    // Compute the localStorage key the Material palette script uses, but anchored to /api/'s
-    // root (not the current page's directory). Material itself per-pathname-scopes this key,
-    // which would mean dark mode resets every time the user navigates between /api/<package>/
-    // and /api/<package>/<class>/. Anchoring to /api/'s root keeps the toggle sticky
-    // throughout the API reference. The Zensical site at / continues to use its own
-    // per-directory scope (we don't touch that), so a flip on / won't carry into /api/ —
-    // users toggle once per site, which is acceptable.
-    function paletteStorageKey(apiRoot) {
+    // Compute the localStorage key the Material palette script uses, anchored to the
+    // Zensical site root (not /api/). This keeps the palette toggle synced between the
+    // Zensical docs at / and the Dokka API reference at /api/.
+    function sharedPaletteStorageKey(apiRoot) {
         try {
             const apiScope = new URL(apiRoot || ".", location);
-            let pathname = apiScope.pathname;
+            let pathname = apiScope.pathname.replace(/\/api\/?$/, "/");
             if (!pathname.endsWith("/")) pathname = pathname + "/";
             return pathname + MD_PALETTE_LS_KEY_SUFFIX;
         } catch (_) {
@@ -46,7 +42,7 @@
 
     function readStoredPalette(apiRoot) {
         try {
-            const raw = localStorage.getItem(paletteStorageKey(apiRoot));
+            const raw = localStorage.getItem(sharedPaletteStorageKey(apiRoot));
             if (!raw) return null;
             return JSON.parse(raw);
         } catch (_) {
@@ -64,7 +60,7 @@
             },
         };
         try {
-            localStorage.setItem(paletteStorageKey(apiRoot), JSON.stringify(value));
+            localStorage.setItem(sharedPaletteStorageKey(apiRoot), JSON.stringify(value));
         } catch (_) {
             // localStorage may be unavailable (Safari private mode etc); silently ignore.
         }
