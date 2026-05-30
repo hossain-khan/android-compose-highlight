@@ -54,6 +54,6 @@ That's it. `HighlightThemeProvider` automatically picks Tomorrow (light) or Tomo
 ## Next steps
 
 - [Getting Started](getting-started.md) - full setup walkthrough
-- [API Reference](reference/index.md) - all public classes and functions
+- [API Reference](reference/) - all public classes and functions
 - [Guides](guides/theming.md) - theming, customization, line numbers, performance
 - [Changelog](changelog.md) - release history

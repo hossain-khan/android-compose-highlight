@@ -143,4 +143,4 @@ val (lightAnnotated, darkAnnotated) = themedPair
 // Switch between lightAnnotated and darkAnnotated instantly
 ```
 
-See [`rememberHighlightedCodeBothThemes`](../reference/syntax-highlighted-code.md#rememberhighlightedcodeboththemes) for the ready-made composable helper.
+See [`rememberHighlightedCodeBothThemes`](reference/syntax-highlighted-code#rememberhighlightedcodeboththemes) for the ready-made composable helper.
