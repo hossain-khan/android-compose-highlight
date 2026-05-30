@@ -41,7 +41,7 @@ In Compose, use `rememberHighlightEngine()` so cleanup is handled automatically.
 ## Core operations
 
 - `initialize()` - optional warm-up to reduce first highlight latency.
-- `highlight()` - highlight one language and return `AnnotatedString` with timings.
+- `highlight()` - highlight one language and return `Result<HighlightResult>` containing the `AnnotatedString` and timings.
 - `highlightBothThemes()` - tokenize once and generate light and dark variants.
 - `highlightToHtml()` - get highlighted HTML directly.
 - `supportedLanguages()` and `highlightJsVersion()` - runtime capability introspection.
