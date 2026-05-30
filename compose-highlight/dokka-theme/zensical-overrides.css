@@ -38,18 +38,47 @@
 .footer--container {
     display: none !important;
 }
-#filter-section,
-#searchBar {
+/* #filter-section: kept addressable but visually pushed off-screen so
+ * platform-content-handler.js can populate it without it appearing on-page.
+ * Children stay un-pointer-event-disabled so its filter-button init walks. */
+#filter-section {
     position: absolute !important;
     left: -10000px !important;
     top: 0 !important;
     pointer-events: none;
 }
-/* Re-enable pointer events on #searchBar's children: the Material search delegation
- * does a programmatic click on #pages-search inside #searchBar; if that subtree is
- * pointer-events:none, clicks would bubble to the underlying page chrome instead. */
-#searchBar * {
-    pointer-events: auto;
+
+/* #searchBar: kept addressable via off-screen positioning. The Material icon
+ * at [data-search-trigger] is the visible click target; the chrome script
+ * delegates to the inner #pages-search programmatically. */
+#searchBar {
+    position: absolute !important;
+    left: -10000px !important;
+    top: 0 !important;
+    pointer-events: none !important;
+}
+
+/* Ring UI's search popup is rendered via a React portal into a target div
+ * appended to <body>, with the popup positioned via inline `top: 0; left: 0`
+ * but offset upward by a JS-applied `margin-top: -<height>px`. The trigger
+ * (#searchBar) is off-screen at left:-10000, so the popup ends up at
+ * viewport y = -<popupHeight + ~42> with the input row clipped above
+ * viewport.
+ *
+ * Override the inline positioning so the popup pins to the top-right of the
+ * viewport, just below the Material header. The popup-wrapper class targets
+ * Ring UI's popup container; the rule only matches when the popup is mounted
+ * (which is on demand, not at page load). */
+[data-test="ring-popup"][data-test-direction="bottom-right"] {
+    position: fixed !important;
+    top: 3.5rem !important;       /* below the Material header (~3rem) */
+    right: 1rem !important;
+    left: auto !important;
+    bottom: auto !important;
+    margin: 0 !important;
+    max-width: min(640px, calc(100vw - 2rem)) !important;
+    max-height: calc(100vh - 5rem) !important;
+    z-index: 1000 !important;
 }
 
 /* The chrome script removes Dokka's <header id="navigation-wrapper"> from the page
@@ -92,10 +121,16 @@
 }
 
 /* The injected article wraps Dokka's #content. Strip Dokka's outer paddings so
- * .md-content__inner spacing wins. */
+ * .md-content__inner spacing wins, then add a sidebar-to-content gutter on the
+ * outer .md-content__inner so the article breathes away from the sidebar
+ * border. Material's default has zero gap between the two; Dokka pages benefit
+ * from a clearer separation. */
 .md-content__inner #content {
     padding: 0 !important;
     margin: 0 !important;
+}
+.md-content__inner {
+    padding-left: 1.5rem !important;
 }
 
 /* ── Light scheme (Zensical "default") ─────────────────────────────────────── */
@@ -322,6 +357,30 @@ h1, h2, h3, h4, h5, h6,
 .cover h2 {
     font-family: "Inter", "Helvetica", "Arial", sans-serif;
     font-weight: 500;
+}
+
+/* Lists in the article body. Material's stock .md-typeset gives <ol>/<ul>
+ * margin-left: 0 and adds 7.5px between items via .md-typeset li, which
+ * makes lists feel airy and lose the leading number indentation. Dokka's
+ * stock body styles indent the list and pack items tightly. Restore the
+ * indent and tighten inter-item spacing so prose lists in KDoc blocks
+ * read like Dokka's natives without trading away Material's font sizing.
+ *
+ * Material's stylesheet loads after ours and uses .md-typeset specificity
+ * (1 class + 1 element), so we need !important to win the cascade. */
+.md-typeset ol,
+.md-typeset ul {
+    padding-left: 1.5em !important;
+    margin-left: 0 !important;
+}
+.md-typeset ol > li,
+.md-typeset ul > li {
+    margin-bottom: 0 !important;
+    padding-left: 0.25em !important;
+}
+.md-typeset ol > li + li,
+.md-typeset ul > li + li {
+    margin-top: 0.5em !important;
 }
 
 /* Links — underline on hover only, mirroring Material's behavior. */
