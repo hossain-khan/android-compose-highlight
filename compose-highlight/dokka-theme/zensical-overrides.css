@@ -383,6 +383,18 @@ h1, h2, h3, h4, h5, h6,
     margin-top: 0.5em !important;
 }
 
+/* Dokka member section headers (Constructors/Properties/Functions). Material's
+ * default h2 margins make these labels look detached from the table block that
+ * follows. Tighten spacing so the header visually belongs to the section body. */
+.md-typeset h2.tableheader {
+    margin-top: 1rem !important;
+    margin-bottom: 0 !important;
+}
+
+.md-typeset h2.tableheader + .table {
+    margin-top: 0 !important;
+}
+
 /* Links — underline on hover only, mirroring Material's behavior. */
 a {
     text-decoration: none;
