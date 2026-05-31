@@ -6,11 +6,20 @@ For release artifacts and APK downloads, see the [GitHub Releases page](https://
 
 ## Recent highlights
 
+### 0.25.0 - Editor callbacks and Dokka retheme
+
+- Added `onError` callback to `SyntaxHighlightedTextEditor` and `rememberSyntaxHighlightedEditorValue` for failure observability
+- Fixed span color loss on multi-line strings and block comments during mid-text edits
+- Added `SyntaxHighlightedTextEditorDefaults` object with pre-allocated singletons to reduce GC pressure while typing
+- Dokka API site rethemed to match the main docs site with shared light/dark palette state
+- Upgraded Zensical to 0.0.43 with improved link validation
+
 ### 0.24.1 - Live editor state management fixes
 
 - Fixed span color loss in `SyntaxHighlightedTextEditor` during mid-text edits via prefix/suffix analysis
 - Added `onHighlightComplete` callback to `SyntaxHighlightedTextEditor` for deterministic testing
 - New public helper `rememberSyntaxHighlightedEditorValue()` for custom editor layouts with syntax highlighting
+- Eliminated stale `LaunchedEffect` for span clearing; stale detection now happens in-composition
 
 ### 0.24.0 - Live code editor support
 
@@ -31,18 +40,6 @@ For release artifacts and APK downloads, see the [GitHub Releases page](https://
 - Fixed InputStream leak in `ThemeParser` CSS loading
 - Reset horizontal scroll on code change to prevent stale scroll state
 - Stabilized lambda instances for copy button and language label slots
-
-### 0.22.0 - WebView and theme correctness
-
-- Surrogate pair handling for emoji and supplementary Unicode in highlighted output
-- Content-aware `HighlightTheme` equality - themes compared by content, not just name
-- `WebViewInitFailed` exception when WebView is unavailable (Android Go, MDM-disabled)
-
-### 0.17.x - Theme parser improvements
-- Merged rules for same CSS selector (fixes `nord` and other multi-rule themes)
-- Named CSS color support (`red`, `green`, `grey`, `gold`, etc.)
-- 4-digit hex color support (`#rgba`)
-- `@media` at-rule block stripping (fixes `a11y-light` and similar themes)
 
 ---
 
