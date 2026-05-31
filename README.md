@@ -38,11 +38,11 @@ HighlightThemeProvider(
 
 ## Links
 
-- 📚 **Docs:** https://hossain-khan.github.io/android-compose-highlight/
-- 🔖 **API Reference:** https://hossain-khan.github.io/android-compose-highlight/api/
-- 📝 **Blog:** https://hossain.dev/posts/syntax-highlighting-on-android-highlight-js-native-compose-engine/
-- 📱 **Sample App:** https://github.com/hossain-khan/android-compose-highlight/tree/main/sample
-- ✨ **Compare Other Libs:** https://github.com/hossain-khan/android-syntax-highlighter-compose
+- 📚 **Docs:** [github.io/android-compose-highlight/](https://hossain-khan.github.io/android-compose-highlight/)
+- 🔖 **API Reference:** [github.io/android-compose-highlight/api/](https://hossain-khan.github.io/android-compose-highlight/api/)
+- 📝 **Blog:** [hossain.dev/syntax-highlighting-on-android-highlight-js-native-compose-engine/](https://hossain.dev/posts/syntax-highlighting-on-android-highlight-js-native-compose-engine/)
+- 📱 **Sample App:** [android-compose-highlight/tree/main/sample](https://github.com/hossain-khan/android-compose-highlight/tree/main/sample)
+- ✨ **Compare Other Libs:** [github.com/android-syntax-highlighter-compose](https://github.com/hossain-khan/android-syntax-highlighter-compose)
 
 ## License
 
