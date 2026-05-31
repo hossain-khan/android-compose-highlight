@@ -36,6 +36,7 @@ HighlightThemeProvider(
 | ---- | ----- |
 | <video src="https://github.com/user-attachments/assets/9521cb13-ff32-4a5b-956e-4e620bbee4d1"> | <video src="https://github.com/user-attachments/assets/02a71e4d-6ada-4008-99c0-f642c618d778"> |
 
+
 ## Links
 
 - 📚 **Docs:** [github.io/android-compose-highlight/](https://hossain-khan.github.io/android-compose-highlight/)
