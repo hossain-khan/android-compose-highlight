@@ -3,6 +3,12 @@ package dev.hossain.highlight.engine
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 
+/**
+ * JVM unit tests for [HighlightLanguageInfo].
+ *
+ * Verifies field storage, equals/hashCode contract, copy behavior,
+ * and toString output for the language metadata data class.
+ */
 class HighlightLanguageInfoTest {
     @Test
     fun `fields are stored as-is`() {

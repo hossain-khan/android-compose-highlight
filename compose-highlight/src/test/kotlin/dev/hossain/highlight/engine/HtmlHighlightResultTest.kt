@@ -3,8 +3,14 @@ package dev.hossain.highlight.engine
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 
+/**
+ * JVM unit tests for [HtmlHighlightResult].
+ *
+ * Verifies field storage and durationMs edge cases (zero, large values)
+ * for the raw HTML highlight result data class.
+ */
 class HtmlHighlightResultTest {
-    // ── Construction ─────────────────────────────────────────────────────────
+    // ----- Construction -----
 
     @Test
     fun `fields are stored as-is`() {
@@ -18,7 +24,7 @@ class HtmlHighlightResultTest {
         assertThat(result.durationMs).isEqualTo(18L)
     }
 
-    // ── durationMs semantics ─────────────────────────────────────────────────
+    // ----- durationMs semantics -----
 
     @Test
     fun `durationMs of zero is valid`() {

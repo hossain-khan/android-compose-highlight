@@ -17,38 +17,36 @@ import org.junit.Test
  * - Successful blocks return [Result.success] with the value
  */
 class HighlightEngineHtmlParsingErrorHandlingTest {
-    // CancellationException -> rethrown
+    // ----- CancellationException rethrown -----
 
     @Test
-    fun `CancellationException is rethrown, not converted to HtmlParseFailed`() {
-        var result: Result<Unit>? = null
-        try {
-            kotlinx.coroutines.runBlocking {
+    fun `CancellationException is rethrown, not converted to HtmlParseFailed`() =
+        runTest {
+            var result: Result<Unit>? = null
+            try {
                 result = withHtmlParsingErrorHandling { throw CancellationException("cancelled") }
+            } catch (e: CancellationException) {
+                // Expected: exception propagated out instead of being swallowed as Result.failure
             }
-        } catch (e: CancellationException) {
-            // Expected: exception propagated out instead of being swallowed as Result.failure
-        }
 
-        assertThat(result).isNull()
-    }
+            assertThat(result).isNull()
+        }
 
     @Test
-    fun `CancellationException identity is preserved when rethrown`() {
-        val cause = CancellationException("test cancellation")
-        var caught: CancellationException? = null
-        try {
-            kotlinx.coroutines.runBlocking {
+    fun `CancellationException identity is preserved when rethrown`() =
+        runTest {
+            val cause = CancellationException("test cancellation")
+            var caught: CancellationException? = null
+            try {
                 withHtmlParsingErrorHandling<Unit> { throw cause }
+            } catch (e: CancellationException) {
+                caught = e
             }
-        } catch (e: CancellationException) {
-            caught = e
+
+            assertThat(caught).isSameInstanceAs(cause)
         }
 
-        assertThat(caught).isSameInstanceAs(cause)
-    }
-
-    // Exception -> HtmlParseFailed
+    // ----- Exception wrapped in HtmlParseFailed -----
 
     @Test
     fun `generic Exception is wrapped in HtmlParseFailed`() =
@@ -93,7 +91,7 @@ class HighlightEngineHtmlParsingErrorHandlingTest {
             assertThat(ex!!.cause).isSameInstanceAs(cause)
         }
 
-    // success path
+    // ----- success path -----
 
     @Test
     fun `successful block returns Result success with the value`() =

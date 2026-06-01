@@ -50,7 +50,7 @@ class GeneratedThemesParityTest {
         assertParity("compose-highlight/themes/atom-one-light.css", GeneratedThemes.ATOM_ONE_LIGHT)
     }
 
-    // ── Identity parity ───────────────────────────────────────────────────────────────────────────
+    // ----- Identity parity -----
     // HighlightTheme.equals compares (name, contentIdentity). The runtime fromAsset factory
     // computes contentIdentity via contentDigest64("asset", path); the buildSrc generator
     // reproduces that same hash and embeds it as a Long literal. If those two computations

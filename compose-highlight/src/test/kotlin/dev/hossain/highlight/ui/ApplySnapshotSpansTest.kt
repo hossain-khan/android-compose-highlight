@@ -32,7 +32,7 @@ class ApplySnapshotSpansTest {
             spans.forEach { (start, end, style) -> addStyle(style, start, end) }
         }
 
-    // ── Append-at-end (no regression) ────────────────────────────────────────
+    // ----- Append at end (no regression) -----
 
     @Test
     fun `append at end - all old spans preserved`() {
@@ -60,7 +60,7 @@ class ApplySnapshotSpansTest {
         assertThat(ends).containsExactlyElementsIn(listOf(3, 9)).inOrder()
     }
 
-    // ── Insert in the middle ──────────────────────────────────────────────────
+    // ----- Insert in the middle -----
 
     @Test
     fun `insert in middle - prefix span preserved, suffix span shifted`() {
@@ -172,7 +172,7 @@ class ApplySnapshotSpansTest {
         assertThat(ranges).containsExactly(0 to 3, 8 to 11).inOrder()
     }
 
-    // ── Delete from the middle ────────────────────────────────────────────────
+    // ----- Delete from the middle -----
 
     @Test
     fun `delete from middle - prefix span preserved, suffix span shifted`() {
@@ -194,7 +194,7 @@ class ApplySnapshotSpansTest {
         assertThat(blueSpans[0].end).isEqualTo(5)
     }
 
-    // ── Multi-line: suffix lines stay colored ─────────────────────────────────
+    // ----- Multi-line: suffix lines stay colored -----
 
     @Test
     fun `multiline - editing a line preserves spans on lines below`() {
@@ -244,7 +244,7 @@ class ApplySnapshotSpansTest {
         assertThat(blueSpans[0].end).isEqualTo(9)
     }
 
-    // ── Complete replacement ──────────────────────────────────────────────────
+    // ----- Complete replacement -----
 
     @Test
     fun `completely different text - no spans`() {
@@ -273,7 +273,7 @@ class ApplySnapshotSpansTest {
         assertThat(result.spanStyles).isEmpty()
     }
 
-    // ── Prepend, identical, both-empty, edge cases ───────────────────────────
+    // ----- Prepend, identical, both-empty, edge cases -----
 
     @Test
     fun `prepend at start - all spans shift by delta`() {

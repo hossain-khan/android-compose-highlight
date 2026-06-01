@@ -30,7 +30,7 @@ class SyntaxHighlightedCodeRobolectricTest {
     // In inspection mode, SyntaxHighlightedCode renders only Surface + Text (no header).
 
     @Test
-    fun rendersCodeTextInPreviewMode() {
+    fun `renders code text in preview mode`() {
         composeTestRule.setContent {
             CompositionLocalProvider(LocalInspectionMode provides true) {
                 HighlightThemeProvider {
@@ -48,7 +48,7 @@ class SyntaxHighlightedCodeRobolectricTest {
     }
 
     @Test
-    fun hasTestTagOnOuterSurface() {
+    fun `has test tag on outer surface`() {
         composeTestRule.setContent {
             CompositionLocalProvider(LocalInspectionMode provides true) {
                 HighlightThemeProvider {
@@ -66,7 +66,7 @@ class SyntaxHighlightedCodeRobolectricTest {
     }
 
     @Test
-    fun hidesLanguageLabelWhenContentIsNull() {
+    fun `hides language label when content is null`() {
         composeTestRule.setContent {
             CompositionLocalProvider(LocalInspectionMode provides true) {
                 HighlightThemeProvider {
@@ -85,7 +85,7 @@ class SyntaxHighlightedCodeRobolectricTest {
     }
 
     @Test
-    fun hidesCopyButtonWhenContentIsNull() {
+    fun `hides copy button when content is null`() {
         composeTestRule.setContent {
             CompositionLocalProvider(LocalInspectionMode provides true) {
                 HighlightThemeProvider {
@@ -107,7 +107,7 @@ class SyntaxHighlightedCodeRobolectricTest {
     // These tests exercise the header row (language label + copy button).
 
     @Test
-    fun copyButtonHasAccessibleContentDescription() {
+    fun `copy button has accessible content description`() {
         composeTestRule.setContent {
             HighlightThemeProvider {
                 SyntaxHighlightedCode(
@@ -123,7 +123,7 @@ class SyntaxHighlightedCodeRobolectricTest {
     }
 
     @Test
-    fun customCopyButtonContentDescription() {
+    fun `custom copy button content description`() {
         composeTestRule.setContent {
             HighlightThemeProvider {
                 SyntaxHighlightedCode(
@@ -145,7 +145,7 @@ class SyntaxHighlightedCodeRobolectricTest {
     }
 
     @Test
-    fun onCopyClickCallbackFires() {
+    fun `on copy click callback fires`() {
         var copiedCode: String? = null
         composeTestRule.setContent {
             HighlightThemeProvider {
@@ -165,7 +165,7 @@ class SyntaxHighlightedCodeRobolectricTest {
     }
 
     @Test
-    fun showsLanguageLabelByDefault() {
+    fun `shows language label by default`() {
         composeTestRule.setContent {
             HighlightThemeProvider {
                 SyntaxHighlightedCode(
@@ -183,7 +183,7 @@ class SyntaxHighlightedCodeRobolectricTest {
     // ----- Category 3: onError callback tests -----
 
     @Test
-    fun onErrorNotCalledInInspectionMode() {
+    fun `on error not called in inspection mode`() {
         // In inspection mode the LaunchedEffect is skipped, so the engine is never called
         // and onError must never fire.
         val errors = mutableListOf<HighlightException>()
@@ -203,7 +203,7 @@ class SyntaxHighlightedCodeRobolectricTest {
     }
 
     @Test
-    fun onErrorNullDoesNotCrashInInspectionMode() {
+    fun `on error null does not crash in inspection mode`() {
         // Passing onError = null (the default) must not crash.
         composeTestRule.setContent {
             CompositionLocalProvider(LocalInspectionMode provides true) {
@@ -223,7 +223,7 @@ class SyntaxHighlightedCodeRobolectricTest {
     }
 
     @Test
-    fun onErrorCallbackCanBePassedWithoutCrash() {
+    fun `on error callback can be passed without crash`() {
         // Verify that providing onError does not prevent plain-text rendering
         // (inspection mode, so plain-text is shown immediately).
         var errorCallbackRegistered = false
@@ -248,7 +248,7 @@ class SyntaxHighlightedCodeRobolectricTest {
     }
 
     @Test
-    fun onErrorCallbackFiresWhenJsReturnsNullInNonInspectionMode() {
+    fun `on error callback fires when JS returns null in non-inspection mode`() {
         // Verify that onError fires when highlighting fails with JsExecutionFailed.
         // Uses ShadowWebView to deterministically trigger the failure without relying on
         // the 5-second engine timeout.

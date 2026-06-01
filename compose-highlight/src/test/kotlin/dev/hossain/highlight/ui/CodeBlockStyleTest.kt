@@ -10,35 +10,41 @@ import androidx.compose.ui.unit.sp
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 
+/**
+ * JVM unit tests for [CodeBlockStyle].
+ *
+ * Verifies preset values (Default, Compact), equality, copy behavior,
+ * and custom parameter construction for the code block styling configuration.
+ */
 class CodeBlockStyleTest {
     @Test
-    fun `Default preset uses expected shape`() {
+    fun `default preset uses expected shape`() {
         assertThat(CodeBlockStyle.Default.shape).isEqualTo(SyntaxHighlightedCodeDefaults.shape)
     }
 
     @Test
-    fun `Default preset uses expected padding`() {
+    fun `default preset uses expected padding`() {
         assertThat(CodeBlockStyle.Default.padding).isEqualTo(SyntaxHighlightedCodeDefaults.padding)
     }
 
     @Test
-    fun `Default preset has Unspecified lineNumberColor`() {
+    fun `default preset has unspecified lineNumberColor`() {
         assertThat(CodeBlockStyle.Default.lineNumberColor).isEqualTo(Color.Unspecified)
     }
 
     @Test
-    fun `Compact preset has reduced padding`() {
+    fun `compact preset has reduced padding`() {
         assertThat(CodeBlockStyle.Compact.padding).isEqualTo(PaddingValues(12.dp))
     }
 
     @Test
-    fun `Compact preset has reduced headerPadding`() {
+    fun `compact preset has reduced headerPadding`() {
         assertThat(CodeBlockStyle.Compact.headerPadding)
             .isEqualTo(PaddingValues(horizontal = 12.dp, vertical = 6.dp))
     }
 
     @Test
-    fun `Default and Compact are not equal`() {
+    fun `default and compact are not equal`() {
         assertThat(CodeBlockStyle.Default).isNotEqualTo(CodeBlockStyle.Compact)
     }
 
@@ -52,13 +58,13 @@ class CodeBlockStyleTest {
     }
 
     @Test
-    fun `Default preset has dark fallbackBackgroundColor`() {
+    fun `default preset has dark fallbackBackgroundColor`() {
         assertThat(CodeBlockStyle.Default.fallbackBackgroundColor)
             .isEqualTo(SyntaxHighlightedCodeDefaults.fallbackBackgroundColor)
     }
 
     @Test
-    fun `Default preset has light gray fallbackTextColor`() {
+    fun `default preset has light gray fallbackTextColor`() {
         assertThat(CodeBlockStyle.Default.fallbackTextColor)
             .isEqualTo(SyntaxHighlightedCodeDefaults.fallbackTextColor)
     }
@@ -92,6 +98,13 @@ class CodeBlockStyleTest {
     }
 }
 
+/**
+ * JVM unit tests for [SyntaxHighlightedCodeDefaults].
+ *
+ * Verifies default values for code text style, shape, padding, line number
+ * width, copy button size, and fallback colors used by the syntax highlighting
+ * composables.
+ */
 class SyntaxHighlightedCodeDefaultsTest {
     @Test
     fun `codeTextStyle uses monospace font`() {

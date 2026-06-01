@@ -5,6 +5,13 @@ import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 import kotlin.time.Duration
 
+/**
+ * JVM unit tests for [ThemedHighlightResult].
+ *
+ * Verifies field accessibility, equals behavior, destructuring, copy
+ * preservation, and timing-based inequality for the dual-theme highlight
+ * result data class.
+ */
 class ThemedHighlightResultTest {
     private val zeroTimings =
         HighlightTimings(

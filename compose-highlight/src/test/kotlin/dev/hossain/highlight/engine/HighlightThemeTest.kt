@@ -20,7 +20,7 @@ class HighlightThemeTest {
         .hljs-string{color:#718c00}
         """.trimIndent()
 
-    // ── fromCss ──────────────────────────────────────────────────────────────
+    // ----- fromCss -----
 
     @Test
     fun `fromCss produces non-empty colorMap for valid CSS`() {
@@ -54,7 +54,7 @@ class HighlightThemeTest {
         assertThat(theme.colorMap).isEmpty()
     }
 
-    // ── fromColorMap ──────────────────────────────────────────────────────────
+    // ----- fromColorMap -----
 
     @Test
     fun `fromColorMap preserves all entries`() {
@@ -109,7 +109,7 @@ class HighlightThemeTest {
         assertThat(theme.colorMap).isEmpty()
     }
 
-    // ── backgroundColor / defaultTextColor ───────────────────────────────────
+    // ----- backgroundColor / defaultTextColor -----
 
     @Test
     fun `backgroundColor is derived from hljs base rule`() {
@@ -145,7 +145,7 @@ class HighlightThemeTest {
         assertThat(theme.backgroundColor).isEqualTo(Color.Unspecified)
     }
 
-    // ── colorMap lazy initialization ──────────────────────────────────────────
+    // ----- colorMap lazy initialization -----
 
     @Test
     fun `colorMap returns same instance on repeated access`() {
@@ -155,7 +155,7 @@ class HighlightThemeTest {
         assertThat(first).isSameInstanceAs(second)
     }
 
-    // ── equals / hashCode / toString ─────────────────────────────────────────
+    // ----- equals / hashCode / toString -----
 
     @Test
     fun `themes with same name and same CSS are equal`() {
@@ -233,7 +233,7 @@ class HighlightThemeTest {
         assertThat(theme.toString()).contains("my-theme")
     }
 
-    // ── name property ─────────────────────────────────────────────────────────
+    // ----- name property -----
 
     @Test
     fun `name property returns the value passed to factory`() {
@@ -241,7 +241,7 @@ class HighlightThemeTest {
         assertThat(theme.name).isEqualTo("expected-name")
     }
 
-    // ── fromColorMap with bold FontWeight entry ───────────────────────────────
+    // ----- fromColorMap with bold FontWeight entry -----
 
     @Test
     fun `fromColorMap preserves FontWeight in SpanStyle`() {
@@ -250,7 +250,7 @@ class HighlightThemeTest {
         assertThat(theme.colorMap["hljs-strong"]?.fontWeight).isEqualTo(FontWeight.Bold)
     }
 
-    // ── theme not equal to non-HighlightTheme ─────────────────────────────────
+    // ----- theme not equal to non-HighlightTheme -----
 
     @Test
     fun `theme is not equal to non-HighlightTheme object`() {
@@ -259,7 +259,7 @@ class HighlightThemeTest {
         assertThat(theme).isNotEqualTo(null)
     }
 
-    // ── fromCss colorMap entries match ThemeParser directly ──────────────────
+    // ----- fromCss colorMap entries match ThemeParser directly -----
 
     @Test
     fun `fromCss colorMap matches direct ThemeParser output`() {
@@ -268,7 +268,7 @@ class HighlightThemeTest {
         assertThat(theme.colorMap).isEqualTo(expected)
     }
 
-    // ── hljs keyword absent gives null entry ─────────────────────────────────
+    // ----- hljs keyword absent gives null entry -----
 
     @Test
     fun `colorMap returns null for unknown class`() {
@@ -276,7 +276,7 @@ class HighlightThemeTest {
         assertThat(theme.colorMap["hljs-does-not-exist"]).isNull()
     }
 
-    // ── timedColorMap concurrent access ──────────────────────────────────────
+    // ----- timedColorMap concurrent access -----
 
     @Test
     fun `timedColorMap reports non-zero duration at most once under concurrent access`() =

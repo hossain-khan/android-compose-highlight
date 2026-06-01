@@ -3,8 +3,16 @@ package dev.hossain.highlight.engine
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 
+/**
+ * JVM unit tests for the [HighlightException] sealed class hierarchy.
+ *
+ * Verifies that each exception variant (WebViewInitFailed, JsExecutionFailed,
+ * ThemeNotFound, HtmlParseFailed, Timeout) is a proper HighlightException
+ * subtype, carries the correct message, and preserves or nulls the cause
+ * as designed.
+ */
 class HighlightExceptionTest {
-    // ── WebViewInitFailed ─────────────────────────────────────────────────────
+    // ----- WebViewInitFailed -----
 
     @Test
     fun `WebViewInitFailed is a HighlightException`() {
@@ -25,7 +33,7 @@ class HighlightExceptionTest {
         assertThat(ex.cause).isEqualTo(cause)
     }
 
-    // ── JsExecutionFailed ────────────────────────────────────────────────────
+    // ----- JsExecutionFailed -----
 
     @Test
     fun `JsExecutionFailed is a HighlightException`() {
@@ -46,7 +54,7 @@ class HighlightExceptionTest {
         assertThat(ex.cause).isEqualTo(cause)
     }
 
-    // ── ThemeNotFound ─────────────────────────────────────────────────────────
+    // ----- ThemeNotFound -----
 
     @Test
     fun `ThemeNotFound is a HighlightException`() {
@@ -67,7 +75,7 @@ class HighlightExceptionTest {
         assertThat(ex.cause).isNull()
     }
 
-    // ── HtmlParseFailed ───────────────────────────────────────────────────────
+    // ----- HtmlParseFailed -----
 
     @Test
     fun `HtmlParseFailed is a HighlightException`() {
@@ -88,7 +96,7 @@ class HighlightExceptionTest {
         assertThat(ex.cause).isEqualTo(cause)
     }
 
-    // ── Timeout ───────────────────────────────────────────────────────────────
+    // ----- Timeout -----
 
     @Test
     fun `Timeout is a HighlightException`() {
@@ -108,7 +116,7 @@ class HighlightExceptionTest {
         assertThat(ex.cause).isNull()
     }
 
-    // ── Shared contract ───────────────────────────────────────────────────────
+    // ----- Shared contract -----
 
     @Test
     fun `TIMEOUT_SECONDS constant is positive`() {
