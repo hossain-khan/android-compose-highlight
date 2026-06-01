@@ -16,7 +16,7 @@ import kotlin.time.measureTimedValue
  * Uses jsoup to parse the HTML fragment and performs a recursive tree walk,
  * pushing/popping [SpanStyle] for each `<span class="hljs-*">` element.
  */
-object HtmlToAnnotatedString {
+internal object HtmlToAnnotatedString {
     /**
      * Converts highlighted HTML to [AnnotatedString] using the provided color map.
      *

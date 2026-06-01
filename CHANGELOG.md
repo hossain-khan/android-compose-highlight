@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Changed
+
+- **Restrict engine helper visibility** - made `ThemeParser` and `HtmlToAnnotatedString`
+  internal so CSS parsing and HTML conversion remain implementation details instead of
+  becoming part of the published ABI.
+
 ## [0.25.0] - 2026-05-30
 
 ### Fixed
