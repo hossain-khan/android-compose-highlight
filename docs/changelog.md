@@ -6,6 +6,14 @@ For release artifacts and APK downloads, see the [GitHub Releases page](https://
 
 ## Recent highlights
 
+### 0.26.0 - Selector coverage and parser efficiency
+
+- Expanded `HljsSelectors` with all official Highlight.js scopes, adding 22 missing selector constants
+- Fixed `META_PROMPT` selector mapping to `hljs-meta.prompt_` for sub-scope compatibility
+- Rewrote `escapeForJs` to a single-pass `StringBuilder` walk to reduce per-highlight allocations
+- Reorganized implementation-only code into `.internal` packages and hid internals from Dokka API docs
+- Added broad parser and escaping boundary test coverage for the new selector and escape paths
+
 ### 0.25.0 - Editor callbacks and Dokka retheme
 
 - Added `onError` callback to `SyntaxHighlightedTextEditor` and `rememberSyntaxHighlightedEditorValue` for failure observability
@@ -34,12 +42,6 @@ For release artifacts and APK downloads, see the [GitHub Releases page](https://
 - HTML token fixtures from bundled `highlight.min.js` for testing visual stability
 - `HighlightEngine.webViewForTest()` for cleaner test integration
 - Replaced regex CSS parser with recursive-descent implementation for robustness
-
-### 0.22.1 - Resource leaks and performance
-
-- Fixed InputStream leak in `ThemeParser` CSS loading
-- Reset horizontal scroll on code change to prevent stale scroll state
-- Stabilized lambda instances for copy button and language label slots
 
 ---
 
