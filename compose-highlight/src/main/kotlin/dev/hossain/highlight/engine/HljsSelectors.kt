@@ -42,7 +42,7 @@ package dev.hossain.highlight.engine
  * - [TITLE] - Name of a class or function
  * - [PARAMS] - Function arguments/parameters at the place of declaration
  * - [COMMENT] - Comments
- * - [DOCTAG] - Documentation markup within comments (e.g. `@params`)
+ * - [DOCTAG] - Documentation markup within comments (e.g. `@param`)
  *
  * ### Title subscopes
  * highlight.js outputs space-separated classes like `class="hljs-title function_"` which
