@@ -124,7 +124,7 @@ class SyntaxHighlightedTextEditorTest {
         composeTestRule.waitUntil(timeoutMillis = 10_000L) { capturedAnnotated != null }
 
         assertThat(capturedAnnotated!!.text).isEqualTo(sampleCode)
-        assertThat(capturedAnnotated!!.spanStyles).isNotEmpty()
+        assertThat(capturedAnnotated.spanStyles).isNotEmpty()
     }
 
     @Test
