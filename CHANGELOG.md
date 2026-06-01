@@ -10,7 +10,7 @@ All notable changes to this project will be documented in this file.
   internal so CSS parsing and HTML conversion remain implementation details instead of
   becoming part of the published ABI.
 
-### Internal
+### Added
 
 - **Enhanced `HljsSelectors` with all official hljs scopes** - reorganized constants by official
   highlight.js categories (General purpose, Title subscopes, Meta, Tags/attributes, CSS selectors,
