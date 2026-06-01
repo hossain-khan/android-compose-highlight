@@ -50,7 +50,7 @@ class RememberSyntaxHighlightedEditorValueTest {
         composeTestRule.runOnIdle {
             assertThat(capturedValue).isNotNull()
             assertThat(capturedValue!!.text).isEqualTo(sampleCode)
-            assertThat(capturedValue!!.annotatedString.spanStyles).isEmpty()
+            assertThat(capturedValue.annotatedString.spanStyles).isEmpty()
         }
     }
 
@@ -80,7 +80,7 @@ class RememberSyntaxHighlightedEditorValueTest {
         // and preserve the original text content.
         composeTestRule.runOnIdle {
             assertThat(capturedValue!!.text).isEqualTo(sampleCode)
-            assertThat(capturedValue!!.annotatedString.spanStyles).isNotEmpty()
+            assertThat(capturedValue.annotatedString.spanStyles).isNotEmpty()
         }
     }
 
@@ -186,11 +186,11 @@ class RememberSyntaxHighlightedEditorValueTest {
         composeTestRule.runOnIdle {
             // Both anchor and focus must survive, not just the cursor position.
             assertThat(capturedValue!!.selection).isEqualTo(initialSelection)
-            assertThat(capturedValue!!.selection.start).isEqualTo(3)
-            assertThat(capturedValue!!.selection.end).isEqualTo(9)
+            assertThat(capturedValue.selection.start).isEqualTo(3)
+            assertThat(capturedValue.selection.end).isEqualTo(9)
             // Spans should be present, proving the highlight landed and the assertion above
             // is checking selection AFTER a real .copy(annotatedString = ...) round-trip.
-            assertThat(capturedValue!!.annotatedString.spanStyles).isNotEmpty()
+            assertThat(capturedValue.annotatedString.spanStyles).isNotEmpty()
         }
     }
 }
