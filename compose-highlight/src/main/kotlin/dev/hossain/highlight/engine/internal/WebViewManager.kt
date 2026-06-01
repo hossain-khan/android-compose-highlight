@@ -1,4 +1,4 @@
-package dev.hossain.highlight.engine
+package dev.hossain.highlight.engine.internal
 
 import android.content.Context
 import android.os.Handler
@@ -9,6 +9,8 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.annotation.VisibleForTesting
 import androidx.webkit.WebViewAssetLoader
+import dev.hossain.highlight.engine.HighlightEngine
+import dev.hossain.highlight.engine.HighlightException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow

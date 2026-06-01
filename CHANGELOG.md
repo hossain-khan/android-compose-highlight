@@ -4,11 +4,44 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
-### Changed
+### Changed (Breaking)
 
-- **Restrict engine helper visibility** - made `ThemeParser` and `HtmlToAnnotatedString`
-  internal so CSS parsing and HTML conversion remain implementation details instead of
-  becoming part of the published ABI.
+- **Library file layout reorganized for stable release** - implementation-only types now
+  live in `.internal` subpackages, and a few grab-bag files were split so each public
+  symbol is in a file matching its name. No public API changed package; this affects only
+  in-tree references to `internal`-modifier symbols (which by definition could not be
+  used by external consumers across module boundaries). Mechanical reorganization with
+  no behavior changes.
+
+  **Engine** (`dev.hossain.highlight.engine.*`):
+  - `WebViewManager`, `HtmlToAnnotatedString`, `ThemeParser` moved to
+    `dev.hossain.highlight.engine.internal.*`. Extends the previous "Restrict engine
+    helper visibility" change by making the implementation-detail nature explicit in
+    the package path, and by suppressing these from the published Dokka site.
+  - `escapeForJs`, `unescapeJsString` extracted to
+    `dev.hossain.highlight.engine.internal.JsStringEscape.kt`.
+  - `withEngineErrorHandling`, `withHtmlParsingErrorHandling` extracted to
+    `dev.hossain.highlight.engine.internal.EngineErrorHandling.kt`.
+  - `ThemedHighlightResult` extracted from the bottom of `HighlightEngine.kt` to its
+    own `engine/ThemedHighlightResult.kt` file (matching the file-per-result-type
+    convention used by `HighlightResult`, `HtmlHighlightResult`, `AutoHighlightResult`).
+  - `HighlightLanguageInfo` merged into `engine/HighlightLanguage.kt`; the standalone
+    file is gone. Public type, same package.
+  - `HighlightEngine.kt` shrinks from 1023 to 795 lines.
+
+  **UI** (`dev.hossain.highlight.ui.*`):
+  - `LocalHighlightEngine` (internal `CompositionLocal`) moved to
+    `dev.hossain.highlight.ui.internal.LocalHighlightEngine.kt`.
+  - `applySnapshotSpans` (internal editor span-transfer algorithm) moved to
+    `dev.hossain.highlight.ui.internal.ApplySnapshotSpans.kt`.
+  - `RememberHelpers.kt` split into `RememberHighlightEngine.kt`,
+    `RememberHighlightedCode.kt` (which also holds `rememberHighlightedCodeBothThemes`),
+    and `RememberSyntaxHighlightedEditorValue.kt`.
+  - The four `rememberXxxTheme()` factories merged into `HighlightThemeProvider.kt`;
+    the standalone `HighlightThemeComposables.kt` file is gone.
+
+  **Dokka** (`compose-highlight/build.gradle.kts`): now suppresses `*.internal*`
+  packages from the published API site via `perPackageOption`.
 
 ### Added
 

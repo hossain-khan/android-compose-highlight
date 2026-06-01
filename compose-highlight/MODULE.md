@@ -102,7 +102,7 @@ To add a fifth built-in (replace `dracula` with the actual theme name):
            contentIdentity = GeneratedThemes.DRACULA_IDENTITY,
        )
    ```
-4. Add `rememberDraculaTheme()` in `HighlightThemeComposables.kt`.
+4. Add `rememberDraculaTheme()` in `HighlightThemeProvider.kt` (the file holds both the provider composable and the four `rememberXxxTheme()` factories).
 5. Add a parity test entry in `GeneratedThemesParityTest.kt`.
 
 The friction is intentional. A new built-in is an API decision, not "I dropped a file in the folder." Themes that should be available to consumers but do not warrant a built-in factory can stay as plain CSS in the assets folder and ship via `fromAsset`.

@@ -94,22 +94,35 @@ Example format:
 
 ## Architecture
 
-The library has two layers - `engine/` (internal) and `ui/` (public):
+The library has two layers — `engine/` (public engine API, with `engine/internal/` for
+implementation) and `ui/` (public composables, with `ui/internal/` for
+implementation):
 
 ```
 SyntaxHighlightedCode   ← primary public composable
- └── rememberHighlightedCode / rememberHighlightEngine  (RememberHelpers.kt)
-       └── HighlightEngine              ← public, suspend-based pipeline
-             ├── WebViewManager         ← internal, owns the hidden WebView
-             ├── HighlightTheme         ← public, CSS-backed theme model
-             ├── ThemeParser            ← internal, CSS → Map<selector, SpanStyle>
-             ├── HtmlToAnnotatedString  ← internal, jsoup → AnnotatedString
-             └── unescapeJsString()     ← internal package-level fun, JSON unescape
+ └── rememberHighlightedCode (ui/RememberHighlightedCode.kt)
+       └── rememberHighlightEngine (ui/RememberHighlightEngine.kt)
+             └── HighlightEngine                       ← public, suspend-based pipeline
+                   ├── engine/internal/WebViewManager           ← owns the hidden WebView
+                   ├── HighlightTheme                           ← public, CSS-backed theme model
+                   │     └── engine/internal/ThemeParser        ← CSS → Map<selector, SpanStyle>
+                   ├── engine/internal/HtmlToAnnotatedString    ← jsoup → AnnotatedString
+                   ├── engine/internal/JsStringEscape           ← escapeForJs / unescapeJsString
+                   └── engine/internal/EngineErrorHandling      ← withEngine* / withHtmlParsing* helpers
+
+SyntaxHighlightedTextEditor  ← experimental editor composable
+ └── rememberSyntaxHighlightedEditorValue (ui/RememberSyntaxHighlightedEditorValue.kt)
+       └── ui/internal/applySnapshotSpans  ← span-transfer during debounce
 
 HighlightThemeProvider  ← creates ONE shared HighlightEngine for its subtree
- └── LocalHighlightEngine (internal CompositionLocal) ← carries the shared engine
- └── LocalHighlightTheme  (public CompositionLocal)  ← carries the active theme
+ └── ui/internal/LocalHighlightEngine (CompositionLocal) ← carries the shared engine
+ └── LocalHighlightTheme  (public CompositionLocal)      ← carries the active theme
 ```
+
+Anything under an `internal/` package keeps the `internal` Kotlin visibility modifier
+so it cannot be referenced from outside the module. The package path is the
+human-readable signal; the modifier is the enforcement. Dokka suppresses
+`*.internal*` packages from the published API site.
 
 **How highlighting works end-to-end:**
 1. `WebViewManager` creates a hidden (off-screen) `WebView` on the Main thread and loads `bridge.html` from `assets/compose-highlight/`. This page loads `highlight.min.js` and exposes `highlightCode(code, lang)`.

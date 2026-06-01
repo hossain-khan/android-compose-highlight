@@ -18,7 +18,7 @@
 #        - getLanguage(nameOrAlias)   - returns metadata for a given language
 #        - hljsVersion()              - returns the bundled highlight.js version string
 #   4. bridge.html contains an element with id="code" (used by highlightCode() via getElementById)
-#   5. WebViewManager.kt loads bridge.html from the expected appassets.androidplatform.net URL
+#   5. internal/WebViewManager.kt loads bridge.html from the expected appassets.androidplatform.net URL
 #
 # Triggered only when the bridge files or this workflow itself change.
 
@@ -30,14 +30,14 @@ on:
     paths:
       - compose-highlight/src/main/assets/compose-highlight/bridge.html
       - compose-highlight/src/main/assets/compose-highlight/highlight.min.js
-      - compose-highlight/src/main/kotlin/dev/hossain/highlight/engine/WebViewManager.kt
+      - compose-highlight/src/main/kotlin/dev/hossain/highlight/engine/internal/WebViewManager.kt
       - .github/workflows/bridge-validation.yml
   pull_request:
     branches: [ main ]
     paths:
       - compose-highlight/src/main/assets/compose-highlight/bridge.html
       - compose-highlight/src/main/assets/compose-highlight/highlight.min.js
-      - compose-highlight/src/main/kotlin/dev/hossain/highlight/engine/WebViewManager.kt
+      - compose-highlight/src/main/kotlin/dev/hossain/highlight/engine/internal/WebViewManager.kt
       - .github/workflows/bridge-validation.yml
 
 permissions:
@@ -66,7 +66,7 @@ jobs:
       - name: Validate bridge API contract
         run: |
           BRIDGE_FILE="compose-highlight/src/main/assets/compose-highlight/bridge.html"
-          WEBVIEW_FILE="compose-highlight/src/main/kotlin/dev/hossain/highlight/engine/WebViewManager.kt"
+          WEBVIEW_FILE="compose-highlight/src/main/kotlin/dev/hossain/highlight/engine/internal/WebViewManager.kt"
 
           # highlight.min.js must be loaded - without it, hljs is undefined and all highlighting breaks
           grep -Eiq "<script[^>]*src=[\"']highlight\\.min\\.js[\"'][^>]*>" "$BRIDGE_FILE"

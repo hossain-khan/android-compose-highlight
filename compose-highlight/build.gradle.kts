@@ -187,8 +187,14 @@ dependencies {
 dokka {
     moduleName.set("compose-highlight")
     // Include MODULE.md as the module-level documentation page in the generated API docs.
+    // Suppress internal packages so they don't appear in the published API site - they hold
+    // implementation-only helpers that callers must not reference directly.
     dokkaSourceSets.configureEach {
         includes.from(layout.projectDirectory.file("MODULE.md"))
+        perPackageOption {
+            matchingRegex.set(""".*\.internal(\..*)?""")
+            suppress.set(true)
+        }
     }
     dokkaPublications.html {
         // Output to docs/api/ - Zensical passes non-Markdown files through verbatim,

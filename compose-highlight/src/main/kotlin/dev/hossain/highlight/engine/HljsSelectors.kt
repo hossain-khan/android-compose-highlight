@@ -5,8 +5,8 @@ package dev.hossain.highlight.engine
  *
  * highlight.js wraps each syntax token in a `<span class="hljs-*">` element.
  * These class names are mapped to [androidx.compose.ui.text.SpanStyle] entries
- * by [ThemeParser] when parsing a theme CSS file, and looked up by
- * [HtmlToAnnotatedString] when converting the HTML to an [androidx.compose.ui.text.AnnotatedString].
+ * by `ThemeParser` when parsing a theme CSS file, and looked up by
+ * `HtmlToAnnotatedString` when converting the HTML to an [androidx.compose.ui.text.AnnotatedString].
  *
  * The full set of keys available depends on the theme - different CSS themes define
  * different selectors. The constants below cover **all official hljs scopes** as
@@ -46,7 +46,7 @@ package dev.hossain.highlight.engine
  *
  * ### Title subscopes
  * highlight.js outputs space-separated classes like `class="hljs-title function_"` which
- * are resolved as dot-joined keys by [ThemeParser]:
+ * are resolved as dot-joined keys by `ThemeParser`:
  * - [TITLE_CLASS] (`"hljs-title.class_"`) - Name of a class, interface, trait, module
  * - [TITLE_CLASS_INHERITED] (`"hljs-title.class_.inherited__"`) - Inherited/extended class name
  * - [TITLE_FUNCTION] (`"hljs-title.function_"`) - Name of a function
@@ -107,12 +107,10 @@ package dev.hossain.highlight.engine
  * val theme = HighlightTheme.fromColorMap(name = "my-theme", colorMap = colorMap)
  * ```
  *
- * Internally, [HighlightTheme] and [HtmlToAnnotatedString] use [BASE] to derive the
+ * Internally, [HighlightTheme] and `HtmlToAnnotatedString` use [BASE] to derive the
  * default text and background colors. All other selectors are discovered dynamically
  * from the theme CSS at runtime.
  *
- * @see ThemeParser
- * @see HtmlToAnnotatedString
  * @see HighlightTheme
  * @see [hljs CSS Classes Reference](https://highlightjs.readthedocs.io/en/latest/css-classes-reference.html)
  * @see [hljs Theme Guide](https://highlightjs.readthedocs.io/en/latest/theme-guide.html)

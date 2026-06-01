@@ -1,4 +1,4 @@
-package dev.hossain.highlight.engine
+package dev.hossain.highlight.engine.internal
 
 import android.content.Context
 import androidx.compose.ui.graphics.Color

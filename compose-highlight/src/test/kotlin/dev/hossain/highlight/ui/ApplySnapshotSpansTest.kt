@@ -5,6 +5,7 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import com.google.common.truth.Truth.assertThat
+import dev.hossain.highlight.ui.internal.applySnapshotSpans
 import org.junit.Test
 
 /**
