@@ -10,6 +10,16 @@ All notable changes to this project will be documented in this file.
   internal so CSS parsing and HTML conversion remain implementation details instead of
   becoming part of the published ABI.
 
+### Internal
+
+- **Extract `HljsSelectors` constants object** - all known highlight.js CSS selector keys
+  (`BASE`, `KEYWORD`, `STRING`, `COMMENT`, `NUMBER`, `LITERAL`, `TYPE`, `TITLE`, `NAME`,
+  `BUILT_IN`, `ATTR`, `SELECTOR_TAG`, `STRONG`, `EMPHASIS`, `QUOTE`, `TAG`, `OPERATOR`,
+  `ADDITION`, `TITLE_FUNCTION`, `META`, `VARIABLE`, `PARAMS`, `ATTRIBUTE`, `SECTION`,
+  `SYMBOL`, `BULLET`, `FORMULA`, `DELETION`, `LINK`, `REGEXP`) are now defined as
+  documented constants in `HljsSelectors.kt`. Replaced 100+ hardcoded string literals
+  across production code and test files with these constants.
+
 ## [0.25.0] - 2026-05-30
 
 ### Fixed

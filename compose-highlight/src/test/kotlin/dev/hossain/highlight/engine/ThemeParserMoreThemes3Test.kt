@@ -42,30 +42,30 @@ class ThemeParserMoreThemes3Test {
         val result = ThemeParser.parseAsset(context, "arduino-light.min.css")
         // rgba(149,165,166,.8) → alpha = round(0.8 * 255) = 204 = 0xCC
         // ARGB: 0xCC95A5A6
-        assertThat(result["hljs-comment"]?.color).isEqualTo(Color(0xCC95A5A6))
+        assertThat(result[HljsSelectors.COMMENT]?.color).isEqualTo(Color(0xCC95A5A6))
     }
 
     @Test
     fun `parseAsset arduino-light keyword color`() {
         val result = ThemeParser.parseAsset(context, "arduino-light.min.css")
-        assertThat(result["hljs-keyword"]?.color).isEqualTo(Color(0xFF00979D))
+        assertThat(result[HljsSelectors.KEYWORD]?.color).isEqualTo(Color(0xFF00979D))
     }
 
     @Test
     fun `parseAsset arduino-light section uses 3-digit hex with bold`() {
         val result = ThemeParser.parseAsset(context, "arduino-light.min.css")
         // .hljs-section,.hljs-title{color:#800;font-weight:700} → #800 expands to #880000
-        assertThat(result["hljs-section"]?.color).isEqualTo(Color(0xFF880000))
-        assertThat(result["hljs-section"]?.fontWeight).isEqualTo(FontWeight.Bold)
-        assertThat(result["hljs-title"]?.color).isEqualTo(Color(0xFF880000))
-        assertThat(result["hljs-title"]?.fontWeight).isEqualTo(FontWeight.Bold)
+        assertThat(result[HljsSelectors.SECTION]?.color).isEqualTo(Color(0xFF880000))
+        assertThat(result[HljsSelectors.SECTION]?.fontWeight).isEqualTo(FontWeight.Bold)
+        assertThat(result[HljsSelectors.TITLE]?.color).isEqualTo(Color(0xFF880000))
+        assertThat(result[HljsSelectors.TITLE]?.fontWeight).isEqualTo(FontWeight.Bold)
     }
 
     @Test
     fun `parseAsset arduino-light emphasis is italic and strong is bold`() {
         val result = ThemeParser.parseAsset(context, "arduino-light.min.css")
-        assertThat(result["hljs-emphasis"]?.fontStyle).isEqualTo(FontStyle.Italic)
-        assertThat(result["hljs-strong"]?.fontWeight).isEqualTo(FontWeight.Bold)
+        assertThat(result[HljsSelectors.EMPHASIS]?.fontStyle).isEqualTo(FontStyle.Italic)
+        assertThat(result[HljsSelectors.STRONG]?.fontWeight).isEqualTo(FontWeight.Bold)
     }
 
     @Test
@@ -73,7 +73,7 @@ class ThemeParserMoreThemes3Test {
         val result = ThemeParser.parseAsset(context, "arduino-light.min.css")
         // .hljs-meta .hljs-keyword{color:#728e00} has a space → skipped
         // .hljs-meta{color:#434f54} is standalone → stored
-        assertThat(result["hljs-meta"]?.color).isEqualTo(Color(0xFF434F54))
+        assertThat(result[HljsSelectors.META]?.color).isEqualTo(Color(0xFF434F54))
     }
 
     // ── nord ─────────────────────────────────────────────────────────────────
@@ -92,7 +92,7 @@ class ThemeParserMoreThemes3Test {
         val result = ThemeParser.parseAsset(context, "nord.min.css")
         // .hljs-addition{background-color:rgba(163,190,140,.5)} → alpha=round(0.5*255)=128=0x80
         // ARGB: 0x80A3BE8C
-        assertThat(result["hljs-addition"]?.background).isEqualTo(Color(0x80A3BE8C))
+        assertThat(result[HljsSelectors.ADDITION]?.background).isEqualTo(Color(0x80A3BE8C))
     }
 
     @Test
@@ -100,13 +100,13 @@ class ThemeParserMoreThemes3Test {
         val result = ThemeParser.parseAsset(context, "nord.min.css")
         // .hljs-deletion{background-color:rgba(191,97,106,.5)} → alpha=128=0x80
         // ARGB: 0x80BF616A
-        assertThat(result["hljs-deletion"]?.background).isEqualTo(Color(0x80BF616A))
+        assertThat(result[HljsSelectors.DELETION]?.background).isEqualTo(Color(0x80BF616A))
     }
 
     @Test
     fun `parseAsset nord keyword color`() {
         val result = ThemeParser.parseAsset(context, "nord.min.css")
-        assertThat(result["hljs-keyword"]?.color).isEqualTo(Color(0xFF81A1C1))
+        assertThat(result[HljsSelectors.KEYWORD]?.color).isEqualTo(Color(0xFF81A1C1))
     }
 
     @Test
@@ -114,14 +114,14 @@ class ThemeParserMoreThemes3Test {
         val result = ThemeParser.parseAsset(context, "nord.min.css")
         // language-css .hljs-keyword{color:#d08770} has a space → skipped
         // Top-level .hljs-keyword{color:#81a1c1} wins
-        assertThat(result["hljs-keyword"]?.color).isEqualTo(Color(0xFF81A1C1))
+        assertThat(result[HljsSelectors.KEYWORD]?.color).isEqualTo(Color(0xFF81A1C1))
     }
 
     @Test
     fun `parseAsset nord string and comment colors`() {
         val result = ThemeParser.parseAsset(context, "nord.min.css")
-        assertThat(result["hljs-string"]?.color).isEqualTo(Color(0xFFA3BE8C))
-        assertThat(result["hljs-comment"]?.color).isEqualTo(Color(0xFF4C566A))
+        assertThat(result[HljsSelectors.STRING]?.color).isEqualTo(Color(0xFFA3BE8C))
+        assertThat(result[HljsSelectors.COMMENT]?.color).isEqualTo(Color(0xFF4C566A))
     }
 
     // ── cybertopia-cherry ─────────────────────────────────────────────────────
@@ -145,14 +145,14 @@ class ThemeParserMoreThemes3Test {
         val result = ThemeParser.parseAsset(context, "cybertopia-cherry.min.css")
         // .hljs-code,.hljs-comment,.hljs-quote{color:var(...);font-style:italic}
         // color=null but fontStyle=Italic → rule IS stored
-        assertThat(result["hljs-comment"]?.fontStyle).isEqualTo(FontStyle.Italic)
-        assertThat(result["hljs-quote"]?.fontStyle).isEqualTo(FontStyle.Italic)
+        assertThat(result[HljsSelectors.COMMENT]?.fontStyle).isEqualTo(FontStyle.Italic)
+        assertThat(result[HljsSelectors.QUOTE]?.fontStyle).isEqualTo(FontStyle.Italic)
     }
 
     @Test
     fun `parseAsset cybertopia-cherry strong is bold`() {
         val result = ThemeParser.parseAsset(context, "cybertopia-cherry.min.css")
-        assertThat(result["hljs-strong"]?.fontWeight).isEqualTo(FontWeight.Bold)
+        assertThat(result[HljsSelectors.STRONG]?.fontWeight).isEqualTo(FontWeight.Bold)
     }
 
     // ── an-old-hope ───────────────────────────────────────────────────────────
@@ -167,15 +167,15 @@ class ThemeParserMoreThemes3Test {
     @Test
     fun `parseAsset an-old-hope keyword and string colors`() {
         val result = ThemeParser.parseAsset(context, "an-old-hope.min.css")
-        assertThat(result["hljs-keyword"]?.color).isEqualTo(Color(0xFFB45EA4))
-        assertThat(result["hljs-string"]?.color).isEqualTo(Color(0xFF4FB4D7))
+        assertThat(result[HljsSelectors.KEYWORD]?.color).isEqualTo(Color(0xFFB45EA4))
+        assertThat(result[HljsSelectors.STRING]?.color).isEqualTo(Color(0xFF4FB4D7))
     }
 
     @Test
     fun `parseAsset an-old-hope comment and attribute colors`() {
         val result = ThemeParser.parseAsset(context, "an-old-hope.min.css")
-        assertThat(result["hljs-comment"]?.color).isEqualTo(Color(0xFFB6B18B))
-        assertThat(result["hljs-attribute"]?.color).isEqualTo(Color(0xFFEE7C2B))
+        assertThat(result[HljsSelectors.COMMENT]?.color).isEqualTo(Color(0xFFB6B18B))
+        assertThat(result[HljsSelectors.ATTRIBUTE]?.color).isEqualTo(Color(0xFFEE7C2B))
     }
 
     // ── atom-one-dark ─────────────────────────────────────────────────────────
@@ -190,7 +190,7 @@ class ThemeParserMoreThemes3Test {
     @Test
     fun `parseAsset atom-one-dark keyword color`() {
         val result = ThemeParser.parseAsset(context, "atom-one-dark.min.css")
-        assertThat(result["hljs-keyword"]?.color).isEqualTo(Color(0xFFC678DD))
+        assertThat(result[HljsSelectors.KEYWORD]?.color).isEqualTo(Color(0xFFC678DD))
     }
 
     @Test
@@ -198,7 +198,7 @@ class ThemeParserMoreThemes3Test {
         val result = ThemeParser.parseAsset(context, "atom-one-dark.min.css")
         // Selector list includes ".hljs-meta .hljs-string" (has space → skipped)
         // Top-level ".hljs-string" in the same rule still gets #98c379
-        assertThat(result["hljs-string"]?.color).isEqualTo(Color(0xFF98C379))
+        assertThat(result[HljsSelectors.STRING]?.color).isEqualTo(Color(0xFF98C379))
     }
 
     @Test
@@ -207,7 +207,7 @@ class ThemeParserMoreThemes3Test {
         // .hljs-built_in,.hljs-class .hljs-title,.hljs-title.class_{color:#e6c07b}
         // .hljs-class .hljs-title has space → skipped
         // .hljs-built_in gets #e6c07b
-        assertThat(result["hljs-built_in"]?.color).isEqualTo(Color(0xFFE6C07B))
+        assertThat(result[HljsSelectors.BUILT_IN]?.color).isEqualTo(Color(0xFFE6C07B))
     }
 
     @Test
@@ -216,13 +216,13 @@ class ThemeParserMoreThemes3Test {
         // .hljs-bullet,.hljs-link,...{color:#61aeee} stores hljs-link with color
         // .hljs-link{text-decoration:underline} → parseDeclarations returns null (not parsed) → skipped
         // The earlier color must not be overwritten
-        assertThat(result["hljs-link"]?.color).isEqualTo(Color(0xFF61AEEE))
+        assertThat(result[HljsSelectors.LINK]?.color).isEqualTo(Color(0xFF61AEEE))
     }
 
     @Test
     fun `parseAsset atom-one-dark comment is italic and has color`() {
         val result = ThemeParser.parseAsset(context, "atom-one-dark.min.css")
-        assertThat(result["hljs-comment"]?.color).isEqualTo(Color(0xFF5C6370))
-        assertThat(result["hljs-comment"]?.fontStyle).isEqualTo(FontStyle.Italic)
+        assertThat(result[HljsSelectors.COMMENT]?.color).isEqualTo(Color(0xFF5C6370))
+        assertThat(result[HljsSelectors.COMMENT]?.fontStyle).isEqualTo(FontStyle.Italic)
     }
 }

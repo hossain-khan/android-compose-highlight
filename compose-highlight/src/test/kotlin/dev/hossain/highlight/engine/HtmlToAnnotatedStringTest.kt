@@ -11,13 +11,13 @@ class HtmlToAnnotatedStringTest {
     private val colorMap =
         mapOf(
             HljsSelectors.BASE to SpanStyle(color = baseColor, background = Color(0xFFFFFFFF.toInt())),
-            "hljs-keyword" to SpanStyle(color = Color(0xFF8959a8.toInt())),
-            "hljs-string" to SpanStyle(color = Color(0xFF718c00.toInt())),
-            "hljs-number" to SpanStyle(color = Color(0xFFf5871f.toInt())),
-            "hljs-comment" to SpanStyle(color = Color(0xFF8e908c.toInt())),
-            "hljs-strong" to SpanStyle(color = Color(0xFFeab700.toInt()), fontWeight = FontWeight.Bold),
+            HljsSelectors.KEYWORD to SpanStyle(color = Color(0xFF8959a8.toInt())),
+            HljsSelectors.STRING to SpanStyle(color = Color(0xFF718c00.toInt())),
+            HljsSelectors.NUMBER to SpanStyle(color = Color(0xFFf5871f.toInt())),
+            HljsSelectors.COMMENT to SpanStyle(color = Color(0xFF8e908c.toInt())),
+            HljsSelectors.STRONG to SpanStyle(color = Color(0xFFeab700.toInt()), fontWeight = FontWeight.Bold),
             // Compound key
-            "hljs-title.function_" to SpanStyle(color = Color(0xFF4271ae.toInt())),
+            HljsSelectors.TITLE_FUNCTION to SpanStyle(color = Color(0xFF4271ae.toInt())),
         )
 
     /** colorMap without a base .hljs entry - for tests that verify pre-base-style behavior. */
@@ -29,12 +29,12 @@ class HtmlToAnnotatedStringTest {
     private val darkColorMap =
         mapOf(
             HljsSelectors.BASE to SpanStyle(color = darkBaseColor, background = Color(0xFF282C34.toInt())),
-            "hljs-keyword" to SpanStyle(color = Color(0xFFC678DD.toInt())),
-            "hljs-string" to SpanStyle(color = Color(0xFF98C379.toInt())),
-            "hljs-number" to SpanStyle(color = Color(0xFFD19A66.toInt())),
-            "hljs-comment" to SpanStyle(color = Color(0xFF5C6370.toInt())),
-            "hljs-strong" to SpanStyle(color = Color(0xFFE5C07B.toInt()), fontWeight = FontWeight.Bold),
-            "hljs-title.function_" to SpanStyle(color = Color(0xFF61AFEF.toInt())),
+            HljsSelectors.KEYWORD to SpanStyle(color = Color(0xFFC678DD.toInt())),
+            HljsSelectors.STRING to SpanStyle(color = Color(0xFF98C379.toInt())),
+            HljsSelectors.NUMBER to SpanStyle(color = Color(0xFFD19A66.toInt())),
+            HljsSelectors.COMMENT to SpanStyle(color = Color(0xFF5C6370.toInt())),
+            HljsSelectors.STRONG to SpanStyle(color = Color(0xFFE5C07B.toInt()), fontWeight = FontWeight.Bold),
+            HljsSelectors.TITLE_FUNCTION to SpanStyle(color = Color(0xFF61AFEF.toInt())),
         )
 
     @Test

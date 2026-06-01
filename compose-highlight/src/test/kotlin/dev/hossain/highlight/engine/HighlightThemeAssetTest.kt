@@ -22,7 +22,7 @@ class HighlightThemeAssetTest {
         val theme = HighlightTheme.tomorrow()
         assertThat(theme.colorMap).isNotEmpty()
         assertThat(theme.colorMap).containsKey(HljsSelectors.BASE)
-        assertThat(theme.colorMap).containsKey("hljs-keyword")
+        assertThat(theme.colorMap).containsKey(HljsSelectors.KEYWORD)
     }
 
     @Test

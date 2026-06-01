@@ -18,7 +18,7 @@ class ThemeParserAssetTest {
         val result = ThemeParser.parseAsset(context, "compose-highlight/themes/tomorrow.css")
         assertThat(result).isNotEmpty()
         assertThat(result).containsKey(HljsSelectors.BASE)
-        assertThat(result).containsKey("hljs-keyword")
+        assertThat(result).containsKey(HljsSelectors.KEYWORD)
     }
 
     @Test
@@ -116,21 +116,21 @@ class ThemeParserAssetTest {
     fun `parseAsset 1c-light theme keyword is red`() {
         // .hljs-keyword { color: red } - named color must be parsed to #FF0000
         val result = ThemeParser.parseAsset(context, "1c-light.min.css")
-        assertThat(result["hljs-keyword"]?.color).isEqualTo(Color(0xFFFF0000))
+        assertThat(result[HljsSelectors.KEYWORD]?.color).isEqualTo(Color(0xFFFF0000))
     }
 
     @Test
     fun `parseAsset 1c-light theme comment is green`() {
         // .hljs-comment { color: green } - CSS named green = #008000
         val result = ThemeParser.parseAsset(context, "1c-light.min.css")
-        assertThat(result["hljs-comment"]?.color).isEqualTo(Color(0xFF008000))
+        assertThat(result[HljsSelectors.COMMENT]?.color).isEqualTo(Color(0xFF008000))
     }
 
     @Test
     fun `parseAsset 1c-light theme tag uses 4-digit hex color`() {
         // .hljs-tag { color: #444a } - 4-digit hex must be parsed to Color(68,68,68,170)
         val result = ThemeParser.parseAsset(context, "1c-light.min.css")
-        assertThat(result["hljs-tag"]?.color).isEqualTo(Color(68, 68, 68, 170))
+        assertThat(result[HljsSelectors.TAG]?.color).isEqualTo(Color(68, 68, 68, 170))
     }
 
     // ----- a11y-light theme regression - @media block overwrites keyword color -----
@@ -148,13 +148,13 @@ class ThemeParserAssetTest {
     fun `parseAsset a11y-light theme keyword is purple not dark text`() {
         // .hljs-keyword { color: #7928a1 } - must survive the @media block override
         val result = ThemeParser.parseAsset(context, "a11y-light.min.css")
-        assertThat(result["hljs-keyword"]?.color).isEqualTo(Color(0xFF7928a1))
+        assertThat(result[HljsSelectors.KEYWORD]?.color).isEqualTo(Color(0xFF7928a1))
     }
 
     @Test
     fun `parseAsset a11y-light theme string is green named color`() {
         // .hljs-string { color: green } = #008000
         val result = ThemeParser.parseAsset(context, "a11y-light.min.css")
-        assertThat(result["hljs-string"]?.color).isEqualTo(Color(0xFF008000))
+        assertThat(result[HljsSelectors.STRING]?.color).isEqualTo(Color(0xFF008000))
     }
 }

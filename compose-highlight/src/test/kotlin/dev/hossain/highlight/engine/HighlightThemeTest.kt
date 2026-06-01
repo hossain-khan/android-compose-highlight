@@ -31,7 +31,7 @@ class HighlightThemeTest {
     @Test
     fun `fromCss extracts keyword color correctly`() {
         val theme = HighlightTheme.fromCss(sampleCss, "test")
-        val style = theme.colorMap["hljs-keyword"]
+        val style = theme.colorMap[HljsSelectors.KEYWORD]
         assertThat(style).isNotNull()
         assertThat(style!!.color).isEqualTo(Color(0xFF8959a8.toInt()))
     }
@@ -61,12 +61,12 @@ class HighlightThemeTest {
         val map =
             mapOf(
                 HljsSelectors.BASE to SpanStyle(color = Color.Black, background = Color.White),
-                "hljs-keyword" to SpanStyle(color = Color.Blue),
-                "hljs-string" to SpanStyle(color = Color.Green),
+                HljsSelectors.KEYWORD to SpanStyle(color = Color.Blue),
+                HljsSelectors.STRING to SpanStyle(color = Color.Green),
             )
         val theme = HighlightTheme.fromColorMap(name = "custom", colorMap = map)
         assertThat(theme.colorMap).hasSize(3)
-        assertThat(theme.colorMap["hljs-keyword"]!!.color).isEqualTo(Color.Blue)
+        assertThat(theme.colorMap[HljsSelectors.KEYWORD]!!.color).isEqualTo(Color.Blue)
     }
 
     @Test
@@ -95,12 +95,12 @@ class HighlightThemeTest {
 
     @Test
     fun `fromColorMap defensive copy prevents external mutation`() {
-        val mutable = mutableMapOf("hljs-keyword" to SpanStyle(color = Color.Blue))
+        val mutable = mutableMapOf(HljsSelectors.KEYWORD to SpanStyle(color = Color.Blue))
         val theme = HighlightTheme.fromColorMap("copy-test", mutable)
         // Mutate the original map after theme creation
-        mutable["hljs-keyword"] = SpanStyle(color = Color.Red)
+        mutable[HljsSelectors.KEYWORD] = SpanStyle(color = Color.Red)
         // Theme should still have the original color
-        assertThat(theme.colorMap["hljs-keyword"]?.color).isEqualTo(Color.Blue)
+        assertThat(theme.colorMap[HljsSelectors.KEYWORD]?.color).isEqualTo(Color.Blue)
     }
 
     @Test
@@ -140,7 +140,7 @@ class HighlightThemeTest {
         val theme =
             HighlightTheme.fromColorMap(
                 name = "no-hljs",
-                colorMap = mapOf("hljs-keyword" to SpanStyle(color = Color.Blue)),
+                colorMap = mapOf(HljsSelectors.KEYWORD to SpanStyle(color = Color.Blue)),
             )
         assertThat(theme.backgroundColor).isEqualTo(Color.Unspecified)
     }
@@ -191,7 +191,7 @@ class HighlightThemeTest {
         val map =
             mapOf(
                 HljsSelectors.BASE to SpanStyle(color = Color.Black, background = Color.White),
-                "hljs-keyword" to SpanStyle(color = Color.Blue),
+                HljsSelectors.KEYWORD to SpanStyle(color = Color.Blue),
             )
         val a = HighlightTheme.fromColorMap(name = "dynamic", colorMap = map)
         val b = HighlightTheme.fromColorMap(name = "dynamic", colorMap = map)
@@ -201,8 +201,8 @@ class HighlightThemeTest {
 
     @Test
     fun `themes created with fromColorMap with same name but different colorMap are not equal`() {
-        val mapA = mapOf("hljs-keyword" to SpanStyle(color = Color.Blue))
-        val mapB = mapOf("hljs-keyword" to SpanStyle(color = Color.Red))
+        val mapA = mapOf(HljsSelectors.KEYWORD to SpanStyle(color = Color.Blue))
+        val mapB = mapOf(HljsSelectors.KEYWORD to SpanStyle(color = Color.Red))
         val a = HighlightTheme.fromColorMap(name = "dynamic", colorMap = mapA)
         val b = HighlightTheme.fromColorMap(name = "dynamic", colorMap = mapB)
         assertThat(a).isNotEqualTo(b)
@@ -213,7 +213,7 @@ class HighlightThemeTest {
         val map =
             mapOf(
                 HljsSelectors.BASE to SpanStyle(color = Color.Black, background = Color.White),
-                "hljs-keyword" to SpanStyle(color = Color.Blue),
+                HljsSelectors.KEYWORD to SpanStyle(color = Color.Blue),
             )
         val withoutOverride = HighlightTheme.fromColorMap(name = "dynamic", colorMap = map)
         val withSameOverride =
@@ -245,9 +245,9 @@ class HighlightThemeTest {
 
     @Test
     fun `fromColorMap preserves FontWeight in SpanStyle`() {
-        val map = mapOf("hljs-strong" to SpanStyle(fontWeight = FontWeight.Bold, color = Color.Yellow))
+        val map = mapOf(HljsSelectors.STRONG to SpanStyle(fontWeight = FontWeight.Bold, color = Color.Yellow))
         val theme = HighlightTheme.fromColorMap("bold-test", map)
-        assertThat(theme.colorMap["hljs-strong"]?.fontWeight).isEqualTo(FontWeight.Bold)
+        assertThat(theme.colorMap[HljsSelectors.STRONG]?.fontWeight).isEqualTo(FontWeight.Bold)
     }
 
     // ----- theme not equal to non-HighlightTheme -----

@@ -120,4 +120,34 @@ internal object HljsSelectors {
 
     /** Compound selector: meta keyword (`"hljs-meta .hljs-keyword"` descendant, typically skipped). */
     const val META = "hljs-meta"
+
+    /** Variable references (e.g. `$variable` in shell scripts). */
+    const val VARIABLE = "hljs-variable"
+
+    /** Function parameters in declarations. */
+    const val PARAMS = "hljs-params"
+
+    /** HTML/XML attributes. */
+    const val ATTRIBUTE = "hljs-attribute"
+
+    /** Section titles and headings. */
+    const val SECTION = "hljs-section"
+
+    /** Symbol tokens (e.g. Ruby symbols like `:foo`). */
+    const val SYMBOL = "hljs-symbol"
+
+    /** Bullet points in list markup. */
+    const val BULLET = "hljs-bullet"
+
+    /** Formula tokens in LaTeX/math markup. */
+    const val FORMULA = "hljs-formula"
+
+    /** Added/deleted line markers in diff output. */
+    const val DELETION = "hljs-deletion"
+
+    /** Regular expression literals. */
+    const val REGEXP = "hljs-regexp"
+
+    /** Link URLs in markup. */
+    const val LINK = "hljs-link"
 }
