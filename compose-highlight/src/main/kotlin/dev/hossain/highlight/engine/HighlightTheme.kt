@@ -199,7 +199,7 @@ class HighlightTheme private constructor(
             HighlightTheme(
                 name = "tomorrow",
                 colorMapProvider = { GeneratedThemes.TOMORROW },
-                contentIdentity = GeneratedThemes.TOMORROW_IDENTITY.copyOf(),
+                contentIdentity = GeneratedThemes.TOMORROW_IDENTITY,
             )
 
         /**
@@ -215,7 +215,7 @@ class HighlightTheme private constructor(
             HighlightTheme(
                 name = "tomorrow-night",
                 colorMapProvider = { GeneratedThemes.TOMORROW_NIGHT },
-                contentIdentity = GeneratedThemes.TOMORROW_NIGHT_IDENTITY.copyOf(),
+                contentIdentity = GeneratedThemes.TOMORROW_NIGHT_IDENTITY,
             )
 
         /**
@@ -231,7 +231,7 @@ class HighlightTheme private constructor(
             HighlightTheme(
                 name = "atom-one-dark",
                 colorMapProvider = { GeneratedThemes.ATOM_ONE_DARK },
-                contentIdentity = GeneratedThemes.ATOM_ONE_DARK_IDENTITY.copyOf(),
+                contentIdentity = GeneratedThemes.ATOM_ONE_DARK_IDENTITY,
             )
 
         /**
@@ -247,7 +247,7 @@ class HighlightTheme private constructor(
             HighlightTheme(
                 name = "atom-one-light",
                 colorMapProvider = { GeneratedThemes.ATOM_ONE_LIGHT },
-                contentIdentity = GeneratedThemes.ATOM_ONE_LIGHT_IDENTITY.copyOf(),
+                contentIdentity = GeneratedThemes.ATOM_ONE_LIGHT_IDENTITY,
             )
 
         /**

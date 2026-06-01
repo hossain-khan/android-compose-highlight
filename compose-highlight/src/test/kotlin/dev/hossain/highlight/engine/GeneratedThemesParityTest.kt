@@ -16,7 +16,7 @@ import org.robolectric.annotation.Config
  * sync by:
  * - Loading each bundled CSS file with the runtime parser at test time.
  * - Comparing the resulting `Map<String, SpanStyle>` against the precompiled `GeneratedThemes.*`.
- * - Asserting the runtime-computed `contentDigest64("asset", path)` matches the embedded
+ * - Asserting the runtime-computed `contentDigest256("asset", path)` matches the embedded
  *   `*_IDENTITY` literal so [HighlightTheme] equality and Compose recomposition keys stay
  *   consistent before and after the refactor.
  *
@@ -53,8 +53,8 @@ class GeneratedThemesParityTest {
 
     // ----- Identity parity -----
     // HighlightTheme.equals compares (name, contentIdentity). The runtime fromAsset factory
-    // computes contentIdentity via contentDigest64("asset", path); the buildSrc generator
-    // reproduces that same hash and embeds it as a Long literal. If those two computations
+    // computes contentIdentity via contentDigest256("asset", path); the buildSrc generator
+    // reproduces that same digest and embeds it in a LongArray literal. If those two computations
     // ever drift, the equality check below fails - the test is a real parity assertion, not
     // a tautology over two copies of the same constant.
 
@@ -84,8 +84,8 @@ class GeneratedThemesParityTest {
 
     @Test
     fun `different built-in themes are not equal`() {
-        // Sanity: every built-in carries a distinct identity hash, so the equality check above
-        // is meaningful - it fails if the buildSrc hash collides with anything other than the
+        // Sanity: every built-in carries a distinct identity digest, so the equality check above
+        // is meaningful - it fails if the buildSrc digest collides with anything other than the
         // matching runtime-computed value.
         assertThat(HighlightTheme.tomorrow()).isNotEqualTo(HighlightTheme.tomorrowNight())
         assertThat(HighlightTheme.atomOneLight()).isNotEqualTo(HighlightTheme.atomOneDark())
