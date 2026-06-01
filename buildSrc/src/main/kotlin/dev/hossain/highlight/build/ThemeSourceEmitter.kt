@@ -54,8 +54,8 @@ internal object ThemeSourceEmitter {
     }
 
     private fun emitTheme(sb: StringBuilder, theme: ThemeBuildInput) {
-        sb.appendLine("    /** Identity hash for the [${theme.constantName}] color map (matches `contentDigest64(\"asset\", \"${theme.assetPath}\")`). */")
-        sb.appendLine("    const val ${theme.constantName}_IDENTITY: Long = ${theme.contentIdentity}L")
+        sb.appendLine("    /** Identity digest for the [${theme.constantName}] color map (matches `contentDigest256(\"asset\", \"${theme.assetPath}\")`). */")
+        sb.appendLine("    val ${theme.constantName}_IDENTITY: LongArray = longArrayOf(${theme.contentIdentity.joinToString(", ") { "${it}L" }})")
         sb.appendLine()
         sb.appendLine("    /** Color map for the bundled `${theme.assetPath}` theme. */")
         sb.appendLine("    val ${theme.constantName}: Map<String, SpanStyle> = mapOf(")
@@ -101,8 +101,8 @@ internal data class ThemeBuildInput(
     val constantName: String,
     /** Asset path the runtime would have loaded - used to compute matching identity hash. */
     val assetPath: String,
-    /** SHA-256-derived identity hash of [assetPath], 64-bit. */
-    val contentIdentity: Long,
+    /** SHA-256-derived identity digest of [assetPath], represented as 4 x 64-bit chunks. */
+    val contentIdentity: LongArray,
     /** Parsed entries in CSS source order. */
     val entries: List<Pair<String, ParsedStyle>>,
 )
