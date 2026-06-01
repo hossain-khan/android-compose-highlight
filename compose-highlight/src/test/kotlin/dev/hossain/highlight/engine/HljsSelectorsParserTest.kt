@@ -85,10 +85,10 @@ class HljsSelectorsParserTest {
     }
 
     @Test
-    fun `parses char selector`() {
-        val css = ".hljs-char { color: #032f62 }"
+    fun `parses char escape underscore selector`() {
+        val css = ".hljs-char.escape_ { color: #032f62 }"
         val result = ThemeParser.parse(css)
-        assertThat(result[HljsSelectors.CHAR]?.color).isEqualTo(Color(0xFF032f62))
+        assertThat(result[HljsSelectors.CHAR_ESCAPE]?.color).isEqualTo(Color(0xFF032f62))
     }
 
     @Test
@@ -166,8 +166,8 @@ class HljsSelectorsParserTest {
     }
 
     @Test
-    fun `parses title_class_inherited underscore selector`() {
-        val css = ".hljs-title.class.inherited_ { color: #6f42c1 }"
+    fun `parses title_class_inherited double-underscore selector`() {
+        val css = ".hljs-title.class_.inherited__ { color: #6f42c1 }"
         val result = ThemeParser.parse(css)
         assertThat(result[HljsSelectors.TITLE_CLASS_INHERITED]?.color).isEqualTo(Color(0xFF6f42c1))
     }

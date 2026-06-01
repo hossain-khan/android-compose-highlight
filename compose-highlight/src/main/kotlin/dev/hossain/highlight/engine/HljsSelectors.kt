@@ -29,7 +29,7 @@ package dev.hossain.highlight.engine
  * - [PROPERTY] - Object properties: `obj.prop1.prop2.value` (newer scope)
  * - [REGEXP] - Literal regular expressions
  * - [STRING] - Literal strings and characters
- * - [CHAR] - Character literals (official docs: `char.escape` for escape chars like `\n`)
+ * - [CHAR_ESCAPE] - Character escape literals (official scope: `char.escape_`)
  * - [SUBST] - Parsed sections inside literal strings. **Important:** the hljs theme guide
  *   explicitly says "don't forget to style .subst" - it should usually reset to the
  *   default text color.
@@ -46,7 +46,7 @@ package dev.hossain.highlight.engine
  * highlight.js outputs space-separated classes like `class="hljs-title function_"` which
  * are resolved as dot-joined keys by [ThemeParser]:
  * - [TITLE_CLASS] (`"hljs-title.class_"`) - Name of a class, interface, trait, module
- * - [TITLE_CLASS_INHERITED] (`"hljs-title.class.inherited_"`) - Inherited/extended class name
+ * - [TITLE_CLASS_INHERITED] (`"hljs-title.class_.inherited__"`) - Inherited/extended class name
  * - [TITLE_FUNCTION] (`"hljs-title.function_"`) - Name of a function
  * - [TITLE_FUNCTION_INVOKE] (`"hljs-title.function.invoke_"`) - Function being invoked
  *
@@ -158,10 +158,11 @@ internal object HljsSelectors {
     const val STRING = "hljs-string"
 
     /**
-     * Character literals.
-     * Official docs call this `char.escape` for escape characters like `\n`.
+     * Character escape literals (e.g. `\n`, `\t`).
+     * hljs emits `class="hljs-char escape_"` which resolves to the compound key
+     * `hljs-char.escape_`. All real theme CSS files use `.hljs-char.escape_`.
      */
-    const val CHAR = "hljs-char"
+    const val CHAR_ESCAPE = "hljs-char.escape_"
 
     /**
      * Parsed sections inside literal strings.
@@ -202,8 +203,12 @@ internal object HljsSelectors {
     /** Name of a class, interface, trait, or module. */
     const val TITLE_CLASS = "hljs-title.class_"
 
-    /** Name of a class being inherited from, extended, etc. */
-    const val TITLE_CLASS_INHERITED = "hljs-title.class.inherited_"
+    /**
+     * Name of a class being inherited from, extended, etc.
+     * hljs emits `class="hljs-title class_ inherited__"` which resolves to the compound key
+     * `hljs-title.class_.inherited__` (note: double underscore on `inherited__`).
+     */
+    const val TITLE_CLASS_INHERITED = "hljs-title.class_.inherited__"
 
     /** Name of a function. */
     const val TITLE_FUNCTION = "hljs-title.function_"
