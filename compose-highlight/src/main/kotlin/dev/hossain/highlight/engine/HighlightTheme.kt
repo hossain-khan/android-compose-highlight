@@ -108,12 +108,12 @@ class HighlightTheme private constructor(
     val name: String,
     private val colorMapProvider: () -> Map<String, SpanStyle>,
     /**
-     * Precomputed identity hash for the theme content. Computed once at construction time
-     * from the CSS text, asset path, or color-map inputs, and stored as a [Long] so that
+     * Precomputed identity digest for the theme content. Computed once at construction time
+     * from the CSS text, asset path, or color-map inputs, and stored as a 256-bit value so that
      * [equals] and [hashCode] are O(1). Used by Compose keys (`remember`, `LaunchedEffect`)
      * to detect theme changes even when two themes share the same [name].
      */
-    private val contentIdentity: Long,
+    private val contentIdentity: LongArray,
 ) {
     /** Lazily-parsed map of hljs class names → [SpanStyle]. Cached forever. */
     private val colorMapLazy = lazy { colorMapProvider() }
@@ -180,9 +180,9 @@ class HighlightTheme private constructor(
     override fun equals(other: Any?): Boolean =
         other is HighlightTheme &&
             name == other.name &&
-            contentIdentity == other.contentIdentity
+            contentIdentity.contentEquals(other.contentIdentity)
 
-    override fun hashCode(): Int = 31 * name.hashCode() + contentIdentity.hashCode()
+    override fun hashCode(): Int = 31 * name.hashCode() + contentIdentity.contentHashCode()
 
     override fun toString(): String = "HighlightTheme(name=$name)"
 
@@ -199,7 +199,7 @@ class HighlightTheme private constructor(
             HighlightTheme(
                 name = "tomorrow",
                 colorMapProvider = { GeneratedThemes.TOMORROW },
-                contentIdentity = GeneratedThemes.TOMORROW_IDENTITY,
+                contentIdentity = GeneratedThemes.TOMORROW_IDENTITY.copyOf(),
             )
 
         /**
@@ -215,7 +215,7 @@ class HighlightTheme private constructor(
             HighlightTheme(
                 name = "tomorrow-night",
                 colorMapProvider = { GeneratedThemes.TOMORROW_NIGHT },
-                contentIdentity = GeneratedThemes.TOMORROW_NIGHT_IDENTITY,
+                contentIdentity = GeneratedThemes.TOMORROW_NIGHT_IDENTITY.copyOf(),
             )
 
         /**
@@ -231,7 +231,7 @@ class HighlightTheme private constructor(
             HighlightTheme(
                 name = "atom-one-dark",
                 colorMapProvider = { GeneratedThemes.ATOM_ONE_DARK },
-                contentIdentity = GeneratedThemes.ATOM_ONE_DARK_IDENTITY,
+                contentIdentity = GeneratedThemes.ATOM_ONE_DARK_IDENTITY.copyOf(),
             )
 
         /**
@@ -247,7 +247,7 @@ class HighlightTheme private constructor(
             HighlightTheme(
                 name = "atom-one-light",
                 colorMapProvider = { GeneratedThemes.ATOM_ONE_LIGHT },
-                contentIdentity = GeneratedThemes.ATOM_ONE_LIGHT_IDENTITY,
+                contentIdentity = GeneratedThemes.ATOM_ONE_LIGHT_IDENTITY.copyOf(),
             )
 
         /**
@@ -293,7 +293,7 @@ class HighlightTheme private constructor(
                     if (map.isEmpty()) throw HighlightException.ThemeNotFound(assetPath)
                     map
                 },
-                contentIdentity = contentDigest64("asset", assetPath),
+                contentIdentity = contentDigest256("asset", assetPath),
             )
         }
 
@@ -321,7 +321,7 @@ class HighlightTheme private constructor(
             HighlightTheme(
                 name = name,
                 colorMapProvider = { ThemeParser.parse(cssText) },
-                contentIdentity = contentDigest64("css", cssText),
+                contentIdentity = contentDigest256("css", cssText),
             )
 
         /**
@@ -382,7 +382,7 @@ class HighlightTheme private constructor(
                 } else {
                     immutableMap
                 }
-            val contentIdentity = contentDigest64(effectiveColorMap)
+            val contentIdentity = contentDigest256(effectiveColorMap)
             return HighlightTheme(
                 name = name,
                 colorMapProvider = { effectiveColorMap },
@@ -390,18 +390,18 @@ class HighlightTheme private constructor(
             )
         }
 
-        private fun contentDigest64(
+        private fun contentDigest256(
             prefix: String,
             value: String,
-        ): Long =
-            digestToLong {
+        ): LongArray =
+            digestToLongArray {
                 update(prefix.toByteArray(Charsets.UTF_8))
                 update(byteArrayOf(0))
                 update(value.toByteArray(Charsets.UTF_8))
             }
 
-        private fun contentDigest64(colorMap: Map<String, SpanStyle>): Long =
-            digestToLong {
+        private fun contentDigest256(colorMap: Map<String, SpanStyle>): LongArray =
+            digestToLongArray {
                 update("colormap".toByteArray(Charsets.UTF_8))
                 update(byteArrayOf(0))
                 colorMap.toSortedMap().forEach { (selector, style) ->
@@ -412,11 +412,14 @@ class HighlightTheme private constructor(
                 }
             }
 
-        private inline fun digestToLong(updateDigest: MessageDigest.() -> Unit): Long {
+        private inline fun digestToLongArray(updateDigest: MessageDigest.() -> Unit): LongArray {
             val digest = MessageDigest.getInstance("SHA-256")
             digest.updateDigest()
             val bytes = digest.digest()
-            return ByteBuffer.wrap(bytes, 0, Long.SIZE_BYTES).long
+            val buffer = ByteBuffer.wrap(bytes)
+            return LongArray(SHA256_LONG_COUNT) { buffer.long }
         }
+
+        private const val SHA256_LONG_COUNT = 4
     }
 }

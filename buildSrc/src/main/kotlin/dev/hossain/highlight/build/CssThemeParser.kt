@@ -1,7 +1,7 @@
 package dev.hossain.highlight.build
 
-import java.security.MessageDigest
 import java.nio.ByteBuffer
+import java.security.MessageDigest
 
 /**
  * Build-time CSS parser that mirrors the behavior of the runtime
@@ -44,20 +44,20 @@ internal object CssThemeParser {
     }
 
     /**
-     * Computes the same 64-bit identity that the runtime built-in factories compute via
-     * `contentDigest64("asset", assetPath)`: SHA-256 of `"asset" \0 <assetPath>`, first 8
-     * bytes interpreted as a Long.
+     * Computes the same 256-bit identity that the runtime built-in factories compute via
+     * `contentDigest256("asset", assetPath)`: SHA-256 of `"asset" \0 <assetPath>`.
      *
      * Reproducing this here means generated themes carry the same identity the runtime
      * would have produced - `HighlightTheme.equals` / Compose recomposition keys behave
      * identically before and after this refactor.
      */
-    fun assetContentIdentity(assetPath: String): Long {
+    fun assetContentIdentity(assetPath: String): LongArray {
         val digest = MessageDigest.getInstance("SHA-256")
         digest.update("asset".toByteArray(Charsets.UTF_8))
         digest.update(byteArrayOf(0))
         digest.update(assetPath.toByteArray(Charsets.UTF_8))
-        return ByteBuffer.wrap(digest.digest(), 0, Long.SIZE_BYTES).long
+        val buffer = ByteBuffer.wrap(digest.digest())
+        return LongArray(SHA256_LONG_COUNT) { buffer.long }
     }
 
     private fun applyHljsSelector(
@@ -255,6 +255,7 @@ internal object CssThemeParser {
     private val PROP_PATTERN = Regex("""([\w-]+)\s*:\s*([^;]+)""")
     private val HLJS_SELECTOR_REGEX = Regex("""\.hljs(?:-[\w-]+)?(?:\.[\w][\w-]*)*""")
     private val PSEUDO_CLASS_REGEX = Regex(""":(?!:)[a-zA-Z]""")
+    private const val SHA256_LONG_COUNT = 4
 
     // Same 21 named colors the runtime parser supports.
     private val NAMED_COLORS: Map<String, Long> =
