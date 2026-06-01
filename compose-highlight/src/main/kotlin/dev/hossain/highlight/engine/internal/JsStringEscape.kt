@@ -116,14 +116,14 @@ internal fun unescapeJsString(jsonString: String): String {
  * Escapes a string for safe interpolation into a single-quoted JavaScript string literal.
  *
  * Escape order:
- * 1. `\` → `\\` (must be first to avoid double-escaping subsequent replacements)
- * 2. `'` → `\'`
- * 3. `\n` (LF, U+000A) → `\n`
- * 4. `\r` (CR, U+000D) → `\r`
- * 5. `\t` (HT, U+0009) → `\t`
- * 6. U+2028 (Line Separator) → ` ` (pre-ES2019 JS treats this as a line terminator)
- * 7. U+2029 (Paragraph Separator) → ` ` (pre-ES2019 JS treats this as a line terminator)
- * 8. Remaining control characters U+0000-U+001F (null byte, ANSI escapes, etc.) → `\uXXXX`
+ * 1. `\` -> `\\` (must be first to avoid double-escaping subsequent replacements)
+ * 2. `'` -> `\'`
+ * 3. `\n` (LF, U+000A) -> `\n`
+ * 4. `\r` (CR, U+000D) -> `\r`
+ * 5. `\t` (HT, U+0009) -> `\t`
+ * 6. U+2028 (Line Separator) -> `\u2028` (pre-ES2019 JS treats this as a line terminator)
+ * 7. U+2029 (Paragraph Separator) -> `\u2029` (pre-ES2019 JS treats this as a line terminator)
+ * 8. Remaining control characters U+0000-U+001F (null byte, ANSI escapes, etc.) -> `\uXXXX`
  *
  * Steps 6-7 are required for compatibility with WebView on pre-Android 10 devices (pre-ES2019
  * V8). Without these escapes, a string containing U+2028 or U+2029 would produce an unterminated
