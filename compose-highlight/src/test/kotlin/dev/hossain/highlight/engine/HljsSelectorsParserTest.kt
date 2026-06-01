@@ -12,6 +12,16 @@ import org.junit.Test
  * the parser extracts the expected key and style properties.
  */
 class HljsSelectorsParserTest {
+    // ----- Base -----
+
+    @Test
+    fun `parses base hljs selector`() {
+        val css = ".hljs { color: #24292e; background: #ffffff }"
+        val result = ThemeParser.parse(css)
+        assertThat(result[HljsSelectors.BASE]?.color).isEqualTo(Color(0xFF24292e))
+        assertThat(result[HljsSelectors.BASE]?.background).isEqualTo(Color(0xFFffffff))
+    }
+
     // ----- General purpose -----
 
     @Test
@@ -88,7 +98,9 @@ class HljsSelectorsParserTest {
     fun `parses char escape underscore selector`() {
         val css = ".hljs-char.escape_ { color: #032f62 }"
         val result = ThemeParser.parse(css)
+        // ThemeParser publishes both the compound key and the primary key (substringBefore '.')
         assertThat(result[HljsSelectors.CHAR_ESCAPE]?.color).isEqualTo(Color(0xFF032f62))
+        assertThat(result[HljsSelectors.CHAR]?.color).isEqualTo(Color(0xFF032f62))
     }
 
     @Test
@@ -210,7 +222,7 @@ class HljsSelectorsParserTest {
     }
 
     @Test
-    fun `parses meta_prompt underscore selector`() {
+    fun `parses meta prompt compound selector`() {
         val css = ".hljs-meta.prompt { color: #6a737d }"
         val result = ThemeParser.parse(css)
         assertThat(result[HljsSelectors.META_PROMPT]?.color).isEqualTo(Color(0xFF6a737d))

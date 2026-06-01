@@ -14,17 +14,19 @@ All notable changes to this project will be documented in this file.
 
 - **Enhanced `HljsSelectors` with all official hljs scopes** - reorganized constants by official
   highlight.js categories (General purpose, Title subscopes, Meta, Tags/attributes, CSS selectors,
-  Text markup, Templates, Diff, Other) and added 22 new selectors missing from the original
-  extraction: `PUNCTUATION`, `PROPERTY`, `CHAR`, `SUBST`, `VARIABLE_LANGUAGE`,
+  Text markup, Templates, Diff, Other) and added 23 new selectors missing from the original
+  extraction: `PUNCTUATION`, `PROPERTY`, `CHAR`, `CHAR_ESCAPE`, `SUBST`, `VARIABLE_LANGUAGE`,
   `VARIABLE_CONSTANT`, `TITLE_CLASS`, `TITLE_CLASS_INHERITED`, `TITLE_FUNCTION_INVOKE`,
   `META_KEYWORD`, `META_STRING`, `META_PROMPT`, `SELECTOR_ID`, `SELECTOR_CLASS`,
   `SELECTOR_ATTR`, `SELECTOR_PSEUDO`, `CODE`, `TEMPLATE_TAG`, `TEMPLATE_VARIABLE`, `ATRULE`,
-  `DOCTAG`, `NAME`. Added `@see` links to official hljs CSS Classes Reference and Theme Guide.
-  Documented which scopes are newer/not universal per official docs. Closes #261.
+  `DOCTAG`. Added `@see` links to official hljs CSS Classes Reference and Theme Guide.
+  Documented which scopes are newer/not universal per official docs. Made `HljsSelectors`
+  public so consuming apps can use the constants when building color maps for
+  `HighlightTheme.fromColorMap`. Closes #261.
 
 ### Tests
 
-- **`HljsSelectorsParserTest`** - 48 new JVM unit tests verifying that `ThemeParser` correctly
+- **`HljsSelectorsParserTest`** - New JVM unit test class verifying that `ThemeParser` correctly
   parses every selector defined in `HljsSelectors`. Tests cover color, background, fontWeight,
   and fontStyle extraction for each selector, plus compound selector tests for comma-separated
   rules. Organized by official hljs categories matching `HljsSelectors` structure.

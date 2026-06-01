@@ -29,6 +29,7 @@ package dev.hossain.highlight.engine
  * - [PROPERTY] - Object properties: `obj.prop1.prop2.value` (newer scope)
  * - [REGEXP] - Literal regular expressions
  * - [STRING] - Literal strings and characters
+ * - [CHAR] - Base character scope (primary key emitted by ThemeParser)
  * - [CHAR_ESCAPE] - Character escape literals (official scope: `char.escape_`)
  * - [SUBST] - Parsed sections inside literal strings. **Important:** the hljs theme guide
  *   explicitly says "don't forget to style .subst" - it should usually reset to the
@@ -167,6 +168,14 @@ object HljsSelectors {
 
     /** Literal strings and characters. */
     const val STRING = "hljs-string"
+
+    /**
+     * Character literals - base scope.
+     * ThemeParser emits this as the primary key when parsing `.hljs-char.escape_`
+     * (via `substringBefore('.')`), so both [CHAR] and [CHAR_ESCAPE] will resolve
+     * to the same style from real theme CSS.
+     */
+    const val CHAR = "hljs-char"
 
     /**
      * Character escape literals (e.g. `\n`, `\t`).
