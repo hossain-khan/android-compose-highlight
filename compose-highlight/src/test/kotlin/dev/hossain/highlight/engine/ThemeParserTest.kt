@@ -352,7 +352,7 @@ class ThemeParserTest {
         result["hljs-string"]?.let { assertThat(it.color).isEqualTo(Color.Unspecified) }
     }
 
-    // ----- 4-digit hex color tests -----────────────────────────
+    // ----- 4-digit hex color tests -----
 
     @Test
     fun `parse handles 4-digit hex color #rgba`() {
@@ -397,7 +397,7 @@ class ThemeParserTest {
         assertThat(result["hljs-string"]?.color).isEqualTo(Color(0xFF000000))
     }
 
-    // ----- a11y-light theme regression -----─────────────────
+    // ----- a11y-light theme regression -----
 
     @Test
     fun `parse a11y-light @media block does not overwrite keyword color`() {
@@ -429,7 +429,7 @@ class ThemeParserTest {
         assertThat(result["hljs-number"]?.color).isEqualTo(Color(0xFFf5871f))
     }
 
-    // ----- descendant non-hljs selector regression -----─
+    // ----- descendant non-hljs selector regression -----
 
     @Test
     fun `parse descendant selector with non-hljs element does not overwrite base entry`() {

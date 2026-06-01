@@ -76,7 +76,7 @@ class RememberSyntaxHighlightedEditorValueRobolectricTest {
         composeTestRule.waitForIdle()
         val webView = engine.webViewForTest()
         assertThat(webView).isNotNull()
-        val nonNullWebView = webView!!
+        val nonNullWebView = requireNotNull(webView)
 
         // Complete readyDeferred by directly invoking onPageFinished on the WebViewClient.
         // ShadowWebView.performSuccessfulPageLoadClientCallbacks() does NOT complete the

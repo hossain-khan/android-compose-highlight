@@ -89,7 +89,7 @@ class SyntaxHighlightedTextEditorRobolectricTest {
     // ----- No-provider error path -----
 
     @Test
-    fun `throws without themeprovider`() {
+    fun `throws without ThemeProvider`() {
         // Without a HighlightThemeProvider ancestor and without an explicit `theme` argument,
         // the default `theme = LocalHighlightTheme.current` triggers the staticCompositionLocalOf
         // error("No HighlightTheme provided..."). Mirrors the read-only viewer's behaviour.

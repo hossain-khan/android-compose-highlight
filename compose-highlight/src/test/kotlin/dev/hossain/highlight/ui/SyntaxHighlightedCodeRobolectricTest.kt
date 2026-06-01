@@ -281,7 +281,7 @@ class SyntaxHighlightedCodeRobolectricTest {
         // The WebView has been created - retrieve it via the test-only accessor.
         val webView = engine.webViewForTest()
         assertThat(webView).isNotNull()
-        val nonNullWebView = webView!!
+        val nonNullWebView = requireNotNull(webView)
 
         // Complete readyDeferred by directly invoking onPageFinished on the registered
         // WebViewClient. Note: ShadowWebView.performSuccessfulPageLoadClientCallbacks()
