@@ -43,6 +43,16 @@ All notable changes to this project will be documented in this file.
   **Dokka** (`compose-highlight/build.gradle.kts`): now suppresses `*.internal*`
   packages from the published API site via `perPackageOption`.
 
+### Fixed
+
+- **`HighlightTheme` content identity now uses full SHA-256 digest** - replaced 64-bit
+  truncated identity (`Long`) with full 256-bit identity (4 x `Long`) for `equals` and
+  `hashCode` inputs. This removes practical collision risk that could suppress Compose
+  re-highlight triggers (`remember` / `LaunchedEffect`) when two distinct themes shared
+  the same 64-bit prefix. Updated build-time theme generator to emit full digest identity
+  arrays for built-in themes so runtime and generated identities stay parity-aligned.
+  Fixes #263.
+
 ### Added
 
 - **Enhanced `HljsSelectors` with all official hljs scopes** - reorganized constants by official
