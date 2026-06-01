@@ -54,7 +54,7 @@ internal object HtmlToAnnotatedString {
 
         // Apply the .hljs base text color across the entire string so that plain-text tokens
         // (identifiers, whitespace, etc.) inherit the theme color rather than LocalContentColor.
-        val baseTextColor = colorMap["hljs"]?.color?.takeIf { it != Color.Unspecified }
+        val baseTextColor = colorMap[HljsSelectors.BASE]?.color?.takeIf { it != Color.Unspecified }
         val baseStyle = baseTextColor?.let { SpanStyle(color = it) }
 
         val (result, treeWalkDuration) =
@@ -126,8 +126,8 @@ internal object HtmlToAnnotatedString {
 
         // Each builder gets its own independent base text color from its own color map.
         // Do NOT share a single base style - light and dark themes have different default colors.
-        val lightBaseStyle = lightColorMap["hljs"]?.color?.takeIf { it != Color.Unspecified }?.let { SpanStyle(color = it) }
-        val darkBaseStyle = darkColorMap["hljs"]?.color?.takeIf { it != Color.Unspecified }?.let { SpanStyle(color = it) }
+        val lightBaseStyle = lightColorMap[HljsSelectors.BASE]?.color?.takeIf { it != Color.Unspecified }?.let { SpanStyle(color = it) }
+        val darkBaseStyle = darkColorMap[HljsSelectors.BASE]?.color?.takeIf { it != Color.Unspecified }?.let { SpanStyle(color = it) }
 
         val lightBuilder = AnnotatedString.Builder()
         val darkBuilder = AnnotatedString.Builder()

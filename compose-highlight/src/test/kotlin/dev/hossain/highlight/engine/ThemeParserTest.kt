@@ -47,7 +47,7 @@ class ThemeParserTest {
     @Test
     fun `parse extracts color for hljs-comment`() {
         val result = ThemeParser.parse(tomorrowCssSample)
-        val style = result["hljs-comment"]
+        val style = result[HljsSelectors.COMMENT]
         assertThat(style).isNotNull()
         assertThat(style!!.color).isEqualTo(Color(0xFF8e908c.toInt()))
     }
@@ -55,7 +55,7 @@ class ThemeParserTest {
     @Test
     fun `parse extracts color for hljs-keyword from compound selector`() {
         val result = ThemeParser.parse(tomorrowCssSample)
-        val style = result["hljs-keyword"]
+        val style = result[HljsSelectors.KEYWORD]
         assertThat(style).isNotNull()
         assertThat(style!!.color).isEqualTo(Color(0xFF8959a8.toInt()))
     }
@@ -63,7 +63,7 @@ class ThemeParserTest {
     @Test
     fun `parse extracts color for hljs-string`() {
         val result = ThemeParser.parse(tomorrowCssSample)
-        val style = result["hljs-string"]
+        val style = result[HljsSelectors.STRING]
         assertThat(style).isNotNull()
         assertThat(style!!.color).isEqualTo(Color(0xFF718c00.toInt()))
     }
@@ -71,7 +71,7 @@ class ThemeParserTest {
     @Test
     fun `parse extracts hljs background color`() {
         val result = ThemeParser.parse(tomorrowCssSample)
-        val style = result["hljs"]
+        val style = result[HljsSelectors.BASE]
         assertThat(style).isNotNull()
         assertThat(style!!.background).isEqualTo(Color(0xFFffffff.toInt()))
     }
@@ -79,7 +79,7 @@ class ThemeParserTest {
     @Test
     fun `parse extracts font-weight bold`() {
         val result = ThemeParser.parse(tomorrowCssSample)
-        val style = result["hljs-strong"]
+        val style = result[HljsSelectors.STRONG]
         assertThat(style).isNotNull()
         assertThat(style!!.fontWeight).isEqualTo(FontWeight.Bold)
         assertThat(style.color).isEqualTo(Color(0xFFeab700.toInt()))
@@ -88,7 +88,7 @@ class ThemeParserTest {
     @Test
     fun `parse extracts font-style italic`() {
         val result = ThemeParser.parse(tomorrowCssSample)
-        val style = result["hljs-emphasis"]
+        val style = result[HljsSelectors.EMPHASIS]
         assertThat(style).isNotNull()
         assertThat(style!!.fontStyle).isEqualTo(FontStyle.Italic)
     }
@@ -96,8 +96,8 @@ class ThemeParserTest {
     @Test
     fun `parse handles compound selector hljs-title-function_`() {
         val result = ThemeParser.parse(tomorrowCssSample)
-        // ".hljs-title.function_" should produce "hljs-title.function_" key
-        val style = result["hljs-title.function_"]
+        // ".hljs-title.function_" should produce HljsSelectors.TITLE_FUNCTION key
+        val style = result[HljsSelectors.TITLE_FUNCTION]
         assertThat(style).isNotNull()
         assertThat(style!!.color).isEqualTo(Color(0xFF4271ae.toInt()))
     }
@@ -126,14 +126,14 @@ class ThemeParserTest {
         val css = ".hljs-operator { opacity: 0.7 }"
         val result = ThemeParser.parse(css)
         // opacity is not a supported property, so no entry should be created
-        assertThat(result["hljs-operator"]).isNull()
+        assertThat(result[HljsSelectors.OPERATOR]).isNull()
     }
 
     @Test
     fun `parse handles 3-digit hex colors`() {
         val css = ".hljs-comment { color: #abc }"
         val result = ThemeParser.parse(css)
-        val style = result["hljs-comment"]
+        val style = result[HljsSelectors.COMMENT]
         assertThat(style).isNotNull()
         // #abc expands to #aabbcc
         assertThat(style!!.color).isEqualTo(Color(0xFFaabbcc.toInt()))
@@ -143,15 +143,15 @@ class ThemeParserTest {
     fun `parse handles minified CSS without whitespace`() {
         val minified = ".hljs{color:#4d4d4c;background:#fff}.hljs-keyword{color:#8959a8}"
         val result = ThemeParser.parse(minified)
-        assertThat(result["hljs"]).isNotNull()
-        assertThat(result["hljs-keyword"]).isNotNull()
+        assertThat(result[HljsSelectors.BASE]).isNotNull()
+        assertThat(result[HljsSelectors.KEYWORD]).isNotNull()
     }
 
     @Test
     fun `parse handles rgb color format`() {
         val css = ".hljs-comment { color: rgb(142, 144, 140) }"
         val result = ThemeParser.parse(css)
-        val style = result["hljs-comment"]
+        val style = result[HljsSelectors.COMMENT]
         assertThat(style).isNotNull()
         assertThat(style!!.color).isEqualTo(Color(142, 144, 140))
     }
@@ -160,7 +160,7 @@ class ThemeParserTest {
     fun `parse handles rgba with fractional alpha`() {
         val css = ".hljs-keyword { color: rgba(255, 0, 128, 0.75); }"
         val result = ThemeParser.parse(css)
-        val style = result["hljs-keyword"]
+        val style = result[HljsSelectors.KEYWORD]
         assertThat(style).isNotNull()
         assertThat(style!!.color).isEqualTo(Color(255, 0, 128, 191)) // 0.75 * 255 ≈ 191
     }
@@ -169,7 +169,7 @@ class ThemeParserTest {
     fun `parse handles rgba with integer alpha`() {
         val css = ".hljs-string { color: rgba(0, 128, 255, 200); }"
         val result = ThemeParser.parse(css)
-        val style = result["hljs-string"]
+        val style = result[HljsSelectors.STRING]
         assertThat(style).isNotNull()
         assertThat(style!!.color).isEqualTo(Color(0, 128, 255, 200))
     }
@@ -178,7 +178,7 @@ class ThemeParserTest {
     fun `parse handles rgba with leading-dot fractional alpha`() {
         val css = ".hljs-comment { color: rgba(255, 0, 0, .75); }"
         val result = ThemeParser.parse(css)
-        val style = result["hljs-comment"]
+        val style = result[HljsSelectors.COMMENT]
         assertThat(style).isNotNull()
         assertThat(style!!.color).isEqualTo(Color(255, 0, 0, 191)) // 0.75 * 255 ≈ 191
     }
@@ -187,7 +187,7 @@ class ThemeParserTest {
     fun `parse handles background-color property`() {
         val css = ".hljs { background-color: #1e1e1e }"
         val result = ThemeParser.parse(css)
-        val style = result["hljs"]
+        val style = result[HljsSelectors.BASE]
         assertThat(style).isNotNull()
         assertThat(style!!.background).isEqualTo(Color(0xFF1e1e1e.toInt()))
     }
@@ -196,7 +196,7 @@ class ThemeParserTest {
     fun `parse treats font-weight 700 as bold`() {
         val css = ".hljs-strong { font-weight: 700; color: #eab700 }"
         val result = ThemeParser.parse(css)
-        val style = result["hljs-strong"]
+        val style = result[HljsSelectors.STRONG]
         assertThat(style).isNotNull()
         assertThat(style!!.fontWeight).isEqualTo(FontWeight.Bold)
     }
@@ -205,42 +205,42 @@ class ThemeParserTest {
     fun `parse treats font-weight 600 as bold`() {
         val css = ".hljs-strong { font-weight: 600 }"
         val result = ThemeParser.parse(css)
-        assertThat(result["hljs-strong"]?.fontWeight).isEqualTo(FontWeight.Bold)
+        assertThat(result[HljsSelectors.STRONG]?.fontWeight).isEqualTo(FontWeight.Bold)
     }
 
     @Test
     fun `parse treats font-weight 800 as bold`() {
         val css = ".hljs-strong { font-weight: 800 }"
         val result = ThemeParser.parse(css)
-        assertThat(result["hljs-strong"]?.fontWeight).isEqualTo(FontWeight.Bold)
+        assertThat(result[HljsSelectors.STRONG]?.fontWeight).isEqualTo(FontWeight.Bold)
     }
 
     @Test
     fun `parse treats font-weight 900 as bold`() {
         val css = ".hljs-strong { font-weight: 900 }"
         val result = ThemeParser.parse(css)
-        assertThat(result["hljs-strong"]?.fontWeight).isEqualTo(FontWeight.Bold)
+        assertThat(result[HljsSelectors.STRONG]?.fontWeight).isEqualTo(FontWeight.Bold)
     }
 
     @Test
     fun `parse treats font-weight 400 as normal`() {
         val css = ".hljs-comment { font-weight: 400; color: #888 }"
         val result = ThemeParser.parse(css)
-        assertThat(result["hljs-comment"]?.fontWeight).isEqualTo(FontWeight.Normal)
+        assertThat(result[HljsSelectors.COMMENT]?.fontWeight).isEqualTo(FontWeight.Normal)
     }
 
     @Test
     fun `parse treats font-weight 100 as normal`() {
         val css = ".hljs-comment { font-weight: 100; color: #888 }"
         val result = ThemeParser.parse(css)
-        assertThat(result["hljs-comment"]?.fontWeight).isEqualTo(FontWeight.Normal)
+        assertThat(result[HljsSelectors.COMMENT]?.fontWeight).isEqualTo(FontWeight.Normal)
     }
 
     @Test
     fun `parse treats font-weight normal keyword as normal`() {
         val css = ".hljs-comment { font-weight: normal; color: #888 }"
         val result = ThemeParser.parse(css)
-        assertThat(result["hljs-comment"]?.fontWeight).isEqualTo(FontWeight.Normal)
+        assertThat(result[HljsSelectors.COMMENT]?.fontWeight).isEqualTo(FontWeight.Normal)
     }
 
     @Test
@@ -248,7 +248,7 @@ class ThemeParserTest {
         // 8-digit hex: first two digits are alpha (AARRGGBB), rest are RGB
         val css = ".hljs-comment { color: #ff8e908c }"
         val result = ThemeParser.parse(css)
-        val style = result["hljs-comment"]
+        val style = result[HljsSelectors.COMMENT]
         assertThat(style).isNotNull()
     }
 
@@ -258,7 +258,7 @@ class ThemeParserTest {
         val css = ".hljs-meta .hljs-keyword { color: #8959a8 }"
         val result = ThemeParser.parse(css)
         // The descendant selector should not create an entry for hljs-keyword
-        assertThat(result["hljs-keyword"]).isNull()
+        assertThat(result[HljsSelectors.KEYWORD]).isNull()
     }
 
     @Test
@@ -270,7 +270,7 @@ class ThemeParserTest {
                 ".hljs ::selection, .hljs::selection { background-color: #516d7b; color: #7ea2b4 }"
         val result = ThemeParser.parse(css)
         // The real background color must be preserved
-        assertThat(result["hljs"]?.background).isEqualTo(Color(0xFF161b1d))
+        assertThat(result[HljsSelectors.BASE]?.background).isEqualTo(Color(0xFF161b1d))
     }
 
     @Test
@@ -278,7 +278,7 @@ class ThemeParserTest {
         // :focus, :hover etc. should not pollute the color map
         val css = ".hljs { background: #1e1e1e } .hljs:hover { background: #ff0000 }"
         val result = ThemeParser.parse(css)
-        assertThat(result["hljs"]?.background).isEqualTo(Color(0xFF1e1e1e))
+        assertThat(result[HljsSelectors.BASE]?.background).isEqualTo(Color(0xFF1e1e1e))
     }
 
     // ----- Named color tests -----
@@ -287,7 +287,7 @@ class ThemeParserTest {
     fun `parse handles CSS named color red`() {
         val css = ".hljs-keyword { color: red }"
         val result = ThemeParser.parse(css)
-        assertThat(result["hljs-keyword"]?.color).isEqualTo(Color(0xFFFF0000))
+        assertThat(result[HljsSelectors.KEYWORD]?.color).isEqualTo(Color(0xFFFF0000))
     }
 
     @Test
@@ -295,22 +295,22 @@ class ThemeParserTest {
         val css = ".hljs-comment { color: green }"
         val result = ThemeParser.parse(css)
         // CSS named 'green' = #008000 (not #00ff00)
-        assertThat(result["hljs-comment"]?.color).isEqualTo(Color(0xFF008000))
+        assertThat(result[HljsSelectors.COMMENT]?.color).isEqualTo(Color(0xFF008000))
     }
 
     @Test
     fun `parse handles CSS named color white as background`() {
         val css = ".hljs { color: blue; background: white }"
         val result = ThemeParser.parse(css)
-        assertThat(result["hljs"]?.background).isEqualTo(Color(0xFFFFFFFF))
+        assertThat(result[HljsSelectors.BASE]?.background).isEqualTo(Color(0xFFFFFFFF))
     }
 
     @Test
     fun `parse handles CSS named colors grey and silver`() {
         val css = ".hljs-comment { color: grey } .hljs-tag { color: silver }"
         val result = ThemeParser.parse(css)
-        assertThat(result["hljs-comment"]?.color).isEqualTo(Color(0xFF808080))
-        assertThat(result["hljs-tag"]?.color).isEqualTo(Color(0xFFC0C0C0))
+        assertThat(result[HljsSelectors.COMMENT]?.color).isEqualTo(Color(0xFF808080))
+        assertThat(result[HljsSelectors.TAG]?.color).isEqualTo(Color(0xFFC0C0C0))
     }
 
     @Test
@@ -322,24 +322,24 @@ class ThemeParserTest {
         // Verify via valid hljs selectors
         val css2 = ".hljs-keyword { color: navy } .hljs-string { color: olive }"
         val result2 = ThemeParser.parse(css2)
-        assertThat(result2["hljs-keyword"]?.color).isEqualTo(Color(0xFF000080))
-        assertThat(result2["hljs-string"]?.color).isEqualTo(Color(0xFF808000))
+        assertThat(result2[HljsSelectors.KEYWORD]?.color).isEqualTo(Color(0xFF000080))
+        assertThat(result2[HljsSelectors.STRING]?.color).isEqualTo(Color(0xFF808000))
     }
 
     @Test
     fun `parse handles CSS named color gold and orange`() {
         val css = ".hljs-number { color: gold } .hljs-literal { color: orange }"
         val result = ThemeParser.parse(css)
-        assertThat(result["hljs-number"]?.color).isEqualTo(Color(0xFFFFD700))
-        assertThat(result["hljs-literal"]?.color).isEqualTo(Color(0xFFFFA500))
+        assertThat(result[HljsSelectors.NUMBER]?.color).isEqualTo(Color(0xFFFFD700))
+        assertThat(result[HljsSelectors.LITERAL]?.color).isEqualTo(Color(0xFFFFA500))
     }
 
     @Test
     fun `parse is case-insensitive for named colors`() {
         val css = ".hljs-keyword { color: RED } .hljs-string { color: Green }"
         val result = ThemeParser.parse(css)
-        assertThat(result["hljs-keyword"]?.color).isEqualTo(Color(0xFFFF0000))
-        assertThat(result["hljs-string"]?.color).isEqualTo(Color(0xFF008000))
+        assertThat(result[HljsSelectors.KEYWORD]?.color).isEqualTo(Color(0xFFFF0000))
+        assertThat(result[HljsSelectors.STRING]?.color).isEqualTo(Color(0xFF008000))
     }
 
     @Test
@@ -348,8 +348,8 @@ class ThemeParserTest {
         val result = ThemeParser.parse(css)
         // inherit and CSS variables are not parseable - entries should have no color set
         // (they may still appear if font-weight/style was set, but color should be Unspecified)
-        result["hljs-keyword"]?.let { assertThat(it.color).isEqualTo(Color.Unspecified) }
-        result["hljs-string"]?.let { assertThat(it.color).isEqualTo(Color.Unspecified) }
+        result[HljsSelectors.KEYWORD]?.let { assertThat(it.color).isEqualTo(Color.Unspecified) }
+        result[HljsSelectors.STRING]?.let { assertThat(it.color).isEqualTo(Color.Unspecified) }
     }
 
     // ----- 4-digit hex color tests -----
@@ -359,7 +359,7 @@ class ThemeParserTest {
         // #444a = R:0x44=68, G:0x44=68, B:0x44=68, A:0xaa=170
         val css = ".hljs-tag { color: #444a }"
         val result = ThemeParser.parse(css)
-        val style = result["hljs-tag"]
+        val style = result[HljsSelectors.TAG]
         assertThat(style).isNotNull()
         assertThat(style!!.color).isEqualTo(Color(68, 68, 68, 170))
     }
@@ -370,7 +370,7 @@ class ThemeParserTest {
         // #f0af = R:0xff=255, G:0x00=0, B:0xaa=170, A:0xff=255
         val css = ".hljs-keyword { color: #f00f }"
         val result = ThemeParser.parse(css)
-        val style = result["hljs-keyword"]
+        val style = result[HljsSelectors.KEYWORD]
         assertThat(style).isNotNull()
         // #f00f = R:0xff, G:0x00, B:0x00, A:0xff
         assertThat(style!!.color).isEqualTo(Color(255, 0, 0, 255))
@@ -390,11 +390,11 @@ class ThemeParserTest {
                 ".hljs-keyword,.hljs-name,.hljs-function{color:red}" +
                 ".hljs-string,.hljs-number{color:#000}"
         val result = ThemeParser.parse(css)
-        assertThat(result["hljs"]?.background).isEqualTo(Color(0xFFFFFFFF))
-        assertThat(result["hljs"]?.color).isEqualTo(Color(0xFF0000FF))
-        assertThat(result["hljs-keyword"]?.color).isEqualTo(Color(0xFFFF0000))
-        assertThat(result["hljs-comment"]?.color).isEqualTo(Color(0xFF008000))
-        assertThat(result["hljs-string"]?.color).isEqualTo(Color(0xFF000000))
+        assertThat(result[HljsSelectors.BASE]?.background).isEqualTo(Color(0xFFFFFFFF))
+        assertThat(result[HljsSelectors.BASE]?.color).isEqualTo(Color(0xFF0000FF))
+        assertThat(result[HljsSelectors.KEYWORD]?.color).isEqualTo(Color(0xFFFF0000))
+        assertThat(result[HljsSelectors.COMMENT]?.color).isEqualTo(Color(0xFF008000))
+        assertThat(result[HljsSelectors.STRING]?.color).isEqualTo(Color(0xFF000000))
     }
 
     // ----- a11y-light theme regression -----
@@ -414,7 +414,7 @@ class ThemeParserTest {
                 "}"
         val result = ThemeParser.parse(css)
         // Color must be the purple from the real rule, not lost due to @media override
-        assertThat(result["hljs-keyword"]?.color).isEqualTo(Color(0xFF7928a1))
+        assertThat(result[HljsSelectors.KEYWORD]?.color).isEqualTo(Color(0xFF7928a1))
     }
 
     @Test
@@ -425,8 +425,8 @@ class ThemeParserTest {
                 "@media print{.hljs-string{color:black}}" +
                 ".hljs-number{color:#f5871f}"
         val result = ThemeParser.parse(css)
-        assertThat(result["hljs-string"]?.color).isEqualTo(Color(0xFF718c00))
-        assertThat(result["hljs-number"]?.color).isEqualTo(Color(0xFFf5871f))
+        assertThat(result[HljsSelectors.STRING]?.color).isEqualTo(Color(0xFF718c00))
+        assertThat(result[HljsSelectors.NUMBER]?.color).isEqualTo(Color(0xFFf5871f))
     }
 
     // ----- descendant non-hljs selector regression -----
@@ -442,8 +442,8 @@ class ThemeParserTest {
                 ".hljs mark{background:#555;color:inherit}"
         val result = ThemeParser.parse(css)
         // Real background must survive - .hljs mark must not overwrite it
-        assertThat(result["hljs"]?.background).isEqualTo(Color(0xFF333333))
-        assertThat(result["hljs"]?.color).isEqualTo(Color(0xFFffffff))
+        assertThat(result[HljsSelectors.BASE]?.background).isEqualTo(Color(0xFF333333))
+        assertThat(result[HljsSelectors.BASE]?.color).isEqualTo(Color(0xFFffffff))
     }
 
     @Test
@@ -453,19 +453,19 @@ class ThemeParserTest {
             ".hljs{background:#fff;color:#000}" +
                 ".hljs a{color:inherit}"
         val result = ThemeParser.parse(css)
-        assertThat(result["hljs"]?.color).isEqualTo(Color(0xFF000000))
+        assertThat(result[HljsSelectors.BASE]?.color).isEqualTo(Color(0xFF000000))
     }
 
     @Test
     fun `parse split rules for same selector merges SpanStyle preserving earlier properties`() {
         // e.g. nord theme: .hljs{background:#2e3440} followed by .hljs,.hljs-subst{color:#d8dee9}
-        // Without merge, the second rule would overwrite result["hljs"], losing the background.
+        // Without merge, the second rule would overwrite result[HljsSelectors.BASE], losing the background.
         val css =
             ".hljs{background:#2e3440}" +
                 ".hljs,.hljs-subst{color:#d8dee9}"
         val result = ThemeParser.parse(css)
-        assertThat(result["hljs"]?.background).isEqualTo(Color(0xFF2E3440))
-        assertThat(result["hljs"]?.color).isEqualTo(Color(0xFFD8DEE9))
+        assertThat(result[HljsSelectors.BASE]?.background).isEqualTo(Color(0xFF2E3440))
+        assertThat(result[HljsSelectors.BASE]?.color).isEqualTo(Color(0xFFD8DEE9))
     }
 
     @Test
@@ -475,7 +475,7 @@ class ThemeParserTest {
             ".hljs-keyword{color:#aabbcc}" +
                 ".hljs-keyword{color:#112233}"
         val result = ThemeParser.parse(css)
-        assertThat(result["hljs-keyword"]?.color).isEqualTo(Color(0xFF112233))
+        assertThat(result[HljsSelectors.KEYWORD]?.color).isEqualTo(Color(0xFF112233))
     }
 
     @Test
@@ -484,8 +484,8 @@ class ThemeParserTest {
             ".hljs-title{color:#78bb65}" +
                 ".hljs-title{font-weight:700}"
         val result = ThemeParser.parse(css)
-        assertThat(result["hljs-title"]?.color).isEqualTo(Color(0xFF78BB65))
-        assertThat(result["hljs-title"]?.fontWeight).isEqualTo(FontWeight.Bold)
+        assertThat(result[HljsSelectors.TITLE]?.color).isEqualTo(Color(0xFF78BB65))
+        assertThat(result[HljsSelectors.TITLE]?.fontWeight).isEqualTo(FontWeight.Bold)
     }
 
     // ----- CSS4 rgb() space-separated syntax -----
@@ -494,7 +494,7 @@ class ThemeParserTest {
     fun `parse handles CSS4 rgb space-separated without alpha`() {
         val css = ".hljs-keyword { color: rgb(255 0 128) }"
         val result = ThemeParser.parse(css)
-        assertThat(result["hljs-keyword"]?.color).isEqualTo(Color(255, 0, 128))
+        assertThat(result[HljsSelectors.KEYWORD]?.color).isEqualTo(Color(255, 0, 128))
     }
 
     @Test
@@ -502,7 +502,7 @@ class ThemeParserTest {
         val css = ".hljs-keyword { color: rgb(255 0 128 / 0.5) }"
         val result = ThemeParser.parse(css)
         // 0.5 * 255 = 127.5, roundToInt = 128
-        assertThat(result["hljs-keyword"]?.color).isEqualTo(Color(255, 0, 128, 128))
+        assertThat(result[HljsSelectors.KEYWORD]?.color).isEqualTo(Color(255, 0, 128, 128))
     }
 
     @Test
@@ -510,7 +510,7 @@ class ThemeParserTest {
         // CSS4 allows rgba() with space-separated values just like rgb()
         val css = ".hljs-comment { color: rgba(255 0 128 / 0.5) }"
         val result = ThemeParser.parse(css)
-        assertThat(result["hljs-comment"]?.color).isEqualTo(Color(255, 0, 128, 128))
+        assertThat(result[HljsSelectors.COMMENT]?.color).isEqualTo(Color(255, 0, 128, 128))
     }
 
     @Test
@@ -518,7 +518,7 @@ class ThemeParserTest {
         // 100% = 255, 0% = 0, 50% = 127
         val css = ".hljs-string { color: rgb(100% 0% 50%) }"
         val result = ThemeParser.parse(css)
-        assertThat(result["hljs-string"]?.color).isEqualTo(Color(255, 0, 127))
+        assertThat(result[HljsSelectors.STRING]?.color).isEqualTo(Color(255, 0, 127))
     }
 
     @Test
@@ -526,28 +526,28 @@ class ThemeParserTest {
         // 100%=255, 0%=0, 50%=127, alpha 50%=127
         val css = ".hljs-string { color: rgb(100% 0% 50% / 50%) }"
         val result = ThemeParser.parse(css)
-        assertThat(result["hljs-string"]?.color).isEqualTo(Color(255, 0, 127, 127))
+        assertThat(result[HljsSelectors.STRING]?.color).isEqualTo(Color(255, 0, 127, 127))
     }
 
     @Test
     fun `parse handles CSS4 rgb black edge case`() {
         val css = ".hljs { color: rgb(0 0 0) }"
         val result = ThemeParser.parse(css)
-        assertThat(result["hljs"]?.color).isEqualTo(Color(0, 0, 0))
+        assertThat(result[HljsSelectors.BASE]?.color).isEqualTo(Color(0, 0, 0))
     }
 
     @Test
     fun `parse handles CSS4 rgb opaque white with slash alpha 1`() {
         val css = ".hljs { color: rgb(255 255 255 / 1) }"
         val result = ThemeParser.parse(css)
-        assertThat(result["hljs"]?.color).isEqualTo(Color(255, 255, 255, 255))
+        assertThat(result[HljsSelectors.BASE]?.color).isEqualTo(Color(255, 255, 255, 255))
     }
 
     @Test
     fun `parse handles CSS4 rgb transparent black with slash alpha 0`() {
         val css = ".hljs { color: rgb(0 0 0 / 0) }"
         val result = ThemeParser.parse(css)
-        assertThat(result["hljs"]?.color).isEqualTo(Color(0, 0, 0, 0))
+        assertThat(result[HljsSelectors.BASE]?.color).isEqualTo(Color(0, 0, 0, 0))
     }
 
     @Test
@@ -559,11 +559,11 @@ class ThemeParserTest {
                 ".hljs-string{color:rgb(206 145 120)}" +
                 ".hljs-comment{color:rgb(106 153 85 / 0.8)}"
         val result = ThemeParser.parse(css)
-        assertThat(result["hljs"]?.background).isEqualTo(Color(30, 30, 30))
-        assertThat(result["hljs"]?.color).isEqualTo(Color(212, 212, 212))
-        assertThat(result["hljs-keyword"]?.color).isEqualTo(Color(86, 156, 214))
-        assertThat(result["hljs-string"]?.color).isEqualTo(Color(206, 145, 120))
+        assertThat(result[HljsSelectors.BASE]?.background).isEqualTo(Color(30, 30, 30))
+        assertThat(result[HljsSelectors.BASE]?.color).isEqualTo(Color(212, 212, 212))
+        assertThat(result[HljsSelectors.KEYWORD]?.color).isEqualTo(Color(86, 156, 214))
+        assertThat(result[HljsSelectors.STRING]?.color).isEqualTo(Color(206, 145, 120))
         // 0.8 * 255 = 204
-        assertThat(result["hljs-comment"]?.color).isEqualTo(Color(106, 153, 85, 204))
+        assertThat(result[HljsSelectors.COMMENT]?.color).isEqualTo(Color(106, 153, 85, 204))
     }
 }
