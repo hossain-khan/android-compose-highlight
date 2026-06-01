@@ -17,7 +17,7 @@ class ThemeParserAssetTest {
     fun `parseAsset loads tomorrow theme from bundled assets`() {
         val result = ThemeParser.parseAsset(context, "compose-highlight/themes/tomorrow.css")
         assertThat(result).isNotEmpty()
-        assertThat(result).containsKey("hljs")
+        assertThat(result).containsKey(HljsSelectors.BASE)
         assertThat(result).containsKey("hljs-keyword")
     }
 
@@ -25,21 +25,21 @@ class ThemeParserAssetTest {
     fun `parseAsset loads tomorrow-night theme from bundled assets`() {
         val result = ThemeParser.parseAsset(context, "compose-highlight/themes/tomorrow-night.css")
         assertThat(result).isNotEmpty()
-        assertThat(result).containsKey("hljs")
+        assertThat(result).containsKey(HljsSelectors.BASE)
     }
 
     @Test
     fun `parseAsset loads atom-one-dark theme from bundled assets`() {
         val result = ThemeParser.parseAsset(context, "compose-highlight/themes/atom-one-dark.css")
         assertThat(result).isNotEmpty()
-        assertThat(result).containsKey("hljs")
+        assertThat(result).containsKey(HljsSelectors.BASE)
     }
 
     @Test
     fun `parseAsset loads atom-one-light theme from bundled assets`() {
         val result = ThemeParser.parseAsset(context, "compose-highlight/themes/atom-one-light.css")
         assertThat(result).isNotEmpty()
-        assertThat(result).containsKey("hljs")
+        assertThat(result).containsKey(HljsSelectors.BASE)
     }
 
     @Test
@@ -61,14 +61,14 @@ class ThemeParserAssetTest {
     // ----- Regression tests: ::selection must not overwrite the real .hljs background -----
     // Both tomorrow.css and tomorrow-night.css contain a `.hljs::selection { background-color: X }`
     // rule. Before the fix, ThemeParser would strip the pseudo-element and store the selection color
-    // under the "hljs" key, overwriting the correct theme background.
+    // under the HljsSelectors.BASE key, overwriting the correct theme background.
 
     @Test
     fun `parseAsset tomorrow theme background is white not selection gray`() {
         // tomorrow.css: .hljs { background: #fff }  ← correct
         //               .hljs::selection { background-color: #d6d6d6 }  ← must NOT win
         val result = ThemeParser.parseAsset(context, "compose-highlight/themes/tomorrow.css")
-        val hljsStyle = result["hljs"]
+        val hljsStyle = result[HljsSelectors.BASE]
         assertThat(hljsStyle).isNotNull()
         assertThat(hljsStyle!!.background).isEqualTo(Color(0xFFffffff))
     }
@@ -78,7 +78,7 @@ class ThemeParserAssetTest {
         // tomorrow-night.css: .hljs { background: #2d2d2d }  ← correct
         //                     .hljs::selection { background-color: #515151 }  ← must NOT win
         val result = ThemeParser.parseAsset(context, "compose-highlight/themes/tomorrow-night.css")
-        val hljsStyle = result["hljs"]
+        val hljsStyle = result[HljsSelectors.BASE]
         assertThat(hljsStyle).isNotNull()
         assertThat(hljsStyle!!.background).isEqualTo(Color(0xFF2d2d2d))
     }
@@ -86,7 +86,7 @@ class ThemeParserAssetTest {
     @Test
     fun `parseAsset atom-one-dark theme background is correct dark color`() {
         val result = ThemeParser.parseAsset(context, "compose-highlight/themes/atom-one-dark.css")
-        val hljsStyle = result["hljs"]
+        val hljsStyle = result[HljsSelectors.BASE]
         assertThat(hljsStyle).isNotNull()
         assertThat(hljsStyle!!.background).isEqualTo(Color(0xFF282c34))
     }
@@ -94,7 +94,7 @@ class ThemeParserAssetTest {
     @Test
     fun `parseAsset atom-one-light theme background is correct light color`() {
         val result = ThemeParser.parseAsset(context, "compose-highlight/themes/atom-one-light.css")
-        val hljsStyle = result["hljs"]
+        val hljsStyle = result[HljsSelectors.BASE]
         assertThat(hljsStyle).isNotNull()
         assertThat(hljsStyle!!.background).isEqualTo(Color(0xFFfafafa))
     }
@@ -107,7 +107,7 @@ class ThemeParserAssetTest {
     @Test
     fun `parseAsset 1c-light theme background is white`() {
         val result = ThemeParser.parseAsset(context, "1c-light.min.css")
-        val hljsStyle = result["hljs"]
+        val hljsStyle = result[HljsSelectors.BASE]
         assertThat(hljsStyle).isNotNull()
         assertThat(hljsStyle!!.background).isEqualTo(Color(0xFFFFFFFF))
     }
@@ -141,7 +141,7 @@ class ThemeParserAssetTest {
     @Test
     fun `parseAsset a11y-light theme background is near-white`() {
         val result = ThemeParser.parseAsset(context, "a11y-light.min.css")
-        assertThat(result["hljs"]?.background).isEqualTo(Color(0xFFfefefe))
+        assertThat(result[HljsSelectors.BASE]?.background).isEqualTo(Color(0xFFfefefe))
     }
 
     @Test

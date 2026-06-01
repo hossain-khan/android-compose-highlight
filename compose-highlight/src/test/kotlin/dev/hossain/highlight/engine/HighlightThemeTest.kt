@@ -39,7 +39,7 @@ class HighlightThemeTest {
     @Test
     fun `fromCss extracts base hljs rule`() {
         val theme = HighlightTheme.fromCss(sampleCss, "test")
-        assertThat(theme.colorMap["hljs"]).isNotNull()
+        assertThat(theme.colorMap[HljsSelectors.BASE]).isNotNull()
     }
 
     @Test
@@ -60,7 +60,7 @@ class HighlightThemeTest {
     fun `fromColorMap preserves all entries`() {
         val map =
             mapOf(
-                "hljs" to SpanStyle(color = Color.Black, background = Color.White),
+                HljsSelectors.BASE to SpanStyle(color = Color.Black, background = Color.White),
                 "hljs-keyword" to SpanStyle(color = Color.Blue),
                 "hljs-string" to SpanStyle(color = Color.Green),
             )
@@ -71,7 +71,7 @@ class HighlightThemeTest {
 
     @Test
     fun `fromColorMap with explicit backgroundColor overrides hljs background`() {
-        val map = mapOf("hljs" to SpanStyle(color = Color.Black, background = Color.White))
+        val map = mapOf(HljsSelectors.BASE to SpanStyle(color = Color.Black, background = Color.White))
         val theme =
             HighlightTheme.fromColorMap(
                 name = "override-bg",
@@ -83,7 +83,7 @@ class HighlightThemeTest {
 
     @Test
     fun `fromColorMap with explicit defaultTextColor overrides hljs color`() {
-        val map = mapOf("hljs" to SpanStyle(color = Color.Black, background = Color.White))
+        val map = mapOf(HljsSelectors.BASE to SpanStyle(color = Color.Black, background = Color.White))
         val theme =
             HighlightTheme.fromColorMap(
                 name = "override-text",
@@ -190,7 +190,7 @@ class HighlightThemeTest {
     fun `themes created with fromColorMap with same name and same colorMap are equal`() {
         val map =
             mapOf(
-                "hljs" to SpanStyle(color = Color.Black, background = Color.White),
+                HljsSelectors.BASE to SpanStyle(color = Color.Black, background = Color.White),
                 "hljs-keyword" to SpanStyle(color = Color.Blue),
             )
         val a = HighlightTheme.fromColorMap(name = "dynamic", colorMap = map)
@@ -212,7 +212,7 @@ class HighlightThemeTest {
     fun `themes created with fromColorMap with equivalent hljs override are equal`() {
         val map =
             mapOf(
-                "hljs" to SpanStyle(color = Color.Black, background = Color.White),
+                HljsSelectors.BASE to SpanStyle(color = Color.Black, background = Color.White),
                 "hljs-keyword" to SpanStyle(color = Color.Blue),
             )
         val withoutOverride = HighlightTheme.fromColorMap(name = "dynamic", colorMap = map)

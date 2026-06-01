@@ -33,8 +33,8 @@ class ThemeParserMoreThemes3Test {
     @Test
     fun `parseAsset arduino-light base hljs background and color`() {
         val result = ThemeParser.parseAsset(context, "arduino-light.min.css")
-        assertThat(result["hljs"]?.background).isEqualTo(Color(0xFFFFFFFF))
-        assertThat(result["hljs"]?.color).isEqualTo(Color(0xFF434F54))
+        assertThat(result[HljsSelectors.BASE]?.background).isEqualTo(Color(0xFFFFFFFF))
+        assertThat(result[HljsSelectors.BASE]?.color).isEqualTo(Color(0xFF434F54))
     }
 
     @Test
@@ -83,8 +83,8 @@ class ThemeParserMoreThemes3Test {
         val result = ThemeParser.parseAsset(context, "nord.min.css")
         // .hljs{background:#2e3440} and .hljs,.hljs-subst{color:#d8dee9} are two separate rules.
         // SpanStyle merge must preserve background from rule 1 when rule 2 adds color.
-        assertThat(result["hljs"]?.background).isEqualTo(Color(0xFF2E3440))
-        assertThat(result["hljs"]?.color).isEqualTo(Color(0xFFD8DEE9))
+        assertThat(result[HljsSelectors.BASE]?.background).isEqualTo(Color(0xFF2E3440))
+        assertThat(result[HljsSelectors.BASE]?.color).isEqualTo(Color(0xFFD8DEE9))
     }
 
     @Test
@@ -137,7 +137,7 @@ class ThemeParserMoreThemes3Test {
     fun `parseAsset cybertopia-cherry base hljs not in map because var() colors are unresolvable`() {
         val result = ThemeParser.parseAsset(context, "cybertopia-cherry.min.css")
         // .hljs{color:var(--hljs-mono-1);background:var(--hljs-bg)} → both null → not stored
-        assertThat(result.containsKey("hljs")).isFalse()
+        assertThat(result.containsKey(HljsSelectors.BASE)).isFalse()
     }
 
     @Test
@@ -160,8 +160,8 @@ class ThemeParserMoreThemes3Test {
     @Test
     fun `parseAsset an-old-hope base hljs background and color`() {
         val result = ThemeParser.parseAsset(context, "an-old-hope.min.css")
-        assertThat(result["hljs"]?.background).isEqualTo(Color(0xFF1C1D21))
-        assertThat(result["hljs"]?.color).isEqualTo(Color(0xFFC0C5CE))
+        assertThat(result[HljsSelectors.BASE]?.background).isEqualTo(Color(0xFF1C1D21))
+        assertThat(result[HljsSelectors.BASE]?.color).isEqualTo(Color(0xFFC0C5CE))
     }
 
     @Test
@@ -183,8 +183,8 @@ class ThemeParserMoreThemes3Test {
     @Test
     fun `parseAsset atom-one-dark base hljs background and color`() {
         val result = ThemeParser.parseAsset(context, "atom-one-dark.min.css")
-        assertThat(result["hljs"]?.color).isEqualTo(Color(0xFFABB2BF))
-        assertThat(result["hljs"]?.background).isEqualTo(Color(0xFF282C34))
+        assertThat(result[HljsSelectors.BASE]?.color).isEqualTo(Color(0xFFABB2BF))
+        assertThat(result[HljsSelectors.BASE]?.background).isEqualTo(Color(0xFF282C34))
     }
 
     @Test

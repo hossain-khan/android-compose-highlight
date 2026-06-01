@@ -161,12 +161,12 @@ class HighlightTheme private constructor(
 
     /** Background color from the `.hljs` CSS rule. Unspecified if not present in theme. */
     val backgroundColor: Color by lazy {
-        colorMap["hljs"]?.background?.takeIf { it != Color.Unspecified } ?: Color.Unspecified
+        colorMap[HljsSelectors.BASE]?.background?.takeIf { it != Color.Unspecified } ?: Color.Unspecified
     }
 
     /** Default text color from the `.hljs` CSS rule. Unspecified if not present in theme. */
     val defaultTextColor: Color by lazy {
-        colorMap["hljs"]?.color?.takeIf { it != Color.Unspecified } ?: Color.Unspecified
+        colorMap[HljsSelectors.BASE]?.color?.takeIf { it != Color.Unspecified } ?: Color.Unspecified
     }
 
     /**
@@ -364,8 +364,8 @@ class HighlightTheme private constructor(
             val effectiveColorMap =
                 if (backgroundColor != null || defaultTextColor != null) {
                     val base = immutableMap.toMutableMap()
-                    val existing = base["hljs"] ?: SpanStyle()
-                    base["hljs"] =
+                    val existing = base[HljsSelectors.BASE] ?: SpanStyle()
+                    base[HljsSelectors.BASE] =
                         existing.copy(
                             background = backgroundColor ?: existing.background,
                             color = defaultTextColor ?: existing.color,

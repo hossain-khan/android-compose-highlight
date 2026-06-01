@@ -34,14 +34,14 @@ class ThemeParserMoreThemes2Test {
     fun `parseAsset agate background is dark gray`() {
         // .hljs { background: #333 } - 3-digit hex expands to #333333
         val result = ThemeParser.parseAsset(context, "agate.min.css")
-        assertThat(result["hljs"]?.background).isEqualTo(Color(0xFF333333))
+        assertThat(result[HljsSelectors.BASE]?.background).isEqualTo(Color(0xFF333333))
     }
 
     @Test
     fun `parseAsset agate base text is white via 3-digit hex`() {
         // .hljs { color: #fff } - 3-digit hex expands to #ffffff
         val result = ThemeParser.parseAsset(context, "agate.min.css")
-        assertThat(result["hljs"]?.color).isEqualTo(Color(0xFFffffff))
+        assertThat(result[HljsSelectors.BASE]?.color).isEqualTo(Color(0xFFffffff))
     }
 
     @Test
@@ -71,7 +71,7 @@ class ThemeParserMoreThemes2Test {
     @Test
     fun `parseAsset routeros background is light gray`() {
         val result = ThemeParser.parseAsset(context, "routeros.min.css")
-        assertThat(result["hljs"]?.background).isEqualTo(Color(0xFFf0f0f0))
+        assertThat(result[HljsSelectors.BASE]?.background).isEqualTo(Color(0xFFf0f0f0))
     }
 
     @Test
@@ -103,7 +103,7 @@ class ThemeParserMoreThemes2Test {
     @Test
     fun `parseAsset grayscale background is white`() {
         val result = ThemeParser.parseAsset(context, "grayscale.min.css")
-        assertThat(result["hljs"]?.background).isEqualTo(Color(0xFFffffff))
+        assertThat(result[HljsSelectors.BASE]?.background).isEqualTo(Color(0xFFffffff))
     }
 
     @Test
@@ -137,7 +137,7 @@ class ThemeParserMoreThemes2Test {
     @Test
     fun `parseAsset xcode background is white`() {
         val result = ThemeParser.parseAsset(context, "xcode.min.css")
-        assertThat(result["hljs"]?.background).isEqualTo(Color(0xFFffffff))
+        assertThat(result[HljsSelectors.BASE]?.background).isEqualTo(Color(0xFFffffff))
     }
 
     @Test
@@ -170,13 +170,13 @@ class ThemeParserMoreThemes2Test {
     @Test
     fun `parseAsset paraiso-light background is warm off-white`() {
         val result = ThemeParser.parseAsset(context, "paraiso-light.min.css")
-        assertThat(result["hljs"]?.background).isEqualTo(Color(0xFFe7e9db))
+        assertThat(result[HljsSelectors.BASE]?.background).isEqualTo(Color(0xFFe7e9db))
     }
 
     @Test
     fun `parseAsset paraiso-light base text color is dark purple-gray`() {
         val result = ThemeParser.parseAsset(context, "paraiso-light.min.css")
-        assertThat(result["hljs"]?.color).isEqualTo(Color(0xFF4f424c))
+        assertThat(result[HljsSelectors.BASE]?.color).isEqualTo(Color(0xFF4f424c))
     }
 
     @Test

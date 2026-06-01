@@ -30,13 +30,13 @@ class ThemeParserMoreThemes1Test {
     @Test
     fun `parseAsset monokai-sublime background is dark`() {
         val result = ThemeParser.parseAsset(context, "monokai-sublime.min.css")
-        assertThat(result["hljs"]?.background).isEqualTo(Color(0xFF23241f))
+        assertThat(result[HljsSelectors.BASE]?.background).isEqualTo(Color(0xFF23241f))
     }
 
     @Test
     fun `parseAsset monokai-sublime base text color is off-white`() {
         val result = ThemeParser.parseAsset(context, "monokai-sublime.min.css")
-        assertThat(result["hljs"]?.color).isEqualTo(Color(0xFFf8f8f2))
+        assertThat(result[HljsSelectors.BASE]?.color).isEqualTo(Color(0xFFf8f8f2))
     }
 
     @Test
@@ -67,7 +67,7 @@ class ThemeParserMoreThemes1Test {
     @Test
     fun `parseAsset panda-syntax-light background is light gray`() {
         val result = ThemeParser.parseAsset(context, "panda-syntax-light.min.css")
-        assertThat(result["hljs"]?.background).isEqualTo(Color(0xFFe6e6e6))
+        assertThat(result[HljsSelectors.BASE]?.background).isEqualTo(Color(0xFFe6e6e6))
     }
 
     @Test
@@ -98,7 +98,7 @@ class ThemeParserMoreThemes1Test {
     @Test
     fun `parseAsset docco background is near-white`() {
         val result = ThemeParser.parseAsset(context, "docco.min.css")
-        assertThat(result["hljs"]?.background).isEqualTo(Color(0xFFf8f8ff))
+        assertThat(result[HljsSelectors.BASE]?.background).isEqualTo(Color(0xFFf8f8ff))
     }
 
     @Test
@@ -135,14 +135,14 @@ class ThemeParserMoreThemes1Test {
     @Test
     fun `parseAsset tomorrow-night-blue background is deep blue`() {
         val result = ThemeParser.parseAsset(context, "tomorrow-night-blue.min.css")
-        assertThat(result["hljs"]?.background).isEqualTo(Color(0xFF002451))
+        assertThat(result[HljsSelectors.BASE]?.background).isEqualTo(Color(0xFF002451))
     }
 
     @Test
     fun `parseAsset tomorrow-night-blue base text is white via 3-digit hex`() {
         // .hljs { color: #fff } - 3-digit hex #fff expands to #ffffff
         val result = ThemeParser.parseAsset(context, "tomorrow-night-blue.min.css")
-        assertThat(result["hljs"]?.color).isEqualTo(Color(0xFFffffff))
+        assertThat(result[HljsSelectors.BASE]?.color).isEqualTo(Color(0xFFffffff))
     }
 
     @Test
@@ -167,7 +167,7 @@ class ThemeParserMoreThemes1Test {
     @Test
     fun `parseAsset stackoverflow-dark background is near-black`() {
         val result = ThemeParser.parseAsset(context, "stackoverflow-dark.min.css")
-        assertThat(result["hljs"]?.background).isEqualTo(Color(0xFF1c1b1b))
+        assertThat(result[HljsSelectors.BASE]?.background).isEqualTo(Color(0xFF1c1b1b))
     }
 
     @Test

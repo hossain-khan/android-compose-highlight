@@ -21,7 +21,7 @@ class HighlightThemeAssetTest {
     fun `tomorrow factory produces valid colorMap`() {
         val theme = HighlightTheme.tomorrow()
         assertThat(theme.colorMap).isNotEmpty()
-        assertThat(theme.colorMap).containsKey("hljs")
+        assertThat(theme.colorMap).containsKey(HljsSelectors.BASE)
         assertThat(theme.colorMap).containsKey("hljs-keyword")
     }
 
@@ -29,21 +29,21 @@ class HighlightThemeAssetTest {
     fun `tomorrowNight factory produces valid colorMap`() {
         val theme = HighlightTheme.tomorrowNight()
         assertThat(theme.colorMap).isNotEmpty()
-        assertThat(theme.colorMap).containsKey("hljs")
+        assertThat(theme.colorMap).containsKey(HljsSelectors.BASE)
     }
 
     @Test
     fun `atomOneDark factory produces valid colorMap`() {
         val theme = HighlightTheme.atomOneDark()
         assertThat(theme.colorMap).isNotEmpty()
-        assertThat(theme.colorMap).containsKey("hljs")
+        assertThat(theme.colorMap).containsKey(HljsSelectors.BASE)
     }
 
     @Test
     fun `atomOneLight factory produces valid colorMap`() {
         val theme = HighlightTheme.atomOneLight()
         assertThat(theme.colorMap).isNotEmpty()
-        assertThat(theme.colorMap).containsKey("hljs")
+        assertThat(theme.colorMap).containsKey(HljsSelectors.BASE)
     }
 
     @Test
@@ -81,7 +81,7 @@ class HighlightThemeAssetTest {
 
         themes.forEach { theme ->
             assertThat(theme.colorMap).isNotEmpty()
-            assertThat(theme.colorMap).containsKey("hljs")
+            assertThat(theme.colorMap).containsKey(HljsSelectors.BASE)
         }
     }
 
