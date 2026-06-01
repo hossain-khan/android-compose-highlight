@@ -224,7 +224,7 @@ class HljsSelectorsParserTest {
 
     @Test
     fun `parses meta prompt compound selector`() {
-        val css = ".hljs-meta.prompt { color: #6a737d }"
+        val css = ".hljs-meta.prompt_ { color: #6a737d }"
         val result = ThemeParser.parse(css)
         assertThat(result[HljsSelectors.META_PROMPT]?.color).isEqualTo(Color(0xFF6a737d))
     }
