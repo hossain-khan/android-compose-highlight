@@ -50,12 +50,9 @@ class GeneratedThemesParityTest {
         assertParity("compose-highlight/themes/atom-one-light.css", GeneratedThemes.ATOM_ONE_LIGHT)
     }
 
-    // ── Identity parity ───────────────────────────────────────────────────────────────────────────
+    // ----- Identity parity -----
     // HighlightTheme.equals compares (name, contentIdentity). The runtime fromAsset factory
-    // computes contentIdentity via contentDigest64("asset", path); the buildSrc generator
-    // reproduces that same hash and embeds it as a Long literal. If those two computations
-    // ever drift, the equality check below fails - the test is a real parity assertion, not
-    // a tautology over two copies of the same constant.
+    // computes contentIdentity via contentDigest64("asset", path); the buildSrc generator\n    // reproduces that same hash and embeds it as a Long literal. If those two computations\n    // ever drift, the equality check below fails - the test is a real parity assertion, not\n    // a tautology over two copies of the same constant.
 
     @Test
     fun `tomorrow identity matches runtime fromAsset hash`() {

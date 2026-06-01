@@ -42,10 +42,10 @@ class SyntaxHighlightedTextEditorRobolectricTest {
     @get:Rule
     val composeTestRule = createComposeRule()
 
-    // ── Inspection mode ──────────────────────────────────────────────────────
+    // ----- Inspection mode -----
 
     @Test
-    fun rendersTextInPreviewMode() {
+    fun `renders text in preview mode`() {
         // In LocalInspectionMode the helper short-circuits its LaunchedEffect, so no engine
         // is ever created and the BasicTextField just renders the raw text. The editor must
         // remain visible (no crash, no blank Surface) in @Preview composables.
@@ -64,10 +64,10 @@ class SyntaxHighlightedTextEditorRobolectricTest {
         composeTestRule.onNodeWithTag("syntax-highlighted-text-editor").assertIsDisplayed()
     }
 
-    // ── Test infrastructure ──────────────────────────────────────────────────
+    // ----- Test infrastructure -----
 
     @Test
-    fun hasTestTagOnOuterSurface() {
+    fun `has test tag on outer surface`() {
         // The "syntax-highlighted-text-editor" testTag is the canonical handle for screenshot
         // tests and other test infrastructure. Pinning it here protects against a refactor
         // that accidentally moves the tag onto an inner element or removes it.
@@ -86,27 +86,31 @@ class SyntaxHighlightedTextEditorRobolectricTest {
         composeTestRule.onNodeWithTag("syntax-highlighted-text-editor").assertIsDisplayed()
     }
 
-    // ── No-provider error path ───────────────────────────────────────────────
+    // ----- No-provider error path -----
 
-    @Test(expected = IllegalStateException::class)
-    fun throwsWithoutThemeProvider() {
+    @Test
+    fun `throws without themeprovider`() {
         // Without a HighlightThemeProvider ancestor and without an explicit `theme` argument,
         // the default `theme = LocalHighlightTheme.current` triggers the staticCompositionLocalOf
         // error("No HighlightTheme provided..."). Mirrors the read-only viewer's behaviour.
-        composeTestRule.setContent {
-            SyntaxHighlightedTextEditor(
-                value = TextFieldValue("val x = 42"),
-                onValueChange = {},
-                language = "kotlin",
-            )
-        }
-        composeTestRule.waitForIdle()
+        val thrown =
+            runCatching {
+                composeTestRule.setContent {
+                    SyntaxHighlightedTextEditor(
+                        value = TextFieldValue("val x = 42"),
+                        onValueChange = {},
+                        language = "kotlin",
+                    )
+                }
+                composeTestRule.waitForIdle()
+            }
+        assertThat(thrown.exceptionOrNull()).isInstanceOf(IllegalStateException::class.java)
     }
 
-    // ── onError forwarding through the editor ───────────────────────────────
+    // ----- onError forwarding through the editor -----
 
     @Test
-    fun onErrorCallbackFiresWhenJsReturnsNull() {
+    fun `on error callback fires when JS returns null`() {
         // RememberSyntaxHighlightedEditorValueRobolectricTest covers the helper's onError
         // path directly. This test asserts the editor's onError parameter is wired to the
         // helper - a regression that broke the forwarding (e.g. a refactor that accidentally

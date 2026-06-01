@@ -22,7 +22,7 @@ import org.junit.Test
  * - Successful blocks return [Result.success]
  */
 class HighlightEngineErrorHandlingTest {
-    // ── TimeoutCancellationException → Timeout ────────────────────────────────
+    // ----- TimeoutCancellationException to Timeout -----
 
     @Test
     fun `TimeoutCancellationException is mapped to HighlightException Timeout`() =
@@ -59,40 +59,38 @@ class HighlightEngineErrorHandlingTest {
             assertThat(result.exceptionOrNull()).isNotInstanceOf(HighlightException.JsExecutionFailed::class.java)
         }
 
-    // ── CancellationException → rethrown ──────────────────────────────────────
+    // ----- CancellationException rethrown -----
 
     @Test
-    fun `CancellationException is rethrown, not converted to Result failure`() {
-        // withEngineErrorHandling must rethrow CancellationException to respect structured
-        // concurrency. We verify by catching it outside and confirming result was never set.
-        var result: Result<Unit>? = null
-        try {
-            kotlinx.coroutines.runBlocking {
+    fun `CancellationException is rethrown, not converted to Result failure`() =
+        runTest {
+            // withEngineErrorHandling must rethrow CancellationException to respect structured
+            // concurrency. We verify by catching it outside and confirming result was never set.
+            var result: Result<Unit>? = null
+            try {
                 result = withEngineErrorHandling { throw CancellationException("parent cancelled") }
+            } catch (e: CancellationException) {
+                // Expected: the exception propagated out instead of being swallowed as Result.failure
             }
-        } catch (e: CancellationException) {
-            // Expected: the exception propagated out instead of being swallowed as Result.failure
-        }
 
-        assertThat(result).isNull()
-    }
+            assertThat(result).isNull()
+        }
 
     @Test
-    fun `CancellationException cause is not lost when rethrown`() {
-        val cause = CancellationException("test cancellation")
-        var caught: CancellationException? = null
-        try {
-            kotlinx.coroutines.runBlocking {
+    fun `CancellationException cause is not lost when rethrown`() =
+        runTest {
+            val cause = CancellationException("test cancellation")
+            var caught: CancellationException? = null
+            try {
                 withEngineErrorHandling<Unit> { throw cause }
+            } catch (e: CancellationException) {
+                caught = e
             }
-        } catch (e: CancellationException) {
-            caught = e
+
+            assertThat(caught).isSameInstanceAs(cause)
         }
 
-        assertThat(caught).isSameInstanceAs(cause)
-    }
-
-    // ── HighlightException → preserved ───────────────────────────────────────
+    // ----- HighlightException preserved -----
 
     @Test
     fun `HighlightException JsExecutionFailed is preserved as Result failure`() =
@@ -125,7 +123,7 @@ class HighlightEngineErrorHandlingTest {
             assertThat(result.exceptionOrNull()).isSameInstanceAs(ex)
         }
 
-    // ── generic Exception → JsExecutionFailed ─────────────────────────────────
+    // ----- generic Exception wrapped in JsExecutionFailed -----
 
     @Test
     fun `generic Exception is wrapped in JsExecutionFailed`() =
@@ -148,7 +146,7 @@ class HighlightEngineErrorHandlingTest {
             assertThat(result.exceptionOrNull()).isInstanceOf(HighlightException.JsExecutionFailed::class.java)
         }
 
-    // ── success path ──────────────────────────────────────────────────────────
+    // ----- success path -----
 
     @Test
     fun `successful block returns Result success with the value`() =

@@ -58,7 +58,7 @@ class ThemeParserAssetTest {
         assertThat(result).isEmpty()
     }
 
-    // ── Regression tests: ::selection must not overwrite the real .hljs background ──────────────
+    // ----- Regression tests: ::selection must not overwrite the real .hljs background -----
     // Both tomorrow.css and tomorrow-night.css contain a `.hljs::selection { background-color: X }`
     // rule. Before the fix, ThemeParser would strip the pseudo-element and store the selection color
     // under the "hljs" key, overwriting the correct theme background.
@@ -99,7 +99,7 @@ class ThemeParserAssetTest {
         assertThat(hljsStyle!!.background).isEqualTo(Color(0xFFfafafa))
     }
 
-    // ── 1c-light theme regression - named colors and 4-digit hex ─────────────────────────────────
+    // ----- 1c-light theme regression - named colors and 4-digit hex -----
     // 1c-light uses CSS named colors (red, green) and a 4-digit hex (#444a) for tag color.
     // Before the fix these were all parsed as null, so keywords/comments fell back to default
     // blue text and .hljs-tag had no color.
@@ -133,7 +133,7 @@ class ThemeParserAssetTest {
         assertThat(result["hljs-tag"]?.color).isEqualTo(Color(68, 68, 68, 170))
     }
 
-    // ── a11y-light theme regression - @media block overwrites keyword color ───────────────────────
+    // ----- a11y-light theme regression - @media block overwrites keyword color -----
     // a11y-light has a @media (-ms-high-contrast) block with .hljs-keyword { font-weight:700 }.
     // Before the @media-stripping fix, that font-weight-only SpanStyle overwrote the real
     // .hljs-keyword { color:#7928a1 } entry, so keywords showed as default text color (dark).

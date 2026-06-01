@@ -281,7 +281,7 @@ class ThemeParserTest {
         assertThat(result["hljs"]?.background).isEqualTo(Color(0xFF1e1e1e))
     }
 
-    // ── Named color tests ──────────────────────────────────────────────────────────────────────────
+    // ----- Named color tests -----
 
     @Test
     fun `parse handles CSS named color red`() {
@@ -352,7 +352,7 @@ class ThemeParserTest {
         result["hljs-string"]?.let { assertThat(it.color).isEqualTo(Color.Unspecified) }
     }
 
-    // ── 4-digit hex color tests ────────────────────────────────────────────────────────────────────
+    // ----- 4-digit hex color tests -----────────────────────────
 
     @Test
     fun `parse handles 4-digit hex color #rgba`() {
@@ -376,7 +376,7 @@ class ThemeParserTest {
         assertThat(style!!.color).isEqualTo(Color(255, 0, 0, 255))
     }
 
-    // ── 1c-light theme regression ──────────────────────────────────────────────────────────────────
+    // ----- 1c-light theme regression -----
 
     @Test
     fun `parse 1c-light theme keyword is red not default blue`() {
@@ -397,7 +397,7 @@ class ThemeParserTest {
         assertThat(result["hljs-string"]?.color).isEqualTo(Color(0xFF000000))
     }
 
-    // ── a11y-light theme regression ────────────────────────────────────────────────────────────────
+    // ----- a11y-light theme regression -----─────────────────
 
     @Test
     fun `parse a11y-light @media block does not overwrite keyword color`() {
@@ -429,7 +429,7 @@ class ThemeParserTest {
         assertThat(result["hljs-number"]?.color).isEqualTo(Color(0xFFf5871f))
     }
 
-    // ── descendant non-hljs selector regression ────────────────────────────────────────────────────
+    // ----- descendant non-hljs selector regression -----─
 
     @Test
     fun `parse descendant selector with non-hljs element does not overwrite base entry`() {
@@ -488,7 +488,7 @@ class ThemeParserTest {
         assertThat(result["hljs-title"]?.fontWeight).isEqualTo(FontWeight.Bold)
     }
 
-    // ── CSS4 rgb() space-separated syntax ─────────────────────────────────────────────────────────
+    // ----- CSS4 rgb() space-separated syntax -----
 
     @Test
     fun `parse handles CSS4 rgb space-separated without alpha`() {

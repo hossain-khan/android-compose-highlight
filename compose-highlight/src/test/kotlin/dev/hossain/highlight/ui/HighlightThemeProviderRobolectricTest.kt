@@ -16,7 +16,7 @@ class HighlightThemeProviderRobolectricTest {
     val composeTestRule = createComposeRule()
 
     @Test
-    fun providesActiveThemeToDescendants() {
+    fun `provides active theme to descendants`() {
         var capturedTheme: HighlightTheme? = null
         composeTestRule.setContent {
             HighlightThemeProvider {
@@ -28,7 +28,7 @@ class HighlightThemeProviderRobolectricTest {
     }
 
     @Test
-    fun providesBothLightAndDarkThemes() {
+    fun `provides both light and dark themes`() {
         var lightTheme: HighlightTheme? = null
         var darkTheme: HighlightTheme? = null
         composeTestRule.setContent {
@@ -44,7 +44,7 @@ class HighlightThemeProviderRobolectricTest {
     }
 
     @Test
-    fun selectsDarkThemeWhenDarkModeIsTrue() {
+    fun `selects dark theme when dark mode is true`() {
         var activeTheme: HighlightTheme? = null
         var darkTheme: HighlightTheme? = null
         composeTestRule.setContent {
@@ -58,7 +58,7 @@ class HighlightThemeProviderRobolectricTest {
     }
 
     @Test
-    fun selectsLightThemeWhenDarkModeIsFalse() {
+    fun `selects light theme when dark mode is false`() {
         var activeTheme: HighlightTheme? = null
         var lightTheme: HighlightTheme? = null
         composeTestRule.setContent {
@@ -71,13 +71,18 @@ class HighlightThemeProviderRobolectricTest {
         assertThat(activeTheme).isEqualTo(lightTheme)
     }
 
-    @Test(expected = IllegalStateException::class)
-    fun throwsWithoutProvider() {
-        composeTestRule.setContent {
-            // Accessing LocalHighlightTheme without a provider should throw
-            @Suppress("UNUSED_VARIABLE")
-            val theme = LocalHighlightTheme.current
-        }
-        composeTestRule.waitForIdle()
+    @Test
+    fun `throws without provider`() {
+        // Accessing LocalHighlightTheme without a provider should throw IllegalStateException.
+        // The exception propagates through waitForIdle() in the Robolectric test runner.
+        val thrown =
+            runCatching {
+                composeTestRule.setContent {
+                    @Suppress("UNUSED_VARIABLE")
+                    val theme = LocalHighlightTheme.current
+                }
+                composeTestRule.waitForIdle()
+            }
+        assertThat(thrown.exceptionOrNull()).isInstanceOf(IllegalStateException::class.java)
     }
 }

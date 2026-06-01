@@ -4,6 +4,12 @@ import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 import kotlin.time.Duration
 
+/**
+ * JVM unit tests for [HighlightTimings].
+ *
+ * Verifies that all timing fields are stored correctly, Duration.ZERO
+ * is valid for all fields, and duration unit conversions work as expected.
+ */
 class HighlightTimingsTest {
     private val sampleTimings =
         HighlightTimings(
@@ -15,7 +21,7 @@ class HighlightTimingsTest {
             total = Duration.parse("61ms"),
         )
 
-    // ── Construction ─────────────────────────────────────────────────────────
+    // ----- Construction -----
 
     @Test
     fun `all fields are stored as-is`() {
@@ -43,7 +49,7 @@ class HighlightTimingsTest {
         assertThat(timings.total).isEqualTo(Duration.ZERO)
     }
 
-    // ── Duration conversions ──────────────────────────────────────────────────
+    // ----- Duration conversions -----
 
     @Test
     fun `inWholeMilliseconds converts duration correctly`() {

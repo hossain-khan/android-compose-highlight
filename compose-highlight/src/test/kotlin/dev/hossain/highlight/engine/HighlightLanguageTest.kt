@@ -3,6 +3,13 @@ package dev.hossain.highlight.engine
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 
+/**
+ * JVM unit tests for [HighlightLanguage.fromExtension].
+ *
+ * Verifies that file extension-to-language mappings return the expected
+ * highlight.js language identifiers, handle case-insensitivity, and return
+ * null for unknown or malformed inputs.
+ */
 class HighlightLanguageTest {
     @Test
     fun `fromExtension returns kotlin for kt`() {

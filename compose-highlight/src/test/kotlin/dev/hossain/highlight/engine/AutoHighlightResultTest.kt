@@ -5,6 +5,13 @@ import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 import kotlin.time.Duration
 
+/**
+ * JVM unit tests for [AutoHighlightResult].
+ *
+ * Verifies field storage, detectedLanguage edge cases, equals/hashCode
+ * contract, copy behavior, and toString output for the auto-detection
+ * highlight result data class.
+ */
 class AutoHighlightResultTest {
     private val sampleAnnotated = AnnotatedString("fun hello() = \"world\"")
     private val zeroTimings =

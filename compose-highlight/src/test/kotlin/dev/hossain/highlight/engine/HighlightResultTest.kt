@@ -5,6 +5,13 @@ import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 import kotlin.time.Duration
 
+/**
+ * JVM unit tests for [HighlightResult] and [HighlightTimings].
+ *
+ * Verifies field storage, spanCount semantics (zero vs positive),
+ * language field case-sensitivity, durationMs edge cases, and
+ * timings field propagation.
+ */
 class HighlightResultTest {
     private val sampleAnnotated = AnnotatedString("fun hello() = \"world\"")
     private val zeroTimings =
@@ -17,7 +24,7 @@ class HighlightResultTest {
             total = Duration.ZERO,
         )
 
-    // ── Construction ─────────────────────────────────────────────────────────
+    // ----- Construction -----
 
     @Test
     fun `fields are stored as-is`() {
@@ -37,7 +44,7 @@ class HighlightResultTest {
         assertThat(result.timings).isEqualTo(zeroTimings)
     }
 
-    // ── spanCount semantics ───────────────────────────────────────────────────
+    // ----- spanCount semantics -----
 
     @Test
     fun `spanCount zero signals silent failure`() {
@@ -67,7 +74,7 @@ class HighlightResultTest {
         assertThat(result.spanCount).isGreaterThan(0)
     }
 
-    // ── language field ───────────────────────────────────────────────────────
+    // ----- language field -----
 
     @Test
     fun `language field preserves requested identifier exactly`() {
@@ -91,7 +98,7 @@ class HighlightResultTest {
         assertThat(lower.language).isNotEqualTo(upper.language)
     }
 
-    // ── durationMs semantics ─────────────────────────────────────────────────
+    // ----- durationMs semantics -----
 
     @Test
     fun `durationMs of zero is valid`() {
@@ -108,7 +115,7 @@ class HighlightResultTest {
         assertThat(result.durationMs).isEqualTo(large)
     }
 
-    // ── timings field ─────────────────────────────────────────────────────────
+    // ----- timings field -----
 
     @Test
     fun `timings field is stored as-is`() {
