@@ -16,6 +16,7 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import dev.hossain.highlight.engine.HighlightTheme
+import dev.hossain.highlight.engine.HljsSelectors
 import dev.hossain.highlight.sample.FROM_ASSET_SNIPPET
 import dev.hossain.highlight.sample.KOTLIN_SNIPPET
 import dev.hossain.highlight.ui.SyntaxHighlightedCode
@@ -92,19 +93,19 @@ internal fun ThemeCreationSection() {
                 name = "material3-dark",
                 colorMap =
                     mapOf(
-                        "hljs" to SpanStyle(color = Color(0xFFE6E1E5), background = Color(0xFF1C1B1F)),
-                        "hljs-keyword" to SpanStyle(color = Color(0xFFD0BCFF), fontWeight = FontWeight.Bold),
-                        "hljs-built_in" to SpanStyle(color = Color(0xFFCBA6F7)),
-                        "hljs-string" to SpanStyle(color = Color(0xFF6DD58C)),
-                        "hljs-attr" to SpanStyle(color = Color(0xFF6DD58C)),
-                        "hljs-comment" to SpanStyle(color = Color(0xFF938F99), fontStyle = FontStyle.Italic),
-                        "hljs-quote" to SpanStyle(color = Color(0xFF938F99), fontStyle = FontStyle.Italic),
-                        "hljs-number" to SpanStyle(color = Color(0xFF7FCFFF)),
-                        "hljs-literal" to SpanStyle(color = Color(0xFF7FCFFF)),
-                        "hljs-type" to SpanStyle(color = Color(0xFF80CBC4)),
-                        "hljs-title" to SpanStyle(color = Color(0xFFFFB4AB), fontWeight = FontWeight.Bold),
-                        "hljs-name" to SpanStyle(color = Color(0xFFFFB4AB)),
-                        "hljs-selector-tag" to SpanStyle(color = Color(0xFFFFB4AB)),
+                        HljsSelectors.BASE to SpanStyle(color = Color(0xFFE6E1E5), background = Color(0xFF1C1B1F)),
+                        HljsSelectors.KEYWORD to SpanStyle(color = Color(0xFFD0BCFF), fontWeight = FontWeight.Bold),
+                        HljsSelectors.BUILT_IN to SpanStyle(color = Color(0xFFCBA6F7)),
+                        HljsSelectors.STRING to SpanStyle(color = Color(0xFF6DD58C)),
+                        HljsSelectors.ATTR to SpanStyle(color = Color(0xFF6DD58C)),
+                        HljsSelectors.COMMENT to SpanStyle(color = Color(0xFF938F99), fontStyle = FontStyle.Italic),
+                        HljsSelectors.QUOTE to SpanStyle(color = Color(0xFF938F99), fontStyle = FontStyle.Italic),
+                        HljsSelectors.NUMBER to SpanStyle(color = Color(0xFF7FCFFF)),
+                        HljsSelectors.LITERAL to SpanStyle(color = Color(0xFF7FCFFF)),
+                        HljsSelectors.TYPE to SpanStyle(color = Color(0xFF80CBC4)),
+                        HljsSelectors.TITLE to SpanStyle(color = Color(0xFFFFB4AB), fontWeight = FontWeight.Bold),
+                        HljsSelectors.NAME to SpanStyle(color = Color(0xFFFFB4AB)),
+                        HljsSelectors.SELECTOR_TAG to SpanStyle(color = Color(0xFFFFB4AB)),
                     ),
                 backgroundColor = Color(0xFF1C1B1F),
                 defaultTextColor = Color(0xFFE6E1E5),

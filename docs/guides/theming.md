@@ -85,19 +85,21 @@ val theme = HighlightTheme.fromCss(cssText = rawCss, name = "remote-theme")
 
 ## Custom theme from a color map
 
-Maximum flexibility - derive colors from Material 3 dynamic color, user palettes, or brand colors:
+Maximum flexibility - derive colors from Material 3 dynamic color, user palettes, or brand colors.
+Use `HljsSelectors` constants for known hljs scope keys:
 
 ```kotlin
+import dev.hossain.highlight.engine.HljsSelectors
 import dev.hossain.highlight.engine.HighlightTheme
 
 val lightColors = MaterialTheme.colorScheme
 val theme = HighlightTheme.fromColorMap(
     name             = "material-dynamic-light",
     colorMap         = mapOf(
-        "hljs"          to SpanStyle(color = lightColors.onSurface, background = lightColors.surface),
-        "hljs-keyword"  to SpanStyle(color = lightColors.primary, fontWeight = FontWeight.Bold),
-        "hljs-string"   to SpanStyle(color = lightColors.tertiary),
-        "hljs-comment"  to SpanStyle(color = lightColors.outline, fontStyle = FontStyle.Italic),
+        HljsSelectors.BASE         to SpanStyle(color = lightColors.onSurface, background = lightColors.surface),
+        HljsSelectors.KEYWORD      to SpanStyle(color = lightColors.primary, fontWeight = FontWeight.Bold),
+        HljsSelectors.STRING       to SpanStyle(color = lightColors.tertiary),
+        HljsSelectors.COMMENT      to SpanStyle(color = lightColors.outline, fontStyle = FontStyle.Italic),
     ),
     backgroundColor  = lightColors.surface,
     defaultTextColor = lightColors.onSurface,

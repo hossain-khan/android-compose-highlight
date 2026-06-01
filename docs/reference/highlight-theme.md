@@ -68,6 +68,14 @@ val theme = HighlightTheme.fromCss(
 ## Custom theme from a color map
 
 ```kotlin
+import dev.hossain.highlight.engine.HljsSelectors
+
+val colorMap = mapOf(
+    HljsSelectors.BASE     to SpanStyle(color = Color(0xFF24292E), background = Color(0xFFFFFFFF)),
+    HljsSelectors.KEYWORD  to SpanStyle(color = Color(0xFFD73A49), fontWeight = FontWeight.Bold),
+    HljsSelectors.STRING   to SpanStyle(color = Color(0xFF032F62)),
+    HljsSelectors.COMMENT  to SpanStyle(color = Color(0xFF6A737D), fontStyle = FontStyle.Italic),
+)
 val theme = HighlightTheme.fromColorMap(
     name             = "my-dynamic-theme",
     colorMap         = colorMap,

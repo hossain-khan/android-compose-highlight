@@ -92,11 +92,22 @@ package dev.hossain.highlight.engine
  *
  * ### Usage
  *
- * These constants are used internally by [ThemeParser], [HtmlToAnnotatedString], and
- * [HighlightTheme] to reference the base `"hljs"` selector. Token-specific selectors
- * (like [KEYWORD], [STRING]) are **not** hardcoded in production code - they are
- * discovered dynamically from the theme CSS at runtime. The constants exist here
- * for documentation and for test code that constructs inline color maps.
+ * Use these constants when building color maps for [HighlightTheme.fromColorMap] to avoid
+ * typos and get IDE autocomplete with full KDoc descriptions:
+ *
+ * ```kotlin
+ * val colorMap = mapOf(
+ *     HljsSelectors.BASE     to SpanStyle(color = Color(0xFF24292E), background = Color(0xFFFFFFFF)),
+ *     HljsSelectors.KEYWORD  to SpanStyle(color = Color(0xFFD73A49), fontWeight = FontWeight.Bold),
+ *     HljsSelectors.STRING   to SpanStyle(color = Color(0xFF032F62)),
+ *     HljsSelectors.COMMENT  to SpanStyle(color = Color(0xFF6A737D), fontStyle = FontStyle.Italic),
+ * )
+ * val theme = HighlightTheme.fromColorMap(name = "my-theme", colorMap = colorMap)
+ * ```
+ *
+ * Internally, [ThemeParser] and [HtmlToAnnotatedString] use these constants to reference
+ * known selectors, while token-specific selectors are discovered dynamically from the
+ * theme CSS at runtime.
  *
  * @see ThemeParser
  * @see HtmlToAnnotatedString
@@ -104,7 +115,7 @@ package dev.hossain.highlight.engine
  * @see [hljs CSS Classes Reference](https://highlightjs.readthedocs.io/en/latest/css-classes-reference.html)
  * @see [hljs Theme Guide](https://highlightjs.readthedocs.io/en/latest/theme-guide.html)
  */
-internal object HljsSelectors {
+object HljsSelectors {
     // ----- Base -----
 
     /**
