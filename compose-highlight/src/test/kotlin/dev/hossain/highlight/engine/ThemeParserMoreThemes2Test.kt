@@ -5,6 +5,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.google.common.truth.Truth.assertThat
+import dev.hossain.highlight.engine.internal.ThemeParser
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.annotation.Config

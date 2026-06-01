@@ -1,9 +1,10 @@
-package dev.hossain.highlight.engine
+package dev.hossain.highlight.engine.internal
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
+import dev.hossain.highlight.engine.HljsSelectors
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
 import org.jsoup.nodes.TextNode

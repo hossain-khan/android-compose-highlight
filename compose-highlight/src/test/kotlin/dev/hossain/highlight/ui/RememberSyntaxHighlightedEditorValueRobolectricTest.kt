@@ -10,6 +10,7 @@ import com.google.common.truth.Truth.assertThat
 import dev.hossain.highlight.engine.HighlightEngine
 import dev.hossain.highlight.engine.HighlightException
 import dev.hossain.highlight.engine.HighlightTheme
+import dev.hossain.highlight.ui.internal.LocalHighlightEngine
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith

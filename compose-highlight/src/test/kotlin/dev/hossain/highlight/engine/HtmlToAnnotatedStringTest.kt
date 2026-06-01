@@ -4,6 +4,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.font.FontWeight
 import com.google.common.truth.Truth.assertThat
+import dev.hossain.highlight.engine.internal.HtmlToAnnotatedString
 import org.junit.Test
 
 class HtmlToAnnotatedStringTest {

@@ -9,7 +9,7 @@ import androidx.compose.ui.test.onNodeWithTag
 import com.github.takahirom.roborazzi.RoborazziOptions
 import com.github.takahirom.roborazzi.captureRoboImage
 import dev.hossain.highlight.engine.HighlightEngine
-import dev.hossain.highlight.ui.LocalHighlightEngine
+import dev.hossain.highlight.ui.internal.LocalHighlightEngine
 import org.json.JSONObject
 import org.robolectric.Shadows
 import org.robolectric.shadows.ShadowLooper

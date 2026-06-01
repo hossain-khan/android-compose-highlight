@@ -4,7 +4,7 @@ import androidx.benchmark.junit4.BenchmarkRule
 import androidx.benchmark.junit4.measureRepeated
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
-import dev.hossain.highlight.engine.ThemeParser
+import dev.hossain.highlight.engine.internal.ThemeParser
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test

@@ -9,6 +9,7 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.platform.LocalContext
 import dev.hossain.highlight.engine.HighlightEngine
 import dev.hossain.highlight.engine.HighlightTheme
+import dev.hossain.highlight.ui.internal.LocalHighlightEngine
 
 /**
  * CompositionLocal that provides the active [HighlightTheme] to all [SyntaxHighlightedCode]
@@ -55,14 +56,6 @@ val LocalDarkHighlightTheme =
                 "Wrap your content in HighlightThemeProvider { ... }.",
         )
     }
-
-/**
- * Internal CompositionLocal that carries the shared [HighlightEngine] provided by
- * [HighlightThemeProvider]. Defaults to `null` so that [rememberHighlightEngine] can detect
- * whether it is inside a provider and fall back to creating a standalone engine.
- */
-internal val LocalHighlightEngine =
-    staticCompositionLocalOf<HighlightEngine?> { null }
 
 /**
  * Provides [HighlightTheme] and a shared [HighlightEngine] to all [SyntaxHighlightedCode]
@@ -186,3 +179,75 @@ fun HighlightThemeProvider(
         content()
     }
 }
+
+/**
+ * Creates and remembers the built-in Base16 Tomorrow (light) [HighlightTheme].
+ *
+ * Backed by a precompiled color map generated at build time, so no CSS parsing happens at
+ * runtime and no [android.content.Context] is needed.
+ *
+ * ```kotlin
+ * HighlightThemeProvider(
+ *     lightHighlightTheme = rememberTomorrowTheme(),
+ *     darkHighlightTheme  = rememberAtomOneDarkTheme(),
+ * ) { ... }
+ * ```
+ *
+ * @return A stable [HighlightTheme] instance remembered across recompositions.
+ */
+@Composable
+fun rememberTomorrowTheme(): HighlightTheme = remember { HighlightTheme.tomorrow() }
+
+/**
+ * Creates and remembers the built-in Base16 Tomorrow Night (dark) [HighlightTheme].
+ *
+ * Backed by a precompiled color map generated at build time, so no CSS parsing happens at
+ * runtime and no [android.content.Context] is needed.
+ *
+ * ```kotlin
+ * val result by rememberHighlightedCodeBothThemes(
+ *     code       = code,
+ *     language   = "kotlin",
+ *     lightTheme = rememberTomorrowTheme(),
+ *     darkTheme  = rememberTomorrowNightTheme(),
+ * )
+ * ```
+ *
+ * @return A stable [HighlightTheme] instance remembered across recompositions.
+ */
+@Composable
+fun rememberTomorrowNightTheme(): HighlightTheme = remember { HighlightTheme.tomorrowNight() }
+
+/**
+ * Creates and remembers the built-in Atom One Dark [HighlightTheme].
+ *
+ * Backed by a precompiled color map generated at build time, so no CSS parsing happens at
+ * runtime and no [android.content.Context] is needed.
+ *
+ * ```kotlin
+ * HighlightThemeProvider(
+ *     darkHighlightTheme = rememberAtomOneDarkTheme(),
+ * ) { ... }
+ * ```
+ *
+ * @return A stable [HighlightTheme] instance remembered across recompositions.
+ */
+@Composable
+fun rememberAtomOneDarkTheme(): HighlightTheme = remember { HighlightTheme.atomOneDark() }
+
+/**
+ * Creates and remembers the built-in Atom One Light [HighlightTheme].
+ *
+ * Backed by a precompiled color map generated at build time, so no CSS parsing happens at
+ * runtime and no [android.content.Context] is needed.
+ *
+ * ```kotlin
+ * HighlightThemeProvider(
+ *     lightHighlightTheme = rememberAtomOneLightTheme(),
+ * ) { ... }
+ * ```
+ *
+ * @return A stable [HighlightTheme] instance remembered across recompositions.
+ */
+@Composable
+fun rememberAtomOneLightTheme(): HighlightTheme = remember { HighlightTheme.atomOneLight() }

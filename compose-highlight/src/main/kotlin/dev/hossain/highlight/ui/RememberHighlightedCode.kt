@@ -1,0 +1,205 @@
+package dev.hossain.highlight.ui
+
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.State
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.ui.platform.LocalInspectionMode
+import androidx.compose.ui.text.AnnotatedString
+import dev.hossain.highlight.engine.HighlightException
+import dev.hossain.highlight.engine.HighlightResult
+import dev.hossain.highlight.engine.HighlightTheme
+import dev.hossain.highlight.engine.ThemedHighlightResult
+
+/**
+ * Pre-highlights [code] and remembers the resulting [AnnotatedString].
+ *
+ * Returns `null` while highlighting is in progress **or** if highlighting failed. Callers
+ * should always render a plain-text fallback when the state is `null`.
+ *
+ * Re-runs automatically when [code], [language], or [theme] changes.
+ *
+ * ## Usage
+ *
+ * ```kotlin
+ * @Composable
+ * fun CodeSnippet(code: String, language: String) {
+ *     val highlighted by rememberHighlightedCode(code, language)
+ *
+ *     // highlighted is null while loading or if highlighting failed;
+ *     // fall back to plain text in that case
+ *     Text(
+ *         text  = highlighted ?: AnnotatedString(code),
+ *         style = TextStyle(fontFamily = FontFamily.Monospace),
+ *     )
+ * }
+ * ```
+ *
+ * ## Theme creation
+ *
+ * Built-in themes are precompiled and need no [android.content.Context]:
+ *
+ * ```kotlin
+ * val theme = remember { HighlightTheme.tomorrow() }
+ * val highlighted by rememberHighlightedCode(code, "kotlin", theme)
+ * ```
+ *
+ * For custom CSS-backed themes, wrap creation in `remember` so CSS parsing does not repeat on
+ * every recomposition. Or use the built-in convenience functions which handle this internally:
+ *
+ * ```kotlin
+ * val highlighted by rememberHighlightedCode(code, "kotlin", rememberTomorrowTheme())
+ * ```
+ *
+ * For light/dark toggling without re-highlighting, prefer [rememberHighlightedCodeBothThemes].
+ *
+ * @param code The source code to highlight.
+ * @param language The Highlight.js language identifier (e.g. `"python"`, `"kotlin"`).
+ * @param theme The theme to apply. Defaults to [LocalHighlightTheme].
+ * @param onHighlightComplete Optional callback invoked with a [HighlightResult] when highlighting
+ *   succeeds. Fires after the [State] is updated. Not called on failure.
+ * @param onError Optional callback invoked with the [HighlightException] when highlighting fails.
+ *   Use this to log failures, show a snackbar, or record analytics. The plain-text fallback
+ *   is always displayed regardless of whether this callback is set - it is purely observational.
+ *   Use [rememberUpdatedState] semantics: the latest lambda is always called without restarting
+ *   the effect. The [HighlightException] subtypes give you typed error info:
+ *   - [HighlightException.Timeout] - JS call did not complete in time
+ *   - [HighlightException.JsExecutionFailed] - JavaScript error
+ *   - [HighlightException.WebViewInitFailed] - WebView could not be created
+ *   - [HighlightException.HtmlParseFailed] - jsoup could not parse the highlight output
+ *
+ *   ```kotlin
+ *   val highlighted by rememberHighlightedCode(
+ *       code = myCode,
+ *       language = userInput,
+ *       onError = { error ->
+ *           Log.w("Highlight", "Failed to highlight: ${error.message}")
+ *       },
+ *   )
+ *   ```
+ * @return A [State] holding the highlighted [AnnotatedString], or `null` while loading / on error.
+ */
+@Composable
+fun rememberHighlightedCode(
+    code: String,
+    language: String,
+    theme: HighlightTheme = LocalHighlightTheme.current,
+    onHighlightComplete: ((HighlightResult) -> Unit)? = null,
+    onError: ((HighlightException) -> Unit)? = null,
+): State<AnnotatedString?> {
+    val engine = rememberHighlightEngine()
+    val state = remember(code, language, theme) { mutableStateOf<AnnotatedString?>(null) }
+    val latestCallback = rememberUpdatedState(onHighlightComplete)
+    val latestErrorCallback = rememberUpdatedState(onError)
+
+    // In Android Studio Preview, WebView-based highlighting is not available.
+    // Skip the LaunchedEffect so the engine is never called; callers will render a fallback.
+    if (!LocalInspectionMode.current) {
+        LaunchedEffect(code, language, theme) {
+            state.value = null
+            engine
+                .highlight(code, language, theme)
+                .onSuccess { result ->
+                    state.value = result.annotated
+                    latestCallback.value?.invoke(result)
+                }.onFailure { error ->
+                    // Invoke onError with the typed HighlightException.
+                    // All failures from HighlightEngine are HighlightException subtypes.
+                    (error as? HighlightException)?.let { latestErrorCallback.value?.invoke(it) }
+                    // Leave state.value = null so the caller renders plain fallback.
+                }
+        }
+    }
+
+    return state
+}
+
+/**
+ * Pre-highlights [code] for both light and dark themes in a single JS call.
+ *
+ * Unlike calling [rememberHighlightedCode] twice, this runs the JavaScript tokeniser **once**
+ * and applies two colour maps to the same HTML output. Theme switching after the result is
+ * available is instant - no re-highlighting is needed.
+ *
+ * Returns `null` while highlighting is in progress or if it failed.
+ *
+ * ## Usage inside a `HighlightThemeProvider`
+ *
+ * When called inside a [HighlightThemeProvider], light and dark themes are picked up
+ * automatically from [LocalLightHighlightTheme] and [LocalDarkHighlightTheme]:
+ *
+ * ```kotlin
+ * HighlightThemeProvider {
+ *     val result by rememberHighlightedCodeBothThemes(code = code, language = "kotlin")
+ *     val text = if (isDark) result?.dark else result?.light
+ *     Text(text = text ?: AnnotatedString(code))
+ * }
+ * ```
+ *
+ * ## Usage outside a provider (explicit themes)
+ *
+ * ```kotlin
+ * @Composable
+ * fun CodeSnippet(code: String, isDark: Boolean) {
+ *     val result by rememberHighlightedCodeBothThemes(
+ *         code       = code,
+ *         language   = "kotlin",
+ *         lightTheme = rememberTomorrowTheme(),
+ *         darkTheme  = rememberTomorrowNightTheme(),
+ *     )
+ *     val text = if (isDark) result?.dark else result?.light
+ *     Text(text = text ?: AnnotatedString(code))
+ * }
+ * ```
+ *
+ * @param code The source code to highlight.
+ * @param language The Highlight.js language identifier (e.g. `"python"`, `"kotlin"`).
+ * @param lightTheme Theme to apply for the light variant. Defaults to [LocalLightHighlightTheme]
+ *   (available inside [HighlightThemeProvider]). Create inside `remember` to avoid
+ *   re-parsing CSS on every recomposition.
+ * @param darkTheme Theme to apply for the dark variant. Defaults to [LocalDarkHighlightTheme]
+ *   (available inside [HighlightThemeProvider]). Create inside `remember` to avoid
+ *   re-parsing CSS on every recomposition.
+ * @param onHighlightComplete Optional callback invoked with a [ThemedHighlightResult] when
+ *   highlighting succeeds. Fires after the [State] is updated. Not called on failure. Use
+ *   `result.durationMs` for timing, `result.light.spanStyles.size` for span count.
+ * @param onError Optional callback invoked with the [HighlightException] when highlighting fails.
+ *   The plain-text fallback is always displayed regardless - this callback is purely observational.
+ * @return A [State] holding a [ThemedHighlightResult] with both variants (including
+ *   [ThemedHighlightResult.durationMs] for timing), or `null` while loading / on error.
+ */
+@Composable
+fun rememberHighlightedCodeBothThemes(
+    code: String,
+    language: String,
+    lightTheme: HighlightTheme = LocalLightHighlightTheme.current,
+    darkTheme: HighlightTheme = LocalDarkHighlightTheme.current,
+    onHighlightComplete: ((ThemedHighlightResult) -> Unit)? = null,
+    onError: ((HighlightException) -> Unit)? = null,
+): State<ThemedHighlightResult?> {
+    val engine = rememberHighlightEngine()
+    val state = remember(code, language, lightTheme, darkTheme) { mutableStateOf<ThemedHighlightResult?>(null) }
+    val latestCallback = rememberUpdatedState(onHighlightComplete)
+    val latestErrorCallback = rememberUpdatedState(onError)
+
+    // In Android Studio Preview, WebView-based highlighting is not available.
+    // Skip the LaunchedEffect so the engine is never called; callers will render a fallback.
+    if (!LocalInspectionMode.current) {
+        LaunchedEffect(code, language, lightTheme, darkTheme) {
+            state.value = null
+            engine
+                .highlightBothThemes(code, language, lightTheme, darkTheme)
+                .onSuccess { result ->
+                    state.value = result
+                    latestCallback.value?.invoke(result)
+                }.onFailure { error ->
+                    (error as? HighlightException)?.let { latestErrorCallback.value?.invoke(it) }
+                    // Leave state.value = null so the caller renders plain fallback.
+                }
+        }
+    }
+
+    return state
+}

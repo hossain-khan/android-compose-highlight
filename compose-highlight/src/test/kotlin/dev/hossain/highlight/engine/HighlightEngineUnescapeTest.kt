@@ -1,6 +1,7 @@
 package dev.hossain.highlight.engine
 
 import com.google.common.truth.Truth.assertThat
+import dev.hossain.highlight.engine.internal.unescapeJsString
 import org.junit.Test
 
 /**
