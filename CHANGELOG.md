@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.26.0] - 2026-06-01
+
 ### Changed (Breaking)
 
 - **Library file layout reorganized for stable release** - implementation-only types now

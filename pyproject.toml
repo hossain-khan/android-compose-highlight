@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "android-compose-highlight-docs"
 description = "Documentation site for Compose Highlight for Android"
-version = "0.25.0"
+version = "0.26.0"
 dependencies = [
     # https://github.com/zensical/zensical/releases
     # https://pypi.org/project/zensical/
