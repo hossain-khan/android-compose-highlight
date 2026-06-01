@@ -216,7 +216,7 @@ object HljsSelectors {
     /** Single-line and multi-line comments. */
     const val COMMENT = "hljs-comment"
 
-    /** Documentation markup within comments (e.g. `@params`). */
+    /** Documentation markup within comments (e.g. `@param`). */
     const val DOCTAG = "hljs-doctag"
 
     // ----- Title subscopes -----
