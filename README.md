@@ -20,7 +20,7 @@ dependencies {
 ```kotlin
 HighlightThemeProvider(
     lightHighlightTheme = rememberTomorrowTheme(),
-    darkHighlightTheme  = rememberAtomOneDarkTheme(),
+    darkHighlightTheme = rememberTomorrowNightTheme(),
 ) {
     SyntaxHighlightedCode(
         code            = "data class Config(val enableHighlight: Boolean = true)",
