@@ -137,13 +137,34 @@ internal fun escapeForJs(str: String): String {
     val sb = StringBuilder(str.length + 8)
     for (c in str) {
         when (c) {
-            '\\' -> sb.append("\\\\")
-            '\'' -> sb.append("\\'")
-            '\n' -> sb.append("\\n")
-            '\r' -> sb.append("\\r")
-            '\t' -> sb.append("\\t")
-            '\u2028' -> sb.append("\\u2028")
-            '\u2029' -> sb.append("\\u2029")
+            '\\' -> {
+                sb.append("\\\\")
+            }
+
+            '\'' -> {
+                sb.append("\\'")
+            }
+
+            '\n' -> {
+                sb.append("\\n")
+            }
+
+            '\r' -> {
+                sb.append("\\r")
+            }
+
+            '\t' -> {
+                sb.append("\\t")
+            }
+
+            '\u2028' -> {
+                sb.append("\\u2028")
+            }
+
+            '\u2029' -> {
+                sb.append("\\u2029")
+            }
+
             else -> {
                 val code = c.code
                 if (code in 0x00..0x1F) {
