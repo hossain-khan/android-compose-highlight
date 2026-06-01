@@ -40,7 +40,7 @@ import kotlin.time.Duration
  *
  * @property jsBridge Time for the `evaluateJavascript()` round-trip - from immediately before
  *   the call to when the JS result callback fires. Excludes WebView warm-up and mutex-wait time.
- * @property jsonUnescape Time for [unescapeJsString] - the character-by-character pass that
+ * @property jsonUnescape Time for `unescapeJsString` - the character-by-character pass that
  *   strips JSON encoding from the string returned by the JS engine.
  * @property htmlParse Time for `Jsoup.parseBodyFragment()` - parsing the highlight.js HTML
  *   output into a DOM tree.

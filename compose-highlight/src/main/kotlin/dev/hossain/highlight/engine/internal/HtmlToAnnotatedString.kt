@@ -4,6 +4,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
+import dev.hossain.highlight.engine.HighlightEngine
+import dev.hossain.highlight.engine.HighlightTimings
 import dev.hossain.highlight.engine.HljsSelectors
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
