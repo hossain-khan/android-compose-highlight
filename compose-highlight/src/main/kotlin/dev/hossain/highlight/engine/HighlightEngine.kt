@@ -36,7 +36,7 @@ import kotlin.time.measureTimedValue
  *    an HTML string where each token is wrapped in a `<span class="hljs-keyword">` (or similar).
  *    highlight.js only assigns class names - it does not apply any colors itself.
  *
- * 2. **Resolves colors** - [HighlightTheme] lazily parses its CSS file via [ThemeParser], which
+ * 2. **Resolves colors** - [HighlightTheme] lazily parses its CSS file with the theme parser, which
  *    translates CSS rules like `.hljs-keyword { color: #7928a1 }` into a map of
  *    `"hljs-keyword" -> SpanStyle(color=Color(0xFF7928a1))`. This is the bridge between
  *    CSS-based theming and Compose's styling model.

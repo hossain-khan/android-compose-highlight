@@ -18,7 +18,7 @@ import kotlin.time.Duration
  * | [jsonUnescape] | `unescapeJsString()` pass over the returned JSON string |
  * | [htmlParse] | `Jsoup.parseBodyFragment()` - HTML to DOM |
  * | [treeWalk] | DOM node walk + `SpanStyle` lookup from theme color map |
- * | [themeParse] | `ThemeParser.parse()` - first-use only; [Duration.ZERO] on cache hits |
+ * | [themeParse] | Theme CSS parsing - first-use only; [Duration.ZERO] on cache hits |
  * | [total] | End-to-end time for the full highlight call |
  *
  * ## Usage
@@ -46,7 +46,7 @@ import kotlin.time.Duration
  *   output into a DOM tree.
  * @property treeWalk Time for the DOM tree walk and [androidx.compose.ui.text.SpanStyle]
  *   application loop that builds the [androidx.compose.ui.text.AnnotatedString].
- * @property themeParse Time for [ThemeParser.parse] - CSS parsing on first use of a
+ * @property themeParse Time for theme CSS parsing on first use of a
  *   [HighlightTheme]. [Duration.ZERO] on all subsequent calls for the same theme instance
  *   because the color map is lazily computed and cached.
  * @property total Full elapsed wall-clock time for the [HighlightEngine.highlight] call.

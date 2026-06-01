@@ -26,7 +26,7 @@ import kotlin.math.roundToInt
  * is sufficient. At-rule blocks (e.g. `@media`, `@supports`) are stripped before parsing to
  * prevent inner rules from overwriting top-level color declarations.
  */
-object ThemeParser {
+internal object ThemeParser {
     /**
      * Parses a CSS theme file from assets into a color map.
      * Results are not cached here - callers should use [lazy] to cache per theme.
