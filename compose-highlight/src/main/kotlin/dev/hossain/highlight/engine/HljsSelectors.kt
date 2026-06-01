@@ -247,7 +247,7 @@ object HljsSelectors {
     const val META_STRING = "hljs-meta-string"
 
     /** REPL or shell prompts. */
-    const val META_PROMPT = "hljs-meta.prompt"
+    const val META_PROMPT = "hljs-meta.prompt_"
 
     // ----- Tags, attributes, configs -----
 
