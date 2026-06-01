@@ -130,4 +130,9 @@ class HighlightEngineEscapeTest {
         val expected = "a\\\\\\n\\'\\r\\t\\u0000\\u001b\\u2028\\u2029b"
         assertThat(escapeForJs(input)).isEqualTo(expected)
     }
+
+    @Test
+    fun `emoji and regular ascii remain unchanged`() {
+        assertThat(escapeForJs("A🙂Z")).isEqualTo("A🙂Z")
+    }
 }

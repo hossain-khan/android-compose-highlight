@@ -57,6 +57,14 @@ All notable changes to this project will be documented in this file.
   public so consuming apps can use the constants when building color maps for
   `HighlightTheme.fromColorMap`. Closes #261.
 
+### Performance
+
+- **`escapeForJs` single-pass rewrite** - replaced chained `String.replace` calls with a
+  single character-by-character `StringBuilder` pass in `JsStringEscape.kt`. This avoids
+  repeated full-string rescans and intermediate allocations in the editor highlight loop.
+  Removed the now-unnecessary `CONTROL_CHAR_REGEX`. Added boundary test coverage for mixed
+  ASCII + emoji pass-through. Fixes #266.
+
 ### Tests
 
 - **`HljsSelectorsParserTest`** - New JVM unit test class verifying that `ThemeParser` correctly
