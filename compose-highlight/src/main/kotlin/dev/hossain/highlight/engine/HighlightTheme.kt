@@ -61,13 +61,14 @@ import kotlin.time.measureTimedValue
  * ## Custom theme from a precomputed color map
  *
  * For maximum control - e.g. deriving colors from Material 3 dynamic color or any other
- * source - you can supply the color map directly:
+ * source - you can supply the color map directly. Use [HljsSelectors] constants for
+ * known hljs scope keys:
  *
  * ```kotlin
  * val colorMap: Map<String, SpanStyle> = mapOf(
- *     "hljs"          to SpanStyle(color = Color(0xFF24292E), background = Color(0xFFFFFFFF)),
- *     "hljs-keyword"  to SpanStyle(color = Color(0xFFD73A49), fontWeight = FontWeight.Bold),
- *     "hljs-string"   to SpanStyle(color = Color(0xFF032F62)),
+ *     HljsSelectors.BASE         to SpanStyle(color = Color(0xFF24292E), background = Color(0xFFFFFFFF)),
+ *     HljsSelectors.KEYWORD      to SpanStyle(color = Color(0xFFD73A49), fontWeight = FontWeight.Bold),
+ *     HljsSelectors.STRING       to SpanStyle(color = Color(0xFF032F62)),
  *     // ... add more token types as needed
  * )
  * val theme = HighlightTheme.fromColorMap(
@@ -331,12 +332,17 @@ class HighlightTheme private constructor(
          * to derive [HighlightTheme.backgroundColor] and [HighlightTheme.defaultTextColor]; you
          * can also override those explicitly via [backgroundColor] and [defaultTextColor].
          *
+         * Use the constants in [HljsSelectors] for known hljs scope keys to avoid typos and get
+         * IDE autocomplete. The full set of available scopes is documented in that object with
+         * `@see` links to the official hljs CSS Classes Reference.
+         *
          * ```kotlin
          * val colorMap = mapOf(
-         *     "hljs"         to SpanStyle(color = Color(0xFF24292E), background = Color(0xFFFFFFFF)),
-         *     "hljs-keyword" to SpanStyle(color = Color(0xFFD73A49), fontWeight = FontWeight.Bold),
-         *     "hljs-string"  to SpanStyle(color = Color(0xFF032F62)),
-         *     "hljs-comment" to SpanStyle(color = Color(0xFF6A737D), fontStyle = FontStyle.Italic),
+         *     HljsSelectors.BASE          to SpanStyle(color = Color(0xFF24292E), background = Color(0xFFFFFFFF)),
+         *     HljsSelectors.KEYWORD       to SpanStyle(color = Color(0xFFD73A49), fontWeight = FontWeight.Bold),
+         *     HljsSelectors.STRING        to SpanStyle(color = Color(0xFF032F62)),
+         *     HljsSelectors.COMMENT       to SpanStyle(color = Color(0xFF6A737D), fontStyle = FontStyle.Italic),
+         *     HljsSelectors.TITLE_FUNCTION to SpanStyle(color = Color(0xFF6F42C1)),
          *     // ... add more token types as needed
          * )
          * val theme = HighlightTheme.fromColorMap(
@@ -348,7 +354,8 @@ class HighlightTheme private constructor(
          * ```
          *
          * @param name Display name for the theme.
-         * @param colorMap Map of hljs class name → [SpanStyle].
+         * @param colorMap Map of hljs class name → [SpanStyle]. Use [HljsSelectors] constants
+         *   for known scopes (e.g. `HljsSelectors.KEYWORD` instead of `"hljs-keyword"`).
          * @param backgroundColor Optional explicit background color. If null, derived from `colorMap["hljs"]`.
          * @param defaultTextColor Optional explicit default text color. If null, derived from `colorMap["hljs"]`.
          * @return A [HighlightTheme] backed by the provided [colorMap].
