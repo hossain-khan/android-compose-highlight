@@ -14,7 +14,7 @@ All notable changes to this project will be documented in this file.
 
 - **Enhanced `HljsSelectors` with all official hljs scopes** - reorganized constants by official
   highlight.js categories (General purpose, Title subscopes, Meta, Tags/attributes, CSS selectors,
-  Text markup, Templates, Diff, Other) and added 23 new selectors missing from the original
+  Text markup, Templates, Diff, Other) and added 22 new selectors missing from the original
   extraction: `PUNCTUATION`, `PROPERTY`, `CHAR`, `CHAR_ESCAPE`, `SUBST`, `VARIABLE_LANGUAGE`,
   `VARIABLE_CONSTANT`, `TITLE_CLASS`, `TITLE_CLASS_INHERITED`, `TITLE_FUNCTION_INVOKE`,
   `META_KEYWORD`, `META_STRING`, `META_PROMPT`, `SELECTOR_ID`, `SELECTOR_CLASS`,

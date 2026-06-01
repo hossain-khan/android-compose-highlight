@@ -68,7 +68,12 @@ val theme = HighlightTheme.fromCss(
 ## Custom theme from a color map
 
 ```kotlin
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
 import dev.hossain.highlight.engine.HljsSelectors
+import dev.hossain.highlight.engine.HighlightTheme
 
 val colorMap = mapOf(
     HljsSelectors.BASE     to SpanStyle(color = Color(0xFF24292E), background = Color(0xFFFFFFFF)),

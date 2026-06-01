@@ -18,7 +18,8 @@ package dev.hossain.highlight.engine
  *   and [HighlightTheme.defaultTextColor] to derive theme-level defaults.
  *
  * ### General purpose selectors
- * These appear in nearly all highlight.js themes:
+ * These cover the most common token types. Some (OPERATOR, PUNCTUATION, PROPERTY)
+ * are newer scopes and may not be present in all themes:
  * - [KEYWORD] - Language keywords (`if`, `for`, `fun`, `def`, etc.)
  * - [BUILT_IN] - Built-in or library objects (constants, classes, functions)
  * - [TYPE] - Data types (`string`, `int`, `array`, etc.)
@@ -106,9 +107,9 @@ package dev.hossain.highlight.engine
  * val theme = HighlightTheme.fromColorMap(name = "my-theme", colorMap = colorMap)
  * ```
  *
- * Internally, [ThemeParser] and [HtmlToAnnotatedString] use these constants to reference
- * known selectors, while token-specific selectors are discovered dynamically from the
- * theme CSS at runtime.
+ * Internally, [HighlightTheme] and [HtmlToAnnotatedString] use [BASE] to derive the
+ * default text and background colors. All other selectors are discovered dynamically
+ * from the theme CSS at runtime.
  *
  * @see ThemeParser
  * @see HtmlToAnnotatedString
