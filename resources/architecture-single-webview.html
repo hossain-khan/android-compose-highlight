@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Architecture: Single-WebView Sharing — compose-highlight</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: #1d1d1f; background: #fff; line-height: 1.7;
+    max-width: 1080px; margin: 0 auto; padding: 48px 24px 80px;
+  }
+  h1 { font-size: 2rem; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 4px; }
+  .subtitle { color: #6e6e73; font-size: 0.95rem; margin-bottom: 32px; }
+  a { color: #0066cc; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  h2 {
+    font-size: 1.45rem; font-weight: 600; margin: 56px 0 18px;
+    padding-bottom: 10px; border-bottom: 1px solid #e5e5e7;
+  }
+  h3 { font-size: 1.15rem; font-weight: 600; margin: 36px 0 12px; color: #1d1d1f; }
+  h4 { font-size: 0.98rem; font-weight: 600; margin: 24px 0 8px; color: #4b4b51; }
+  p { margin-bottom: 14px; }
+  code {
+    font-family: "SF Mono", "Fira Code", Menlo, Consolas, monospace;
+    font-size: 0.84em; background: #f5f5f7; padding: 2px 6px; border-radius: 4px;
+    color: #d63384;
+  }
+  pre {
+    background: #f8f8fa; border: 1px solid #ececef; border-radius: 6px;
+    padding: 16px 18px; overflow-x: auto; margin: 12px 0 22px;
+    font-family: "SF Mono", "Fira Code", Menlo, Consolas, monospace; font-size: 0.85em;
+    line-height: 1.55;
+  }
+  pre code { background: none; padding: 0; color: #1d1d1f; font-size: inherit; }
+  ul, ol { margin: 10px 0 18px 28px; }
+  li { margin-bottom: 6px; }
+  blockquote {
+    border-left: 3px solid #0066cc; padding: 12px 18px; margin: 16px 0;
+    background: #f0f6ff; border-radius: 0 4px 4px 0; color: #1d1d1f;
+  }
+  table {
+    border-collapse: collapse; width: 100%; margin: 16px 0 24px;
+    font-size: 0.92rem;
+  }
+  th, td {
+    border: 1px solid #e5e5e7; padding: 10px 14px; text-align: left;
+    vertical-align: top;
+  }
+  th { background: #f5f5f7; font-weight: 600; }
+  .lede {
+    font-size: 1.05rem; color: #4b4b51; margin-bottom: 12px;
+    padding: 14px 18px; background: #f8f8fa; border-radius: 6px;
+    border-left: 3px solid #6e6e73;
+  }
+  .diagram {
+    margin: 24px 0;
+    padding: 20px;
+    background: #fbfbfd;
+    border: 1px solid #ececef;
+    border-radius: 8px;
+    overflow-x: auto;
+  }
+  .diagram-caption {
+    font-size: 0.85rem; color: #6e6e73; text-align: center;
+    margin-top: 10px; font-style: italic;
+  }
+  .stat-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 14px; margin: 18px 0 24px;
+  }
+  .stat {
+    padding: 18px; border-radius: 8px;
+    background: linear-gradient(135deg, #f0f6ff 0%, #e8f0fe 100%);
+    border: 1px solid #cfe2ff;
+  }
+  .stat-label { font-size: 0.78rem; color: #4b4b51; text-transform: uppercase;
+                letter-spacing: 0.05em; margin-bottom: 4px; }
+  .stat-value { font-size: 1.4rem; font-weight: 700; color: #0066cc; }
+  .stat-detail { font-size: 0.85rem; color: #4b4b51; margin-top: 4px; }
+  .stat.warn {
+    background: linear-gradient(135deg, #fff4e6 0%, #ffe8cc 100%);
+    border-color: #ffcc80;
+  }
+  .stat.warn .stat-value { color: #b46e00; }
+  .key-points {
+    background: #fff9e6; border: 1px solid #ffe082; border-radius: 8px;
+    padding: 16px 18px; margin: 22px 0;
+  }
+  .key-points h4 { margin-top: 0; color: #5b3a00; }
+  .key-points ul { margin-bottom: 0; }
+  .file-ref {
+    font-family: "SF Mono", "Fira Code", Menlo, Consolas, monospace;
+    font-size: 0.82em; color: #6e6e73;
+  }
+  .mermaid {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    if (window.mermaid) {
+      mermaid.initialize({
+        startOnLoad: true,
+        theme: "base",
+        themeVariables: {
+          primaryColor: "#e8f0fe",
+          primaryTextColor: "#1d1d1f",
+          primaryBorderColor: "#0066cc",
+          lineColor: "#6e6e73",
+          secondaryColor: "#fff4e6",
+          tertiaryColor: "#f0f6ff",
+          fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+          fontSize: "14px"
+        },
+        flowchart: { useMaxWidth: true, htmlLabels: true, curve: "basis" },
+        sequence: { useMaxWidth: true, mirrorActors: false, showSequenceNumbers: true }
+      });
+    }
+  });
+</script>
+</head>
+<body>
+
+<h1>Single-WebView Architecture</h1>
+<p class="subtitle"><code>compose-highlight</code> &middot; how one hidden WebView serves N code blocks per screen</p>
+
+<p class="lede">
+  <code>HighlightThemeProvider</code> creates exactly one <code>HighlightEngine</code> &mdash; and therefore one hidden <code>WebView</code> &mdash; for its entire content subtree.
+  Every <code>SyntaxHighlightedCode</code>, <code>SyntaxHighlightedTextEditor</code>, and <code>rememberHighlightedCode</code> call inside that subtree shares it automatically through a single
+  routing function: <code>rememberHighlightEngine()</code>.
+</p>
+
+<h2>The numbers, measured</h2>
+
+<p>From the <code>HighlightThemeProvider</code> KDoc, on a Pixel 8 Pro debug build, cold start, screen with 17 highlighted code blocks:</p>
+
+<div class="stat-grid">
+  <div class="stat">
+    <div class="stat-label">With provider</div>
+    <div class="stat-value">~224 ms</div>
+    <div class="stat-detail">total highlight time &middot; 1 WebView</div>
+  </div>
+  <div class="stat warn">
+    <div class="stat-label">Without provider</div>
+    <div class="stat-value">~866 ms</div>
+    <div class="stat-detail">total highlight time &middot; 17 WebViews</div>
+  </div>
+  <div class="stat">
+    <div class="stat-label">With provider</div>
+    <div class="stat-value">~15 MB</div>
+    <div class="stat-detail">heap usage</div>
+  </div>
+  <div class="stat warn">
+    <div class="stat-label">Without provider</div>
+    <div class="stat-value">~34 MB</div>
+    <div class="stat-detail">heap usage</div>
+  </div>
+</div>
+
+<p>Roughly <strong>4&times; faster</strong> and <strong>55% less heap</strong>. The savings come from three places: one <code>WebView</code> allocation instead of N, one <code>bridge.html</code> parse plus <code>highlight.min.js</code> load instead of N, and one warm V8 isolate reused across calls.</p>
+
+<h2>The layered architecture</h2>
+
+<p>Every component flows downward from the provider to the engine to the single <code>WebView</code>:</p>
+
+<div class="diagram">
+<div class="mermaid">
+flowchart TD
+    Provider["HighlightThemeProvider<br/><span style='font-size:0.85em;color:#6e6e73'>Composable, public</span>"]
+    RememberEngine["remember &#123; HighlightEngine(appCtx) &#125;<br/><span style='font-size:0.85em;color:#6e6e73'>1 engine per provider</span>"]
+    Dispose["DisposableEffect<br/>onDispose &#123; engine.destroy() &#125;"]
+    LocalProvider["CompositionLocalProvider"]
+    LE["LocalHighlightEngine<br/><span style='font-size:0.8em;color:#6e6e73'>internal</span>"]
+    LT["LocalHighlightTheme<br/>+ Light / Dark<br/><span style='font-size:0.8em;color:#6e6e73'>public</span>"]
+    Content["content() &mdash; subtree"]
+    Code["SyntaxHighlightedCode<br/>SyntaxHighlightedTextEditor"]
+    Helpers["rememberHighlightedCode<br/>rememberSyntaxHighlightedEditorValue"]
+    Routing["rememberHighlightEngine()<br/><span style='font-size:0.85em;color:#0066cc;font-weight:600'>the routing point</span>"]
+    Engine["HighlightEngine<br/><span style='font-size:0.85em;color:#6e6e73'>1 instance, shared</span>"]
+    Mutex["Mutex<br/><span style='font-size:0.8em;color:#6e6e73'>serializes JS calls</span>"]
+    Manager["WebViewManager"]
+    WebView["WebView<br/><span style='font-size:0.85em;color:#b46e00;font-weight:600'>1 hidden view</span>"]
+    Deferred["readyDeferred<br/><span style='font-size:0.8em;color:#6e6e73'>page-load gate</span>"]
+
+    Provider --&gt; RememberEngine
+    Provider --&gt; Dispose
+    Provider --&gt; LocalProvider
+    LocalProvider --&gt; LE
+    LocalProvider --&gt; LT
+    LocalProvider --&gt; Content
+    Content --&gt; Code
+    Code --&gt; Helpers
+    Helpers --&gt; Routing
+    Routing --&gt; Engine
+    LE -.provides.-&gt; Routing
+    Engine --&gt; Mutex
+    Engine --&gt; Manager
+    Manager --&gt; WebView
+    Manager --&gt; Deferred
+
+    classDef shared fill:#fff4e6,stroke:#b46e00,stroke-width:2px;
+    classDef route fill:#e8f0fe,stroke:#0066cc,stroke-width:2px;
+    class Engine,WebView,Mutex,Manager shared;
+    class Routing route;
+</div>
+<div class="diagram-caption">Top-down composition: the provider creates the engine; descendants reach it via <code>rememberHighlightEngine()</code> through the internal CompositionLocal.</div>
+</div>
+
+<h2>The routing decision</h2>
+
+<p>The whole sharing mechanism lives in <code>rememberHighlightEngine()</code> (<span class="file-ref">RememberHighlightEngine.kt:37&ndash;53</span>). It is called by every public composable in the library that needs an engine, and it picks one of two paths:</p>
+
+<div class="diagram">
+<div class="mermaid">
+flowchart LR
+    Start([rememberHighlightEngine called])
+    Check{LocalHighlightEngine<br/>.current == null?}
+    Inside["Inside HighlightThemeProvider<br/><span style='font-size:0.85em;color:#6e6e73'>provider already supplied an engine</span>"]
+    Outside["Outside any provider<br/><span style='font-size:0.85em;color:#6e6e73'>default value of the local is null</span>"]
+    Shared["Return shared engine<br/><span style='font-size:0.85em;color:#0066cc'>no allocation</span>"]
+    NoOp["Skip standalone branch<br/>DisposableEffect is a no-op"]
+    Standalone["remember &#123; HighlightEngine(appCtx) &#125;<br/><span style='font-size:0.85em;color:#b46e00'>new WebView per call site</span>"]
+    Owned["DisposableEffect<br/>destroys engine when<br/>caller leaves composition"]
+    ReturnStandalone["Return standalone engine"]
+
+    Start --&gt; Check
+    Check --&gt;|no, shared exists| Inside
+    Inside --&gt; Shared
+    Inside --&gt; NoOp
+    Check --&gt;|yes, default null| Outside
+    Outside --&gt; Standalone
+    Standalone --&gt; Owned
+    Owned --&gt; ReturnStandalone
+
+    classDef shared fill:#fff4e6,stroke:#b46e00,stroke-width:2px;
+    classDef good fill:#e6f4ea,stroke:#0d6638,stroke-width:2px;
+    class Standalone,Owned shared;
+    class Shared good;
+</div>
+<div class="diagram-caption">One function, two outcomes. <code>LocalHighlightEngine</code> defaults to <code>null</code> (set in <code>internal/LocalHighlightEngine.kt</code>), so &ldquo;outside provider&rdquo; is the natural fallback.</div>
+</div>
+
+<h3>Inside a provider</h3>
+
+<pre><code>val sharedEngine = LocalHighlightEngine.current  // non-null
+return sharedEngine ?: standaloneEngine!!         // returns shared</code></pre>
+
+<ul>
+  <li><code>LocalHighlightEngine</code> is non-null because <code>HighlightThemeProvider</code> provided it.</li>
+  <li>The <code>remember(sharedEngine) { if (sharedEngine == null) ... else null }</code> block returns <code>null</code> for the standalone &mdash; no engine is created.</li>
+  <li><code>DisposableEffect(standaloneEngine)</code> keys on <code>null</code>, so its <code>onDispose</code> is a no-op.</li>
+  <li>All callers in the subtree get the same engine instance back.</li>
+</ul>
+
+<h3>Outside a provider</h3>
+
+<pre><code>val sharedEngine = LocalHighlightEngine.current  // null (default)
+val standaloneEngine = remember(sharedEngine) { HighlightEngine(appCtx) }
+return sharedEngine ?: standaloneEngine!!  // returns standalone</code></pre>
+
+<ul>
+  <li>Each call site creates its own engine, with its own <code>WebView</code>.</li>
+  <li><code>DisposableEffect</code> destroys the standalone engine when the call site leaves composition.</li>
+</ul>
+
+<h2>Lazy WebView creation and serialization</h2>
+
+<p>The <code>HighlightEngine</code> constructor allocates nothing heavy &mdash; just a <code>WebViewManager</code> and a <code>Mutex</code>:</p>
+
+<pre><code>class HighlightEngine(context: Context) : Closeable {
+    private val manager = WebViewManager(context.applicationContext)
+    private val mutex = Mutex()
+    // No WebView yet. Just a lazy holder + mutex.
+}</code></pre>
+
+<p>The actual <code>WebView(context)</code> allocation happens on the first <code>highlight()</code> call inside <code>manager.initialize()</code> (<span class="file-ref">WebViewManager.kt:97&ndash;157</span>), dispatched to <code>Dispatchers.Main</code>. After that, <code>manager.getReadyWebView()</code> suspends until <code>bridge.html</code> finishes loading (<code>onPageFinished</code> completes <code>readyDeferred</code>).</p>
+
+<p>The serialization is where the &ldquo;1 WebView, N callers&rdquo; safety lives:</p>
+
+<pre><code>manager.initialize()                       // idempotent; runs once
+val webView = manager.getReadyWebView()    // suspends until ready
+
+mutex.withLock {                           // 1 JS call at a time
+    withTimeout(TIMEOUT_SECONDS * 1000L) {
+        executeJs(webView, code, language) // evaluateJavascript on Main
+    }
+}</code></pre>
+
+<p><code>WebView</code> can only handle one <code>evaluateJavascript</code> at a time. With N composables firing concurrent <code>highlight()</code> calls, the engine queues them through the mutex so they don&rsquo;t clobber each other. CPU work that follows the JS call (theme parsing, jsoup HTML walk) runs <em>outside</em> the mutex on <code>Dispatchers.Default</code> &mdash; the lock is released as soon as the JS call returns.</p>
+
+<h2>Walkthrough: a single highlight call inside a provider</h2>
+
+<p>What actually happens, step by step, when a <code>SyntaxHighlightedCode("val x = 42", "kotlin")</code> renders inside a provider:</p>
+
+<div class="diagram">
+<div class="mermaid">
+sequenceDiagram
+    participant UI as SyntaxHighlightedCode
+    participant Helper as rememberHighlightedCode
+    participant Route as rememberHighlightEngine
+    participant Engine as HighlightEngine
+    participant Manager as WebViewManager
+    participant WV as WebView
+    participant Default as Dispatchers.Default
+
+    UI->>Helper: code, language, theme
+    Helper->>Route: ()
+    Note over Route: LocalHighlightEngine.current<br/>is non-null
+    Route-->>Helper: sharedEngine
+    Helper->>Engine: highlight(code, language, theme)
+    activate Engine
+
+    Engine->>Manager: initialize()
+    Note over Manager: idempotent<br/>(first call only)
+    Manager->>WV: new WebView() on Main
+    WV->>WV: load bridge.html
+    WV-->>Manager: onPageFinished
+    Manager->>Manager: readyDeferred.complete(view)
+    Manager-->>Engine: ok
+
+    Engine->>Manager: getReadyWebView()
+    Manager-->>Engine: webView (suspending)
+
+    Note over Engine,WV: Mutex acquired
+    Engine->>WV: evaluateJavascript<br/>(highlightCode)
+    WV-->>Engine: HTML string<br/>+ JS bridge timing
+    Note over Engine,WV: Mutex released
+
+    Engine->>Default: switch dispatcher
+    activate Default
+    Default->>Default: theme.timedColorMap()<br/>(CSS parse, lazy)
+    Default->>Default: HtmlToAnnotatedString.convert<br/>(jsoup tree walk)
+    Default-->>Engine: HighlightResult
+    deactivate Default
+
+    Engine-->>Helper: Result.success(result)
+    deactivate Engine
+    Helper-->>UI: state.value = result.annotated
+    Note over UI: Text(annotated)
+</div>
+<div class="diagram-caption">Sequence of one highlight call. The mutex is held only across the <code>evaluateJavascript</code> bridge call, not the CPU-bound parsing and tree walk.</div>
+</div>
+
+<h2>Theme handling shares the same composition</h2>
+
+<p>The provider publishes themes via the same composition-local mechanism, on top of the engine sharing:</p>
+
+<pre><code>val activeTheme = if (darkTheme) darkHighlightTheme else lightHighlightTheme
+CompositionLocalProvider(
+    LocalHighlightTheme provides activeTheme,
+    LocalLightHighlightTheme provides lightHighlightTheme,
+    LocalDarkHighlightTheme provides darkHighlightTheme,
+    LocalHighlightEngine provides engine,
+) { content() }</code></pre>
+
+<p>When <code>darkTheme</code> flips (system dark-mode toggle), <code>HighlightThemeProvider</code> itself recomposes, <code>activeTheme</code> is reassigned, and <code>CompositionLocalProvider</code> re-provides. The engine doesn&rsquo;t change &mdash; same WebView, same mutex &mdash; but every descendant&rsquo;s <code>rememberHighlightedCode(code, language, theme)</code> re-runs its <code>LaunchedEffect(code, language, theme)</code> and re-highlights against the new theme.</p>
+
+<h2>Lifecycle: who owns the WebView</h2>
+
+<p>The <code>DisposableEffect(engine) { onDispose { engine.destroy() } }</code> at <span class="file-ref">HighlightThemeProvider.kt:169</span> is the only place the engine gets destroyed. <code>engine.destroy()</code> calls <code>WebViewManager.destroy()</code>, which:</p>
+
+<ol>
+  <li>Sets <code>webView = null</code> &mdash; releases the strong reference.</li>
+  <li>Cancels any pending <code>readyDeferred</code> &mdash; suspended <code>getReadyWebView()</code> callers wake up with cancellation.</li>
+  <li>Resets <code>readyDeferred</code> to a fresh deferred &mdash; so a future re-init works.</li>
+  <li>Posts <code>wv.destroy()</code> to the Main thread &mdash; <code>WebView.destroy()</code> must run on its creating thread.</li>
+</ol>
+
+<p>This fires when the provider leaves composition &mdash; typically when the screen is destroyed. The &ldquo;1 WebView per screen&rdquo; property comes from this scoping: each screen-level provider has its own engine with its own WebView, destroyed independently.</p>
+
+<div class="diagram">
+<div class="mermaid">
+stateDiagram-v2
+    [*] --&gt; ProviderEntered: HighlightThemeProvider<br/>composes
+    ProviderEntered --&gt; EngineAllocated: remember &#123; HighlightEngine(appCtx) &#125;
+    EngineAllocated --&gt; Idle: no WebView yet<br/>(lazy)
+    Idle --&gt; Initializing: first highlight() call
+    Initializing --&gt; Loading: WebView created on Main<br/>load bridge.html
+    Loading --&gt; Ready: onPageFinished<br/>readyDeferred.complete
+    Ready --&gt; Highlighting: highlight() under mutex
+    Highlighting --&gt; Ready: result delivered
+
+    Ready --&gt; Destroying: provider leaves composition<br/>onDispose
+    Initializing --&gt; Destroying: provider leaves composition<br/>(rare race)
+    Loading --&gt; Destroying: provider leaves composition<br/>(rare race)
+
+    Destroying --&gt; Destroyed: webView=null<br/>readyDeferred.cancel<br/>wv.destroy() on Main
+    Destroyed --&gt; [*]
+</div>
+<div class="diagram-caption">Engine lifecycle. The Initializing/Loading-to-Destroying transitions are protected by the <code>webView == null</code> guard inside <code>onPageFinished</code>; a late page-load callback against a destroyed engine simply no-ops.</div>
+</div>
+
+<h2>Why <code>staticCompositionLocalOf</code> is correct here</h2>
+
+<p><code>LocalHighlightEngine</code> uses <code>staticCompositionLocalOf</code> (<span class="file-ref">internal/LocalHighlightEngine.kt:11</span>) because:</p>
+
+<ul>
+  <li>The engine instance literally never changes for the lifetime of a provider &mdash; <code>remember { HighlightEngine(...) }</code> keys on nothing.</li>
+  <li><code>static</code> means reading <code>LocalHighlightEngine.current</code> doesn&rsquo;t subscribe the reader to recomposition. That&rsquo;s correct: there&rsquo;s nothing to recompose for; the engine reference is stable forever.</li>
+  <li>Same logic applies to <code>LocalHighlightTheme</code> &mdash; when the theme changes, the <strong>provider</strong> recomposes (because <code>darkTheme</code> is a parameter of the provider&rsquo;s caller), and <code>content()</code> is invoked again with the new value. Static-vs-mutable composition local doesn&rsquo;t matter for that path; what matters is that the provider itself recomposes.</li>
+</ul>
+
+<h2>The four shapes of consumption</h2>
+
+<table>
+  <thead>
+    <tr><th>Caller</th><th>Engine source</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>SyntaxHighlightedCode</code> inside provider</td><td>shared (provider&rsquo;s)</td></tr>
+    <tr><td><code>SyntaxHighlightedCode</code> outside provider</td><td>standalone (per-call-site)</td></tr>
+    <tr><td><code>rememberHighlightedCode</code> (and friends) inside provider</td><td>shared (via <code>rememberHighlightEngine</code>)</td></tr>
+    <tr><td><code>rememberHighlightedCode</code> outside provider</td><td>standalone (per-call-site)</td></tr>
+  </tbody>
+</table>
+
+<p>All four go through <code>rememberHighlightEngine()</code> as the single decision point. That&rsquo;s why the provider works: just publishing <code>LocalHighlightEngine.provides(engine)</code> is enough &mdash; every public composable in the library opts into sharing automatically by calling <code>rememberHighlightEngine()</code> instead of constructing its own engine.</p>
+
+<h2>What you&rsquo;d want to know if you change this</h2>
+
+<div class="key-points">
+  <h4>Invariants worth preserving</h4>
+  <ul>
+    <li><strong>Don&rsquo;t move engine creation out of <code>HighlightThemeProvider</code>.</strong> Anything else (singletons, <code>Application</code>-scoped engines) breaks the screen-leaves &rarr; WebView-destroyed property and starts leaking renderers.</li>
+    <li><strong>The mutex in <code>HighlightEngine</code> is essential</strong> for the shared case. With N composables hitting the same engine, you absolutely need serialization or <code>evaluateJavascript</code> calls clobber each other.</li>
+    <li><strong><code>LocalHighlightEngine</code> is <code>internal</code></strong> &mdash; that&rsquo;s deliberate. External code can only get the engine via <code>rememberHighlightEngine()</code>, which enforces the routing logic. If it became public, callers could provide their own engine and bypass the lifecycle scoping.</li>
+    <li><strong>Theme changes don&rsquo;t restart the engine</strong> &mdash; they only re-trigger highlight calls in descendants. The WebView and its loaded <code>bridge.html</code> survive theme toggles, which is why dark/light mode switching is fast.</li>
+  </ul>
+</div>
+
+<h2>Files referenced</h2>
+
+<table>
+  <thead>
+    <tr><th>File</th><th>Role</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="file-ref">compose-highlight/&hellip;/ui/HighlightThemeProvider.kt</td>
+      <td>Provider composable; owns engine and themes.</td>
+    </tr>
+    <tr>
+      <td class="file-ref">compose-highlight/&hellip;/ui/RememberHighlightEngine.kt</td>
+      <td>Routing point (shared vs standalone).</td>
+    </tr>
+    <tr>
+      <td class="file-ref">compose-highlight/&hellip;/ui/internal/LocalHighlightEngine.kt</td>
+      <td>Internal <code>staticCompositionLocalOf&lt;HighlightEngine?&gt;</code>, default <code>null</code>.</td>
+    </tr>
+    <tr>
+      <td class="file-ref">compose-highlight/&hellip;/engine/HighlightEngine.kt</td>
+      <td>Engine: mutex + <code>WebViewManager</code> + JS bridge calls.</td>
+    </tr>
+    <tr>
+      <td class="file-ref">compose-highlight/&hellip;/engine/internal/WebViewManager.kt</td>
+      <td>Single <code>WebView</code> lifecycle, init/destroy, <code>readyDeferred</code>.</td>
+    </tr>
+  </tbody>
+</table>
+
+</body>
+</html>
