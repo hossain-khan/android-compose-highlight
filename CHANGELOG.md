@@ -44,6 +44,17 @@ All notable changes to this project will be documented in this file.
   `KeyboardType.Ascii`). Used as the default for the editor's new `keyboardOptions` parameter.
   Marked `@ExperimentalHighlightApi`.
 
+### Fixed
+
+- **`ThemeParser` silent overload no longer swallows parser bugs** - the internal
+  `ThemeParser.parse(context, cssAssetPath)` overload (used by benchmarks and a single test)
+  previously caught **any** `Exception`, conflating "missing asset" with "parser regression".
+  Narrowed to `catch (IOException)` so I/O errors still return the documented empty map, but
+  any other exception (e.g. a parser bug raising `IllegalStateException`) propagates instead
+  of masquerading as `ThemeNotFound` at the `HighlightTheme.fromAsset` layer. No production
+  behavior change - production goes through `ThemeParser.parseAsset` which already throws
+  on I/O. Closes #275.
+
 ## [0.26.0] - 2026-06-01
 
 ### Changed (Breaking)

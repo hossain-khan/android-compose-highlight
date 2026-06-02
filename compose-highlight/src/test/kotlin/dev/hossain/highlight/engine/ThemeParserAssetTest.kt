@@ -1,5 +1,7 @@
 package dev.hossain.highlight.engine
 
+import android.content.ContextWrapper
+import android.content.res.AssetManager
 import androidx.compose.ui.graphics.Color
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
@@ -57,6 +59,39 @@ class ThemeParserAssetTest {
     fun `parse with context returns empty map for missing file`() {
         val result = ThemeParser.parse(context, "nonexistent.css")
         assertThat(result).isEmpty()
+    }
+
+    @Test
+    fun `parse with context propagates non-IOException instead of swallowing as empty map`() {
+        // Issue #275 - the silent overload's catch was previously `catch (Exception)`, which
+        // would swallow parser bugs and asset-system errors as "empty map", masquerading at the
+        // HighlightTheme.fromAsset layer as ThemeNotFound. After the narrow to `catch (IOException)`,
+        // anything that isn't an IOException must propagate.
+        //
+        // Easiest way to inject a non-IOException is a ContextWrapper that throws from getAssets()
+        // before AssetManager.open() is even reached. IllegalStateException is not an IOException,
+        // so post-fix the narrow catch lets it through; pre-fix the broad catch would have caught it.
+        val brokenContext =
+            object : ContextWrapper(context) {
+                override fun getAssets(): AssetManager = throw IllegalStateException("simulated non-IO failure")
+            }
+        try {
+            ThemeParser.parse(brokenContext, "tomorrow.css")
+            org.junit.Assert.fail("Expected IllegalStateException to propagate, but the silent overload swallowed it")
+        } catch (e: IllegalStateException) {
+            assertThat(e).hasMessageThat().contains("simulated non-IO failure")
+        }
+    }
+
+    @Test
+    fun `parse silent overload returns the same map as parseAsset for valid input`() {
+        // Confirms the catch narrow didn't accidentally turn the silent overload into an
+        // unconditional emptyMap() - parsing still happens for the happy path. If a future
+        // edit moved the catch to wrap parse(css) too broadly, this would fail.
+        val silent = ThemeParser.parse(context, "compose-highlight/themes/tomorrow.css")
+        val throwing = ThemeParser.parseAsset(context, "compose-highlight/themes/tomorrow.css")
+        assertThat(silent).isEqualTo(throwing)
+        assertThat(silent).isNotEmpty()
     }
 
     // ----- Regression tests: ::selection must not overwrite the real .hljs background -----
