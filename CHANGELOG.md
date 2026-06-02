@@ -52,6 +52,15 @@ All notable changes to this project will be documented in this file.
   module-level `private val` constants (matching the existing `HLJS_SELECTOR_REGEX` and
   `PSEUDO_CLASS_REGEX` pattern in the same file). Pure refactor; same regex semantics, fewer
   allocations on first-highlight latency for asset/CSS-backed themes. Closes #276.
+### Internal
+
+- **`WebViewManager` threading invariants documented and test-covered** - the manager's class
+  KDoc now spells out which methods run on Main, where each field is written from, and why the
+  `DisposableEffect`-owned lifecycle structurally prevents the racy-on-paper sequences from
+  happening in practice. New `WebViewManagerThreadingTest` (JVM/Robolectric) pins three
+  invariants: destroy-during-init does not leave the next initialize hung, concurrent
+  initialize calls create exactly one WebView, and a getReadyWebView await resumes with
+  cancellation when destroy fires (never hangs). No functional change. Closes #278.
 
 ## [0.26.0] - 2026-06-01
 
