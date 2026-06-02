@@ -3,13 +3,16 @@ package dev.hossain.highlight.ui
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
@@ -39,8 +42,37 @@ import dev.hossain.highlight.engine.HighlightTheme
  * This composable reads the active theme from [LocalHighlightTheme], so a
  * [HighlightThemeProvider] ancestor **must** exist, or you must pass an explicit [theme].
  *
- * For custom layout or third-party text fields, use [rememberSyntaxHighlightedEditorValue]
- * directly to obtain the highlighted [TextFieldValue] without the `Surface` wrapper.
+ * ## Scope
+ *
+ * This is a deliberate convenience composable, not a parameterized clone of [BasicTextField].
+ * It exposes presentation knobs ([modifier], [contentPadding], [shape], [theme], [textStyle]),
+ * code-friendly behavior tuning ([keyboardOptions], [cursorBrush]), highlight controls
+ * ([debounceMs]), and observability ([onHighlightComplete], [onError]) - and nothing else.
+ *
+ * For any other [BasicTextField] parameter (`enabled`, `readOnly`, `singleLine`, `maxLines`,
+ * `keyboardActions`, `visualTransformation`, `onTextLayout`, `interactionSource`, `decorationBox`,
+ * etc.) drop one level down to [rememberSyntaxHighlightedEditorValue] and render your own field.
+ * The helper returns a [TextFieldValue] with highlighting applied and cursor / selection
+ * preserved; you compose it into whatever field shape you need:
+ *
+ * ```kotlin
+ * val displayValue = rememberSyntaxHighlightedEditorValue(
+ *     value    = editorValue,
+ *     language = "kotlin",
+ * )
+ * BasicTextField(
+ *     value         = displayValue,
+ *     onValueChange = { editorValue = it },
+ *     enabled       = uiEnabled,
+ *     readOnly      = isReadOnly,
+ *     singleLine    = true,
+ *     // ...any other BasicTextField parameter
+ * )
+ * ```
+ *
+ * This split keeps the convenience composable's surface small (and stable - it doesn't grow as
+ * Compose Foundation adds new `BasicTextField` parameters) while still giving callers full
+ * control when they need it.
  *
  * ## Usage - inside HighlightThemeProvider (recommended)
  *
@@ -88,6 +120,19 @@ import dev.hossain.highlight.engine.HighlightTheme
  * @param theme The highlight theme to apply. Defaults to [LocalHighlightTheme].
  * @param textStyle Text style for the editor. Defaults to a monospace style. The theme's
  *   foreground color is applied on top of this style when a highlight result is available.
+ * @param keyboardOptions Keyboard options forwarded to the underlying [BasicTextField]. Defaults
+ *   to [SyntaxHighlightedTextEditorDefaults.CodeKeyboardOptions], which disables autocorrect and
+ *   autocapitalization and uses an Ascii keyboard - the right defaults for source code. Override
+ *   if you need a different keyboard type or IME action; for example, copy the default and add
+ *   `imeAction = ImeAction.Search` to keep the code-friendly settings while customising one
+ *   field. Note that `BasicTextField`'s own [KeyboardOptions.Default] leaves autocorrect on, so
+ *   passing `KeyboardOptions.Default` here will mangle identifiers as the user types.
+ * @param cursorBrush Optional [Brush] used to paint the editor's text cursor. When `null`
+ *   (the default), the cursor uses a [SolidColor] derived from the theme's `defaultTextColor`,
+ *   so the cursor stays visible on both light and dark themes. Pass an explicit [Brush] to
+ *   override - for example, `SolidColor(MaterialTheme.colorScheme.primary)` to match the host
+ *   app's accent color. Note that [BasicTextField]'s own default is `SolidColor(Color.Black)`,
+ *   which is invisible on dark themes.
  * @param debounceMs Milliseconds to wait after the last keystroke before triggering a new
  *   highlight call. Defaults to 150 ms - a good balance between responsiveness and avoiding
  *   unnecessary WebView calls on fast typists. If `debounceMs` changes, the new value is used
@@ -119,6 +164,8 @@ fun SyntaxHighlightedTextEditor(
     shape: Shape = RectangleShape,
     theme: HighlightTheme = LocalHighlightTheme.current,
     textStyle: TextStyle = SyntaxHighlightedTextEditorDefaults.DefaultTextStyle,
+    keyboardOptions: KeyboardOptions = SyntaxHighlightedTextEditorDefaults.CodeKeyboardOptions,
+    cursorBrush: Brush? = null,
     debounceMs: Long = SyntaxHighlightedTextEditorDefaults.DEBOUNCE_MS,
     onHighlightComplete: ((HighlightResult) -> Unit)? = null,
     onError: ((HighlightException) -> Unit)? = null,
@@ -145,6 +192,14 @@ fun SyntaxHighlightedTextEditor(
         }
     val themedTextStyle = remember(theme, textStyle) { textStyle.copy(color = textColor) }
 
+    // When the caller passes null, derive the cursor color from the theme so it stays visible on
+    // both light and dark themes. BasicTextField's own default (SolidColor(Color.Black)) is
+    // invisible on dark themes, which is the bug this defaulting avoids.
+    val resolvedCursorBrush =
+        remember(cursorBrush, textColor) {
+            cursorBrush ?: SolidColor(textColor)
+        }
+
     Surface(
         modifier = modifier.testTag("syntax-highlighted-text-editor"),
         shape = shape,
@@ -155,6 +210,8 @@ fun SyntaxHighlightedTextEditor(
             value = displayValue,
             onValueChange = onValueChange,
             textStyle = themedTextStyle,
+            keyboardOptions = keyboardOptions,
+            cursorBrush = resolvedCursorBrush,
             modifier = Modifier.padding(contentPadding),
         )
     }
