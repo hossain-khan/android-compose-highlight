@@ -151,6 +151,16 @@ internal object ThemeParser {
     // Matches a single colon followed by a pseudo-class identifier, but NOT `::` (pseudo-element).
     private val PSEUDO_CLASS_REGEX = Regex(""":(?!:)[a-zA-Z]""")
 
+    // Matches one CSS declaration: `<property>: <value>` up to the next `;` or end of block.
+    // Used in [parseDeclarations] - kept module-level so a fresh Regex isn't compiled per rule
+    // (a typical theme has dozens of rules and this would otherwise allocate one Regex each).
+    private val PROP_PATTERN = Regex("""([\w-]+)\s*:\s*([^;]+)""")
+
+    // Whitespace splitter for the modern `rgb(R G B / A)` and `rgb(R G B)` color forms. Hoisted
+    // to module level so [parseSpaceSeparatedRgb] doesn't compile a fresh Regex on every color
+    // value parsed.
+    private val WHITESPACE_REGEX = Regex("\\s+")
+
     /** A single CSS rule: comma-separated selector list and the raw declarations block. */
     private data class CssRule(
         val selectors: List<String>,
@@ -394,8 +404,7 @@ internal object ThemeParser {
         var fontStyle: FontStyle? = null
         var background: Color? = null
 
-        val propPattern = Regex("""([\w-]+)\s*:\s*([^;]+)""")
-        propPattern.findAll(declarations).forEach { match ->
+        PROP_PATTERN.findAll(declarations).forEach { match ->
             val prop = match.groupValues[1].trim()
             val value = match.groupValues[2].trim()
             when (prop) {
@@ -536,11 +545,11 @@ internal object ThemeParser {
             val slashIdx = inner.indexOf("/")
             val colorPart = inner.substring(0, slashIdx).trim()
             val alphaPart = inner.substring(slashIdx + 1).trim()
-            val parts = colorPart.split(Regex("\\s+")).filter { it.isNotEmpty() }
+            val parts = colorPart.split(WHITESPACE_REGEX).filter { it.isNotEmpty() }
             if (parts.size != 3) return null
             colorFromRgbStrings(parts[0], parts[1], parts[2], alpha = alphaPart)
         } else {
-            val parts = inner.split(Regex("\\s+")).filter { it.isNotEmpty() }
+            val parts = inner.split(WHITESPACE_REGEX).filter { it.isNotEmpty() }
             if (parts.size != 3) return null
             colorFromRgbStrings(parts[0], parts[1], parts[2], alpha = null)
         }
