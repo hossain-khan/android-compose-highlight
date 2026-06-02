@@ -42,8 +42,37 @@ import dev.hossain.highlight.engine.HighlightTheme
  * This composable reads the active theme from [LocalHighlightTheme], so a
  * [HighlightThemeProvider] ancestor **must** exist, or you must pass an explicit [theme].
  *
- * For custom layout or third-party text fields, use [rememberSyntaxHighlightedEditorValue]
- * directly to obtain the highlighted [TextFieldValue] without the `Surface` wrapper.
+ * ## Scope
+ *
+ * This is a deliberate convenience composable, not a parameterized clone of [BasicTextField].
+ * It exposes presentation knobs ([modifier], [contentPadding], [shape], [theme], [textStyle]),
+ * code-friendly behavior tuning ([keyboardOptions], [cursorBrush]), highlight controls
+ * ([debounceMs]), and observability ([onHighlightComplete], [onError]) - and nothing else.
+ *
+ * For any other [BasicTextField] parameter (`enabled`, `readOnly`, `singleLine`, `maxLines`,
+ * `keyboardActions`, `visualTransformation`, `onTextLayout`, `interactionSource`, `decorationBox`,
+ * etc.) drop one level down to [rememberSyntaxHighlightedEditorValue] and render your own field.
+ * The helper returns a [TextFieldValue] with highlighting applied and cursor / selection
+ * preserved; you compose it into whatever field shape you need:
+ *
+ * ```kotlin
+ * val displayValue = rememberSyntaxHighlightedEditorValue(
+ *     value    = editorValue,
+ *     language = "kotlin",
+ * )
+ * BasicTextField(
+ *     value         = displayValue,
+ *     onValueChange = { editorValue = it },
+ *     enabled       = uiEnabled,
+ *     readOnly      = isReadOnly,
+ *     singleLine    = true,
+ *     // ...any other BasicTextField parameter
+ * )
+ * ```
+ *
+ * This split keeps the convenience composable's surface small (and stable - it doesn't grow as
+ * Compose Foundation adds new `BasicTextField` parameters) while still giving callers full
+ * control when they need it.
  *
  * ## Usage - inside HighlightThemeProvider (recommended)
  *

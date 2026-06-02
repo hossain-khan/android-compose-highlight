@@ -126,6 +126,24 @@ Core behavior:
 - Keep `shape` aligned with any border shape to avoid background bleed at rounded corners.
 - Outside `HighlightThemeProvider`, a standalone engine/WebView is created and managed by lifecycle.
 
+## Why aren't `enabled`, `readOnly`, `singleLine`, etc. exposed?
+
+`SyntaxHighlightedTextEditor` is a deliberate convenience composable: it ships code-friendly
+defaults (`keyboardOptions`, `cursorBrush`, monospace `textStyle`, debounce window, theme-aware
+surface) and exposes only the parameters needed to tune them. It is **not** a parameterized
+clone of `BasicTextField`.
+
+For any other `BasicTextField` parameter you might want - `enabled`, `readOnly`, `singleLine`,
+`maxLines`, `minLines`, `keyboardActions`, `visualTransformation`, `onTextLayout`,
+`interactionSource`, `decorationBox` - drop one level down to
+[`rememberSyntaxHighlightedEditorValue`](#lower-level-helper-for-custom-text-fields) and render
+your own field. The helper returns a `TextFieldValue` with highlighting applied and cursor /
+selection preserved; you compose it into whatever field shape you need.
+
+This split keeps the convenience composable's surface small (and stable - it doesn't grow as
+Compose Foundation adds new `BasicTextField` parameters) while still giving you full control
+when you need it.
+
 ## Lower-level helper for custom text fields
 
 Use `rememberSyntaxHighlightedEditorValue()` when you want your own field component
