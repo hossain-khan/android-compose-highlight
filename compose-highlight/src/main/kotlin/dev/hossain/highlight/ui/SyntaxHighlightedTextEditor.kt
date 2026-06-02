@@ -17,6 +17,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import dev.hossain.highlight.engine.HighlightEngine
 import dev.hossain.highlight.engine.HighlightException
+import dev.hossain.highlight.engine.HighlightResult
 import dev.hossain.highlight.engine.HighlightTheme
 
 /**
@@ -92,10 +93,12 @@ import dev.hossain.highlight.engine.HighlightTheme
  *   unnecessary WebView calls on fast typists. If `debounceMs` changes, the new value is used
  *   on the next keystroke. The currently running debounce window is unaffected (the original
  *   delay completes with its captured-at-suspension value).
- * @param onHighlightComplete Optional callback invoked each time a highlight cycle completes
- *   successfully. Receives the resulting [AnnotatedString] with syntax spans applied. Useful
- *   for testing (wait until the first result arrives) and for observing the highlight output
- *   without owning the editor's text state. Defaults to `null` (no callback).
+ * @param onHighlightComplete Optional callback invoked with a [HighlightResult] when a highlight
+ *   cycle completes successfully. Fires after the snapshot is updated. Not called on failure.
+ *   The result carries the highlighted [AnnotatedString], `spanCount`, `language`, `durationMs`,
+ *   and per-layer [HighlightTimings] - matching the shape used by [rememberHighlightedCode] so
+ *   callers can move between read-only and editable APIs without changing their callback shape.
+ *   Defaults to `null` (no callback).
  * @param onError Optional callback invoked with the [HighlightException] when a highlight cycle
  *   fails. The editor falls back to plain text on failure regardless of whether this callback
  *   is set - it is purely observational. Use it to log failures, show a snackbar, or record
@@ -117,7 +120,7 @@ fun SyntaxHighlightedTextEditor(
     theme: HighlightTheme = LocalHighlightTheme.current,
     textStyle: TextStyle = SyntaxHighlightedTextEditorDefaults.DefaultTextStyle,
     debounceMs: Long = SyntaxHighlightedTextEditorDefaults.DEBOUNCE_MS,
-    onHighlightComplete: ((AnnotatedString) -> Unit)? = null,
+    onHighlightComplete: ((HighlightResult) -> Unit)? = null,
     onError: ((HighlightException) -> Unit)? = null,
 ) {
     val displayValue =

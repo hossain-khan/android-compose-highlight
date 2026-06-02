@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Changed (Breaking - experimental API)
+
+- **Editor `onHighlightComplete` callback shape aligned with `rememberHighlightedCode`** -
+  `SyntaxHighlightedTextEditor` and `rememberSyntaxHighlightedEditorValue` now invoke
+  `onHighlightComplete` with a `HighlightResult` instead of a bare `AnnotatedString`. Callers
+  gain access to `spanCount`, `language`, `durationMs`, and the per-layer `HighlightTimings`
+  breakdown - the same shape `rememberHighlightedCode` already exposes - so observability is
+  consistent across read-only and editable code surfaces. Callers must update lambdas from
+  `{ annotated -> use(annotated) }` to `{ result -> use(result.annotated) }`. Both APIs are
+  marked `@ExperimentalHighlightApi`, so no stable surface is broken. Fixes #277.
+
 ## [0.26.0] - 2026-06-01
 
 ### Changed (Breaking)

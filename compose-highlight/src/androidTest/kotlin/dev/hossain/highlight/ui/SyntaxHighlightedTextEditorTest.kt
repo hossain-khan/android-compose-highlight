@@ -10,10 +10,10 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performTextInput
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
+import dev.hossain.highlight.engine.HighlightResult
 import dev.hossain.highlight.engine.HighlightTheme
 import org.junit.Rule
 import org.junit.Test
@@ -104,7 +104,7 @@ class SyntaxHighlightedTextEditorTest {
 
     @Test
     fun onHighlightCompleteCallbackFiresAfterDebounce() {
-        var capturedAnnotated: AnnotatedString? = null
+        var capturedResult: HighlightResult? = null
 
         composeTestRule.setContent {
             HighlightThemeProvider(
@@ -115,16 +115,24 @@ class SyntaxHighlightedTextEditorTest {
                     value = TextFieldValue(sampleCode),
                     onValueChange = {},
                     language = "kotlin",
-                    onHighlightComplete = { capturedAnnotated = it },
+                    onHighlightComplete = { capturedResult = it },
                 )
             }
         }
 
         // Wait for the async highlight pipeline to complete
-        composeTestRule.waitUntil(timeoutMillis = 10_000L) { capturedAnnotated != null }
+        composeTestRule.waitUntil(timeoutMillis = 10_000L) { capturedResult != null }
 
-        assertThat(capturedAnnotated!!.text).isEqualTo(sampleCode)
-        assertThat(capturedAnnotated.spanStyles).isNotEmpty()
+        // Result should carry the full HighlightResult shape - matching rememberHighlightedCode.
+        // This locks in the public callback contract introduced for issue #277.
+        val result = checkNotNull(capturedResult)
+        assertThat(result.annotated.text).isEqualTo(sampleCode)
+        assertThat(result.annotated.spanStyles).isNotEmpty()
+        assertThat(result.language).isEqualTo("kotlin")
+        assertThat(result.spanCount).isGreaterThan(0)
+        assertThat(result.durationMs).isAtLeast(0L)
+        // timings is non-null and total matches durationMs (both reflect the same elapsed time).
+        assertThat(result.timings.total.inWholeMilliseconds).isEqualTo(result.durationMs)
     }
 
     @Test
@@ -160,7 +168,7 @@ class SyntaxHighlightedTextEditorTest {
     fun staleSpansNotShownAfterLanguageChange() {
         // When language changes the old snapshot is for a different language, so the composable
         // falls back to plain text in-composition until the new highlight arrives.
-        var capturedAnnotated: AnnotatedString? = null
+        var capturedResult: HighlightResult? = null
         var currentLanguage by mutableStateOf("kotlin")
 
         composeTestRule.setContent {
@@ -172,14 +180,14 @@ class SyntaxHighlightedTextEditorTest {
                     value = TextFieldValue("val x = 1"),
                     onValueChange = {},
                     language = currentLanguage,
-                    onHighlightComplete = { capturedAnnotated = it },
+                    onHighlightComplete = { capturedResult = it },
                 )
             }
         }
 
         // Wait for initial highlight to confirm spans are applied
-        composeTestRule.waitUntil(timeoutMillis = 10_000L) { capturedAnnotated != null }
-        capturedAnnotated = null
+        composeTestRule.waitUntil(timeoutMillis = 10_000L) { capturedResult != null }
+        capturedResult = null
 
         // Switch to a different language - the old snapshot is now stale
         composeTestRule.runOnIdle { currentLanguage = "sql" }
@@ -196,8 +204,9 @@ class SyntaxHighlightedTextEditorTest {
         assertThat(editableText.spanStyles).isEmpty()
 
         // Now wait for the re-highlight cycle to complete with the new language
-        composeTestRule.waitUntil(timeoutMillis = 10_000L) { capturedAnnotated != null }
-        assertThat(capturedAnnotated!!.text).isEqualTo("val x = 1")
-        assertThat(capturedAnnotated!!.spanStyles).isNotEmpty()
+        composeTestRule.waitUntil(timeoutMillis = 10_000L) { capturedResult != null }
+        assertThat(capturedResult!!.language).isEqualTo("sql")
+        assertThat(capturedResult!!.annotated.text).isEqualTo("val x = 1")
+        assertThat(capturedResult!!.annotated.spanStyles).isNotEmpty()
     }
 }
