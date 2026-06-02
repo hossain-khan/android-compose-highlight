@@ -1,5 +1,6 @@
 package dev.hossain.highlight.ui
 
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -10,6 +11,7 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performTextInput
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
@@ -208,5 +210,32 @@ class SyntaxHighlightedTextEditorTest {
         assertThat(capturedResult!!.language).isEqualTo("sql")
         assertThat(capturedResult!!.annotated.text).isEqualTo("val x = 1")
         assertThat(capturedResult!!.annotated.spanStyles).isNotEmpty()
+    }
+
+    @Test
+    fun keyboardOptionsPropagateToBasicTextField() {
+        // Pass a non-default imeAction. If keyboardOptions is wired through, the underlying
+        // text field's semantics will report that imeAction. If it isn't wired, the field would
+        // report KeyboardOptions.Default's ImeAction.Default value instead. This is the issue
+        // #265 acceptance criterion that the editor honours caller-supplied keyboardOptions.
+        // The default-constants assertions live in the JVM-side
+        // SyntaxHighlightedTextEditorDefaultsTest where they cost milliseconds, not seconds.
+        composeTestRule.setContent {
+            HighlightThemeProvider {
+                SyntaxHighlightedTextEditor(
+                    value = TextFieldValue(sampleCode),
+                    onValueChange = {},
+                    language = "kotlin",
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                )
+            }
+        }
+
+        val imeAction =
+            composeTestRule
+                .onNode(hasSetTextAction(), useUnmergedTree = true)
+                .fetchSemanticsNode()
+                .config[SemanticsProperties.ImeAction]
+        assertThat(imeAction).isEqualTo(ImeAction.Search)
     }
 }

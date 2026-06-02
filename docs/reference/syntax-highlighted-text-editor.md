@@ -28,7 +28,11 @@ Full API in Dokka:
 - `theme` - explicit theme or value from `HighlightThemeProvider`.
 - `debounceMs` - typing pause before highlight call.
 - `contentPadding` and `shape` - layout and clipping of editor surface.
-- `onHighlightComplete` and `onError` - observability hooks.
+- `keyboardOptions` - keyboard / IME behavior. Defaults to `SyntaxHighlightedTextEditorDefaults.CodeKeyboardOptions` (autocorrect off, autocapitalization off, Ascii keyboard) - the right defaults for source code. Override via `.copy(imeAction = ...)` to keep the code-friendly settings while customising one field.
+- `cursorBrush` - text cursor color. Defaults to `null`, which derives the cursor from the theme's text color so it stays visible on both light and dark themes. Pass an explicit `Brush` (e.g. `SolidColor(MaterialTheme.colorScheme.primary)`) to override.
+- `onHighlightComplete` and `onError` - observability hooks. `onHighlightComplete` receives a `HighlightResult` (timing, span count, language); see the [API docs](https://hossain-khan.github.io/android-compose-highlight/api/compose-highlight/dev.hossain.highlight.engine/-highlight-result/index.html).
+
+For anything else `BasicTextField` exposes (`enabled`, `readOnly`, `singleLine`, `maxLines`, `decorationBox`, etc.) drop one level down to [`rememberSyntaxHighlightedEditorValue`](#lower-level-helper-for-custom-text-fields) and render your own field - the editor is intentionally opinionated.
 
 ## Opting in
 

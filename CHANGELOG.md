@@ -6,6 +6,14 @@ All notable changes to this project will be documented in this file.
 
 ### Changed (Breaking - experimental API)
 
+- **Editor ships code-friendly `keyboardOptions` by default** - `SyntaxHighlightedTextEditor`
+  now defaults its `keyboardOptions` to `SyntaxHighlightedTextEditorDefaults.CodeKeyboardOptions`
+  (autocorrect off, autocapitalization off, Ascii keyboard). Existing callers who relied on the
+  previous behavior - which inherited `BasicTextField`'s `KeyboardOptions.Default` and left
+  autocorrect on - will see identifiers no longer get rewritten by the IME as the user types.
+  This is the intended behavior for a source-code editor; the `KeyboardOptions.Default`
+  behavior is recoverable by passing it explicitly. Marked `@ExperimentalHighlightApi`.
+
 - **Editor `onHighlightComplete` callback shape aligned with `rememberHighlightedCode`** -
   `SyntaxHighlightedTextEditor` and `rememberSyntaxHighlightedEditorValue` now invoke
   `onHighlightComplete` with a `HighlightResult` instead of a bare `AnnotatedString`. Callers
@@ -14,6 +22,27 @@ All notable changes to this project will be documented in this file.
   consistent across read-only and editable code surfaces. Callers must update lambdas from
   `{ annotated -> use(annotated) }` to `{ result -> use(result.annotated) }`. Both APIs are
   marked `@ExperimentalHighlightApi`, so no stable surface is broken. Fixes #277.
+
+### Added
+
+- **`SyntaxHighlightedTextEditor.keyboardOptions` parameter** - new `keyboardOptions:
+  KeyboardOptions` parameter forwarded to the underlying `BasicTextField`. Defaults to the new
+  `SyntaxHighlightedTextEditorDefaults.CodeKeyboardOptions` constant. Override at the call site
+  to customise IME action or keyboard type while keeping autocorrect/autocapitalization off:
+  `keyboardOptions = SyntaxHighlightedTextEditorDefaults.CodeKeyboardOptions.copy(imeAction =
+  ImeAction.Search)`. Part of #265.
+
+- **`SyntaxHighlightedTextEditor.cursorBrush` parameter** - new `cursorBrush: Brush?` parameter
+  forwarded to the underlying `BasicTextField`. Defaults to `null`, in which case the cursor is
+  painted using a `SolidColor` derived from the theme's `defaultTextColor` - so the cursor is
+  visible on both light and dark themes out of the box. `BasicTextField`'s own default
+  (`SolidColor(Color.Black)`) is invisible on dark themes; passing an explicit brush overrides
+  the theme-derived default. Part of #265.
+
+- **`SyntaxHighlightedTextEditorDefaults.CodeKeyboardOptions` constant** - pre-allocated
+  `KeyboardOptions` tuned for source-code input (autocorrect off, autocapitalization off,
+  `KeyboardType.Ascii`). Used as the default for the editor's new `keyboardOptions` parameter.
+  Marked `@ExperimentalHighlightApi`.
 
 ## [0.26.0] - 2026-06-01
 
