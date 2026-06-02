@@ -10,6 +10,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.input.TextFieldValue
 import dev.hossain.highlight.engine.HighlightException
+import dev.hossain.highlight.engine.HighlightResult
 import dev.hossain.highlight.engine.HighlightTheme
 import dev.hossain.highlight.ui.internal.applySnapshotSpans
 import kotlinx.coroutines.delay
@@ -76,10 +77,11 @@ private data class HighlightSnapshot(
  *   highlight call. Defaults to 150 ms. If `debounceMs` changes, the new value is used on the
  *   next keystroke. The currently running debounce window is unaffected (the original delay
  *   completes with its captured-at-suspension value).
- * @param onHighlightComplete Optional callback invoked each time a highlight cycle completes
- *   successfully. Receives the resulting [AnnotatedString] with syntax spans applied. Useful
- *   for testing (wait until the first result arrives) and for observing the highlight output
- *   without owning the editor's text state.
+ * @param onHighlightComplete Optional callback invoked with a [HighlightResult] when a highlight
+ *   cycle completes successfully. Fires after the snapshot is updated. Not called on failure.
+ *   The result carries the highlighted [AnnotatedString], `spanCount`, `language`, `durationMs`,
+ *   and per-layer [HighlightTimings] - matching the shape used by [rememberHighlightedCode] so
+ *   callers can move between read-only and editable APIs without changing their callback shape.
  * @param onError Optional callback invoked with the [HighlightException] when a highlight cycle
  *   fails. The editor falls back to plain text on failure regardless of whether this callback
  *   is set - it is purely observational. Use it to log failures, show a snackbar, or record
@@ -100,7 +102,7 @@ fun rememberSyntaxHighlightedEditorValue(
     language: String,
     theme: HighlightTheme = LocalHighlightTheme.current,
     debounceMs: Long = SyntaxHighlightedTextEditorDefaults.DEBOUNCE_MS,
-    onHighlightComplete: ((AnnotatedString) -> Unit)? = null,
+    onHighlightComplete: ((HighlightResult) -> Unit)? = null,
     onError: ((HighlightException) -> Unit)? = null,
 ): TextFieldValue {
     val engine = rememberHighlightEngine()
@@ -120,7 +122,7 @@ fun rememberSyntaxHighlightedEditorValue(
             .highlight(value.text, language, theme)
             .onSuccess { result ->
                 highlighted = HighlightSnapshot(result.annotated, language, theme)
-                currentOnHighlightComplete?.invoke(result.annotated)
+                currentOnHighlightComplete?.invoke(result)
             }.onFailure { error ->
                 highlighted = null
                 (error as? HighlightException)?.let { currentOnError?.invoke(it) }

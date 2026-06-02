@@ -4,11 +4,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.junit4.createComposeRule
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
+import dev.hossain.highlight.engine.HighlightResult
 import dev.hossain.highlight.engine.HighlightTheme
 import org.junit.Rule
 import org.junit.Test
@@ -119,7 +119,7 @@ class RememberSyntaxHighlightedEditorValueTest {
         // When the language changes, the cached snapshot is stale. The composable must detect
         // this in-composition (snapshot.language != language) and fall back to plain text
         // immediately - before the new highlight cycle has completed.
-        var capturedAnnotated: AnnotatedString? = null
+        var capturedResult: HighlightResult? = null
         var currentLanguage by mutableStateOf("kotlin")
         var capturedValue: TextFieldValue? = null
 
@@ -132,14 +132,14 @@ class RememberSyntaxHighlightedEditorValueTest {
                     rememberSyntaxHighlightedEditorValue(
                         value = TextFieldValue("val x = 1"),
                         language = currentLanguage,
-                        onHighlightComplete = { capturedAnnotated = it },
+                        onHighlightComplete = { capturedResult = it },
                     )
             }
         }
 
         // Wait for the initial highlight to confirm spans exist
-        composeTestRule.waitUntil(timeoutMillis = 10_000L) { capturedAnnotated != null }
-        capturedAnnotated = null
+        composeTestRule.waitUntil(timeoutMillis = 10_000L) { capturedResult != null }
+        capturedResult = null
 
         // Switch language - the snapshot is now stale, stale detection is in-composition
         composeTestRule.runOnIdle { currentLanguage = "sql" }
@@ -151,9 +151,10 @@ class RememberSyntaxHighlightedEditorValueTest {
         }
 
         // Confirm the new highlight cycle eventually fires with the new language
-        composeTestRule.waitUntil(timeoutMillis = 10_000L) { capturedAnnotated != null }
-        assertThat(capturedAnnotated!!.text).isEqualTo("val x = 1")
-        assertThat(capturedAnnotated!!.spanStyles).isNotEmpty()
+        composeTestRule.waitUntil(timeoutMillis = 10_000L) { capturedResult != null }
+        assertThat(capturedResult!!.language).isEqualTo("sql")
+        assertThat(capturedResult!!.annotated.text).isEqualTo("val x = 1")
+        assertThat(capturedResult!!.annotated.spanStyles).isNotEmpty()
     }
 
     @Test
