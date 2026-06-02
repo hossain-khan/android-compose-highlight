@@ -44,6 +44,14 @@ All notable changes to this project will be documented in this file.
   `KeyboardType.Ascii`). Used as the default for the editor's new `keyboardOptions` parameter.
   Marked `@ExperimentalHighlightApi`.
 
+### Performance
+
+- **`ThemeParser` regex hoisting** - the `[\w-]+: [^;]+` declaration matcher and the `\s+`
+  whitespace splitter used in modern `rgb(R G B)` parsing were being allocated as fresh
+  `Regex` instances on every CSS rule and every space-separated color value. Hoisted both to
+  module-level `private val` constants (matching the existing `HLJS_SELECTOR_REGEX` and
+  `PSEUDO_CLASS_REGEX` pattern in the same file). Pure refactor; same regex semantics, fewer
+  allocations on first-highlight latency for asset/CSS-backed themes. Closes #276.
 ### Internal
 
 - **`WebViewManager` threading invariants documented and test-covered** - the manager's class
