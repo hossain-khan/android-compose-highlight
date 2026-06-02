@@ -188,10 +188,10 @@ SyntaxHighlightedCode("val x = 42", "kotlin")
 
 ## Files referenced
 
-| File | Role |
+| File (`compose-highlight/src`) | Role |
 |---|---|
-| `compose-highlight/src/main/kotlin/dev/hossain/highlight/ui/HighlightThemeProvider.kt` | Provider composable, owns engine and themes. |
-| `compose-highlight/src/main/kotlin/dev/hossain/highlight/ui/RememberHighlightEngine.kt` | Routing point (shared vs standalone). |
-| `compose-highlight/src/main/kotlin/dev/hossain/highlight/ui/internal/LocalHighlightEngine.kt` | Internal `staticCompositionLocalOf<HighlightEngine?>`, default `null`. |
-| `compose-highlight/src/main/kotlin/dev/hossain/highlight/engine/HighlightEngine.kt` | Engine: mutex + WebViewManager + JS bridge calls. |
-| `compose-highlight/src/main/kotlin/dev/hossain/highlight/engine/internal/WebViewManager.kt` | Single `WebView` lifecycle, init/destroy, `readyDeferred`. |
+| `highlight/ui/HighlightThemeProvider.kt` | Provider composable, owns engine and themes. |
+| `ui/RememberHighlightEngine.kt` | Routing point (shared vs standalone). |
+| `ui/internal/LocalHighlightEngine.kt` | Internal `staticCompositionLocalOf<HighlightEngine?>`, default `null`. |
+| `engine/HighlightEngine.kt` | Engine: mutex + WebViewManager + JS bridge calls. |
+| `engine/internal/WebViewManager.kt` | Single `WebView` lifecycle, init/destroy, `readyDeferred`. |
