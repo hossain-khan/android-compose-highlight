@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.27.0] - 2026-06-02
+
 ### Changed (Breaking - experimental API)
 
 - **Editor ships code-friendly `keyboardOptions` by default** - `SyntaxHighlightedTextEditor`
