@@ -5,6 +5,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import java.io.IOException
 import kotlin.math.roundToInt
 
 /**
@@ -31,8 +32,13 @@ internal object ThemeParser {
      * Parses a CSS theme file from assets into a color map.
      * Results are not cached here - callers should use [lazy] to cache per theme.
      *
-     * Silently returns an empty map on any error. Use [parseAsset] if you need to
-     * distinguish between a missing file and an empty/unparseable theme.
+     * Silently returns an empty map on **I/O error or missing asset** (any [IOException] from
+     * [android.content.res.AssetManager.open] or the read). Parser bugs - any exception thrown
+     * by [parse] itself - propagate so they surface in tests and instrumented runs instead of
+     * being silently swallowed.
+     *
+     * Use [parseAsset] if you need to distinguish between a missing file and an
+     * empty/unparseable theme.
      */
     fun parse(
         context: Context,
@@ -45,7 +51,10 @@ internal object ThemeParser {
                     .bufferedReader()
                     .use { it.readText() }
             parse(css)
-        } catch (e: Exception) {
+        } catch (e: IOException) {
+            // Missing or unreadable asset - documented silent path. Anything else
+            // (e.g. a parser bug raising IllegalStateException) propagates so it cannot
+            // masquerade as ThemeNotFound at the HighlightTheme.fromAsset layer.
             emptyMap()
         }
 
