@@ -22,13 +22,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import dev.hossain.highlight.ui.ExperimentalHighlightApi
 import dev.hossain.highlight.ui.SyntaxHighlightedTextEditor
+import dev.hossain.highlight.ui.SyntaxHighlightedTextEditorDefaults
 
 private val DEMO_LANGUAGES =
     listOf(
@@ -134,9 +137,19 @@ LIMIT 10;
 @Composable
 internal fun LiveEditorSection() {
     var selectedLanguage by rememberSaveable { mutableStateOf("kotlin") }
+    var customCursorColor by rememberSaveable { mutableStateOf(false) }
     var editorValue by remember(selectedLanguage) {
         mutableStateOf(TextFieldValue(INITIAL_CODE_BY_LANGUAGE[selectedLanguage] ?: ""))
     }
+
+    // Resolve the cursor brush in composition so MaterialTheme.colorScheme is in scope.
+    // null falls back to the editor's theme-derived default (SolidColor of theme.defaultTextColor),
+    // which keeps the cursor visible on light and dark themes without any extra config.
+    val primaryColor = MaterialTheme.colorScheme.primary
+    val cursorBrush =
+        remember(customCursorColor, primaryColor) {
+            if (customCursorColor) SolidColor(primaryColor) else null
+        }
 
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         SubSectionHeader("Live Syntax Highlighting Editor")
@@ -172,7 +185,24 @@ internal fun LiveEditorSection() {
             }
         }
 
-        // Live editor
+        // Customization toggle - flips cursorBrush between the editor's theme-aware default
+        // (null) and an explicit primary-color SolidColor so users can see the difference.
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            FilterChip(
+                selected = customCursorColor,
+                onClick = { customCursorColor = !customCursorColor },
+                label = { Text("Custom cursor color") },
+            )
+        }
+
+        // Live editor.
+        // - keyboardOptions: copy of CodeKeyboardOptions (autocorrect off, Ascii keyboard) with
+        //   imeAction set to Done. The .copy(...) pattern keeps the code-friendly defaults while
+        //   customizing one field.
+        // - cursorBrush: null lets the editor derive a visible cursor from the current theme;
+        //   the toggle above swaps in an explicit SolidColor.
         SyntaxHighlightedTextEditor(
             value = editorValue,
             onValueChange = { editorValue = it },
@@ -193,6 +223,10 @@ internal fun LiveEditorSection() {
                     fontFamily = FontFamily.Monospace,
                     fontSize = 13.sp,
                 ),
+            keyboardOptions =
+                SyntaxHighlightedTextEditorDefaults.CodeKeyboardOptions
+                    .copy(imeAction = ImeAction.Done),
+            cursorBrush = cursorBrush,
         )
     }
 }

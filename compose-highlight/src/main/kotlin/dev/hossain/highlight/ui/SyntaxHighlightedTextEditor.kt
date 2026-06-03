@@ -197,7 +197,7 @@ fun SyntaxHighlightedTextEditor(
     // invisible on dark themes, which is the bug this defaulting avoids.
     val resolvedCursorBrush =
         remember(cursorBrush, textColor) {
-            cursorBrush ?: SolidColor(textColor)
+            resolveEditorCursorBrush(cursorBrush, textColor)
         }
 
     Surface(
@@ -216,3 +216,17 @@ fun SyntaxHighlightedTextEditor(
         )
     }
 }
+
+/**
+ * Resolves the editor's effective cursor brush: caller-supplied [cursorBrush] when non-null,
+ * otherwise a [SolidColor] of the theme-derived [textColor] so the cursor stays visible on
+ * both light and dark themes.
+ *
+ * Extracted as `internal` so the null-fallback contract can be unit-tested without standing up a
+ * full Compose UI test harness. Behavior is intentionally trivial; the test exists to lock in
+ * the contract, not to exercise a complex algorithm.
+ */
+internal fun resolveEditorCursorBrush(
+    cursorBrush: Brush?,
+    textColor: Color,
+): Brush = cursorBrush ?: SolidColor(textColor)
