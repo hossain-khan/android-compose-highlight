@@ -188,6 +188,8 @@ This script updates all five required files in one step:
 
 Never update these files manually one-by-one - always use the script to avoid missing files.
 
+**After running the script, update `docs/changelog.md`** - add a new `### X.Y.Z - Brief Title` section at the top of the "Recent highlights" block with 3-5 key bullet points extracted from the root `CHANGELOG.md` for that release. Remove the oldest entry to keep only the last 5 releases. See the "Docs Changelog Sync" section above for the exact format.
+
 After running the script, create a release branch, run all checks, commit, push, and open a PR into `main` (direct pushes to `main` are blocked by branch protection):
 ```bash
 git checkout -b release/<new-version>
@@ -209,14 +211,13 @@ git tag <new-version> && git push origin <new-version>
 
 Never tell the user "the publish workflow will trigger automatically" - it won't.
 
-**Release notes format** - when users ask for release notes, provide them in markdown format. Example:
+**Release notes format** - after a git tag is pushed, automatically provide brief release notes in markdown format without waiting for the user to ask. Keep it concise - 3-5 key bullet points max, focusing on user-facing changes. Example:
 ```markdown
 ## v0.22.1
 
 ### Bug Fixes
 - Fixed resource leak: InputStream in ThemeParser now properly closed when loading CSS assets
 - Fixed scroll position persistence when code snippet changes
-- Removed redundant code in HtmlToAnnotatedString
 
 ### Performance
 - Improved recomposition efficiency in LazyColumn scenarios by stabilizing internal lambda instances

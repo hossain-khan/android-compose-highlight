@@ -6,6 +6,14 @@ For release artifacts and APK downloads, see the [GitHub Releases page](https://
 
 ## Recent highlights
 
+### 0.27.0 - Editor keyboard options and cursor brush
+
+- `SyntaxHighlightedTextEditor` now defaults to code-friendly `keyboardOptions` (autocorrect off, Ascii keyboard)
+- Editor `onHighlightComplete` callback now receives `HighlightResult` instead of `AnnotatedString`
+- New `keyboardOptions` and `cursorBrush` parameters for `SyntaxHighlightedTextEditor`
+- `SyntaxHighlightedTextEditorDefaults.CodeKeyboardOptions` constant added
+- `ThemeParser` no longer silently swallows non-IO exceptions
+
 ### 0.26.0 - Selector coverage and parser efficiency
 
 - Expanded `HljsSelectors` with all official Highlight.js scopes, adding 22 missing selector constants
@@ -35,13 +43,6 @@ For release artifacts and APK downloads, see the [GitHub Releases page](https://
 - 150 ms keystroke debounce with cursor and selection always preserved
 - New **Live Editor** demo tab in sample app showcasing 6 languages
 - Marked `@ExperimentalHighlightApi` for gradual API stabilization
-
-### 0.23.0 - Screenshot regression testing
-
-- 13 Roborazzi screenshot goldens covering themes, layout variants, languages, and error states
-- HTML token fixtures from bundled `highlight.min.js` for testing visual stability
-- `HighlightEngine.webViewForTest()` for cleaner test integration
-- Replaced regex CSS parser with recursive-descent implementation for robustness
 
 ---
 
