@@ -64,6 +64,16 @@ All notable changes to this project will be documented in this file.
   `PSEUDO_CLASS_REGEX` pattern in the same file). Pure refactor; same regex semantics, fewer
   allocations on first-highlight latency for asset/CSS-backed themes. Closes #276.
 
+### Tests
+
+- **`cursorBrush` resolution test coverage** - extracted the editor's null-fallback resolver to
+  an `internal fun resolveEditorCursorBrush(cursorBrush, textColor)` so the contract can be
+  pinned by JVM unit tests instead of needing a Compose UI harness. Five tests cover: null
+  falls back to `SolidColor(textColor)` on both light and dark themes (fixing the
+  `BasicTextField` default of `SolidColor(Color.Black)` that's invisible on dark themes),
+  explicit `SolidColor` is returned verbatim, explicit `Brush.horizontalGradient(...)` passes
+  through unchanged, and `Color.Unspecified` falls through without crashing. No behavior change.
+
 ### Internal
 
 - **`WebViewManager` threading invariants documented and test-covered** - the manager's class
@@ -73,6 +83,13 @@ All notable changes to this project will be documented in this file.
   invariants: destroy-during-init does not leave the next initialize hung, concurrent
   initialize calls create exactly one WebView, and a getReadyWebView await resumes with
   cancellation when destroy fires (never hangs). No functional change. Closes #278.
+
+- **Sample app's Live Editor section now demos the Tier 1 editor params from #265** - adds a
+  "Custom cursor color" toggle chip that flips `cursorBrush` between `null` (theme-derived
+  default) and `SolidColor(MaterialTheme.colorScheme.primary)`. The editor's `keyboardOptions`
+  is now set to `CodeKeyboardOptions.copy(imeAction = ImeAction.Done)`, demonstrating the
+  recommended `.copy(...)` pattern for customising one IME field while keeping autocorrect /
+  autocapitalization off. Sample-only change.
 
 ## [0.26.0] - 2026-06-01
 
