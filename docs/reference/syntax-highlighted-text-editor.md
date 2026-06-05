@@ -120,7 +120,12 @@ import dev.hossain.highlight.ui.SyntaxHighlightedTextEditorDefaults
 @Composable
 fun LargerEditor() {
     var editorValue by remember { mutableStateOf(TextFieldValue("")) }
-    val editorStyle = SyntaxHighlightedTextEditorDefaults.DefaultTextStyle.copy(fontSize = 15.sp)
+    // Wrap in remember so typing recompositions don't allocate a fresh TextStyle
+    // every frame. Add keys (e.g. remember(fontSize) { ... }) when the derived
+    // style depends on changing inputs.
+    val editorStyle = remember {
+        SyntaxHighlightedTextEditorDefaults.DefaultTextStyle.copy(fontSize = 15.sp)
+    }
 
     SyntaxHighlightedTextEditor(
         value         = editorValue,

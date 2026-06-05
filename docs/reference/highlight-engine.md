@@ -104,13 +104,16 @@ trigger another JS tokenization pass.
 import dev.hossain.highlight.engine.HighlightTheme
 
 // Outside Compose: use the non-@Composable factories on HighlightTheme.
-engine.highlightBothThemes(
-    code       = sourceCode,
-    language   = "typescript",
-    lightTheme = HighlightTheme.tomorrow(),
-    darkTheme  = HighlightTheme.tomorrowNight(),
-).onSuccess { result ->
-    val display = if (isDark) result.dark else result.light
+// highlightBothThemes is a suspend fun, so call it from a coroutine.
+viewModelScope.launch {
+    engine.highlightBothThemes(
+        code       = sourceCode,
+        language   = "typescript",
+        lightTheme = HighlightTheme.tomorrow(),
+        darkTheme  = HighlightTheme.tomorrowNight(),
+    ).onSuccess { result ->
+        val display = if (isDark) result.dark else result.light
+    }
 }
 ```
 

@@ -86,15 +86,18 @@ Tokenization is the slow part. Running it twice for light + dark wastes time. Us
 import dev.hossain.highlight.engine.HighlightTheme
 
 // Outside Compose: use the non-@Composable HighlightTheme.tomorrow* factories.
-val result = engine.highlightBothThemes(
-    code       = sourceCode,
-    language   = "kotlin",
-    lightTheme = HighlightTheme.tomorrow(),
-    darkTheme  = HighlightTheme.tomorrowNight(),
-)
-// Switch instantly at the call site - no re-highlighting needed
-result.onSuccess { themed ->
-    val annotated = if (isDark) themed.dark else themed.light
+// highlightBothThemes is a suspend fun, so call it from a coroutine.
+viewModelScope.launch {
+    val result = engine.highlightBothThemes(
+        code       = sourceCode,
+        language   = "kotlin",
+        lightTheme = HighlightTheme.tomorrow(),
+        darkTheme  = HighlightTheme.tomorrowNight(),
+    )
+    // Switch instantly at the call site - no re-highlighting needed
+    result.onSuccess { themed ->
+        val annotated = if (isDark) themed.dark else themed.light
+    }
 }
 ```
 
