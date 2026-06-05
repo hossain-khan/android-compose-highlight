@@ -83,14 +83,14 @@ class CodeViewModel(application: Application) : AndroidViewModel(application) {
 Tokenization is the slow part. Running it twice for light + dark wastes time. Use `highlightBothThemes` to tokenize once and produce both variants:
 
 ```kotlin
-import dev.hossain.highlight.ui.rememberTomorrowNightTheme
-import dev.hossain.highlight.ui.rememberTomorrowTheme
+import dev.hossain.highlight.engine.HighlightTheme
 
+// Outside Compose: use the non-@Composable HighlightTheme.tomorrow* factories.
 val result = engine.highlightBothThemes(
     code       = sourceCode,
     language   = "kotlin",
-    lightTheme = rememberTomorrowTheme(),
-    darkTheme  = rememberTomorrowNightTheme(),
+    lightTheme = HighlightTheme.tomorrow(),
+    darkTheme  = HighlightTheme.tomorrowNight(),
 )
 // Switch instantly at the call site - no re-highlighting needed
 result.onSuccess { themed ->
@@ -98,7 +98,9 @@ result.onSuccess { themed ->
 }
 ```
 
-Inside Compose, use `rememberHighlightedCodeBothThemes(code, language)`.
+Inside Compose, use `rememberHighlightedCodeBothThemes(code, language)` - or pass
+`rememberTomorrowTheme()` / `rememberTomorrowNightTheme()` to `highlightBothThemes`
+when you already have an `engine` from `rememberHighlightEngine()`.
 
 ## Timing callbacks
 
@@ -122,7 +124,7 @@ SyntaxHighlightedCode(
 )
 ```
 
-`HighlightTimings` has individual fields for each pipeline stage:
+[`HighlightTimings`](https://hossain-khan.github.io/android-compose-highlight/api/compose-highlight/dev.hossain.highlight.engine/-highlight-timings/index.html) has individual fields for each pipeline stage:
 
 | Field | Type | Description |
 |---|---|---|

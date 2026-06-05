@@ -52,3 +52,87 @@ SyntaxHighlightedCode(
 - Passing extension with dot (`".kt"`) instead of `"kt"`.
 - Assuming the helper mirrors every upstream highlight.js alias at all times.
 - Forgetting a fallback path (`?: "plaintext"`) for unknown extensions.
+
+## Supported extensions
+
+The current extension-to-language map (source: [`HighlightLanguage.kt`](https://github.com/hossain-khan/android-compose-highlight/blob/main/compose-highlight/src/main/kotlin/dev/hossain/highlight/engine/HighlightLanguage.kt)).
+
+| Language | Extensions |
+|---|---|
+| `kotlin` | `kt`, `kts` |
+| `java` | `java` |
+| `python` | `py`, `pyw`, `pyi` |
+| `javascript` | `js`, `mjs`, `cjs`, `jsx` |
+| `typescript` | `ts`, `mts`, `cts`, `tsx` |
+| `c` | `c`, `h` |
+| `cpp` | `cpp`, `cc`, `cxx`, `hpp`, `hh` |
+| `csharp` | `cs` |
+| `rust` | `rs` |
+| `go` | `go` |
+| `swift` | `swift` |
+| `ruby` | `rb`, `rbw` |
+| `php` | `php`, `phtml` |
+| `scala` | `scala` |
+| `groovy` | `groovy` |
+| `gradle` | `gradle` |
+| `dart` | `dart` |
+| `elixir` | `ex`, `exs` |
+| `erlang` | `erl`, `hrl` |
+| `haskell` | `hs`, `lhs` |
+| `fsharp` | `fs`, `fsi`, `fsx` |
+| `ocaml` | `ml`, `mli` |
+| `clojure` | `clj`, `cljs`, `cljc` |
+| `lua` | `lua` |
+| `r` | `r` |
+| `objectivec` | `m`, `mm` |
+| `perl` | `pl`, `pm` |
+| `bash` | `sh`, `bash`, `zsh` |
+| `powershell` | `ps1`, `psm1`, `psd1` |
+| `sql` | `sql` |
+| `html` | `html`, `htm` |
+| `xml` | `xhtml`, `xml`, `svg`, `xsl` |
+| `css` | `css` |
+| `scss` | `scss` |
+| `less` | `less` |
+| `json` | `json`, `jsonc` |
+| `yaml` | `yaml`, `yml` |
+| `toml` | `toml` |
+| `markdown` | `md`, `markdown` |
+| `dockerfile` | `dockerfile` |
+| `makefile` | `makefile`, `mk` |
+| `latex` | `tex`, `latex` |
+| `diff` | `diff`, `patch` |
+| `ini` | `ini`, `cfg`, `conf` |
+| `properties` | `properties` |
+| `vim` | `vim` |
+| `cmake` | `cmake` |
+| `protobuf` | `proto` |
+| `glsl` | `glsl` |
+| `dos` | `bat`, `cmd` |
+| `x86asm` | `asm`, `s` |
+| `graphql` | `graphql`, `gql` |
+| `plaintext` | `txt` |
+| `julia` | `jl` |
+| `nim` | `nim`, `nims` |
+| `vbnet` | `vb` |
+| `vbscript` | `vbs` |
+| `coffeescript` | `coffee` |
+| `wasm` | `wat` |
+| `haml` | `haml` |
+| `handlebars` | `hbs`, `handlebars` |
+| `stylus` | `styl` |
+| `crystal` | `cr` |
+| `elm` | `elm` |
+| `haxe` | `hx` |
+| `scheme` | `scm`, `ss` |
+| `qml` | `qml` |
+| `d` | `d` |
+| `fortran` | `f`, `f90`, `f95`, `for` |
+| `awk` | `awk` |
+| `tcl` | `tcl`, `tk` |
+| `lisp` | `lisp`, `lsp` |
+| `applescript` | `applescript`, `scpt` |
+| `nix` | `nix` |
+| `nginx` | `nginx` |
+| `pgsql` | `pgsql` |
+| `prolog` | `pro` |

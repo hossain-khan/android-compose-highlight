@@ -69,8 +69,8 @@ SyntaxHighlightedCode(
 import dev.hossain.highlight.ui.SyntaxHighlightedCode
 
 SyntaxHighlightedCode(
-    code                 = snippet,
-    language             = "json",
+    code          = snippet,
+    language      = "json",
     languageLabel = null,  // hide language badge
     copyButton    = null,  // hide copy button
 )

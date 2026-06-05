@@ -106,6 +106,31 @@ fun SqlEditor() {
 }
 ```
 
+### Customize the editor text style
+
+`SyntaxHighlightedTextEditorDefaults.DefaultTextStyle` is the pre-allocated singleton
+the editor uses by default (monospace family). Build on top of it with `.copy(...)`
+to override only what you need - using the singleton avoids allocating a fresh
+`TextStyle` on every recomposition while typing.
+
+```kotlin
+import dev.hossain.highlight.ui.SyntaxHighlightedTextEditorDefaults
+
+@OptIn(ExperimentalHighlightApi::class)
+@Composable
+fun LargerEditor() {
+    var editorValue by remember { mutableStateOf(TextFieldValue("")) }
+    val editorStyle = SyntaxHighlightedTextEditorDefaults.DefaultTextStyle.copy(fontSize = 15.sp)
+
+    SyntaxHighlightedTextEditor(
+        value         = editorValue,
+        onValueChange = { editorValue = it },
+        language      = "kotlin",
+        textStyle     = editorStyle,
+    )
+}
+```
+
 ## How the highlight pipeline behaves
 
 `SyntaxHighlightedTextEditor` delegates pipeline logic to
@@ -150,14 +175,19 @@ Use `rememberSyntaxHighlightedEditorValue()` when you want your own field compon
 (`OutlinedTextField`, third-party editor, etc.) and only need highlighted `TextFieldValue` output.
 
 ```kotlin
-val displayValue = rememberSyntaxHighlightedEditorValue(
-    value    = editorValue,
-    language = "kotlin",
-)
+@OptIn(ExperimentalHighlightApi::class)
+@Composable
+fun MyCustomEditor() {
+    var editorValue by remember { mutableStateOf(TextFieldValue("")) }
+    val displayValue = rememberSyntaxHighlightedEditorValue(
+        value    = editorValue,
+        language = "kotlin",
+    )
 
-OutlinedTextField(
-    value         = displayValue,
-    onValueChange = { editorValue = it },
-    label         = { Text("Code") },
-)
+    OutlinedTextField(
+        value         = displayValue,
+        onValueChange = { editorValue = it },
+        label         = { Text("Code") },
+    )
+}
 ```
