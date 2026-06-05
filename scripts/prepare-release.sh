@@ -8,6 +8,8 @@
 # Files updated:
 #   - gradle.properties        (VERSION_NAME)
 #   - README.md                (dependency snippet)
+#   - docs/index.md            (dependency snippet)
+#   - docs/getting-started.md  (dependency snippet)
 #   - sample/build.gradle.kts  (versionName, versionCode auto-incremented)
 #   - pyproject.toml           (version)
 #   - CHANGELOG.md             ([Unreleased] renamed to [<version>] - <date>)
@@ -55,6 +57,14 @@ echo "- gradle.properties updated"
 # 2. README.md
 sed -i '' "s/compose-highlight:$CURRENT_VERSION/compose-highlight:$NEW_VERSION/" "$REPO_ROOT/README.md"
 echo "- README.md updated"
+
+# 2b. docs/index.md
+sed -i '' "s/compose-highlight:$CURRENT_VERSION/compose-highlight:$NEW_VERSION/" "$REPO_ROOT/docs/index.md"
+echo "- docs/index.md updated"
+
+# 2c. docs/getting-started.md
+sed -i '' "s/compose-highlight:$CURRENT_VERSION/compose-highlight:$NEW_VERSION/" "$REPO_ROOT/docs/getting-started.md"
+echo "- docs/getting-started.md updated"
 
 # 3. sample/build.gradle.kts - versionName
 sed -i '' "s/versionName = \"$CURRENT_VERSION\"/versionName = \"$NEW_VERSION\"/" "$REPO_ROOT/sample/build.gradle.kts"
