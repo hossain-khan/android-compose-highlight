@@ -46,7 +46,10 @@ nav = [
   ]},
   { "Changelog" = "changelog.md" },
   # Requires: ./gradlew :compose-highlight:dokkaGeneratePublicationHtml
-  { "Dokka API Docs" = "api/" },
+  # Absolute URL is intentional: navigation.instant would otherwise DOM-swap the
+  # Dokka subsite (which lacks Material's data-md-color-* palette nodes) into
+  # this shell and crash the palette switcher. External URLs bypass instant nav.
+  { "Dokka API Docs" = "https://hossain-khan.github.io/android-compose-highlight/api/" },
 ]
 
 [[project.extra_javascript]]
