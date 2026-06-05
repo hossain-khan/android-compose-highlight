@@ -15,11 +15,11 @@ Add the dependency to your module's `build.gradle.kts`:
 
 ```kotlin
 dependencies {
-    implementation("dev.hossain:compose-highlight:<version>")
+    implementation("dev.hossain:compose-highlight:0.27.0")
 }
 ```
 
-Replace `<version>` with the [latest release](https://github.com/hossain-khan/android-compose-highlight/releases).
+Check the [latest release](https://github.com/hossain-khan/android-compose-highlight/releases) or [Maven Central](https://central.sonatype.com/artifact/dev.hossain/compose-highlight) for newer versions.
 
 ---
 
