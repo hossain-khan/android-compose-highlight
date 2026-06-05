@@ -31,6 +31,26 @@ import dev.hossain.highlight.ui.SyntaxHighlightedCode
 SyntaxHighlightedCode(code = snippet, language = "kotlin", languageLabel = null)
 ```
 
+### Toggle the default label at runtime
+
+Use `SyntaxHighlightedCodeDefaults.LanguageLabel` to keep the default look while
+toggling visibility - no need to reconstruct the styling yourself:
+
+```kotlin
+import dev.hossain.highlight.ui.SyntaxHighlightedCode
+import dev.hossain.highlight.ui.SyntaxHighlightedCodeDefaults
+
+var showLabel by remember { mutableStateOf(true) }
+
+SyntaxHighlightedCode(
+    code     = snippet,
+    language = "kotlin",
+    languageLabel = if (showLabel) {
+        { SyntaxHighlightedCodeDefaults.LanguageLabel("kotlin") }
+    } else null,
+)
+```
+
 ## Copy button
 
 ### Custom icon

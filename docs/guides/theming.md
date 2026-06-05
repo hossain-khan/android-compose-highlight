@@ -130,10 +130,14 @@ For zero-latency theme switching, tokenize once and apply both color maps. Use `
 
 ```kotlin
 import dev.hossain.highlight.ui.rememberHighlightEngine
+import dev.hossain.highlight.ui.rememberTomorrowNightTheme
+import dev.hossain.highlight.ui.rememberTomorrowTheme
 
-val engine = rememberHighlightEngine()
-val fallback = remember(code) { AnnotatedString(code) }
-val themedPair by produceState(fallback to fallback, code) {
+val engine     = rememberHighlightEngine()
+val lightTheme = rememberTomorrowTheme()
+val darkTheme  = rememberTomorrowNightTheme()
+val fallback   = remember(code) { AnnotatedString(code) }
+val themedPair by produceState(fallback to fallback, code, lightTheme, darkTheme) {
     engine.highlightBothThemes(
         code       = code,
         language   = "kotlin",

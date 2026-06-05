@@ -92,18 +92,21 @@ engine.highlight(code, language, theme)
             when (error) {
                 is HighlightException.WebViewInitFailed -> /* WebView not available (Go edition, MDM-disabled, mid-update) */
                 is HighlightException.JsExecutionFailed -> /* JS evaluation error */
-                is HighlightException.ThemeNotFound     -> /* theme CSS found but contains no parseable color rules */
-                is HighlightException.HtmlParseFailed   -> /* jsoup parse error, or theme asset IOException (check cause) */
+                is HighlightException.HtmlParseFailed   -> /* jsoup parse error, or theme resolution failure (check cause) */
                 is HighlightException.Timeout           -> /* timed out waiting for WebView */
+                is HighlightException.ThemeNotFound     -> /* unreachable from highlight()/highlightBothThemes()/highlightAuto() - see note below */
             }
         }
     }
 ```
 
-!!! note "Missing asset files"
-    If a theme asset file is missing or unreadable, the `IOException` is wrapped in
-    `HtmlParseFailed` (since theme resolution happens during the HTML processing stage).
-    Check `error.cause` to distinguish asset I/O errors from jsoup parse failures.
+!!! note "Theme resolution failures are wrapped in `HtmlParseFailed`"
+    Failures during theme resolution - including a missing asset file (`IOException`),
+    a CSS file that contains no parseable color rules (`ThemeNotFound`), or any other
+    exception thrown while parsing the active theme - are caught alongside HTML parsing
+    and surfaced as `HighlightException.HtmlParseFailed`. Inspect `error.cause` to
+    distinguish the underlying failure. `ThemeNotFound` is never raised directly to
+    callers of `engine.highlight()` / `highlightBothThemes()` / `highlightAuto()`.
 
 ## Important rules
 

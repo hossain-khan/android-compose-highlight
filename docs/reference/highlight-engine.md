@@ -101,15 +101,24 @@ fun MyCodeBlock(code: String) {
 trigger another JS tokenization pass.
 
 ```kotlin
+import dev.hossain.highlight.engine.HighlightTheme
+
+// Outside Compose: use the non-@Composable factories on HighlightTheme.
 engine.highlightBothThemes(
     code       = sourceCode,
     language   = "typescript",
-    lightTheme = rememberTomorrowTheme(),
-    darkTheme  = rememberTomorrowNightTheme(),
+    lightTheme = HighlightTheme.tomorrow(),
+    darkTheme  = HighlightTheme.tomorrowNight(),
 ).onSuccess { result ->
     val display = if (isDark) result.dark else result.light
 }
 ```
+
+!!! note
+    Inside `@Composable` functions, prefer `rememberTomorrowTheme()` /
+    `rememberTomorrowNightTheme()` so the theme is remembered across recompositions.
+    The `HighlightTheme.tomorrow()` and `HighlightTheme.tomorrowNight()` factories above
+    are the non-composable equivalents - safe to call from a ViewModel or repository.
 
 ## Language lookup and auto-detection
 
