@@ -14,12 +14,14 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -186,28 +188,38 @@ private fun LanguageSearchAndList(
 
     SubSectionHeader("Tap to copy language identifier")
 
-    OutlinedTextField(
-        value = query,
-        onValueChange = { query = it },
-        modifier = Modifier.fillMaxWidth(),
-        placeholder = { Text("Filter ${languages.size} languages…") },
-        leadingIcon = {
-            Icon(
-                imageVector = ImageVector.vectorResource(R.drawable.search_24dp),
-                contentDescription = null,
-            )
-        },
-        trailingIcon = {
-            if (query.isNotEmpty()) {
-                Text(
-                    text = "✕",
-                    modifier = Modifier.clickable { query = "" }.padding(8.dp),
-                    style = TextStyle(fontSize = 16.sp, color = LocalContentColor.current.copy(alpha = 0.6f)),
+    OutlinedCard(modifier = Modifier.fillMaxWidth()) {
+        TextField(
+            value = query,
+            onValueChange = { query = it },
+            modifier = Modifier.fillMaxWidth(),
+            placeholder = { Text("Filter ${languages.size} languages…") },
+            leadingIcon = {
+                Icon(
+                    imageVector = ImageVector.vectorResource(R.drawable.search_24dp),
+                    contentDescription = null,
                 )
-            }
-        },
-        singleLine = true,
-    )
+            },
+            trailingIcon = {
+                if (query.isNotEmpty()) {
+                    Text(
+                        text = "✕",
+                        modifier = Modifier.clickable { query = "" }.padding(8.dp),
+                        style = TextStyle(fontSize = 16.sp, color = LocalContentColor.current.copy(alpha = 0.6f)),
+                    )
+                }
+            },
+            singleLine = true,
+            colors =
+                TextFieldDefaults.colors(
+                    focusedIndicatorColor = androidx.compose.ui.graphics.Color.Transparent,
+                    unfocusedIndicatorColor = androidx.compose.ui.graphics.Color.Transparent,
+                    disabledIndicatorColor = androidx.compose.ui.graphics.Color.Transparent,
+                    focusedContainerColor = androidx.compose.ui.graphics.Color.Transparent,
+                    unfocusedContainerColor = androidx.compose.ui.graphics.Color.Transparent,
+                ),
+        )
+    }
 
     OutlinedCard(modifier = Modifier.fillMaxWidth().height(360.dp)) {
         if (filtered.isEmpty() && query.isNotBlank()) {
