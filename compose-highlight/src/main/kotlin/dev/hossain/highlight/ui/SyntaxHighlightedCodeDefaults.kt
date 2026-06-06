@@ -149,7 +149,7 @@ object SyntaxHighlightedCodeDefaults {
             Icon(
                 painter = painterResource(R.drawable.copy_code_block),
                 contentDescription = null,
-                modifier = Modifier.size((size.value * 0.6f).dp),
+                modifier = Modifier.size(18.dp),
                 tint = tint,
             )
         }
