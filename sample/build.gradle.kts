@@ -14,6 +14,7 @@ android {
         targetSdk = 36
         versionCode = 32
         versionName = "0.27.0"
+        buildConfigField("String", "LIB_VERSION_NAME", "\"${project.findProperty("VERSION_NAME") ?: versionName}\"")
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -51,6 +52,7 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 
     lint {

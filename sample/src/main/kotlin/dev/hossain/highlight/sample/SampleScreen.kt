@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.DropdownMenu
@@ -43,6 +42,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import dev.hossain.highlight.engine.HighlightTheme
+import dev.hossain.highlight.sample.info.InfoBanner
 import dev.hossain.highlight.sample.perf.PerfActivity
 import dev.hossain.highlight.sample.sections.AdvancedEngineSection
 import dev.hossain.highlight.sample.sections.AllThemesSection
@@ -249,6 +249,7 @@ fun SampleScreen() {
                         }
 
                         DemoTab.Languages -> {
+                            item { InfoBanner() }
                             codeSamples.forEach { sample ->
                                 item(key = sample.displayLabel) {
                                     SectionHeader(sample.displayLabel)
