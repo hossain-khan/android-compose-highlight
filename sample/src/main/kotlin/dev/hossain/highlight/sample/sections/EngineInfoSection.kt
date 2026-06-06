@@ -264,14 +264,11 @@ private fun LanguageChip(
                 ),
         )
         if (isCopied) {
-            Text(
-                text = "✓",
-                modifier = Modifier.width(18.dp),
-                style =
-                    TextStyle(
-                        fontSize = 14.sp,
-                        color = MaterialTheme.colorScheme.primary,
-                    ),
+            Icon(
+                painter = painterResource(R.drawable.check_24dp),
+                contentDescription = null,
+                modifier = Modifier.size(14.dp),
+                tint = MaterialTheme.colorScheme.primary,
             )
         } else {
             Icon(
