@@ -1,4 +1,4 @@
-package dev.hossain.highlight.sample.sections
+package dev.hossain.highlight.sample.info
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -18,6 +18,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import dev.hossain.highlight.sample.BuildConfig
 import dev.hossain.highlight.sample.R
@@ -58,7 +59,7 @@ internal fun InfoBanner() {
                     text = "v${BuildConfig.LIB_VERSION_NAME}",
                     style =
                         MaterialTheme.typography.titleSmall.copy(
-                            fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
+                            fontFamily = FontFamily.Monospace,
                         ),
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
