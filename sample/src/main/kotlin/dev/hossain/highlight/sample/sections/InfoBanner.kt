@@ -12,6 +12,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalUriHandler
@@ -31,18 +32,22 @@ internal fun InfoBanner() {
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Column(
-                verticalArrangement = Arrangement.spacedBy(4.dp),
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
-                    text = "Compose Highlight Demo v${BuildConfig.LIB_VERSION_NAME}",
+                    text = "Highlight Demo",
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onSurface,
                 )
                 Text(
-                    text =
-                        "This sample app demonstrates the Compose Highlight library and it's functionality.",
-                    style = MaterialTheme.typography.bodyMedium,
+                    text = "v${BuildConfig.LIB_VERSION_NAME}",
+                    style =
+                        MaterialTheme.typography.titleSmall.copy(
+                            fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
+                        ),
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
