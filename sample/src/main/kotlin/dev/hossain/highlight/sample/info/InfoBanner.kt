@@ -50,7 +50,7 @@ internal fun InfoBanner() {
                         tint = MaterialTheme.colorScheme.primary,
                     )
                     Text(
-                        text = "Highlight Demo",
+                        text = "Compose Highlight",
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.onSurface,
                     )
