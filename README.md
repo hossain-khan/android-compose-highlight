@@ -32,9 +32,9 @@ HighlightThemeProvider(
 
 ## Demo
 
-| Sample App | Customizations |
+| Sample App | All Themes |
 | ---- | ----- |
-| <video src="https://github.com/user-attachments/assets/9521cb13-ff32-4a5b-956e-4e620bbee4d1"> | <video src="https://github.com/user-attachments/assets/02a71e4d-6ada-4008-99c0-f642c618d778"> |
+| <video src="https://github.com/user-attachments/assets/5dc18969-396a-45de-849b-0f8e3e9ffd26"> | <video src="https://github.com/user-attachments/assets/ed155002-be9b-4ba4-898b-35597cced0da"> |
 
 
 ## Links
