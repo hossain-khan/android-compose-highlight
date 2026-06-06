@@ -146,10 +146,12 @@ object SyntaxHighlightedCodeDefaults {
                     .size(size)
                     .semantics { this.contentDescription = contentDescription },
         ) {
+            // Scale the icon proportionally to the button size so that callers who customize
+            // `size` get a matching icon without needing to adjust it separately.
             Icon(
                 painter = painterResource(R.drawable.copy_code_block),
                 contentDescription = null,
-                modifier = Modifier.size(18.dp),
+                modifier = Modifier.size(size * 0.6f),
                 tint = tint,
             )
         }
