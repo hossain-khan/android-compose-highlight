@@ -48,6 +48,7 @@ import dev.hossain.highlight.sample.sections.AdvancedEngineSection
 import dev.hossain.highlight.sample.sections.AllThemesSection
 import dev.hossain.highlight.sample.sections.CallbacksSection
 import dev.hossain.highlight.sample.sections.EngineInfoSection
+import dev.hossain.highlight.sample.sections.InfoBanner
 import dev.hossain.highlight.sample.sections.LanguageDiscoverabilitySection
 import dev.hossain.highlight.sample.sections.LiveEditorSection
 import dev.hossain.highlight.sample.sections.PlaceholderSection
@@ -249,6 +250,7 @@ fun SampleScreen() {
                         }
 
                         DemoTab.Languages -> {
+                            item { InfoBanner() }
                             codeSamples.forEach { sample ->
                                 item(key = sample.displayLabel) {
                                     SectionHeader(sample.displayLabel)

@@ -1,0 +1,67 @@
+package dev.hossain.highlight.sample.sections
+
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Card
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.unit.dp
+import dev.hossain.highlight.sample.R
+
+@Composable
+internal fun InfoBanner() {
+    val uriHandler = LocalUriHandler.current
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                Text(
+                    text = "Compose Highlight Demo",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+                Text(
+                    text =
+                        "This sample app demonstrates the Compose Highlight library and it's functionality.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End,
+            ) {
+                OutlinedButton(
+                    onClick = {
+                        uriHandler.openUri("https://hossain-khan.github.io/android-compose-highlight/")
+                    },
+                ) {
+                    Text(text = "Open Docs")
+                    Icon(
+                        imageVector = ImageVector.vectorResource(R.drawable.open_in_new_24dp),
+                        contentDescription = null,
+                        modifier = Modifier.size(16.dp).padding(start = 4.dp),
+                    )
+                }
+            }
+        }
+    }
+}
