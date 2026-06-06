@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -31,6 +32,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.ClipEntry
 import androidx.compose.ui.platform.LocalClipboard
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
@@ -261,14 +263,23 @@ private fun LanguageChip(
                     color = if (isCopied) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                 ),
         )
-        Text(
-            text = if (isCopied) "✓" else "⧉",
-            modifier = Modifier.width(18.dp),
-            style =
-                TextStyle(
-                    fontSize = 14.sp,
-                    color = if (isCopied) MaterialTheme.colorScheme.primary else LocalContentColor.current.copy(alpha = 0.4f),
-                ),
-        )
+        if (isCopied) {
+            Text(
+                text = "✓",
+                modifier = Modifier.width(18.dp),
+                style =
+                    TextStyle(
+                        fontSize = 14.sp,
+                        color = MaterialTheme.colorScheme.primary,
+                    ),
+            )
+        } else {
+            Icon(
+                painter = painterResource(R.drawable.copy_content_alt_rounded),
+                contentDescription = null,
+                modifier = Modifier.size(14.dp),
+                tint = LocalContentColor.current.copy(alpha = 0.4f),
+            )
+        }
     }
 }
