@@ -279,14 +279,14 @@ private fun LanguageChip(
             Icon(
                 painter = painterResource(R.drawable.check_24dp),
                 contentDescription = null,
-                modifier = Modifier.size(14.dp),
+                modifier = Modifier.size(18.dp),
                 tint = MaterialTheme.colorScheme.primary,
             )
         } else {
             Icon(
                 painter = painterResource(R.drawable.copy_content_alt_rounded),
                 contentDescription = null,
-                modifier = Modifier.size(14.dp),
+                modifier = Modifier.size(18.dp),
                 tint = LocalContentColor.current.copy(alpha = 0.4f),
             )
         }
