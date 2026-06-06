@@ -3,6 +3,7 @@ package dev.hossain.highlight.ui
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.Text
@@ -10,6 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
@@ -18,6 +20,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import dev.hossain.highlight.R
 
 /**
  * Default values and helper composables used by [SyntaxHighlightedCode] and [CodeBlockStyle].
@@ -143,9 +146,11 @@ object SyntaxHighlightedCodeDefaults {
                     .size(size)
                     .semantics { this.contentDescription = contentDescription },
         ) {
-            Text(
-                text = "⧉",
-                style = TextStyle(color = tint, fontSize = (size.value * 0.5f).sp),
+            Icon(
+                painter = painterResource(R.drawable.copy_code_block),
+                contentDescription = null,
+                modifier = Modifier.size((size.value * 0.6f).dp),
+                tint = tint,
             )
         }
     }
