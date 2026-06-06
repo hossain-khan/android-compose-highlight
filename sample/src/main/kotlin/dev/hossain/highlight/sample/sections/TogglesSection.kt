@@ -81,8 +81,29 @@ internal fun TogglesSection() {
             copyButton = { onClick ->
                 androidx.compose.material3.IconButton(onClick = onClick) {
                     Icon(
-                        imageVector = ImageVector.vectorResource(R.drawable.content_copy_24dp),
+                        imageVector = ImageVector.vectorResource(R.drawable.copy_content_alt_rounded),
                         modifier = Modifier.size(16.dp),
+                        contentDescription = "Copy code",
+                    )
+                }
+            },
+        )
+
+        HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+
+        SubSectionHeader("copyButton - custom icon with large size (56.dp)")
+        SyntaxHighlightedCode(
+            code = KOTLIN_SNIPPET,
+            language = "kotlin",
+            modifier = Modifier.fillMaxWidth(),
+            copyButton = { onClick ->
+                androidx.compose.material3.IconButton(
+                    onClick = onClick,
+                    modifier = Modifier.size(56.dp),
+                ) {
+                    Icon(
+                        imageVector = ImageVector.vectorResource(R.drawable.copy_content_alt_rounded),
+                        modifier = Modifier.size(32.dp),
                         contentDescription = "Copy code",
                     )
                 }
