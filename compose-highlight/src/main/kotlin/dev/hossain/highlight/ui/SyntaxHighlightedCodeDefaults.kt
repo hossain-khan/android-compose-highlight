@@ -105,9 +105,10 @@ object SyntaxHighlightedCodeDefaults {
     /**
      * Default copy-to-clipboard button used by [SyntaxHighlightedCode]'s `copyButton` slot.
      *
-     * Renders a simple `⧉` text icon inside an [IconButton]. Tint and size default to values
-     * that blend naturally with the code block background when placed inside a
-     * [SyntaxHighlightedCode] block.
+     * Renders a vector copy icon inside an [IconButton]. The icon size scales proportionally
+     * to the button [size] (60 % of the touch target) so that callers who customize the button
+     * size get a matching icon automatically. Tint and size default to values that blend naturally
+     * with the code block background when placed inside a [SyntaxHighlightedCode] block.
      *
      * Pass to `copyButton` to retain the default look while customising other parameters:
      *
