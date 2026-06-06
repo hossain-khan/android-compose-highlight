@@ -97,11 +97,16 @@ internal fun TogglesSection() {
             language = "kotlin",
             modifier = Modifier.fillMaxWidth(),
             copyButton = { onClick ->
-                SyntaxHighlightedCodeDefaults.CopyButton(
+                androidx.compose.material3.IconButton(
                     onClick = onClick,
-                    contentDescription = "Copy code",
-                    size = 56.dp,
-                )
+                    modifier = Modifier.size(56.dp),
+                ) {
+                    Icon(
+                        imageVector = ImageVector.vectorResource(R.drawable.copy_content_alt_rounded),
+                        modifier = Modifier.size(32.dp),
+                        contentDescription = "Copy code",
+                    )
+                }
             },
         )
 
