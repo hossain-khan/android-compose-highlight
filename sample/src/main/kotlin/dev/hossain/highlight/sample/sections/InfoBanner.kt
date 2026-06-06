@@ -17,6 +17,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
+import dev.hossain.highlight.sample.BuildConfig
 import dev.hossain.highlight.sample.R
 
 @Composable
@@ -34,7 +35,7 @@ internal fun InfoBanner() {
                 verticalArrangement = Arrangement.spacedBy(4.dp),
             ) {
                 Text(
-                    text = "Compose Highlight Demo",
+                    text = "Compose Highlight Demo v${BuildConfig.LIB_VERSION_NAME}",
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onSurface,
                 )
