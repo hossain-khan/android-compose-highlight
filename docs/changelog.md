@@ -6,6 +6,14 @@ For release artifacts and APK downloads, see the [GitHub Releases page](https://
 
 ## Recent highlights
 
+### 0.28.0 - Vector copy icon and sample app polish
+
+- Default copy icon replaced with vector drawable (`copy_code_block.xml`) with proportional scaling
+- Info banner added to sample app Languages tab with library version and "Open Docs" button
+- `LIB_VERSION_NAME` build config field keeps displayed version in sync with published artifact
+- `EngineInfoSection` search box outline now matches other info cards, language chips use vector icons
+- KDoc updated for `CopyButton` to describe vector icon behavior
+
 ### 0.27.0 - Editor keyboard options and cursor brush
 
 - `SyntaxHighlightedTextEditor` now defaults to code-friendly `keyboardOptions` (autocorrect off, Ascii keyboard)
@@ -36,13 +44,6 @@ For release artifacts and APK downloads, see the [GitHub Releases page](https://
 - Added `onHighlightComplete` callback to `SyntaxHighlightedTextEditor` for deterministic testing
 - New public helper `rememberSyntaxHighlightedEditorValue()` for custom editor layouts with syntax highlighting
 - Eliminated stale `LaunchedEffect` for span clearing; stale detection now happens in-composition
-
-### 0.24.0 - Live code editor support
-
-- New `SyntaxHighlightedTextEditor` composable with live syntax highlighting as you type
-- 150 ms keystroke debounce with cursor and selection always preserved
-- New **Live Editor** demo tab in sample app showcasing 6 languages
-- Marked `@ExperimentalHighlightApi` for gradual API stabilization
 
 ---
 

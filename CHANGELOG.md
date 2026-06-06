@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.28.0] - 2026-06-06
+
 ### Changed
 
 - **Default copy icon replaced with vector drawable** - `SyntaxHighlightedCodeDefaults.CopyButton`
