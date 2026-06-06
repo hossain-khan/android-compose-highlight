@@ -4,6 +4,39 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Changed
+
+- **Default copy icon replaced with vector drawable** - `SyntaxHighlightedCodeDefaults.CopyButton`
+  now renders a vector copy icon (`copy_code_block.xml`) instead of the `⧉` Unicode text character.
+  The icon size scales proportionally to the button `size` (60 % of the touch target) so callers
+  who customize the button size get a matching icon automatically. Tinting works correctly via
+  `LocalContentColor`.
+
+### Added
+
+- **Info banner in sample app Languages tab** - the first item in the Languages tab now shows an
+  info banner with the library name, version number (read from `gradle.properties` via
+  `BuildConfig.LIB_VERSION_NAME`), a brief description, and an "Open Docs" button that launches
+  the documentation site via `LocalUriHandler`.
+
+- **`LIB_VERSION_NAME` build config field** - sample app now exposes the library version from
+  `gradle.properties` as `BuildConfig.LIB_VERSION_NAME`, keeping the displayed version in sync
+  with the published artifact version without manual updates.
+
+### Sample app
+
+- **`TogglesSection` updated** - the custom copyButton example now uses `copy_content_alt_rounded`
+  vector icon. Added a new demo showing a large 56.dp copy button with the same icon.
+- **`EngineInfoSection` polished** - replaced `OutlinedTextField` with `OutlinedCard` wrapping a
+  borderless `TextField` so the search box outline matches the version and language count cards.
+  Language chips now use vector icons (`check_24dp` for copied state, `copy_content_alt_rounded`
+  for default) at 18.dp instead of text characters.
+
+### Docs
+
+- **KDoc updated for `CopyButton`** - removed reference to `⧉` text icon, updated to describe
+  the vector icon with proportional scaling behavior.
+
 ## [0.27.0] - 2026-06-02
 
 ### Changed (Breaking - experimental API)
