@@ -1,7 +1,7 @@
 [![CI](https://github.com/hossain-khan/android-compose-highlight/actions/workflows/ci.yml/badge.svg)](https://github.com/hossain-khan/android-compose-highlight/actions/workflows/ci.yml) [![codecov](https://codecov.io/github/hossain-khan/android-compose-highlight/graph/badge.svg?token=MHCCHQVSLX)](https://codecov.io/github/hossain-khan/android-compose-highlight) [![release](https://badgen.net/github/release/hossain-khan/android-compose-highlight?icon=github&color=purple)](https://github.com/hossain-khan/android-compose-highlight/releases/latest) [![Maven Centra](https://img.shields.io/maven-central/v/dev.hossain/compose-highlight?color=brown)](https://central.sonatype.com/artifact/dev.hossain/compose-highlight) [![Android Weekly](https://androidweekly.net/issues/issue-727/badge)](https://androidweekly.net/issues/issue-727)
 
 
-# <img src="docs/assets/images/favicon.png" height="24" atl="Compose Code Highlight Logo"> Compose Highlight for Android
+# <img src="docs/assets/images/logo-plain.png" height="26" atl="Compose Code Highlight Logo"> Compose Highlight for Android
 
 A Jetpack Compose library for beautiful syntax highlighting - powered by [Highlight.js](https://highlightjs.org/) running in a hidden WebView, converting tokenised HTML to native Compose `AnnotatedString`. Supports 190+ languages with no custom lexers to maintain.
 
