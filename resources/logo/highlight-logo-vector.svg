@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1140 860" role="img" aria-labelledby="title desc">
+  <title id="title">Highlight logo</title>
+  <desc id="desc">Two gradient curly braces around a golden four-point sparkle.</desc>
+  <defs>
+    <!-- Purple gradient for the left curly brace. -->
+    <linearGradient id="leftBrace" x1="56" y1="71" x2="333" y2="817" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#8d55ff"/>
+      <stop offset=".45" stop-color="#7159ff"/>
+      <stop offset="1" stop-color="#7067ff"/>
+    </linearGradient>
+    <!-- Blue-to-teal gradient for the mirrored right curly brace. -->
+    <linearGradient id="rightBrace" x1="833" y1="42" x2="1044" y2="822" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#2fb1ff"/>
+      <stop offset=".5" stop-color="#22c5cd"/>
+      <stop offset="1" stop-color="#18d6a3"/>
+    </linearGradient>
+    <!-- Warm radial gradient for the center sparkle. -->
+    <radialGradient id="spark" cx="0" cy="0" r="1" gradientTransform="matrix(230 0 0 212 571 439)" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ffd94a"/>
+      <stop offset=".58" stop-color="#ffc626"/>
+      <stop offset="1" stop-color="#ffb60d"/>
+    </radialGradient>
+    <!-- Soft shared shadow for both brace shapes. -->
+    <filter id="softShadow" x="-6%" y="-6%" width="112%" height="112%" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#000" flood-opacity=".2"/>
+    </filter>
+    <!-- Slight amber shadow to give the sparkle depth. -->
+    <filter id="sparkShadow" x="-8%" y="-8%" width="116%" height="116%" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#a86d00" flood-opacity=".28"/>
+    </filter>
+    <!-- Reusable left brace silhouette; the right brace mirrors this path. -->
+    <path id="brace" d="M350 12v117h-61c-39 0-67 29-67 70v83c0 74-30 124-75 148 45 23 75 74 75 149v83c0 42 28 71 68 71h60v115H246C160 848 95 783 95 697V584c0-53-36-91-87-97V377c51-6 87-44 87-97V163C95 78 161 12 247 12z"/>
+  </defs>
+  <!-- Curly braces framing the icon. -->
+  <g filter="url(#softShadow)">
+    <use href="#brace" fill="url(#leftBrace)"/>
+    <use href="#brace" fill="url(#rightBrace)" transform="matrix(-1 0 0 1 1140 0)"/>
+  </g>
+  <!-- Four-point highlight sparkle in the center. -->
+  <path filter="url(#sparkShadow)" fill="url(#spark)" d="M571 231c7 0 10 4 14 17l34 103c10 30 31 48 64 59l79 25c13 4 13 14 0 18l-79 25c-33 10-54 29-64 59l-34 103c-4 12-23 12-27 0l-34-103c-10-30-31-49-64-59l-79-25c-13-4-13-14 0-18l79-25c33-11 54-29 64-59l34-103c4-13 7-17 13-17z"/>
+</svg>
