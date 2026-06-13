@@ -139,6 +139,32 @@ tasks.register<Exec>("refreshHljsFixtures") {
     outputs.dir("src/test/resources/highlight-fixtures")
 }
 
+// JVM microbenchmark for HtmlToAnnotatedString (hand-rolled, no plugin).
+//
+// The benchmark class is dev.hossain.highlight.benchmark.HtmlParserBenchmark in
+// src/test and is skipped by default via Assume.assumeTrue. Opt in by passing
+// -PrunBenchmark=true (Gradle property) - see the configuration block below.
+//
+// Workflow for a parser swap:
+//   ./gradlew :compose-highlight:testDebugUnitTest \
+//     --tests "dev.hossain.highlight.benchmark.HtmlParserBenchmark" \
+//     -PrunBenchmark=true --rerun-tasks
+//   cp compose-highlight/build/reports/benchmarks/html-parser-baseline-*.json /tmp/bench-baseline.json
+//   # ... swap parser ...
+//   # re-run, diff JSON.
+if (providers.gradleProperty("runBenchmark").orNull == "true") {
+    // tasks.withType<Test>() configures all Test tasks (testDebugUnitTest is registered
+    // lazily by AGP, so tasks.named would fail at configuration time).
+    tasks.withType<Test>().configureEach {
+        systemProperty("runBenchmark", "true")
+        outputs.upToDateWhen { false }
+        testLogging {
+            showStandardStreams = true
+            events("passed", "skipped", "failed", "standardOut")
+        }
+    }
+}
+
 if (providers.gradleProperty("composeReports").orNull == "true") {
     composeCompiler {
         reportsDestination = layout.buildDirectory.dir("compose_compiler")
