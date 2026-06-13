@@ -31,7 +31,7 @@ Six real-world highlight.js HTML outputs under
 `compose-highlight/src/test/resources/highlight-fixtures/`:
 
 | Fixture | Size |
-|---------|------|
+| --- | --- |
 | real-c.html | 76 KB |
 | real-rust.html | 63 KB |
 | real-kotlin.html | 57 KB |
@@ -41,47 +41,58 @@ Six real-world highlight.js HTML outputs under
 
 ## Reports
 
+### jsoup-baseline-run{1,2,3}.json
+
+**Date:** 2026-06-13
+**Parser:** Jsoup-based HTML parser (pre-custom parser).
+This was the original implementation that parsed the HTML using Jsoup's complete DOM tree
+and walked all nodes.
+
 ### baseline-pre-sax-optimization.json
 
 **Date:** 2026-06-13
-**Parser:** Two-phase pipeline - `parseHtml()` builds intermediate `CustomNode` tree,
-then `walkNode()` traverses the tree to build `AnnotatedString`.
-
-This is the baseline before the SAX-style optimization.
+**Parser:** Two-phase custom parser pipeline.
+`parseHtml()` builds an intermediate `CustomNode` tree, then `walkNode()` traverses the tree
+to build `AnnotatedString`.
 
 ### sax-optimized-run{1,2,3}.json
 
 **Date:** 2026-06-13
-**Parser:** SAX-style single-pass - `parseAndBuild()`/`parseAndBuildBoth()` parse HTML
-and build `AnnotatedString` simultaneously, eliminating the intermediate tree. Also
-includes substring avoidance, in-place attribute extraction, lazy entity decoding,
-and allocation-free numeric parsing.
+**Parser:** SAX-style single-pass custom parser.
+`parseAndBuild()`/`parseAndBuildBoth()` parse HTML and build `AnnotatedString` simultaneously,
+eliminating the intermediate tree. Also includes substring avoidance, in-place attribute
+extraction, lazy entity decoding, and allocation-free numeric parsing.
 
-Three consecutive runs to verify stability.
+Three consecutive runs are saved for both Jsoup and SAX-optimized versions to verify stability.
 
-### Summary comparison (best of 3 optimized runs vs baseline)
+## Three-Way Comparison (best of 3 runs vs baseline)
 
-| Benchmark | Baseline (us) | Optimized (us) | Improvement |
-|-----------|--------------|----------------|-------------|
-| convertKotlin | 419.64 | 178.91 | **-57%** |
-| convertGo | 205.22 | 94.21 | **-54%** |
-| convertRust | 353.91 | 192.67 | **-46%** |
-| convertCsharp | 42.92 | 23.02 | **-46%** |
-| convertSql | 160.04 | 104.68 | **-35%** |
-| convertC | 496.30 | 354.64 | **-29%** |
-| convertBothSql | 417.96 | 254.90 | **-39%** |
-| convertBothC | 504.26 | 331.89 | **-34%** |
-| convertBothGo | 223.12 | 151.85 | **-32%** |
-| convertBothCsharp | 60.98 | 42.00 | **-31%** |
-| convertBothRust | 211.98 | 159.74 | **-25%** |
-| convertBothKotlin | 294.72 | 278.72 | **-5%** |
+All values are in microseconds (us). Lower is better.
+
+| Benchmark | Jsoup (us) | Custom (us) | SAX (us) | Jsoup->SAX | Custom->SAX |
+| --- | --- | --- | --- | --- | --- |
+| convertBothC | 897.86 | 504.26 | 324.91 | **-63.8%** | **-35.6%** |
+| convertBothCsharp | 168.59 | 60.98 | 42.00 | **-75.1%** | **-31.1%** |
+| convertBothGo | 410.82 | 223.12 | 147.63 | **-64.1%** | **-33.8%** |
+| convertBothKotlin | 600.56 | 294.72 | 278.72 | **-53.6%** | **-5.4%** |
+| convertBothRust | 235.50 | 211.98 | 159.74 | **-32.2%** | **-24.6%** |
+| convertBothSql | 996.30 | 417.96 | 254.90 | **-74.4%** | **-39.0%** |
+| convertC | 1381.68 | 496.30 | 354.64 | **-74.3%** | **-28.5%** |
+| convertCsharp | 80.98 | 42.92 | 20.92 | **-74.2%** | **-51.3%** |
+| convertGo | 581.30 | 205.22 | 94.21 | **-83.8%** | **-54.1%** |
+| convertKotlin | 420.75 | 419.64 | 178.91 | **-57.5%** | **-57.4%** |
+| convertRust | 346.67 | 353.91 | 192.67 | **-44.4%** | **-45.6%** |
+| convertSql | 257.85 | 160.04 | 92.62 | **-64.1%** | **-42.1%** |
 
 ## Diffing reports
 
-Use `jq` to compare two reports side-by-side:
+Use `jq` to compare reports side-by-side:
 
 ```bash
 # Extract mean times as a sorted table
+jq -r '.benchmarks | sort_by(.name) | .[] | "\(.name)\t\(.meanUs)"' \
+  resources/html-parser-benchmarks/jsoup-baseline-run1.json
+
 jq -r '.benchmarks | sort_by(.name) | .[] | "\(.name)\t\(.meanUs)"' \
   resources/html-parser-benchmarks/baseline-pre-sax-optimization.json
 
