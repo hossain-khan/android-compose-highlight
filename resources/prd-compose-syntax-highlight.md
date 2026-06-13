@@ -94,7 +94,7 @@ Code ("def foo():") + lang ("python")
                    ▼
 ┌─ HtmlToAnnotatedString ─────────────────────────┐
 │                                                  │
-│  Jsoup.parse(html)                               │
+│  parseHtml(html)                                 │
 │  Recursive tree walk:                            │
 │    <span class="hljs-keyword">                  │
 │      → pushStyle(map["hljs-keyword"])            │
@@ -348,10 +348,10 @@ function walkNode(node, colorMap, builder):
 ```
 
 **Key details:**
-- Use jsoup (`org.jsoup:jsoup`) for HTML parsing — proven in both Claude and Perplexity
+- Use in-house custom parser for HTML parsing (replaces Jsoup to support Kotlin Multiplatform)
 - Handle nested spans (e.g., `<span class="hljs-string"><span class="hljs-subst">...</span></span>`)
 - TextNode text must be appended verbatim including whitespace
-- The input is a fragment (not a full document) — use `Jsoup.parseBodyFragment(html)`
+- The input is a fragment (not a full document) - parsed using `parseHtml`
 
 ---
 
@@ -653,8 +653,7 @@ dependencies {
     // WebView asset loading (Perplexity's approach)
     implementation("androidx.webkit:webkit:1.16.0")
 
-    // HTML parsing (used by both Claude and Perplexity)
-    implementation("org.jsoup:jsoup:1.22.2")
+    // Custom HTML parser (replaces Jsoup)
 
     // Jetpack Compose
     implementation(platform("androidx.compose:compose-bom:2026.05.00"))
@@ -763,7 +762,7 @@ sealed class HighlightException(message: String, cause: Throwable? = null) : Exc
 | Theme color maps | `Lazy` initialization (parsed once per theme) | CSS parsing is ~1-2ms but no reason to repeat |
 | JS bridge ready state | `CompletableDeferred`, awaited before first call | `onPageFinished` signals bridge.html is loaded |
 | Highlighted results | Caller's responsibility (use `remember {}`) | Library doesn't know the caller's caching policy |
-| HTML → AnnotatedString | No cache (fast enough: <1ms for typical code) | Jsoup parsing + tree walk is negligible |
+| HTML → AnnotatedString | No cache (fast enough: <1ms for typical code) | Custom HTML parser + tree walk is negligible |
 
 **Expected latency per highlight call:**
 - First call: ~200-400ms (WebView init + JS warm-up)
@@ -866,7 +865,7 @@ Build in this sequence — each step is independently testable:
 1. **Project setup** — Create Gradle project, add dependencies, configure build
 2. **Asset bundle** — Download highlight.min.js, create bridge.html, add theme CSS files
 3. **ThemeParser** — Implement + unit test (no Android deps needed)
-4. **HtmlToAnnotatedString** — Implement + unit test (uses jsoup only)
+4. **HtmlToAnnotatedString** - Implement + unit test (uses custom HTML parser)
 5. **HighlightEngine** — Implement WebView manager + JS bridge + instrumented tests
 6. **HighlightTheme** — Wire up lazy theme maps with the parser
 7. **SyntaxHighlightedCode** — Build the composable with all UI features

@@ -34,7 +34,7 @@ Internal implementation
   |- WebViewManager                     Hidden WebView lifecycle + bridge page
   |- ThemeParser                        CSS selector to SpanStyle parsing (recursive descent)
   |- GeneratedThemes                    Build-time precompiled color maps for the four built-ins
-  |- HtmlToAnnotatedString              jsoup HTML to AnnotatedString conversion
+  |- HtmlToAnnotatedString / HtmlParser  Custom HTML parsing and AnnotatedString conversion
   \- escapeForJs() / unescapeJsString() and related helpers
 ```
 

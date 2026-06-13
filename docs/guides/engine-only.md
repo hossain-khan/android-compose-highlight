@@ -92,7 +92,7 @@ engine.highlight(code, language, theme)
             when (error) {
                 is HighlightException.WebViewInitFailed -> /* WebView not available (Go edition, MDM-disabled, mid-update) */
                 is HighlightException.JsExecutionFailed -> /* JS evaluation error */
-                is HighlightException.HtmlParseFailed   -> /* jsoup parse error, or theme resolution failure (check cause) */
+                is HighlightException.HtmlParseFailed   -> /* HTML parse error, or theme resolution failure (check cause) */
                 is HighlightException.Timeout           -> /* timed out waiting for WebView */
                 is HighlightException.ThemeNotFound     -> /* unreachable from highlight()/highlightBothThemes()/highlightAuto() - see note below */
             }

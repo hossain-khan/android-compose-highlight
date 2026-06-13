@@ -114,7 +114,7 @@ it only verifies the committed fixtures.
 ### Why the helper drains the looper after the JS callback
 
 `SyntaxHighlightedCode` runs a four-stage async pipeline on every recomposition: JS callback
-on `Dispatchers.Main` -> jsoup parse on `Dispatchers.Default` -> state write on `Main` ->
+on `Dispatchers.Main` -> custom HTML parse on `Dispatchers.Default` -> state write on `Main` ->
 recomposition + AnimatedContent fade. Under v2 `createComposeRule`'s `StandardTestDispatcher`,
 each `Dispatcher` hop is a separate scheduler turn. A single `waitForIdle()` only drains the
 recomposition queue; it does not run scheduler-queued continuations.

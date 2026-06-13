@@ -179,7 +179,7 @@ SyntaxHighlightedCode("val x = 42", "kotlin")
    │             │
    │             └─ withContext(Default) {
    │                   theme.timedColorMap()                       // CSS parse, lazy
-   │                   HtmlToAnnotatedString.convert(html, colors) // jsoup
+   │                   HtmlToAnnotatedString.convert(html, colors) // custom parser
    │                   → HighlightResult(annotated, spans, ...)
    │                }
    │
