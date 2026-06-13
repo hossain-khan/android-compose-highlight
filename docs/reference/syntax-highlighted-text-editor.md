@@ -33,7 +33,7 @@ Full API in Dokka:
 - `onHighlightComplete` and `onError` - observability hooks. `onHighlightComplete` receives a `HighlightResult` (timing, span count, language); see the [API docs](https://hossain-khan.github.io/android-compose-highlight/api/compose-highlight/dev.hossain.highlight.engine/-highlight-result/index.html).
 - `indentation` - indentation string to insert when the Tab key is pressed. Defaults to 4 spaces (`"    "`).
 - `autoIndentEnabled` - whether to automatically copy the leading indentation of the previous line when inserting a newline. Defaults to `true`.
-- `tabKeyInterceptionEnabled` - whether to intercept the hardware Tab key to insert spaces instead of shifting focus to the next view. Defaults to `true`.
+- `tabKeyInterceptionEnabled` - whether to intercept the hardware Tab key to insert spaces instead of shifting focus to the next view. Defaults to `true`. Note that arrow keys (Up, Down, Left, Right) are also intercepted to prevent focus from escaping the editor when boundaries are reached.
 
 For anything else `BasicTextField` exposes (`enabled`, `readOnly`, `singleLine`, `maxLines`, `decorationBox`, etc.) drop one level down to [`rememberSyntaxHighlightedEditorValue`](#lower-level-helper-for-custom-text-fields) and render your own field - the editor is intentionally opinionated.
 

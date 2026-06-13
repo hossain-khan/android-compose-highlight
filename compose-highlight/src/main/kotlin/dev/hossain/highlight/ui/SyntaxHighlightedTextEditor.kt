@@ -160,7 +160,9 @@ import dev.hossain.highlight.engine.HighlightTheme
  * @param autoIndentEnabled Whether to automatically copy the indentation of the previous line when
  *   inserting a newline. Defaults to true.
  * @param tabKeyInterceptionEnabled Whether to intercept the hardware Tab key to insert spaces
- *   instead of shifting focus to the next view. Defaults to true.
+ *   instead of shifting focus to the next view. Defaults to true. Note that arrow keys (Up,
+ *   Down, Left, Right) are also intercepted to prevent focus from escaping the editor when
+ *   boundaries are reached.
  *
  * **Note on [shape]:** if you pass a custom [Shape] (e.g. `RoundedCornerShape(8.dp)`), wrap
  * it in `remember` at the call site so that a new instance is not created on every
@@ -179,9 +181,9 @@ fun SyntaxHighlightedTextEditor(
     textStyle: TextStyle = SyntaxHighlightedTextEditorDefaults.DefaultTextStyle,
     keyboardOptions: KeyboardOptions = SyntaxHighlightedTextEditorDefaults.CodeKeyboardOptions,
     cursorBrush: Brush? = null,
+    debounceMs: Long = SyntaxHighlightedTextEditorDefaults.DEBOUNCE_MS,
     onHighlightComplete: ((HighlightResult) -> Unit)? = null,
     onError: ((HighlightException) -> Unit)? = null,
-    debounceMs: Long = SyntaxHighlightedTextEditorDefaults.DEBOUNCE_MS,
     indentation: String = SyntaxHighlightedTextEditorDefaults.DEFAULT_INDENTATION,
     autoIndentEnabled: Boolean = SyntaxHighlightedTextEditorDefaults.AUTO_INDENT_ENABLED,
     tabKeyInterceptionEnabled: Boolean = SyntaxHighlightedTextEditorDefaults.TAB_KEY_INTERCEPTION_ENABLED,
@@ -227,28 +229,18 @@ fun SyntaxHighlightedTextEditor(
                 newText[value.selection.start] == '\n'
             ) {
                 val cursorPosition = value.selection.start
-
-                // Find start of previous line
-                var lineStart = cursorPosition - 1
-                while (lineStart >= 0 && oldText[lineStart] != '\n') {
-                    lineStart--
-                }
-                lineStart++ // Move past '\n' or start at index 0
-
-                // Extract previous line's indent
-                var indentEnd = lineStart
-                while (indentEnd < cursorPosition && (oldText[indentEnd] == ' ' || oldText[indentEnd] == '\t')) {
-                    indentEnd++
-                }
-                val indent = oldText.substring(lineStart, indentEnd)
-
-                if (indent.isNotEmpty()) {
-                    val autoIndentedText =
-                        newText.substring(0, newValue.selection.start) +
-                            indent +
-                            newText.substring(newValue.selection.start)
-                    val autoIndentedSelection = TextRange(newValue.selection.start + indent.length)
-                    onValueChange(newValue.copy(text = autoIndentedText, selection = autoIndentedSelection))
+                if (cursorPosition > 0) {
+                    val indent = extractLeadingWhitespace(oldText, cursorPosition)
+                    if (indent.isNotEmpty()) {
+                        val autoIndentedText =
+                            newText.substring(0, newValue.selection.start) +
+                                indent +
+                                newText.substring(newValue.selection.start)
+                        val autoIndentedSelection = TextRange(newValue.selection.start + indent.length)
+                        onValueChange(newValue.copy(text = autoIndentedText, selection = autoIndentedSelection))
+                    } else {
+                        onValueChange(newValue)
+                    }
                 } else {
                     onValueChange(newValue)
                 }
@@ -280,22 +272,12 @@ fun SyntaxHighlightedTextEditor(
                     }
 
                     Key.Enter -> {
-                        if (autoIndentEnabled) {
+                        if (autoIndentEnabled && value.composition == null) {
                             val text = value.text
                             val selection = value.selection
-                            val cursorPosition = selection.start
+                            val cursorPosition = selection.min
 
-                            var lineStart = cursorPosition - 1
-                            while (lineStart >= 0 && text[lineStart] != '\n') {
-                                lineStart--
-                            }
-                            lineStart++
-
-                            var indentEnd = lineStart
-                            while (indentEnd < cursorPosition && (text[indentEnd] == ' ' || text[indentEnd] == '\t')) {
-                                indentEnd++
-                            }
-                            val indent = text.substring(lineStart, indentEnd)
+                            val indent = extractLeadingWhitespace(text, cursorPosition)
 
                             val insertion = "\n" + indent
                             val newText = text.replaceRange(selection.min, selection.max, insertion)
@@ -358,3 +340,21 @@ internal fun resolveEditorCursorBrush(
     cursorBrush: Brush?,
     textColor: Color,
 ): Brush = cursorBrush ?: SolidColor(textColor)
+
+private fun extractLeadingWhitespace(
+    text: String,
+    beforeIndex: Int,
+): String {
+    if (beforeIndex <= 0) return ""
+    var lineStart = beforeIndex - 1
+    while (lineStart >= 0 && text[lineStart] != '\n') {
+        lineStart--
+    }
+    lineStart++ // Move past '\n' or start at index 0
+
+    var indentEnd = lineStart
+    while (indentEnd < beforeIndex && (text[indentEnd] == ' ' || text[indentEnd] == '\t')) {
+        indentEnd++
+    }
+    return text.substring(lineStart, indentEnd)
+}

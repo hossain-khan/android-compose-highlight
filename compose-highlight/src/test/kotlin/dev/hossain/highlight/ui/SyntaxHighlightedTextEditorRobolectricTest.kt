@@ -634,6 +634,83 @@ class SyntaxHighlightedTextEditorRobolectricTest {
         assertThat(calledValue?.selection?.start).isEqualTo(8)
     }
 
+    @Test
+    fun `auto indent handles newline inserted at index 0`() {
+        var value = TextFieldValue("    val x = 42", selection = TextRange(0))
+        var calledValue: TextFieldValue? = null
+
+        composeTestRule.setContent {
+            CompositionLocalProvider(LocalInspectionMode provides true) {
+                HighlightThemeProvider {
+                    SyntaxHighlightedTextEditor(
+                        value = value,
+                        onValueChange = {
+                            value = it
+                            calledValue = it
+                        },
+                        language = "kotlin",
+                        autoIndentEnabled = true,
+                    )
+                }
+            }
+        }
+        composeTestRule.waitForIdle()
+
+        composeTestRule.onNode(hasSetTextAction(), useUnmergedTree = true).performClick()
+        composeTestRule.waitForIdle()
+
+        calledValue = null
+
+        composeTestRule.onNode(hasSetTextAction(), useUnmergedTree = true).performTextInput("\n")
+        composeTestRule.waitForIdle()
+
+        assertThat(calledValue?.text).isEqualTo("\n    val x = 42")
+        assertThat(calledValue?.selection?.start).isEqualTo(1)
+    }
+
+    @Test
+    fun `hardware enter key replaces selection with auto indent`() {
+        var value = TextFieldValue("    val x = 42", selection = TextRange(4, 9)) // selects "val x"
+        var calledValue: TextFieldValue? = null
+
+        composeTestRule.setContent {
+            CompositionLocalProvider(LocalInspectionMode provides true) {
+                HighlightThemeProvider {
+                    SyntaxHighlightedTextEditor(
+                        value = value,
+                        onValueChange = {
+                            value = it
+                            calledValue = it
+                        },
+                        language = "kotlin",
+                        autoIndentEnabled = true,
+                    )
+                }
+            }
+        }
+        composeTestRule.waitForIdle()
+
+        composeTestRule.onNode(hasSetTextAction(), useUnmergedTree = true).performClick()
+        composeTestRule.waitForIdle()
+
+        calledValue = null
+
+        composeTestRule
+            .onNode(hasSetTextAction(), useUnmergedTree = true)
+            .performKeyPress(
+                KeyEvent(
+                    android.view.KeyEvent(
+                        android.view.KeyEvent.ACTION_DOWN,
+                        android.view.KeyEvent.KEYCODE_ENTER,
+                    ),
+                ),
+            )
+        composeTestRule.waitForIdle()
+
+        assertThat(calledValue?.text).isEqualTo("    \n     = 42")
+        assertThat(calledValue?.selection?.start).isEqualTo(9)
+    }
+
     // Note: a Robolectric test asserting selection preservation across a successful highlight
     // cycle (issue #230's `selectionPreservedAcrossNonCollapsedRange` item) was attempted but
     // proved flaky based on test execution ordering - the engine's coroutine pipeline doesn't
