@@ -1,0 +1,20 @@
+{
+  "reportTimestamp": 1781388221084,
+  "timeUnit": "microseconds",
+  "warmupIterations": 100,
+  "measurementIterations": 50,
+  "benchmarks": [
+    {"name":"convertBothSql","warmupIterations":100,"measurementIterations":50,"meanUs":454.335,"stddevUs":6.979,"minUs":445.167,"maxUs":473.625},
+    {"name":"convertRust","warmupIterations":100,"measurementIterations":50,"meanUs":241.035,"stddevUs":67.832,"minUs":159.042,"maxUs":378.209},
+    {"name":"convertC","warmupIterations":100,"measurementIterations":50,"meanUs":607.814,"stddevUs":25.127,"minUs":566.417,"maxUs":667.834},
+    {"name":"convertGo","warmupIterations":100,"measurementIterations":50,"meanUs":485.213,"stddevUs":8.468,"minUs":471.541,"maxUs":507.125},
+    {"name":"convertBothRust","warmupIterations":100,"measurementIterations":50,"meanUs":181.885,"stddevUs":166.440,"minUs":146.750,"maxUs":1339.959},
+    {"name":"convertBothCsharp","warmupIterations":100,"measurementIterations":50,"meanUs":60.801,"stddevUs":1.402,"minUs":59.375,"maxUs":67.167},
+    {"name":"convertBothKotlin","warmupIterations":100,"measurementIterations":50,"meanUs":350.066,"stddevUs":46.099,"minUs":323.167,"maxUs":514.292},
+    {"name":"convertBothC","warmupIterations":100,"measurementIterations":50,"meanUs":505.942,"stddevUs":14.031,"minUs":493.833,"maxUs":548.250},
+    {"name":"convertBothGo","warmupIterations":100,"measurementIterations":50,"meanUs":147.628,"stddevUs":2.962,"minUs":144.125,"maxUs":157.833},
+    {"name":"convertCsharp","warmupIterations":100,"measurementIterations":50,"meanUs":22.365,"stddevUs":0.384,"minUs":21.625,"maxUs":23.291},
+    {"name":"convertKotlin","warmupIterations":100,"measurementIterations":50,"meanUs":191.835,"stddevUs":5.892,"minUs":185.583,"maxUs":226.958},
+    {"name":"convertSql","warmupIterations":100,"measurementIterations":50,"meanUs":92.616,"stddevUs":19.920,"minUs":73.042,"maxUs":118.625}
+  ]
+}
