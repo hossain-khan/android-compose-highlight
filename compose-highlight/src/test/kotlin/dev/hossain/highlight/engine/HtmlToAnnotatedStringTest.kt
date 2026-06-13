@@ -182,6 +182,80 @@ class HtmlToAnnotatedStringTest {
         assertThat(fullRangeSpans[0].item.color).isEqualTo(baseColor)
     }
 
+    @Test
+    fun `convert handles malformed html with unclosed span tag`() {
+        val html = """<span class="hljs-keyword">val"""
+        val result = HtmlToAnnotatedString.convert(html, colorMapNoBase)
+        assertThat(result.text).isEqualTo("val")
+        assertThat(result.spanStyles).hasSize(1)
+        assertThat(result.spanStyles[0].item.color).isEqualTo(Color(0xFF8959a8.toInt()))
+        assertThat(result.spanStyles[0].start).isEqualTo(0)
+        assertThat(result.spanStyles[0].end).isEqualTo(3)
+    }
+
+    @Test
+    fun `convert handles span tag with extra attributes`() {
+        val html = """<span id="test" class="hljs-keyword" data-value="1">val</span>"""
+        val result = HtmlToAnnotatedString.convert(html, colorMapNoBase)
+        assertThat(result.text).isEqualTo("val")
+        assertThat(result.spanStyles).hasSize(1)
+        assertThat(result.spanStyles[0].item.color).isEqualTo(Color(0xFF8959a8.toInt()))
+    }
+
+    @Test
+    fun `convert handles html comments`() {
+        val html = """<!-- comment here --><span class="hljs-keyword">val</span>"""
+        val result = HtmlToAnnotatedString.convert(html, colorMapNoBase)
+        assertThat(result.text).isEqualTo("val")
+        assertThat(result.spanStyles).hasSize(1)
+    }
+
+    @Test
+    fun `convert decodes all standard html entities`() {
+        val html = """<span class="hljs-string">hello &amp; &quot;world&quot; &apos;test&apos; &#39;test2&#39; &nbsp; &lt;x&gt;</span>"""
+        val result = HtmlToAnnotatedString.convert(html, colorMapNoBase)
+        assertThat(result.text).isEqualTo("hello & \"world\" 'test' 'test2' \u00A0 <x>")
+        assertThat(result.spanStyles).hasSize(1)
+    }
+
+    @Test
+    fun `convert ignores empty spans`() {
+        val html = """<span class="hljs-keyword"></span>"""
+        val result = HtmlToAnnotatedString.convert(html, colorMapNoBase)
+        assertThat(result.text).isEmpty()
+        assertThat(result.spanStyles).hasSize(1)
+        assertThat(result.spanStyles[0].start).isEqualTo(0)
+        assertThat(result.spanStyles[0].end).isEqualTo(0)
+    }
+
+    @Test
+    fun `convert handles spacing variations in class attribute`() {
+        val html = """<span class="  hljs-keyword   ">val</span>"""
+        val result = HtmlToAnnotatedString.convert(html, colorMapNoBase)
+        assertThat(result.text).isEqualTo("val")
+        assertThat(result.spanStyles).hasSize(1)
+        assertThat(result.spanStyles[0].item.color).isEqualTo(Color(0xFF8959a8.toInt()))
+    }
+
+    @Test
+    fun `convert handles uppercase tag names`() {
+        val html = """<SPAN class="hljs-keyword">val</SPAN>"""
+        val result = HtmlToAnnotatedString.convert(html, colorMapNoBase)
+        assertThat(result.text).isEqualTo("val")
+        assertThat(result.spanStyles).hasSize(1)
+        assertThat(result.spanStyles[0].item.color).isEqualTo(Color(0xFF8959a8.toInt()))
+    }
+
+    @Test
+    fun `convert handles deep nested spans`() {
+        val html =
+            """<span class="hljs-comment">a <span class="hljs-keyword">b """ +
+                """<span class="hljs-string">c <span class="hljs-number">d <span class="hljs-strong">e</span> d</span> c</span> b</span> a</span>"""
+        val result = HtmlToAnnotatedString.convert(html, colorMapNoBase)
+        assertThat(result.text).isEqualTo("a b c d e d c b a")
+        assertThat(result.spanStyles).hasSize(5)
+    }
+
     // -----------------------------------------------------------------------------------------
     // convertBothThemes tests
     // -----------------------------------------------------------------------------------------
