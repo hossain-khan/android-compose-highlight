@@ -153,7 +153,6 @@ jacoco {
 dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.webkit)
-    implementation(libs.jsoup)
     implementation(libs.kotlinx.coroutines.android)
 
     val composeBom = platform(libs.androidx.compose.bom)

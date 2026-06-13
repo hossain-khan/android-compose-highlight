@@ -68,7 +68,7 @@ import dev.hossain.highlight.engine.ThemedHighlightResult
  *   - [HighlightException.Timeout] - JS call did not complete in time
  *   - [HighlightException.JsExecutionFailed] - JavaScript error
  *   - [HighlightException.WebViewInitFailed] - WebView could not be created
- *   - [HighlightException.HtmlParseFailed] - jsoup could not parse the highlight output
+ *   - [HighlightException.HtmlParseFailed] - the HTML parser could not parse the highlight output
  *
  *   ```kotlin
  *   val highlighted by rememberHighlightedCode(

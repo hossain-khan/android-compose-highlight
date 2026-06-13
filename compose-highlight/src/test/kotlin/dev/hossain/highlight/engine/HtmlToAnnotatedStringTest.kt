@@ -160,8 +160,8 @@ class HtmlToAnnotatedStringTest {
     }
 
     @Test
-    fun `convert handles html entities decoded by jsoup`() {
-        // jsoup decodes &lt; and &gt; to < and > in text nodes
+    fun `convert decodes standard html entities`() {
+        // The parser decodes &lt; and &gt; to < and > in text nodes
         val html = """<span class="hljs-string">&lt;hello&gt;</span>"""
         val result = HtmlToAnnotatedString.convert(html, colorMapNoBase)
         assertThat(result.text).isEqualTo("<hello>")

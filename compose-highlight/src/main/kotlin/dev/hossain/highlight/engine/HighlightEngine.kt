@@ -46,7 +46,7 @@ import kotlin.time.measureTimedValue
  *    `"hljs-keyword" -> SpanStyle(color=Color(0xFF7928a1))`. This is the bridge between
  *    CSS-based theming and Compose's styling model.
  *
- * 3. **Builds AnnotatedString** - `HtmlToAnnotatedString` walks the HTML token tree with jsoup,
+ * 3. **Builds AnnotatedString** - `HtmlToAnnotatedString` walks the HTML token tree with a custom HTML parser,
  *    looks up each span's class name in the theme's color map, and applies the matching
  *    [SpanStyle]. The result is a fully colored [AnnotatedString] ready for Compose `Text`.
  *

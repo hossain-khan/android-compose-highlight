@@ -7,16 +7,25 @@ import androidx.compose.ui.text.buildAnnotatedString
 import dev.hossain.highlight.engine.HighlightEngine
 import dev.hossain.highlight.engine.HighlightTimings
 import dev.hossain.highlight.engine.HljsSelectors
-import org.jsoup.Jsoup
-import org.jsoup.nodes.Element
-import org.jsoup.nodes.TextNode
 import kotlin.time.Duration
 import kotlin.time.measureTimedValue
+
+internal sealed interface CustomNode
+
+internal class CustomElement(
+    val tagName: String,
+    val className: String,
+    val childNodes: List<CustomNode>,
+) : CustomNode
+
+internal class CustomTextNode(
+    val wholeText: String,
+) : CustomNode
 
 /**
  * Converts Highlight.js HTML output into a Compose [AnnotatedString].
  *
- * Uses jsoup to parse the HTML fragment and performs a recursive tree walk,
+ * Uses a lightweight, custom HTML tokenizer/parser that runs in a single pass,
  * pushing/popping [SpanStyle] for each `<span class="hljs-*">` element.
  */
 internal object HtmlToAnnotatedString {
@@ -39,7 +48,7 @@ internal object HtmlToAnnotatedString {
     /**
      * Converts highlighted HTML to [AnnotatedString] with per-stage timing data.
      *
-     * Measures time separately for the jsoup parse pass and the DOM tree walk,
+     * Measures time separately for the custom parse pass and the tree walk,
      * so [HighlightEngine] can populate [HighlightTimings] fields.
      *
      * @param html HTML fragment output from highlight.js (not a full document)
@@ -52,8 +61,7 @@ internal object HtmlToAnnotatedString {
     ): TimedConvertResult {
         if (html.isBlank()) return TimedConvertResult(AnnotatedString(""), Duration.ZERO, Duration.ZERO)
 
-        val (doc, htmlParseDuration) = measureTimedValue { Jsoup.parseBodyFragment(html) }
-        val body = doc.body()
+        val (bodyNodes, htmlParseDuration) = measureTimedValue { parseHtml(html) }
 
         // Apply the .hljs base text color across the entire string so that plain-text tokens
         // (identifiers, whitespace, etc.) inherit the theme color rather than LocalContentColor.
@@ -64,7 +72,7 @@ internal object HtmlToAnnotatedString {
             measureTimedValue {
                 buildAnnotatedString {
                     if (baseStyle != null) pushStyle(baseStyle)
-                    body.childNodes().forEach { node ->
+                    bodyNodes.forEach { node ->
                         walkNode(node, colorMap, this)
                     }
                     if (baseStyle != null) pop()
@@ -76,10 +84,10 @@ internal object HtmlToAnnotatedString {
 
     /**
      * Converts highlighted HTML to two [AnnotatedString] values - one per theme - in a single
-     * DOM parse and traversal pass.
+     * parse and traversal pass.
      *
      * Semantically equivalent to calling [convert] twice with different color maps, but more
-     * efficient: the HTML is parsed once and the DOM is walked once. Both builders receive
+     * efficient: the HTML is parsed once and the custom tree is walked once. Both builders receive
      * text nodes and span styles in parallel, each resolved against their own color map.
      *
      * Each builder independently applies the `.hljs` base text color from its own color map,
@@ -103,7 +111,7 @@ internal object HtmlToAnnotatedString {
      * Converts highlighted HTML to two [AnnotatedString] values with per-stage timing data.
      *
      * Semantically equivalent to [convertBothThemes] but also returns timing for the shared
-     * jsoup parse and the combined dual-theme tree walk.
+     * HTML parse and the combined dual-theme tree walk.
      *
      * @param html HTML fragment output from highlight.js (not a full document)
      * @param lightColorMap Color map for the light theme, from [ThemeParser]
@@ -124,8 +132,7 @@ internal object HtmlToAnnotatedString {
             )
         }
 
-        val (doc, htmlParseDuration) = measureTimedValue { Jsoup.parseBodyFragment(html) }
-        val body = doc.body()
+        val (bodyNodes, htmlParseDuration) = measureTimedValue { parseHtml(html) }
 
         // Each builder gets its own independent base text color from its own color map.
         // Do NOT share a single base style - light and dark themes have different default colors.
@@ -140,7 +147,7 @@ internal object HtmlToAnnotatedString {
                 if (lightBaseStyle != null) lightBuilder.pushStyle(lightBaseStyle)
                 if (darkBaseStyle != null) darkBuilder.pushStyle(darkBaseStyle)
 
-                body.childNodes().forEach { node ->
+                bodyNodes.forEach { node ->
                     walkNodeBothThemes(node, lightColorMap, darkColorMap, lightBuilder, darkBuilder)
                 }
 
@@ -157,15 +164,15 @@ internal object HtmlToAnnotatedString {
     }
 
     private fun walkNode(
-        node: org.jsoup.nodes.Node,
+        node: CustomNode,
         colorMap: Map<String, SpanStyle>,
         builder: AnnotatedString.Builder,
     ) {
         when (node) {
-            is Element -> {
+            is CustomElement -> {
                 val style =
-                    if (node.tagName() == "span") {
-                        val cls = node.className()
+                    if (node.tagName == "span") {
+                        val cls = node.className
                         resolveStyle(cls, colorMap)
                     } else {
                         null
@@ -173,33 +180,33 @@ internal object HtmlToAnnotatedString {
 
                 if (style != null) builder.pushStyle(style)
 
-                node.childNodes().forEach { child ->
+                node.childNodes.forEach { child ->
                     walkNode(child, colorMap, builder)
                 }
 
                 if (style != null) builder.pop()
             }
 
-            is TextNode -> {
+            is CustomTextNode -> {
                 builder.append(node.wholeText)
             }
         }
     }
 
     private fun walkNodeBothThemes(
-        node: org.jsoup.nodes.Node,
+        node: CustomNode,
         lightColorMap: Map<String, SpanStyle>,
         darkColorMap: Map<String, SpanStyle>,
         lightBuilder: AnnotatedString.Builder,
         darkBuilder: AnnotatedString.Builder,
     ) {
         when (node) {
-            is Element -> {
+            is CustomElement -> {
                 // Evaluate tagName once; resolve styles for both color maps in the same pass.
                 val lightStyle: SpanStyle?
                 val darkStyle: SpanStyle?
-                if (node.tagName() == "span") {
-                    val cls = node.className()
+                if (node.tagName == "span") {
+                    val cls = node.className
                     if (cls.isBlank()) {
                         lightStyle = null
                         darkStyle = null
@@ -218,7 +225,7 @@ internal object HtmlToAnnotatedString {
                 if (lightStyle != null) lightBuilder.pushStyle(lightStyle)
                 if (darkStyle != null) darkBuilder.pushStyle(darkStyle)
 
-                node.childNodes().forEach { child ->
+                node.childNodes.forEach { child ->
                     walkNodeBothThemes(child, lightColorMap, darkColorMap, lightBuilder, darkBuilder)
                 }
 
@@ -226,7 +233,7 @@ internal object HtmlToAnnotatedString {
                 if (darkStyle != null) darkBuilder.pop()
             }
 
-            is TextNode -> {
+            is CustomTextNode -> {
                 lightBuilder.append(node.wholeText)
                 darkBuilder.append(node.wholeText)
             }
@@ -284,10 +291,231 @@ internal object HtmlToAnnotatedString {
 }
 
 /**
+ * Parses a simple HTML fragment into a lightweight CustomNode tree.
+ * Supports basic elements (like span), attributes (like class), HTML comments,
+ * and standard HTML entity decoding.
+ */
+internal fun parseHtml(html: String): List<CustomNode> {
+    var index = 0
+    val length = html.length
+
+    fun peek(offset: Int = 0): Char? {
+        val i = index + offset
+        return if (i < length) html[i] else null
+    }
+
+    fun decodeEntities(text: String): String {
+        if (!text.contains('&')) return text
+        val sb = StringBuilder(text.length)
+        var i = 0
+        val len = text.length
+        while (i < len) {
+            val c = text[i]
+            if (c == '&') {
+                val semi = text.indexOf(';', i)
+                if (semi != -1 && semi - i < 10) {
+                    val entity = text.substring(i + 1, semi)
+                    when (entity) {
+                        "amp" -> {
+                            sb.append('&')
+                        }
+
+                        "lt" -> {
+                            sb.append('<')
+                        }
+
+                        "gt" -> {
+                            sb.append('>')
+                        }
+
+                        "quot" -> {
+                            sb.append('"')
+                        }
+
+                        "apos" -> {
+                            sb.append('\'')
+                        }
+
+                        "nbsp" -> {
+                            sb.append('\u00A0')
+                        }
+
+                        else -> {
+                            if (entity.startsWith("#")) {
+                                val code =
+                                    if (entity.startsWith("#x")) {
+                                        entity.substring(2).toIntOrNull(16)
+                                    } else {
+                                        entity.substring(1).toIntOrNull(10)
+                                    }
+                                if (code != null) {
+                                    sb.append(code.toChar())
+                                } else {
+                                    sb.append('&').append(entity).append(';')
+                                }
+                            } else {
+                                sb.append('&').append(entity).append(';')
+                            }
+                        }
+                    }
+                    i = semi + 1
+                } else {
+                    sb.append('&')
+                    i++
+                }
+            } else {
+                sb.append(c)
+                i++
+            }
+        }
+        return sb.toString()
+    }
+
+    fun extractClassAttr(attrsString: String): String {
+        var i = 0
+        val len = attrsString.length
+        while (i < len) {
+            while (i < len && attrsString[i].isWhitespace()) {
+                i++
+            }
+            if (i >= len) break
+
+            val eq = attrsString.indexOf('=', i)
+            if (eq == -1) break
+            val attrName = attrsString.substring(i, eq).trim().lowercase()
+            i = eq + 1
+
+            while (i < len && attrsString[i].isWhitespace()) {
+                i++
+            }
+            if (i >= len) break
+
+            val quote = attrsString[i]
+            if (quote == '"' || quote == '\'') {
+                i++
+                val endQuote = attrsString.indexOf(quote, i)
+                if (endQuote != -1) {
+                    val attrValue = attrsString.substring(i, endQuote)
+                    if (attrName == "class") {
+                        return attrValue
+                    }
+                    i = endQuote + 1
+                } else {
+                    val attrValue = attrsString.substring(i)
+                    if (attrName == "class") {
+                        return attrValue
+                    }
+                    i = len
+                }
+            } else {
+                var endValue = i
+                while (endValue < len && !attrsString[endValue].isWhitespace()) {
+                    endValue++
+                }
+                val attrValue = attrsString.substring(i, endValue)
+                if (attrName == "class") {
+                    return attrValue
+                }
+                i = endValue
+            }
+        }
+        return ""
+    }
+
+    fun parseNodes(parentTag: String?): List<CustomNode> {
+        val nodes = mutableListOf<CustomNode>()
+        while (index < length) {
+            val c = peek() ?: break
+            if (c == '<') {
+                if (html.startsWith("<!--", index)) {
+                    val endComment = html.indexOf("-->", index + 4)
+                    if (endComment != -1) {
+                        index = endComment + 3
+                    } else {
+                        index = length
+                    }
+                    continue
+                }
+
+                if (peek(1) == '/') {
+                    val tagEnd = html.indexOf('>', index + 2)
+                    val tagName =
+                        if (tagEnd != -1) {
+                            html.substring(index + 2, tagEnd).trim().lowercase()
+                        } else {
+                            ""
+                        }
+                    if (tagEnd != -1 && tagName == parentTag) {
+                        index = tagEnd + 1
+                        break
+                    } else if (tagEnd != -1) {
+                        index = tagEnd + 1
+                        continue
+                    } else {
+                        index = length
+                        break
+                    }
+                }
+
+                val tagEnd = html.indexOf('>', index + 1)
+                if (tagEnd == -1) {
+                    val text = html.substring(index)
+                    nodes.add(CustomTextNode(decodeEntities(text)))
+                    index = length
+                    break
+                }
+
+                val tagContent = html.substring(index + 1, tagEnd).trim()
+                val isSelfClosing = tagContent.endsWith('/')
+                val cleanContent = if (isSelfClosing) tagContent.dropLast(1).trim() else tagContent
+
+                val firstSpace = cleanContent.indexOfAny(charArrayOf(' ', '\t', '\r', '\n'))
+                val tagName =
+                    if (firstSpace != -1) {
+                        cleanContent.substring(0, firstSpace).lowercase()
+                    } else {
+                        cleanContent.lowercase()
+                    }
+
+                var className = ""
+                if (firstSpace != -1) {
+                    val attrsString = cleanContent.substring(firstSpace + 1)
+                    className = extractClassAttr(attrsString)
+                }
+
+                index = tagEnd + 1
+
+                if (isSelfClosing) {
+                    nodes.add(CustomElement(tagName, className, emptyList()))
+                } else {
+                    val children = parseNodes(tagName)
+                    nodes.add(CustomElement(tagName, className, children))
+                }
+            } else {
+                val nextTag = html.indexOf('<', index)
+                val text =
+                    if (nextTag != -1) {
+                        val t = html.substring(index, nextTag)
+                        index = nextTag
+                        t
+                    } else {
+                        val t = html.substring(index)
+                        index = length
+                        t
+                    }
+                if (text.isNotEmpty()) {
+                    nodes.add(CustomTextNode(decodeEntities(text)))
+                }
+            }
+        }
+        return nodes
+    }
+
+    return parseNodes(null)
+}
+
+/**
  * Internal result type for [HtmlToAnnotatedString.convertTimed].
- *
- * Carries the converted [AnnotatedString] alongside per-stage [Duration] values so
- * [HighlightEngine] can wire them into [HighlightTimings] without a second parse pass.
  */
 internal data class TimedConvertResult(
     val annotated: AnnotatedString,
@@ -297,9 +525,6 @@ internal data class TimedConvertResult(
 
 /**
  * Internal result type for [HtmlToAnnotatedString.convertBothThemesTimed].
- *
- * Carries both light and dark [AnnotatedString] values alongside shared per-stage
- * [Duration] values (the parse and tree walk are performed once for both themes).
  */
 internal data class TimedConvertBothResult(
     val light: AnnotatedString,
