@@ -13,8 +13,8 @@ package dev.hossain.highlight.engine.internal
  *    rules and potential shrinking bugs.
  * 4. **Single-Purpose Efficiency**: Jsoup is designed for full DOM parsing, sanitization, and
  *    querying. highlight.js outputs a very narrow, safe subset of HTML (nested `span` elements
- *    with `class` attributes, comments, and text). A single-pass tokenizer is faster and consumes
- *    fewer resources.
+ *    with `class` attributes, comments, and text). A single-pass tokenizer scoped to that subset
+ *    avoids the allocation and CPU cost of a full DOM parser.
  */
 internal sealed interface CustomNode
 
@@ -43,10 +43,15 @@ internal class CustomTextNode(
 /**
  * Parses a simple HTML fragment into a lightweight tree of [CustomNode]s.
  *
- * Supports basic elements (like span), class attributes, HTML comments, and standard
- * HTML entity decoding (such as `&amp;`, `&lt;`, `&gt;`, `&quot;`, `&apos;`, `&nbsp;`, and numeric references).
+ * Supports nested elements with class attributes, HTML comments, and the six most common named
+ * entities (`&amp;`, `&lt;`, `&gt;`, `&quot;`, `&apos;`, `&nbsp;`) plus numeric character
+ * references (`&#NN;` and `&#xNN;`). Unknown named entities pass through as literal text.
  *
- * @param html HTML fragment output from highlight.js (not a full HTML document).
+ * Recovery from malformed input favors leniency: unmatched closing tags bubble up to enclosing
+ * scopes (HTML5-style implicit close), stray closers at the document root are silently skipped,
+ * and a `<` with no matching `>` is treated as literal text.
+ *
+ * @param html HTML fragment (not a full document with `<html>`/`<body>` wrappers).
  * @return A list of parsed [CustomNode]s representing the root-level elements and text.
  */
 internal fun parseHtml(html: String): List<CustomNode> {
@@ -56,6 +61,24 @@ internal fun parseHtml(html: String): List<CustomNode> {
     fun peek(offset: Int = 0): Char? {
         val i = index + offset
         return if (i < length) html[i] else null
+    }
+
+    // Quote-aware scan for the closing `>` of a tag. A bare `indexOf('>')` would stop at a `>`
+    // that appears inside a quoted attribute value, e.g. `<span class="a>b">`.
+    fun findTagEnd(start: Int): Int {
+        var i = start
+        while (i < length) {
+            val c = html[i]
+            if (c == '>') return i
+            if (c == '"' || c == '\'') {
+                val close = html.indexOf(c, i + 1)
+                if (close == -1) return -1
+                i = close + 1
+                continue
+            }
+            i++
+        }
+        return -1
     }
 
     fun decodeEntities(text: String): String {
@@ -102,8 +125,11 @@ internal fun parseHtml(html: String): List<CustomNode> {
                                     } else {
                                         entity.substring(1).toIntOrNull(10)
                                     }
-                                if (code != null) {
-                                    sb.append(code.toChar())
+                                // Reject surrogate halves (D800-DFFF) and code points outside Unicode
+                                // (>U+10FFFF). Use appendCodePoint so non-BMP characters (e.g. emoji at
+                                // U+1F600) emit a surrogate pair instead of being truncated by toChar().
+                                if (code != null && code in 0..0x10FFFF && code !in 0xD800..0xDFFF) {
+                                    sb.appendCodePoint(code)
                                 } else {
                                     sb.append('&').append(entity).append(';')
                                 }
@@ -136,7 +162,16 @@ internal fun parseHtml(html: String): List<CustomNode> {
 
             val eq = attrsString.indexOf('=', i)
             if (eq == -1) break
-            val attrName = attrsString.substring(i, eq).trim().lowercase()
+            // The substring between `i` and the next `=` may contain valueless boolean attrs
+            // (e.g. `disabled class="x"` has substring `"disabled class"` before the `=`). Treat
+            // only the last whitespace-delimited token as the actual attribute name; the leading
+            // tokens are valueless attrs we don't care about.
+            val attrName =
+                attrsString
+                    .substring(i, eq)
+                    .trim()
+                    .substringAfterLast(' ')
+                    .lowercase()
             i = eq + 1
 
             while (i < len && attrsString[i].isWhitespace()) {
@@ -193,25 +228,29 @@ internal fun parseHtml(html: String): List<CustomNode> {
 
                 if (peek(1) == '/') {
                     val tagEnd = html.indexOf('>', index + 2)
-                    val tagName =
-                        if (tagEnd != -1) {
-                            html.substring(index + 2, tagEnd).trim().lowercase()
-                        } else {
-                            ""
-                        }
-                    if (tagEnd != -1 && tagName == parentTag) {
-                        index = tagEnd + 1
-                        break
-                    } else if (tagEnd != -1) {
-                        index = tagEnd + 1
-                        continue
-                    } else {
+                    if (tagEnd == -1) {
                         index = length
                         break
                     }
+                    val tagName = html.substring(index + 2, tagEnd).trim().lowercase()
+                    if (tagName == parentTag) {
+                        // Matching closer for our parent: consume it and return.
+                        index = tagEnd + 1
+                        break
+                    }
+                    if (parentTag == null) {
+                        // Stray closer at the document root - silently skip it.
+                        index = tagEnd + 1
+                        continue
+                    }
+                    // Mismatched closer for a nested element. Bubble up: leave the closer in place
+                    // (do NOT advance index) and break out so the enclosing parseNodes() call gets
+                    // a chance to match it. This mirrors the HTML5 implicit-close behavior Jsoup
+                    // produced for inputs like `<span><b>x</span>`: <b> closes when </span> appears.
+                    break
                 }
 
-                val tagEnd = html.indexOf('>', index + 1)
+                val tagEnd = findTagEnd(index + 1)
                 if (tagEnd == -1) {
                     val text = html.substring(index)
                     nodes.add(CustomTextNode(decodeEntities(text)))

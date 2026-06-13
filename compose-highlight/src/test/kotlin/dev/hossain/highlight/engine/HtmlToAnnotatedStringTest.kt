@@ -795,6 +795,92 @@ class HtmlToAnnotatedStringTest {
         )
     }
 
+    // ─────────────────────────────────────────────────────────────────────────
+    // Regression tests for parser-correctness fixes from PR #307 review.
+    // ─────────────────────────────────────────────────────────────────────────
+
+    @Test
+    fun `convert decodes non-BMP numeric character references as surrogate pairs`() {
+        // Globe emoji (U+1F30D) - if the parser used `code.toChar()` it would truncate
+        // to the low 16 bits and produce U+F30D instead of the correct surrogate pair.
+        val html = """<span class="hljs-string">a&#x1F30D;b</span>"""
+        val result = HtmlToAnnotatedString.convert(html, colorMap)
+        assertThat(result.text).isEqualTo("a🌍b")
+    }
+
+    @Test
+    fun `convert decodes decimal numeric character reference for emoji`() {
+        // 128512 = U+1F600 = grinning face emoji.
+        val html = """<span class="hljs-string">&#128512;</span>"""
+        val result = HtmlToAnnotatedString.convert(html, colorMap)
+        assertThat(result.text).isEqualTo("😀")
+    }
+
+    @Test
+    fun `convert rejects surrogate-half numeric references and passes through literally`() {
+        // Lone high surrogate D800 is not a valid Unicode scalar.
+        val html = """<span class="hljs-string">x&#xD800;y</span>"""
+        val result = HtmlToAnnotatedString.convert(html, colorMap)
+        assertThat(result.text).isEqualTo("x&#xD800;y")
+    }
+
+    @Test
+    fun `convert rejects out-of-range numeric references and passes through literally`() {
+        // 0x110000 is one past the highest valid Unicode scalar.
+        val html = """<span class="hljs-string">&#x110000;</span>"""
+        val result = HtmlToAnnotatedString.convert(html, colorMap)
+        assertThat(result.text).isEqualTo("&#x110000;")
+    }
+
+    @Test
+    fun `convert implicitly closes inner element on parent closing tag`() {
+        // <span><b>x</span> - HTML5 implicit close: <b> closes when </span> appears.
+        // Previously, the parser silently consumed </span> inside <b>'s scope and let <b>
+        // run to EOF, swallowing siblings. The fix bubbles unmatched closers up.
+        val html = """<span class="hljs-keyword">a<b class="hljs-string">x</span>y"""
+        val result = HtmlToAnnotatedString.convert(html, colorMap)
+        // Text should be "axy" (both span and b close before "y").
+        assertThat(result.text).isEqualTo("axy")
+        // Keyword span should cover only "ax" (positions 0..2).
+        val keywordSpans =
+            result.spanStyles.filter { it.item.color == colorMap[HljsSelectors.KEYWORD]?.color }
+        assertThat(keywordSpans).hasSize(1)
+        assertThat(keywordSpans[0].start).isEqualTo(0)
+        assertThat(keywordSpans[0].end).isEqualTo(2)
+    }
+
+    @Test
+    fun `convert silently skips stray closing tag at document root`() {
+        val html = """</foo>x"""
+        val result = HtmlToAnnotatedString.convert(html, colorMap)
+        assertThat(result.text).isEqualTo("x")
+    }
+
+    @Test
+    fun `convert handles attribute value containing greater-than character`() {
+        // The naive indexOf('>') would stop at the > inside the quoted value. The fix uses
+        // a quote-aware scan. hljs never emits this, but the parser should still tolerate it.
+        val html = """<span class="hljs-keyword" data-foo="a>b">x</span>"""
+        val result = HtmlToAnnotatedString.convert(html, colorMap)
+        assertThat(result.text).isEqualTo("x")
+        val keywordSpans =
+            result.spanStyles.filter { it.item.color == colorMap[HljsSelectors.KEYWORD]?.color }
+        assertThat(keywordSpans).hasSize(1)
+    }
+
+    @Test
+    fun `convert recognizes class attribute when preceded by valueless boolean attr`() {
+        // <span disabled class="hljs-keyword">x</span> - the substring before the first =
+        // is "disabled class". The fix takes the last whitespace-delimited token as the attr
+        // name so the keyword class is still applied.
+        val html = """<span disabled class="hljs-keyword">x</span>"""
+        val result = HtmlToAnnotatedString.convert(html, colorMap)
+        assertThat(result.text).isEqualTo("x")
+        val keywordSpans =
+            result.spanStyles.filter { it.item.color == colorMap[HljsSelectors.KEYWORD]?.color }
+        assertThat(keywordSpans).hasSize(1)
+    }
+
     private fun assertTokenCounts(
         html: String,
         expectedCounts: Map<String, Int>,

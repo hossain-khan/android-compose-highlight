@@ -10,6 +10,9 @@ import dev.hossain.highlight.engine.HljsSelectors
 import kotlin.time.Duration
 import kotlin.time.measureTimedValue
 
+// Hoisted to module scope so the dual-theme tree walk doesn't recompile the pattern per span.
+private val WHITESPACE_REGEX = Regex("\\s+")
+
 /**
  * Converts Highlight.js HTML output into a Compose [AnnotatedString].
  *
@@ -201,7 +204,7 @@ internal object HtmlToAnnotatedString {
                     } else {
                         // Parse the class list once; reuse for both color-map lookups to avoid
                         // redundant trim/split/Regex work on the hot dual-theme path.
-                        val classes = cls.trim().split(Regex("\\s+"))
+                        val classes = cls.trim().split(WHITESPACE_REGEX)
                         lightStyle = resolveStyleFromClasses(cls, classes, lightColorMap)
                         darkStyle = resolveStyleFromClasses(cls, classes, darkColorMap)
                     }
@@ -242,18 +245,12 @@ internal object HtmlToAnnotatedString {
         colorMap: Map<String, SpanStyle>,
     ): SpanStyle? {
         if (classAttr.isBlank()) return null
-
-        // Try exact match first (e.g. "hljs-keyword")
         colorMap[classAttr]?.let { return it }
-
-        // Try dot-joined compound key (e.g. "hljs-title.function_" for class="hljs-title function_")
-        val classes = classAttr.trim().split(Regex("\\s+"))
+        val classes = classAttr.trim().split(WHITESPACE_REGEX)
         if (classes.size > 1) {
             val compoundKey = classes.joinToString(".")
             colorMap[compoundKey]?.let { return it }
         }
-
-        // Fall back to the first recognized class
         return classes.firstNotNullOfOrNull { colorMap[it] }
     }
 
@@ -266,14 +263,11 @@ internal object HtmlToAnnotatedString {
         classes: List<String>,
         colorMap: Map<String, SpanStyle>,
     ): SpanStyle? {
-        // Fast-path: exact match (e.g. "hljs-keyword" - the large majority of tokens).
         colorMap[classAttr]?.let { return it }
-        // Compound key (e.g. "hljs-title.function_" for class="hljs-title function_").
         if (classes.size > 1) {
             val compoundKey = classes.joinToString(".")
             colorMap[compoundKey]?.let { return it }
         }
-        // Fall back to the first recognized class.
         return classes.firstNotNullOfOrNull { colorMap[it] }
     }
 }
