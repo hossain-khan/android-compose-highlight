@@ -9,7 +9,7 @@ For release artifacts and APK downloads, see the [GitHub Releases page](https://
 ### 0.30.0 - Custom HTML parser replaces Jsoup
 
 - Replaced the JVM-only Jsoup dependency with a single-pass pure-Kotlin HTML tokenizer scoped to the hljs HTML subset
-- Removes the ~501 KB Jsoup transitive jar and 4 R8/ProGuard `-keep` rules from downstream consumers (library AAR grows by ~7 KB for the in-module parser)
+- Sample APK measured 128.7 KB smaller post-R8 (-5.49%); dex drops 271 classes and 2,298 methods. 4 R8/ProGuard `-keep` rules removed from downstream consumers
 - Dual-theme highlight path is 1.27×-1.97× faster on real-world Kotlin/C/Rust/Go/C#/SQL fixtures
 - Added real-world language test coverage with extensive token-count assertions and an opt-in JVM microbenchmark (`HtmlParserBenchmark`)
 - Prepares the codebase for Kotlin Multiplatform (KMP)
