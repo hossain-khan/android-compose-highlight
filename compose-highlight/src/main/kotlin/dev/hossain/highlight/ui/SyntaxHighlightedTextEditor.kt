@@ -8,6 +8,8 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
@@ -315,6 +317,14 @@ fun SyntaxHighlightedTextEditor(
             Modifier
         }
 
+    val focusNavigationModifier =
+        Modifier.focusProperties {
+            up = FocusRequester.Cancel
+            down = FocusRequester.Cancel
+            left = FocusRequester.Cancel
+            right = FocusRequester.Cancel
+        }
+
     Surface(
         modifier = modifier.testTag("syntax-highlighted-text-editor"),
         shape = shape,
@@ -327,7 +337,10 @@ fun SyntaxHighlightedTextEditor(
             textStyle = themedTextStyle,
             keyboardOptions = keyboardOptions,
             cursorBrush = resolvedCursorBrush,
-            modifier = previewKeyModifier.padding(contentPadding),
+            modifier =
+                previewKeyModifier
+                    .then(focusNavigationModifier)
+                    .padding(contentPadding),
         )
     }
 }
