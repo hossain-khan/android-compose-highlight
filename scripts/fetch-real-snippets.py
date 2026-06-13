@@ -1,4 +1,25 @@
 #!/usr/bin/env python3
+"""
+Fetch Real-World Code Snippets Utility
+
+This script automates downloading raw source code files from popular open-source
+repositories (with permissive licenses) and adding/updating them in `snippets.json`
+to provide real-world test coverage for the HTML parser.
+
+Usage:
+  python3 scripts/fetch-real-snippets.py
+
+Workflow to add a new language:
+  1. Add a new entry to the `languages` dictionary below. Provide the `language` identifier,
+     the `url` (raw GitHub URL), and the `sourceUrl` (user-facing repository URL).
+  2. Run this script to update `snippets.json`:
+       python3 scripts/fetch-real-snippets.py
+  3. Regenerate the highlight.js HTML token fixtures:
+       ./gradlew :compose-highlight:refreshHljsFixtures
+  4. Add the snippet key (e.g. "real-python") to `realSnippets` list in `HtmlToAnnotatedStringTest.kt`
+  5. Run all tests to verify parser correctness:
+       ./gradlew :compose-highlight:test
+"""
 import json
 import urllib.request
 import os
