@@ -6,6 +6,13 @@ For release artifacts and APK downloads, see the [GitHub Releases page](https://
 
 ## Recent highlights
 
+### 0.30.1 - Parser performance optimizations
+
+- Optimized HTML-to-AnnotatedString pipeline with SAX-style single-pass parsing, eliminating intermediate tree allocations
+- Added substring avoidance, in-place attribute extraction, lazy entity decoding, and allocation-free numeric parsing
+- Benchmarks show 29-57% faster single-theme and 5-39% faster dual-theme conversions across all fixtures
+- Saved Jsoup baseline and SAX optimized JSON reports under resources/html-parser-benchmarks/ for regression tracking
+
 ### 0.30.0 - Custom HTML parser replaces Jsoup
 
 - Replaced the JVM-only Jsoup dependency with a single-pass pure-Kotlin HTML tokenizer scoped to the hljs HTML subset
@@ -36,14 +43,6 @@ For release artifacts and APK downloads, see the [GitHub Releases page](https://
 - New `keyboardOptions` and `cursorBrush` parameters for `SyntaxHighlightedTextEditor`
 - `SyntaxHighlightedTextEditorDefaults.CodeKeyboardOptions` constant added
 - `ThemeParser` no longer silently swallows non-IO exceptions
-
-### 0.26.0 - Selector coverage and parser efficiency
-
-- Expanded `HljsSelectors` with all official Highlight.js scopes, adding 22 missing selector constants
-- Fixed `META_PROMPT` selector mapping to `hljs-meta.prompt_` for sub-scope compatibility
-- Rewrote `escapeForJs` to a single-pass `StringBuilder` walk to reduce per-highlight allocations
-- Reorganized implementation-only code into `.internal` packages and hid internals from Dokka API docs
-- Added broad parser and escaping boundary test coverage for the new selector and escape paths
 
 ---
 
