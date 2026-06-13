@@ -1,0 +1,1241 @@
+<span class="hljs-comment">/*
+   Copyright (c) 2011, 2015, Oracle and/or its affiliates. All rights reserved.
+
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; version 2 of the License.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335  USA
+*/</span>
+
+<span class="hljs-meta">#<span class="hljs-keyword">define</span> VER <span class="hljs-string">&quot;1.0&quot;</span></span>
+<span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;my_global.h&gt;</span></span>
+<span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;m_string.h&gt;</span></span>
+<span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;mysql.h&gt;</span></span>
+<span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;my_getopt.h&gt;</span></span>
+<span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;my_dir.h&gt;</span></span>
+<span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;mysql_version.h&gt;</span></span>
+<span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;welcome_copyright_notice.h&gt;</span></span>
+
+<span class="hljs-comment">/* Global variables. */</span>
+<span class="hljs-type">static</span> uint my_end_arg= <span class="hljs-number">0</span>;
+<span class="hljs-type">static</span> uint opt_verbose=<span class="hljs-number">0</span>;
+<span class="hljs-type">static</span> uint opt_no_defaults= <span class="hljs-number">0</span>;
+<span class="hljs-type">static</span> uint opt_print_defaults= <span class="hljs-number">0</span>;
+<span class="hljs-type">static</span> <span class="hljs-type">char</span> *opt_datadir=<span class="hljs-number">0</span>, *opt_basedir=<span class="hljs-number">0</span>,
+            *opt_plugin_dir=<span class="hljs-number">0</span>, *opt_plugin_ini=<span class="hljs-number">0</span>,
+            *opt_mysqld=<span class="hljs-number">0</span>, *opt_my_print_defaults=<span class="hljs-number">0</span>, *opt_lc_messages_dir;
+<span class="hljs-type">static</span> <span class="hljs-type">char</span> bootstrap[FN_REFLEN];
+
+
+<span class="hljs-comment">/* plugin struct */</span>
+<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">st_plugin</span>
+{</span>
+  <span class="hljs-type">const</span> <span class="hljs-type">char</span> *name;           <span class="hljs-comment">/* plugin name */</span>
+  <span class="hljs-type">const</span> <span class="hljs-type">char</span> *so_name;        <span class="hljs-comment">/* plugin so (library) name */</span>
+  <span class="hljs-type">const</span> <span class="hljs-type">char</span> *components[<span class="hljs-number">16</span>]; <span class="hljs-comment">/* components to load */</span>
+} plugin_data;
+
+
+<span class="hljs-comment">/* Options */</span>
+<span class="hljs-type">static</span> <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">my_option</span> <span class="hljs-title">my_long_options</span>[] =</span>
+{
+  {<span class="hljs-string">&quot;help&quot;</span>, <span class="hljs-string">&#x27;?&#x27;</span>, <span class="hljs-string">&quot;Display this help and exit.&quot;</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, GET_NO_ARG, NO_ARG,
+    <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>},
+  {<span class="hljs-string">&quot;basedir&quot;</span>, <span class="hljs-string">&#x27;b&#x27;</span>, <span class="hljs-string">&quot;The basedir for the server.&quot;</span>,
+    <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, GET_STR, REQUIRED_ARG, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>},
+  {<span class="hljs-string">&quot;datadir&quot;</span>, <span class="hljs-string">&#x27;d&#x27;</span>, <span class="hljs-string">&quot;The datadir for the server.&quot;</span>,
+    <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, GET_STR, REQUIRED_ARG, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>},
+  {<span class="hljs-string">&quot;plugin-dir&quot;</span>, <span class="hljs-string">&#x27;p&#x27;</span>, <span class="hljs-string">&quot;The plugin dir for the server.&quot;</span>,
+    <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, GET_STR, REQUIRED_ARG, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>},
+  {<span class="hljs-string">&quot;plugin-ini&quot;</span>, <span class="hljs-string">&#x27;i&#x27;</span>, <span class="hljs-string">&quot;Read plugin information from configuration file &quot;</span>
+   <span class="hljs-string">&quot;specified instead of from &lt;plugin-dir&gt;/&lt;plugin_name&gt;.ini.&quot;</span>,
+    <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, GET_STR, REQUIRED_ARG, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>},
+  {<span class="hljs-string">&quot;no-defaults&quot;</span>, <span class="hljs-string">&#x27;n&#x27;</span>, <span class="hljs-string">&quot;Do not read values from configuration file.&quot;</span>,
+    <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, GET_NO_ARG, NO_ARG, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>},
+  {<span class="hljs-string">&quot;print-defaults&quot;</span>, <span class="hljs-string">&#x27;P&#x27;</span>, <span class="hljs-string">&quot;Show default values from configuration file.&quot;</span>,
+    <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, GET_NO_ARG, NO_ARG, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>},
+  {<span class="hljs-string">&quot;mysqld&quot;</span>, <span class="hljs-string">&#x27;m&#x27;</span>, <span class="hljs-string">&quot;Path to mysqld executable. Example: /sbin/temp1/mysql/bin&quot;</span>,
+    <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, GET_STR, REQUIRED_ARG, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>},
+  {<span class="hljs-string">&quot;my-print-defaults&quot;</span>, <span class="hljs-string">&#x27;f&#x27;</span>, <span class="hljs-string">&quot;Path to my_print_defaults executable. &quot;</span>
+   <span class="hljs-string">&quot;Example: /source/temp11/extra&quot;</span>,
+    <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, GET_STR, REQUIRED_ARG, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>},
+  {<span class="hljs-string">&quot;lc-messages-dir&quot;</span>, <span class="hljs-string">&#x27;l&#x27;</span>, <span class="hljs-string">&quot;The error messages dir for the server. &quot;</span>,
+    <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, GET_STR, REQUIRED_ARG, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>},
+  {<span class="hljs-string">&quot;verbose&quot;</span>, <span class="hljs-string">&#x27;v&#x27;</span>,
+    <span class="hljs-string">&quot;More verbose output; you can use this multiple times to get even more &quot;</span>
+    <span class="hljs-string">&quot;verbose output.&quot;</span>,
+    <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, GET_NO_ARG, NO_ARG, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>},
+  {<span class="hljs-string">&quot;version&quot;</span>, <span class="hljs-string">&#x27;V&#x27;</span>, <span class="hljs-string">&quot;Output version information and exit.&quot;</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, GET_NO_ARG,
+    NO_ARG, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>},
+  {<span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, GET_NO_ARG, NO_ARG, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>}
+};
+
+
+<span class="hljs-comment">/* Methods */</span>
+<span class="hljs-type">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">process_options</span><span class="hljs-params">(<span class="hljs-type">int</span> argc, <span class="hljs-type">char</span> *argv[], <span class="hljs-type">char</span> *operation)</span>;
+<span class="hljs-type">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">check_access</span><span class="hljs-params">()</span>;
+<span class="hljs-type">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">find_tool</span><span class="hljs-params">(<span class="hljs-type">const</span> <span class="hljs-type">char</span> *tool_name, <span class="hljs-type">char</span> *tool_path)</span>;
+<span class="hljs-type">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">find_plugin</span><span class="hljs-params">(<span class="hljs-type">char</span> *tp_path)</span>;
+<span class="hljs-type">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">build_bootstrap_file</span><span class="hljs-params">(<span class="hljs-type">char</span> *operation, <span class="hljs-type">char</span> *bootstrap)</span>;
+<span class="hljs-type">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">dump_bootstrap_file</span><span class="hljs-params">(<span class="hljs-type">char</span> *bootstrap_file)</span>;
+<span class="hljs-type">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">bootstrap_server</span><span class="hljs-params">(<span class="hljs-type">char</span> *server_path, <span class="hljs-type">char</span> *bootstrap_file)</span>;
+
+
+<span class="hljs-type">int</span> <span class="hljs-title function_">main</span><span class="hljs-params">(<span class="hljs-type">int</span> argc,<span class="hljs-type">char</span> *argv[])</span>
+{
+  <span class="hljs-type">int</span> error= <span class="hljs-number">0</span>;
+  <span class="hljs-type">char</span> tp_path[FN_REFLEN];
+  <span class="hljs-type">char</span> server_path[FN_REFLEN];
+  <span class="hljs-type">char</span> operation[<span class="hljs-number">16</span>];
+
+  MY_INIT(argv[<span class="hljs-number">0</span>]);
+  sf_leaking_memory=<span class="hljs-number">1</span>; <span class="hljs-comment">/* don&#x27;t report memory leaks on early exits */</span>
+  plugin_data.name= <span class="hljs-number">0</span>; <span class="hljs-comment">/* initialize name                          */</span>
+
+  <span class="hljs-comment">/*
+    The following operations comprise the method for enabling or disabling
+    a plugin. We begin by processing the command options then check the
+    directories specified for --datadir, --basedir, --plugin-dir, and
+    --plugin-ini (if specified). If the directories are Ok, we then look
+    for the mysqld executable and the plugin soname. Finally, we build a
+    bootstrap command file for use in bootstraping the server.
+
+    If any step fails, the method issues an error message and the tool exits.
+
+      1) Parse, execute, and verify command options.
+      2) Check access to directories.
+      3) Look for mysqld executable.
+      4) Look for the plugin.
+      5) Build a bootstrap file with commands to enable or disable plugin.
+
+  */</span>
+  <span class="hljs-keyword">if</span> ((error= process_options(argc, argv, operation)) ||
+      (error= check_access()) ||
+      (error= find_tool(<span class="hljs-string">&quot;mysqld&quot;</span> FN_EXEEXT, server_path)) ||
+      (error= find_plugin(tp_path)) ||
+      (error= build_bootstrap_file(operation, bootstrap)))
+    <span class="hljs-keyword">goto</span> <span class="hljs-built_in">exit</span>;
+
+  <span class="hljs-comment">/* Dump the bootstrap file if --verbose specified. */</span>
+  <span class="hljs-keyword">if</span> (opt_verbose &amp;&amp; ((error= dump_bootstrap_file(bootstrap))))
+    <span class="hljs-keyword">goto</span> <span class="hljs-built_in">exit</span>;
+
+  <span class="hljs-comment">/* Start the server in bootstrap mode and execute bootstrap commands */</span>
+  error= bootstrap_server(server_path, bootstrap);
+
+<span class="hljs-built_in">exit</span>:
+  <span class="hljs-comment">/* Remove file */</span>
+  my_delete(bootstrap, MYF(<span class="hljs-number">0</span>));
+  <span class="hljs-keyword">if</span> (opt_verbose &amp;&amp; error == <span class="hljs-number">0</span>)
+  {
+    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;# Operation succeeded.\n&quot;</span>);
+  }
+
+  my_end(my_end_arg);
+  <span class="hljs-built_in">exit</span>(error ? <span class="hljs-number">1</span> : <span class="hljs-number">0</span>);
+  <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;        <span class="hljs-comment">/* No compiler warnings */</span>
+}
+
+
+<span class="hljs-comment">/**
+  Get a temporary file name.
+
+  @param[out]  filename   The file name of the temporary file
+  @param[in]   ext        An extension for the file (optional)
+
+  @retval int error = 1, success = 0
+*/</span>
+
+<span class="hljs-type">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">make_tempfile</span><span class="hljs-params">(<span class="hljs-type">char</span> *filename, <span class="hljs-type">const</span> <span class="hljs-type">char</span> *ext)</span>
+{
+  <span class="hljs-type">int</span> fd= <span class="hljs-number">0</span>;
+
+  <span class="hljs-keyword">if</span> ((fd= create_temp_file(filename, NullS, ext, <span class="hljs-number">0</span>, MYF(MY_WME))) &lt; <span class="hljs-number">0</span>)
+  {
+    <span class="hljs-built_in">fprintf</span>(<span class="hljs-built_in">stderr</span>, <span class="hljs-string">&quot;ERROR: Cannot generate temporary file. Error code: %d.\n&quot;</span>,
+            fd);
+    <span class="hljs-keyword">return</span> <span class="hljs-number">1</span>;
+  }
+  my_close(fd, MYF(<span class="hljs-number">0</span>));
+  <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;
+}
+
+
+<span class="hljs-comment">/**
+  Get the value of an option from a string read from my_print_defaults output.
+
+  @param[in]  line   The line (string) read from the file
+  @param[in]  item   The option to search for (e.g. --datadir)
+
+  @returns NULL if not found, string containing value if found
+*/</span>
+
+<span class="hljs-type">static</span> <span class="hljs-type">char</span> *<span class="hljs-title function_">get_value</span><span class="hljs-params">(<span class="hljs-type">char</span> *line, <span class="hljs-type">const</span> <span class="hljs-type">char</span> *item)</span>
+{
+  <span class="hljs-type">char</span> *destination= <span class="hljs-number">0</span>;
+  <span class="hljs-type">int</span> item_len= (<span class="hljs-type">int</span>)<span class="hljs-built_in">strlen</span>(item);
+  <span class="hljs-type">int</span> line_len = (<span class="hljs-type">int</span>)<span class="hljs-built_in">strlen</span>(line);
+
+  <span class="hljs-keyword">if</span> ((strncasecmp(line, item, item_len) == <span class="hljs-number">0</span>))
+  {
+    <span class="hljs-type">int</span> start= <span class="hljs-number">0</span>;
+    <span class="hljs-type">char</span> *s= <span class="hljs-number">0</span>;
+
+    s = line + item_len + <span class="hljs-number">1</span>;
+    destination= my_strndup(PSI_NOT_INSTRUMENTED, s, line_len - start, MYF(MY_FAE));
+    destination[line_len - item_len - <span class="hljs-number">2</span>]= <span class="hljs-number">0</span>;
+  }
+  <span class="hljs-keyword">return</span> destination;
+}
+
+
+<span class="hljs-comment">/**
+  Run a command in a shell.
+
+  This function will attempt to execute the command specified by using the
+  popen() method to open a shell and execute the command passed and store the
+  output in a result file. If the --verbose option was specified, it will open
+  the result file and print the contents to stdout.
+
+  @param[in]  cmd   The command to execute.
+  @param[in]  mode  The mode for popen() (e.g. &quot;r&quot;, &quot;w&quot;, &quot;rw&quot;)
+
+  @return int error code or 0 for success.
+*/</span>
+
+<span class="hljs-type">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">run_command</span><span class="hljs-params">(<span class="hljs-type">char</span>* cmd, <span class="hljs-type">const</span> <span class="hljs-type">char</span> *mode)</span>
+{
+  <span class="hljs-type">char</span> buf[<span class="hljs-number">512</span>]= {<span class="hljs-number">0</span>};
+  FILE *res_file;
+  <span class="hljs-type">int</span> error;
+
+  <span class="hljs-keyword">if</span> (!(res_file= popen(cmd, mode)))
+    <span class="hljs-keyword">return</span> <span class="hljs-number">-1</span>;
+
+  <span class="hljs-keyword">if</span> (opt_verbose)
+  {
+    <span class="hljs-keyword">while</span> (fgets(buf, <span class="hljs-keyword">sizeof</span>(buf), res_file))
+    {
+      <span class="hljs-built_in">fprintf</span>(<span class="hljs-built_in">stdout</span>, <span class="hljs-string">&quot;%s&quot;</span>, buf);
+    }
+  }
+  error= pclose(res_file);
+  <span class="hljs-keyword">return</span> error;
+}
+
+
+<span class="hljs-meta">#<span class="hljs-keyword">ifdef</span> _WIN32</span>
+<span class="hljs-comment">/**
+  Check to see if there are spaces in a path.
+
+  @param[in]  path  The Windows path to examine.
+
+  @retval int spaces found = 1, no spaces = 0
+*/</span>
+<span class="hljs-type">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">has_spaces</span><span class="hljs-params">(<span class="hljs-type">const</span> <span class="hljs-type">char</span> *path)</span>
+{
+  <span class="hljs-keyword">if</span> (<span class="hljs-built_in">strchr</span>(path, <span class="hljs-string">&#x27; &#x27;</span>) != <span class="hljs-literal">NULL</span>)
+    <span class="hljs-keyword">return</span> <span class="hljs-number">1</span>;
+  <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;
+}
+
+
+<span class="hljs-comment">/**
+  Convert a Unix path to a Windows path.
+
+  @param[in]  path  The Windows path to examine.
+
+  @returns string containing path with / changed to \\
+*/</span>
+<span class="hljs-type">static</span> <span class="hljs-type">char</span> *<span class="hljs-title function_">convert_path</span><span class="hljs-params">(<span class="hljs-type">const</span> <span class="hljs-type">char</span> *argument)</span>
+{
+  <span class="hljs-comment">/* Convert / to \\ to make Windows paths */</span>
+  <span class="hljs-type">char</span> *winfilename= my_strdup(PSI_NOT_INSTRUMENTED, argument, MYF(MY_FAE));
+  <span class="hljs-type">char</span> *pos, *end;
+  <span class="hljs-type">size_t</span> length= <span class="hljs-built_in">strlen</span>(argument);
+
+  <span class="hljs-keyword">for</span> (pos= winfilename, end= pos+length ; pos &lt; end ; pos++)
+  {
+    <span class="hljs-keyword">if</span> (*pos == <span class="hljs-string">&#x27;/&#x27;</span>)
+    {
+      *pos= <span class="hljs-string">&#x27;\\&#x27;</span>;
+    }
+  }
+  <span class="hljs-keyword">return</span> winfilename;
+}
+
+
+<span class="hljs-comment">/**
+  Add quotes if the path has spaces in it.
+
+  @param[in]  path  The Windows path to examine.
+
+  @returns string containing escaped quotes if spaces found in path
+*/</span>
+<span class="hljs-type">static</span> <span class="hljs-type">char</span> *<span class="hljs-title function_">add_quotes</span><span class="hljs-params">(<span class="hljs-type">const</span> <span class="hljs-type">char</span> *path)</span>
+{
+  <span class="hljs-type">char</span> windows_cmd_friendly[FN_REFLEN];
+
+  <span class="hljs-keyword">if</span> (has_spaces(path))
+    <span class="hljs-built_in">snprintf</span>(windows_cmd_friendly, <span class="hljs-keyword">sizeof</span>(windows_cmd_friendly),
+             <span class="hljs-string">&quot;\&quot;%s\&quot;&quot;</span>, path);
+  <span class="hljs-keyword">else</span>
+    <span class="hljs-built_in">snprintf</span>(windows_cmd_friendly, <span class="hljs-keyword">sizeof</span>(windows_cmd_friendly),
+             <span class="hljs-string">&quot;%s&quot;</span>, path);
+  <span class="hljs-keyword">return</span> my_strdup(PSI_NOT_INSTRUMENTED, windows_cmd_friendly, MYF(MY_FAE));
+}
+<span class="hljs-meta">#<span class="hljs-keyword">endif</span></span>
+
+
+<span class="hljs-comment">/**
+  Get the default values from the my.cnf file.
+
+  This method gets the default values for the following parameters:
+
+  --datadir
+  --basedir
+  --plugin-dir
+  --plugin-ini
+  --lc-messages-dir
+
+  These values are used if the user has not specified a value.
+
+  @retval int error = 1, success = 0
+*/</span>
+
+<span class="hljs-type">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">get_default_values</span><span class="hljs-params">()</span>
+{
+  <span class="hljs-type">char</span> tool_path[FN_REFLEN];
+  <span class="hljs-type">char</span> defaults_cmd[FN_REFLEN];
+  <span class="hljs-type">char</span> defaults_file[FN_REFLEN];
+  <span class="hljs-type">char</span> line[FN_REFLEN];
+  <span class="hljs-type">int</span> error= <span class="hljs-number">0</span>;
+  <span class="hljs-type">int</span> ret= <span class="hljs-number">0</span>;
+  FILE *file= <span class="hljs-number">0</span>;
+
+  <span class="hljs-built_in">memset</span>(tool_path, <span class="hljs-number">0</span>, FN_REFLEN);
+  <span class="hljs-keyword">if</span> ((error= find_tool(<span class="hljs-string">&quot;my_print_defaults&quot;</span> FN_EXEEXT, tool_path)))
+    <span class="hljs-keyword">goto</span> <span class="hljs-built_in">exit</span>;
+  <span class="hljs-keyword">else</span>
+  {
+    <span class="hljs-keyword">if</span> ((error= make_tempfile(defaults_file, <span class="hljs-string">&quot;txt&quot;</span>)))
+      <span class="hljs-keyword">goto</span> <span class="hljs-built_in">exit</span>;
+
+<span class="hljs-meta">#<span class="hljs-keyword">ifdef</span> _WIN32</span>
+    {
+      <span class="hljs-type">char</span> *format_str= <span class="hljs-number">0</span>;
+
+      <span class="hljs-keyword">if</span> (has_spaces(tool_path) || has_spaces(defaults_file))
+        format_str = <span class="hljs-string">&quot;\&quot;%s --mysqld &gt; %s\&quot;&quot;</span>;
+      <span class="hljs-keyword">else</span>
+        format_str = <span class="hljs-string">&quot;%s --mysqld &gt; %s&quot;</span>;
+
+      <span class="hljs-built_in">snprintf</span>(defaults_cmd, <span class="hljs-keyword">sizeof</span>(defaults_cmd), format_str,
+               add_quotes(tool_path), add_quotes(defaults_file));
+      <span class="hljs-keyword">if</span> (opt_verbose)
+      {
+        <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;# my_print_defaults found: %s\n&quot;</span>, tool_path);
+      }
+    }
+<span class="hljs-meta">#<span class="hljs-keyword">else</span></span>
+    <span class="hljs-built_in">snprintf</span>(defaults_cmd, <span class="hljs-keyword">sizeof</span>(defaults_cmd),
+             <span class="hljs-string">&quot;%s --mysqld &gt; %s&quot;</span>, tool_path, defaults_file);
+<span class="hljs-meta">#<span class="hljs-keyword">endif</span></span>
+
+    <span class="hljs-comment">/* Execute the command */</span>
+    <span class="hljs-keyword">if</span> (opt_verbose)
+    {
+      <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;# Command: %s\n&quot;</span>, defaults_cmd);
+    }
+    error= run_command(defaults_cmd, <span class="hljs-string">&quot;r&quot;</span>);
+    <span class="hljs-keyword">if</span> (error)
+    {
+      <span class="hljs-built_in">fprintf</span>(<span class="hljs-built_in">stderr</span>, <span class="hljs-string">&quot;ERROR: my_print_defaults failed. Error code: %d.\n&quot;</span>,
+              ret);
+      <span class="hljs-keyword">goto</span> <span class="hljs-built_in">exit</span>;
+    }
+    <span class="hljs-comment">/* Now open the file and read the defaults we want. */</span>
+    file= fopen(defaults_file, <span class="hljs-string">&quot;r&quot;</span>);
+    <span class="hljs-keyword">if</span> (file == <span class="hljs-literal">NULL</span>)
+    {
+      <span class="hljs-built_in">fprintf</span>(<span class="hljs-built_in">stderr</span>, <span class="hljs-string">&quot;ERROR: failed to open file %s: %s.\n&quot;</span>, defaults_file,
+              strerror(errno));
+      <span class="hljs-keyword">goto</span> <span class="hljs-built_in">exit</span>;
+    }
+    <span class="hljs-keyword">while</span> (fgets(line, FN_REFLEN, file) != <span class="hljs-literal">NULL</span>)
+    {
+      <span class="hljs-type">char</span> *value= <span class="hljs-number">0</span>;
+
+      <span class="hljs-keyword">if</span> ((opt_datadir == <span class="hljs-number">0</span>) &amp;&amp; ((value= get_value(line, <span class="hljs-string">&quot;--datadir&quot;</span>))))
+      {
+        opt_datadir= my_strdup(PSI_NOT_INSTRUMENTED, value, MYF(MY_FAE));
+      }
+      <span class="hljs-keyword">if</span> ((opt_basedir == <span class="hljs-number">0</span>) &amp;&amp; ((value= get_value(line, <span class="hljs-string">&quot;--basedir&quot;</span>))))
+      {
+        opt_basedir= my_strdup(PSI_NOT_INSTRUMENTED, value, MYF(MY_FAE));
+      }
+      <span class="hljs-keyword">if</span> ((opt_plugin_dir == <span class="hljs-number">0</span>) &amp;&amp; ((value= get_value(line, <span class="hljs-string">&quot;--plugin_dir&quot;</span>)) ||
+          (value= get_value(line, <span class="hljs-string">&quot;--plugin-dir&quot;</span>))))
+      {
+        opt_plugin_dir= my_strdup(PSI_NOT_INSTRUMENTED, value, MYF(MY_FAE));
+      }
+      <span class="hljs-keyword">if</span> ((opt_lc_messages_dir == <span class="hljs-number">0</span>) &amp;&amp;
+          ((value= get_value(line, <span class="hljs-string">&quot;--lc_messages_dir&quot;</span>)) ||
+          (value= get_value(line, <span class="hljs-string">&quot;--lc_messages-dir&quot;</span>)) ||
+          (value= get_value(line, <span class="hljs-string">&quot;--lc-messages_dir&quot;</span>)) ||
+          (value= get_value(line, <span class="hljs-string">&quot;--lc-messages-dir&quot;</span>))))
+      {
+        opt_lc_messages_dir= my_strdup(PSI_NOT_INSTRUMENTED, value, MYF(MY_FAE));
+      }
+
+    }
+  }
+<span class="hljs-built_in">exit</span>:
+  <span class="hljs-keyword">if</span> (file)
+  {
+    fclose(file);
+    <span class="hljs-comment">/* Remove file */</span>
+    my_delete(defaults_file, MYF(<span class="hljs-number">0</span>));
+  }
+  <span class="hljs-keyword">return</span> error;
+}
+
+
+<span class="hljs-comment">/**
+  Print usage.
+*/</span>
+
+<span class="hljs-type">static</span> <span class="hljs-type">void</span> <span class="hljs-title function_">usage</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>
+{
+  print_version();
+  <span class="hljs-built_in">puts</span>(<span class="hljs-string">&quot;Copyright (c) 2011, 2015, Oracle and/or its affiliates. &quot;</span>
+       <span class="hljs-string">&quot;All rights reserved.\n&quot;</span>);
+  <span class="hljs-built_in">puts</span>(<span class="hljs-string">&quot;Enable or disable plugins.&quot;</span>);
+  <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;\nUsage: %s [options] &lt;plugin&gt; ENABLE|DISABLE\n\nOptions:\n&quot;</span>,
+     my_progname);
+  my_print_help(my_long_options);
+  <span class="hljs-built_in">puts</span>(<span class="hljs-string">&quot;\n&quot;</span>);
+}
+
+
+<span class="hljs-comment">/**
+  Print the default values as read from the my.cnf file.
+
+  This method displays the default values for the following parameters:
+
+  --datadir
+  --basedir
+  --plugin-dir
+  --plugin-ini
+  --lc-messages-dir
+
+*/</span>
+
+<span class="hljs-type">static</span> <span class="hljs-type">void</span> <span class="hljs-title function_">print_default_values</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>
+{
+  <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;%s would have been started with the following arguments:\n&quot;</span>,
+         my_progname);
+  get_default_values();
+  <span class="hljs-keyword">if</span> (opt_datadir)
+  {
+    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;--datadir=%s &quot;</span>, opt_datadir);
+  }
+  <span class="hljs-keyword">if</span> (opt_basedir)
+  {
+    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;--basedir=%s &quot;</span>, opt_basedir);
+  }
+  <span class="hljs-keyword">if</span> (opt_plugin_dir)
+  {
+    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;--plugin_dir=%s &quot;</span>, opt_plugin_dir);
+  }
+  <span class="hljs-keyword">if</span> (opt_plugin_ini)
+  {
+    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;--plugin_ini=%s &quot;</span>, opt_plugin_ini);
+  }
+  <span class="hljs-keyword">if</span> (opt_mysqld)
+  {
+    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;--mysqld=%s &quot;</span>, opt_mysqld);
+  }
+  <span class="hljs-keyword">if</span> (opt_my_print_defaults)
+  {
+    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;--my_print_defaults=%s &quot;</span>, opt_my_print_defaults);
+  }
+  <span class="hljs-keyword">if</span> (opt_lc_messages_dir)
+  {
+    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;--lc_messages_dir=%s &quot;</span>, opt_lc_messages_dir);
+  }
+  <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;\n&quot;</span>);
+}
+
+
+<span class="hljs-comment">/**
+  Process the arguments and identify an option and store its value.
+
+  @param[in]  optid      The single character shortcut for the argument.
+  @param[in]  my_option  Structure of legal options.
+  @param[in]  argument   The argument value to process.
+*/</span>
+
+<span class="hljs-type">static</span> my_bool
+<span class="hljs-title function_">get_one_option</span><span class="hljs-params">(<span class="hljs-type">const</span> <span class="hljs-keyword">struct</span> my_option *opt,
+               <span class="hljs-type">const</span> <span class="hljs-type">char</span> *argument,
+               <span class="hljs-type">const</span> <span class="hljs-type">char</span> *filename __attribute__((unused)))</span>
+{
+  <span class="hljs-keyword">switch</span>(opt-&gt;id) {
+  <span class="hljs-keyword">case</span> <span class="hljs-string">&#x27;n&#x27;</span>:
+    opt_no_defaults++;
+    <span class="hljs-keyword">break</span>;
+  <span class="hljs-keyword">case</span> <span class="hljs-string">&#x27;P&#x27;</span>:
+    opt_print_defaults++;
+    print_default_values();
+    <span class="hljs-keyword">break</span>;
+  <span class="hljs-keyword">case</span> <span class="hljs-string">&#x27;v&#x27;</span>:
+    opt_verbose++;
+    <span class="hljs-keyword">break</span>;
+  <span class="hljs-keyword">case</span> <span class="hljs-string">&#x27;V&#x27;</span>:
+    print_version();
+    <span class="hljs-built_in">exit</span>(<span class="hljs-number">0</span>);
+    <span class="hljs-keyword">break</span>;
+  <span class="hljs-keyword">case</span> <span class="hljs-string">&#x27;?&#x27;</span>:
+  <span class="hljs-keyword">case</span> <span class="hljs-string">&#x27;I&#x27;</span>:          <span class="hljs-comment">/* Info */</span>
+    usage();
+    <span class="hljs-built_in">exit</span>(<span class="hljs-number">0</span>);
+  <span class="hljs-keyword">case</span> <span class="hljs-string">&#x27;d&#x27;</span>:
+    opt_datadir= my_strdup(PSI_NOT_INSTRUMENTED, argument, MYF(MY_FAE));
+    <span class="hljs-keyword">break</span>;
+  <span class="hljs-keyword">case</span> <span class="hljs-string">&#x27;b&#x27;</span>:
+    opt_basedir= my_strdup(PSI_NOT_INSTRUMENTED, argument, MYF(MY_FAE));
+    <span class="hljs-keyword">break</span>;
+  <span class="hljs-keyword">case</span> <span class="hljs-string">&#x27;p&#x27;</span>:
+    opt_plugin_dir= my_strdup(PSI_NOT_INSTRUMENTED, argument, MYF(MY_FAE));
+    <span class="hljs-keyword">break</span>;
+  <span class="hljs-keyword">case</span> <span class="hljs-string">&#x27;i&#x27;</span>:
+    opt_plugin_ini= my_strdup(PSI_NOT_INSTRUMENTED, argument, MYF(MY_FAE));
+    <span class="hljs-keyword">break</span>;
+  <span class="hljs-keyword">case</span> <span class="hljs-string">&#x27;m&#x27;</span>:
+    opt_mysqld= my_strdup(PSI_NOT_INSTRUMENTED, argument, MYF(MY_FAE));
+    <span class="hljs-keyword">break</span>;
+  <span class="hljs-keyword">case</span> <span class="hljs-string">&#x27;f&#x27;</span>:
+    opt_my_print_defaults= my_strdup(PSI_NOT_INSTRUMENTED, argument, MYF(MY_FAE));
+    <span class="hljs-keyword">break</span>;
+  <span class="hljs-keyword">case</span> <span class="hljs-string">&#x27;l&#x27;</span>:
+    opt_lc_messages_dir= my_strdup(PSI_NOT_INSTRUMENTED, argument, MYF(MY_FAE));
+    <span class="hljs-keyword">break</span>;
+
+  }
+  <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;
+}
+
+
+<span class="hljs-comment">/**
+  Check to see if a file exists.
+
+  @param[in]  filename  File to locate.
+
+  @retval int file not found = 1, file found = 0
+*/</span>
+
+<span class="hljs-type">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">file_exists</span><span class="hljs-params">(<span class="hljs-type">char</span> * filename)</span>
+{
+  MY_STAT stat_arg;
+
+  <span class="hljs-keyword">if</span> (!my_stat(filename, &amp;stat_arg, MYF(<span class="hljs-number">0</span>)))
+  {
+    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;
+  }
+  <span class="hljs-keyword">return</span> <span class="hljs-number">1</span>;
+}
+
+
+<span class="hljs-comment">/**
+  Search a specific path and sub directory for a file name.
+
+  @param[in]  base_path  Original path to use.
+  @param[in]  tool_name  Name of the tool to locate.
+  @param[in]  subdir     The sub directory to search.
+  @param[out] tool_path  If tool found, return complete path.
+
+  @retval int error = 1, success = 0
+*/</span>
+
+<span class="hljs-type">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">search_dir</span><span class="hljs-params">(<span class="hljs-type">const</span> <span class="hljs-type">char</span> *base_path, <span class="hljs-type">const</span> <span class="hljs-type">char</span> *tool_name,
+                      <span class="hljs-type">const</span> <span class="hljs-type">char</span> *subdir, <span class="hljs-type">char</span> *tool_path)</span>
+{
+  <span class="hljs-type">char</span> new_path[FN_REFLEN];
+  <span class="hljs-type">char</span> source_path[FN_REFLEN];
+
+  safe_strcpy(source_path, <span class="hljs-keyword">sizeof</span>(source_path), base_path);
+  safe_strcat(source_path, <span class="hljs-keyword">sizeof</span>(source_path), subdir);
+  fn_format(new_path, tool_name, source_path, <span class="hljs-string">&quot;&quot;</span>, MY_UNPACK_FILENAME);
+  <span class="hljs-keyword">if</span> (file_exists(new_path))
+  {
+    <span class="hljs-built_in">strcpy</span>(tool_path, new_path);
+    <span class="hljs-keyword">return</span> <span class="hljs-number">1</span>;
+  }
+  <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;
+}
+
+
+<span class="hljs-comment">/**
+  Search known common paths and sub directories for a file name.
+
+  @param[in]  base_path  Original path to use.
+  @param[in]  tool_name  Name of the tool to locate.
+  @param[out] tool_path  If tool found, return complete path.
+
+  @retval int error = 1, success = 0
+*/</span>
+
+<span class="hljs-type">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">search_paths</span><span class="hljs-params">(<span class="hljs-type">const</span> <span class="hljs-type">char</span> *base_path, <span class="hljs-type">const</span> <span class="hljs-type">char</span> *tool_name,
+                        <span class="hljs-type">char</span> *tool_path)</span>
+{
+  <span class="hljs-type">int</span> i= <span class="hljs-number">0</span>;
+
+  <span class="hljs-type">static</span> <span class="hljs-type">const</span> <span class="hljs-type">char</span> *paths[]= {
+    <span class="hljs-string">&quot;&quot;</span>, <span class="hljs-string">&quot;/share/&quot;</span>,  <span class="hljs-string">&quot;/scripts/&quot;</span>, <span class="hljs-string">&quot;/bin/&quot;</span>, <span class="hljs-string">&quot;/sbin/&quot;</span>, <span class="hljs-string">&quot;/libexec/&quot;</span>,
+    <span class="hljs-string">&quot;/mysql/&quot;</span>, <span class="hljs-string">&quot;/sql/&quot;</span>,
+  };
+  <span class="hljs-keyword">for</span> (i = <span class="hljs-number">0</span> ; i &lt; (<span class="hljs-type">int</span>)array_elements(paths); i++)
+  {
+    <span class="hljs-keyword">if</span> (search_dir(base_path, tool_name, paths[i], tool_path))
+    {
+      <span class="hljs-keyword">return</span> <span class="hljs-number">1</span>;
+    }
+  }
+  <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;
+}
+
+
+<span class="hljs-comment">/**
+  Read the plugin ini file.
+
+  This function attempts to read the plugin config file from the plugin_dir
+  path saving the data in the the st_plugin structure. If the file is not
+  found or the file cannot be read, an error is generated.
+
+  @retval int error = 1, success = 0
+*/</span>
+
+<span class="hljs-type">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">load_plugin_data</span><span class="hljs-params">(<span class="hljs-type">char</span> *plugin_name, <span class="hljs-type">char</span> *config_file)</span>
+{
+  FILE *file_ptr;
+  <span class="hljs-type">char</span> path[FN_REFLEN];
+  <span class="hljs-type">char</span> line[<span class="hljs-number">1024</span>];
+  <span class="hljs-type">const</span> <span class="hljs-type">char</span> *reason= <span class="hljs-number">0</span>;
+  <span class="hljs-type">char</span> *res;
+  <span class="hljs-type">int</span> i= <span class="hljs-number">-1</span>;
+
+  <span class="hljs-keyword">if</span> (opt_plugin_ini == <span class="hljs-number">0</span>)
+  {
+    fn_format(path, config_file, opt_plugin_dir, <span class="hljs-string">&quot;&quot;</span>, MYF(<span class="hljs-number">0</span>));
+    opt_plugin_ini= my_strdup(PSI_NOT_INSTRUMENTED, path, MYF(MY_FAE));
+  }
+  <span class="hljs-keyword">if</span> (!file_exists(opt_plugin_ini))
+  {
+    reason= <span class="hljs-string">&quot;File does not exist.&quot;</span>;
+    <span class="hljs-keyword">goto</span> error;
+  }
+
+  file_ptr= fopen(opt_plugin_ini, <span class="hljs-string">&quot;r&quot;</span>);
+  <span class="hljs-keyword">if</span> (file_ptr == <span class="hljs-literal">NULL</span>)
+  {
+    reason= <span class="hljs-string">&quot;Cannot open file.&quot;</span>;
+    <span class="hljs-keyword">goto</span> error;
+  }
+
+  <span class="hljs-comment">/* save name */</span>
+  plugin_data.name= my_strdup(PSI_NOT_INSTRUMENTED, plugin_name, MYF(MY_WME));
+
+  <span class="hljs-comment">/* Read plugin components */</span>
+  <span class="hljs-keyword">while</span> (i &lt; <span class="hljs-number">16</span>)
+  {
+    <span class="hljs-type">size_t</span> line_len;
+
+    res= fgets(line, <span class="hljs-keyword">sizeof</span>(line), file_ptr);
+    line_len= <span class="hljs-built_in">strlen</span>(line);
+
+    <span class="hljs-comment">/* strip /n */</span>
+    <span class="hljs-keyword">if</span> (line[line_len - <span class="hljs-number">1</span>] == <span class="hljs-string">&#x27;\n&#x27;</span>)
+      line[line_len - <span class="hljs-number">1</span>]= <span class="hljs-string">&#x27;\0&#x27;</span>;
+
+    <span class="hljs-keyword">if</span> (res == <span class="hljs-literal">NULL</span>)
+    {
+      <span class="hljs-keyword">if</span> (i &lt; <span class="hljs-number">1</span>)
+      {
+        reason= <span class="hljs-string">&quot;Bad format in plugin configuration file.&quot;</span>;
+        fclose(file_ptr);
+        <span class="hljs-keyword">goto</span> error;
+      }
+      <span class="hljs-keyword">break</span>;
+    }
+    <span class="hljs-keyword">if</span> ((line[<span class="hljs-number">0</span>] == <span class="hljs-string">&#x27;#&#x27;</span>) || (line[<span class="hljs-number">0</span>] == <span class="hljs-string">&#x27;\n&#x27;</span>)) <span class="hljs-comment">/* skip comment and blank lines */</span>
+    {
+      <span class="hljs-keyword">continue</span>;
+    }
+    <span class="hljs-keyword">if</span> (i == <span class="hljs-number">-1</span>) <span class="hljs-comment">/* if first pass, read this line as so_name */</span>
+    {
+      <span class="hljs-comment">/* Add proper file extension for soname */</span>
+      <span class="hljs-keyword">if</span> (safe_strcpy_truncated(line + line_len - <span class="hljs-number">1</span>, <span class="hljs-keyword">sizeof</span> line, FN_SOEXT))
+      {
+        reason= <span class="hljs-string">&quot;Plugin name too long.&quot;</span>;
+        fclose(file_ptr);
+        <span class="hljs-keyword">goto</span> error;
+      }
+      <span class="hljs-comment">/* save so_name */</span>
+      plugin_data.so_name= my_strdup(PSI_NOT_INSTRUMENTED, line, MYF(MY_WME|MY_ZEROFILL));
+      i++;
+    }
+    <span class="hljs-keyword">else</span>
+    {
+      <span class="hljs-keyword">if</span> (line_len &gt; <span class="hljs-number">0</span>)
+      {
+        plugin_data.components[i]= my_strdup(PSI_NOT_INSTRUMENTED, line, MYF(MY_WME));
+        i++;
+      }
+      <span class="hljs-keyword">else</span>
+      {
+        plugin_data.components[i]= <span class="hljs-literal">NULL</span>;
+      }
+    }
+  }
+
+  fclose(file_ptr);
+  <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;
+
+error:
+  <span class="hljs-built_in">fprintf</span>(<span class="hljs-built_in">stderr</span>, <span class="hljs-string">&quot;ERROR: Cannot read plugin config file %s. %s\n&quot;</span>,
+          plugin_name, reason);
+  <span class="hljs-keyword">return</span> <span class="hljs-number">1</span>;
+}
+
+
+<span class="hljs-comment">/**
+  Check the options for validity.
+
+  This function checks the arguments for validity issuing the appropriate
+  error message if arguments are missing or invalid. On success, @operation
+  is set to either &quot;ENABLE&quot; or &quot;DISABLE&quot;.
+
+  @param[in]  argc       The number of arguments.
+  @param[in]  argv       The arguments.
+  @param[out] operation  The operation chosen (enable|disable)
+
+  @retval int error = 1, success = 0
+*/</span>
+
+<span class="hljs-type">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">check_options</span><span class="hljs-params">(<span class="hljs-type">int</span> argc, <span class="hljs-type">char</span> **argv, <span class="hljs-type">char</span> *operation)</span>
+{
+  <span class="hljs-type">int</span> i= <span class="hljs-number">0</span>;                    <span class="hljs-comment">/* loop counter */</span>
+  <span class="hljs-type">int</span> num_found= <span class="hljs-number">0</span>;            <span class="hljs-comment">/* number of options found (shortcut loop) */</span>
+  <span class="hljs-type">char</span> config_file[FN_REFLEN+<span class="hljs-number">1</span>]; <span class="hljs-comment">/* configuration file name */</span>
+  <span class="hljs-type">char</span> plugin_name[FN_REFLEN+<span class="hljs-number">1</span>]; <span class="hljs-comment">/* plugin name */</span>
+
+  <span class="hljs-comment">/* Form prefix strings for the options. */</span>
+  <span class="hljs-type">const</span> <span class="hljs-type">char</span> *basedir_prefix = <span class="hljs-string">&quot;--basedir=&quot;</span>;
+  <span class="hljs-type">size_t</span> basedir_len= <span class="hljs-built_in">strlen</span>(basedir_prefix);
+  <span class="hljs-type">const</span> <span class="hljs-type">char</span> *datadir_prefix = <span class="hljs-string">&quot;--datadir=&quot;</span>;
+  <span class="hljs-type">size_t</span> datadir_len= <span class="hljs-built_in">strlen</span>(datadir_prefix);
+  <span class="hljs-type">const</span> <span class="hljs-type">char</span> *plugin_dir_prefix = <span class="hljs-string">&quot;--plugin_dir=&quot;</span>;
+  <span class="hljs-type">size_t</span> plugin_dir_len= <span class="hljs-built_in">strlen</span>(plugin_dir_prefix);
+
+  *plugin_name= <span class="hljs-string">&#x27;\0&#x27;</span>;
+  <span class="hljs-keyword">for</span> (i = <span class="hljs-number">0</span>; i &lt; argc &amp;&amp; num_found &lt; <span class="hljs-number">5</span>; i++)
+  {
+
+    <span class="hljs-keyword">if</span> (!argv[i])
+    {
+      <span class="hljs-keyword">continue</span>;
+    }
+    <span class="hljs-keyword">if</span> ((strcasecmp(argv[i], <span class="hljs-string">&quot;ENABLE&quot;</span>) == <span class="hljs-number">0</span>) ||
+        (strcasecmp(argv[i], <span class="hljs-string">&quot;DISABLE&quot;</span>) == <span class="hljs-number">0</span>))
+    {
+      <span class="hljs-built_in">strcpy</span>(operation, argv[i]);
+      num_found++;
+    }
+    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> ((strncasecmp(argv[i], basedir_prefix, basedir_len) == <span class="hljs-number">0</span>) &amp;&amp;
+             !opt_basedir)
+    {
+      opt_basedir= my_strndup(PSI_NOT_INSTRUMENTED, argv[i]+basedir_len,
+                              <span class="hljs-built_in">strlen</span>(argv[i])-basedir_len, MYF(MY_FAE));
+      num_found++;
+    }
+    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> ((strncasecmp(argv[i], datadir_prefix, datadir_len) == <span class="hljs-number">0</span>) &amp;&amp;
+             !opt_datadir)
+    {
+      opt_datadir= my_strndup(PSI_NOT_INSTRUMENTED, argv[i]+datadir_len,
+                              <span class="hljs-built_in">strlen</span>(argv[i])-datadir_len, MYF(MY_FAE));
+      num_found++;
+    }
+    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> ((strncasecmp(argv[i], plugin_dir_prefix, plugin_dir_len) == <span class="hljs-number">0</span>) &amp;&amp;
+             !opt_plugin_dir)
+    {
+      opt_plugin_dir= my_strndup(PSI_NOT_INSTRUMENTED, argv[i]+plugin_dir_len,
+                                 <span class="hljs-built_in">strlen</span>(argv[i])-plugin_dir_len, MYF(MY_FAE));
+      num_found++;
+    }
+    <span class="hljs-comment">/* read the plugin config file and check for match against argument */</span>
+    <span class="hljs-keyword">else</span>
+    {
+      <span class="hljs-keyword">if</span> (safe_strcpy_truncated(plugin_name, <span class="hljs-keyword">sizeof</span>(plugin_name)<span class="hljs-number">-1</span>, argv[i]) ||
+          safe_strcpy_truncated(config_file, <span class="hljs-keyword">sizeof</span>(config_file)<span class="hljs-number">-1</span>, argv[i]) ||
+          safe_strcat(config_file, <span class="hljs-keyword">sizeof</span>(config_file), <span class="hljs-string">&quot;.ini&quot;</span>))
+      {
+        <span class="hljs-built_in">fprintf</span>(<span class="hljs-built_in">stderr</span>, <span class="hljs-string">&quot;ERROR: argument is too long.\n&quot;</span>);
+        <span class="hljs-keyword">return</span> <span class="hljs-number">1</span>;
+      }
+    }
+  }
+
+  <span class="hljs-keyword">if</span> (!opt_basedir)
+  {
+    <span class="hljs-built_in">fprintf</span>(<span class="hljs-built_in">stderr</span>, <span class="hljs-string">&quot;ERROR: Missing --basedir option.\n&quot;</span>);
+    <span class="hljs-keyword">return</span> <span class="hljs-number">1</span>;
+  }
+
+  <span class="hljs-keyword">if</span> (!opt_datadir)
+  {
+    <span class="hljs-built_in">fprintf</span>(<span class="hljs-built_in">stderr</span>, <span class="hljs-string">&quot;ERROR: Missing --datadir option.\n&quot;</span>);
+    <span class="hljs-keyword">return</span> <span class="hljs-number">1</span>;
+  }
+
+  <span class="hljs-keyword">if</span> (!opt_plugin_dir)
+  {
+    <span class="hljs-built_in">fprintf</span>(<span class="hljs-built_in">stderr</span>, <span class="hljs-string">&quot;ERROR: Missing --plugin_dir option.\n&quot;</span>);
+    <span class="hljs-keyword">return</span> <span class="hljs-number">1</span>;
+  }
+  <span class="hljs-comment">/* If a plugin was specified, read the config file. */</span>
+  <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (<span class="hljs-built_in">strlen</span>(plugin_name) &gt; <span class="hljs-number">0</span>)
+  {
+    <span class="hljs-keyword">if</span> (load_plugin_data(plugin_name, config_file))
+    {
+      <span class="hljs-keyword">return</span> <span class="hljs-number">1</span>;
+    }
+    <span class="hljs-keyword">if</span> (strcasecmp(plugin_data.name, plugin_name) != <span class="hljs-number">0</span>)
+    {
+      <span class="hljs-built_in">fprintf</span>(<span class="hljs-built_in">stderr</span>, <span class="hljs-string">&quot;ERROR: plugin name requested does not match config &quot;</span>
+              <span class="hljs-string">&quot;file data.\n&quot;</span>);
+      <span class="hljs-keyword">return</span> <span class="hljs-number">1</span>;
+    }
+  }
+  <span class="hljs-keyword">else</span>
+  {
+    <span class="hljs-built_in">fprintf</span>(<span class="hljs-built_in">stderr</span>, <span class="hljs-string">&quot;ERROR: No plugin specified.\n&quot;</span>);
+    <span class="hljs-keyword">return</span> <span class="hljs-number">1</span>;
+  }
+
+  <span class="hljs-keyword">if</span> ((<span class="hljs-built_in">strlen</span>(operation) == <span class="hljs-number">0</span>))
+  {
+    <span class="hljs-built_in">fprintf</span>(<span class="hljs-built_in">stderr</span>, <span class="hljs-string">&quot;ERROR: missing operation. Please specify either &quot;</span>
+            <span class="hljs-string">&quot;&#x27;&lt;plugin&gt; ENABLE&#x27; or &#x27;&lt;plugin&gt; DISABLE&#x27;.\n&quot;</span>);
+    <span class="hljs-keyword">return</span> <span class="hljs-number">1</span>;
+  }
+
+  <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;
+}
+
+
+<span class="hljs-comment">/**
+  Parse, execute, and verify command options.
+
+  This method handles all of the option processing including the optional
+  features for displaying data (--print-defaults, --help ,etc.) that do not
+  result in an attempt to ENABLE or DISABLE of a plugin.
+
+  @param[in]   arc        Count of arguments
+  @param[in]   argv       Array of arguments
+  @param[out]  operation  Operation (ENABLE or DISABLE)
+
+  @retval int error = 1, success = 0, exit program = -1
+*/</span>
+
+<span class="hljs-type">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">process_options</span><span class="hljs-params">(<span class="hljs-type">int</span> argc, <span class="hljs-type">char</span> *argv[], <span class="hljs-type">char</span> *operation)</span>
+{
+  <span class="hljs-type">int</span> error= <span class="hljs-number">0</span>;
+
+  <span class="hljs-comment">/* Parse and execute command-line options */</span>
+  <span class="hljs-keyword">if</span> ((error= handle_options(&amp;argc, &amp;argv, my_long_options, get_one_option)))
+    <span class="hljs-keyword">return</span> error;
+
+  <span class="hljs-comment">/* If the print defaults option used, exit. */</span>
+  <span class="hljs-keyword">if</span> (opt_print_defaults)
+    <span class="hljs-keyword">return</span> <span class="hljs-number">-1</span>;
+
+  <span class="hljs-comment">/* Add a trailing directory separator if not present */</span>
+  <span class="hljs-keyword">if</span> (opt_basedir)
+  {
+    <span class="hljs-type">size_t</span> basedir_len= strlength(opt_basedir);
+    <span class="hljs-keyword">if</span> (opt_basedir[basedir_len - <span class="hljs-number">1</span>] != FN_LIBCHAR ||
+        opt_basedir[basedir_len - <span class="hljs-number">1</span>] != FN_LIBCHAR2)
+    {
+      <span class="hljs-type">char</span> buff[FN_REFLEN];
+      <span class="hljs-keyword">if</span> (basedir_len + <span class="hljs-number">2</span> &gt; FN_REFLEN)
+        <span class="hljs-keyword">return</span> <span class="hljs-number">-1</span>;
+
+      <span class="hljs-built_in">memcpy</span>(buff, opt_basedir, basedir_len);
+      buff[basedir_len]= <span class="hljs-string">&#x27;/&#x27;</span>;
+      buff[basedir_len + <span class="hljs-number">1</span>]= <span class="hljs-string">&#x27;\0&#x27;</span>;
+
+      my_free(opt_basedir);
+      opt_basedir= my_strdup(PSI_NOT_INSTRUMENTED, buff, MYF(MY_FAE));
+    }
+  }
+
+  <span class="hljs-comment">/*
+    If the user did not specify the option to skip loading defaults from a
+    config file and the required options are not present or there was an error
+    generated when the defaults were read from the file, exit.
+  */</span>
+  <span class="hljs-keyword">if</span> (!opt_no_defaults &amp;&amp; ((error= get_default_values())))
+    <span class="hljs-keyword">return</span> <span class="hljs-number">-1</span>;
+
+  <span class="hljs-comment">/*
+   Check to ensure required options are present and validate the operation.
+   Note: this method also validates the plugin specified by attempting to
+   read a configuration file named &lt;plugin_name&gt;.ini from the --plugin-dir
+   or --plugin-ini location if the --plugin-ini option presented.
+  */</span>
+  operation[<span class="hljs-number">0</span>]= <span class="hljs-string">&#x27;\0&#x27;</span>;
+  <span class="hljs-keyword">if</span> ((error= check_options(argc, argv, operation)))
+    <span class="hljs-keyword">return</span> error;
+
+  <span class="hljs-keyword">if</span> (opt_verbose)
+  {
+    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;#    basedir = %s\n&quot;</span>, opt_basedir);
+    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;# plugin_dir = %s\n&quot;</span>, opt_plugin_dir);
+    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;#    datadir = %s\n&quot;</span>, opt_datadir);
+    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;# plugin_ini = %s\n&quot;</span>, opt_plugin_ini);
+    <span class="hljs-keyword">if</span> (opt_lc_messages_dir != <span class="hljs-number">0</span>)
+      <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;# lc_messages_dir = %s\n&quot;</span>, opt_lc_messages_dir);
+  }
+
+  <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;
+}
+
+
+<span class="hljs-comment">/**
+  Check access
+
+  This method checks to ensure all of the directories (opt_basedir,
+  opt_plugin_dir, opt_datadir, and opt_plugin_ini) are accessible by
+  the user.
+
+  @retval int error = 1, success = 0
+*/</span>
+
+<span class="hljs-type">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">check_access</span><span class="hljs-params">()</span>
+{
+  <span class="hljs-type">int</span> error= <span class="hljs-number">0</span>;
+
+  <span class="hljs-keyword">if</span> ((error= my_access(opt_basedir, F_OK)))
+  {
+    <span class="hljs-built_in">fprintf</span>(<span class="hljs-built_in">stderr</span>, <span class="hljs-string">&quot;ERROR: Cannot access basedir at &#x27;%s&#x27;.\n&quot;</span>,
+            opt_basedir);
+    <span class="hljs-keyword">goto</span> <span class="hljs-built_in">exit</span>;
+  }
+  <span class="hljs-keyword">if</span> ((error= my_access(opt_plugin_dir, F_OK)))
+  {
+    <span class="hljs-built_in">fprintf</span>(<span class="hljs-built_in">stderr</span>, <span class="hljs-string">&quot;ERROR: Cannot access plugin_dir at &#x27;%s&#x27;.\n&quot;</span>,
+            opt_plugin_dir);
+    <span class="hljs-keyword">goto</span> <span class="hljs-built_in">exit</span>;
+  }
+  <span class="hljs-keyword">if</span> ((error= my_access(opt_datadir, F_OK)))
+  {
+    <span class="hljs-built_in">fprintf</span>(<span class="hljs-built_in">stderr</span>, <span class="hljs-string">&quot;ERROR: Cannot access datadir at &#x27;%s&#x27;.\n&quot;</span>,
+            opt_datadir);
+    <span class="hljs-keyword">goto</span> <span class="hljs-built_in">exit</span>;
+  }
+  <span class="hljs-keyword">if</span> (opt_plugin_ini &amp;&amp; (error= my_access(opt_plugin_ini, F_OK)))
+  {
+    <span class="hljs-built_in">fprintf</span>(<span class="hljs-built_in">stderr</span>, <span class="hljs-string">&quot;ERROR: Cannot access plugin config file at &#x27;%s&#x27;.\n&quot;</span>,
+            opt_plugin_ini);
+    <span class="hljs-keyword">goto</span> <span class="hljs-built_in">exit</span>;
+  }
+  <span class="hljs-keyword">if</span> (opt_mysqld &amp;&amp; (error= my_access(opt_mysqld, F_OK)))
+  {
+    <span class="hljs-built_in">fprintf</span>(<span class="hljs-built_in">stderr</span>, <span class="hljs-string">&quot;ERROR: Cannot access mariadbd path &#x27;%s&#x27;.\n&quot;</span>,
+            opt_mysqld);
+    <span class="hljs-keyword">goto</span> <span class="hljs-built_in">exit</span>;
+  }
+  <span class="hljs-keyword">if</span> (opt_my_print_defaults &amp;&amp; (error= my_access(opt_my_print_defaults, F_OK)))
+  {
+    <span class="hljs-built_in">fprintf</span>(<span class="hljs-built_in">stderr</span>, <span class="hljs-string">&quot;ERROR: Cannot access my-print-defaults path &#x27;%s&#x27;.\n&quot;</span>,
+            opt_my_print_defaults);
+    <span class="hljs-keyword">goto</span> <span class="hljs-built_in">exit</span>;
+  }
+  <span class="hljs-keyword">if</span> (opt_lc_messages_dir &amp;&amp; (error= my_access(opt_lc_messages_dir, F_OK)))
+  {
+    <span class="hljs-built_in">fprintf</span>(<span class="hljs-built_in">stderr</span>, <span class="hljs-string">&quot;ERROR: Cannot access lc-messages-dir path &#x27;%s&#x27;.\n&quot;</span>,
+            opt_lc_messages_dir);
+    <span class="hljs-keyword">goto</span> <span class="hljs-built_in">exit</span>;
+  }
+
+<span class="hljs-built_in">exit</span>:
+  <span class="hljs-keyword">return</span> error;
+}
+
+
+<span class="hljs-comment">/**
+  Locate the tool and form tool path.
+
+  @param[in]  tool_name  Name of the tool to locate.
+  @param[out] tool_path  If tool found, return complete path.
+
+  @retval int error = 1, success = 0
+*/</span>
+
+<span class="hljs-type">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">find_tool</span><span class="hljs-params">(<span class="hljs-type">const</span> <span class="hljs-type">char</span> *tool_name, <span class="hljs-type">char</span> *tool_path)</span>
+{
+  <span class="hljs-type">int</span> i= <span class="hljs-number">0</span>;
+
+  <span class="hljs-type">const</span> <span class="hljs-type">char</span> *paths[]= {
+    opt_mysqld, opt_basedir, opt_my_print_defaults, <span class="hljs-string">&quot;/usr&quot;</span>,
+    <span class="hljs-string">&quot;/usr/local/mysql&quot;</span>, <span class="hljs-string">&quot;/usr/sbin&quot;</span>, <span class="hljs-string">&quot;/usr/share&quot;</span>, <span class="hljs-string">&quot;/extra&quot;</span>, <span class="hljs-string">&quot;/extra/debug&quot;</span>,
+    <span class="hljs-string">&quot;/extra/release&quot;</span>, <span class="hljs-string">&quot;/bin&quot;</span>, <span class="hljs-string">&quot;/usr/bin&quot;</span>, <span class="hljs-string">&quot;/mysql/bin&quot;</span>
+  };
+  <span class="hljs-keyword">for</span> (i= <span class="hljs-number">0</span>; i &lt; (<span class="hljs-type">int</span>)array_elements(paths); i++)
+  {
+    <span class="hljs-keyword">if</span> (paths[i] &amp;&amp; (search_paths(paths[i], tool_name, tool_path)))
+      <span class="hljs-keyword">goto</span> found;
+  }
+  <span class="hljs-built_in">fprintf</span>(<span class="hljs-built_in">stderr</span>, <span class="hljs-string">&quot;WARNING: Cannot find %s.\n&quot;</span>, tool_name);
+  <span class="hljs-keyword">return</span> <span class="hljs-number">1</span>;
+found:
+  <span class="hljs-keyword">if</span> (opt_verbose)
+    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;# Found tool &#x27;%s&#x27; as &#x27;%s&#x27;.\n&quot;</span>, tool_name, tool_path);
+  <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;
+}
+
+
+<span class="hljs-comment">/**
+  Find the plugin library.
+
+  This function attempts to use the @c plugin_dir option passed on the
+  command line to locate the plugin.
+
+  @param[out] tp_path   The actual path to plugin with FN_SOEXT applied.
+
+  @retval int error = 1, success = 0
+*/</span>
+
+<span class="hljs-type">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">find_plugin</span><span class="hljs-params">(<span class="hljs-type">char</span> *tp_path)</span>
+{
+  <span class="hljs-comment">/* Check for existence of plugin */</span>
+  fn_format(tp_path, plugin_data.so_name, opt_plugin_dir, <span class="hljs-string">&quot;&quot;</span>, MYF(<span class="hljs-number">0</span>));
+  <span class="hljs-keyword">if</span> (!file_exists(tp_path))
+  {
+    <span class="hljs-built_in">fprintf</span>(<span class="hljs-built_in">stderr</span>, <span class="hljs-string">&quot;ERROR: The plugin library is missing or in a different&quot;</span>
+            <span class="hljs-string">&quot; location.\n&quot;</span>);
+    <span class="hljs-keyword">return</span> <span class="hljs-number">1</span>;
+  }
+  <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (opt_verbose)
+  {
+    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;# Found plugin &#x27;%s&#x27; as &#x27;%s&#x27;\n&quot;</span>, plugin_data.name, tp_path);
+  }
+  <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;
+}
+
+
+<span class="hljs-comment">/**
+  Build the bootstrap file.
+
+  Create a new file and populate it with SQL commands to ENABLE or DISABLE
+  the plugin via REPLACE and DELETE operations on the mysql.plugin table.
+
+  param[in]  operation  The type of operation (ENABLE or DISABLE)
+  param[out] bootstrap  A FILE* pointer
+
+  @retval int error = 1, success = 0
+*/</span>
+
+<span class="hljs-type">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">build_bootstrap_file</span><span class="hljs-params">(<span class="hljs-type">char</span> *operation, <span class="hljs-type">char</span> *bootstrap)</span>
+{
+  <span class="hljs-type">int</span> error= <span class="hljs-number">0</span>;
+  FILE *file= <span class="hljs-number">0</span>;
+
+  <span class="hljs-comment">/*
+    Perform plugin operation : ENABLE or DISABLE
+
+    The following creates a temporary bootstrap file and populates it with
+    the appropriate SQL commands for the operation. For ENABLE, REPLACE
+    statements are created. For DISABLE, DELETE statements are created. The
+    values for these statements are derived from the plugin_data read from the
+    &lt;plugin_name&gt;.ini configuration file. Once the file is built, a call to
+    mysqld is made in read only, bootstrap modes to read the SQL statements
+    and execute them.
+
+    Note: Replace was used so that if a user loads a newer version of a
+          library with a different library name, the new library name is
+          used for symbols that match.
+  */</span>
+  <span class="hljs-keyword">if</span> ((error= make_tempfile(bootstrap, <span class="hljs-string">&quot;sql&quot;</span>)))
+  {
+    <span class="hljs-comment">/* Fail if we cannot create a temporary file for the bootstrap commands. */</span>
+    <span class="hljs-built_in">fprintf</span>(<span class="hljs-built_in">stderr</span>, <span class="hljs-string">&quot;ERROR: Cannot create bootstrap file.\n&quot;</span>);
+    <span class="hljs-keyword">goto</span> <span class="hljs-built_in">exit</span>;
+  }
+  <span class="hljs-keyword">if</span> ((file= fopen(bootstrap, <span class="hljs-string">&quot;w+&quot;</span>)) == <span class="hljs-literal">NULL</span>)
+  {
+    <span class="hljs-built_in">fprintf</span>(<span class="hljs-built_in">stderr</span>, <span class="hljs-string">&quot;ERROR: Cannot open bootstrap file for writing.\n&quot;</span>);
+    error= <span class="hljs-number">1</span>;
+    <span class="hljs-keyword">goto</span> <span class="hljs-built_in">exit</span>;
+  }
+  <span class="hljs-keyword">if</span> (strcasecmp(operation, <span class="hljs-string">&quot;enable&quot;</span>) == <span class="hljs-number">0</span>)
+  {
+    <span class="hljs-type">int</span> i= <span class="hljs-number">0</span>;
+    <span class="hljs-built_in">fprintf</span>(file, <span class="hljs-string">&quot;REPLACE INTO mysql.plugin VALUES &quot;</span>);
+    <span class="hljs-keyword">for</span> (i= <span class="hljs-number">0</span>; i &lt; (<span class="hljs-type">int</span>)array_elements(plugin_data.components); i++)
+    {
+      <span class="hljs-comment">/* stop when we read the end of the symbol list - marked with NULL */</span>
+      <span class="hljs-keyword">if</span> (plugin_data.components[i] == <span class="hljs-literal">NULL</span>)
+      {
+        <span class="hljs-keyword">break</span>;
+      }
+      <span class="hljs-keyword">if</span> (i &gt; <span class="hljs-number">0</span>)
+      {
+        <span class="hljs-built_in">fprintf</span>(file, <span class="hljs-string">&quot;, &quot;</span>);
+      }
+      <span class="hljs-built_in">fprintf</span>(file, <span class="hljs-string">&quot;(&#x27;%s&#x27;,&#x27;%s&#x27;)&quot;</span>,
+              plugin_data.components[i], plugin_data.so_name);
+    }
+    <span class="hljs-built_in">fprintf</span>(file, <span class="hljs-string">&quot;;\n&quot;</span>);
+    <span class="hljs-keyword">if</span> (opt_verbose)
+    {
+      <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;# Enabling %s...\n&quot;</span>, plugin_data.name);
+    }
+  }
+  <span class="hljs-keyword">else</span>
+  {
+    <span class="hljs-built_in">fprintf</span>(file,
+            <span class="hljs-string">&quot;DELETE FROM mysql.plugin WHERE dl = &#x27;%s&#x27;;&quot;</span>, plugin_data.so_name);
+    <span class="hljs-keyword">if</span> (opt_verbose)
+    {
+      <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;# Disabling %s...\n&quot;</span>, plugin_data.name);
+    }
+  }
+
+<span class="hljs-built_in">exit</span>:
+  fclose(file);
+  <span class="hljs-keyword">return</span> error;
+}
+
+
+<span class="hljs-comment">/**
+  Dump bootstrap file.
+
+  Read the contents of the bootstrap file and print it out.
+
+  @param[in]  bootstrap_file  Name of bootstrap file to read
+
+  @retval int error = 1, success = 0
+*/</span>
+
+<span class="hljs-type">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">dump_bootstrap_file</span><span class="hljs-params">(<span class="hljs-type">char</span> *bootstrap_file)</span>
+{
+  <span class="hljs-type">char</span> *ret= <span class="hljs-number">0</span>;
+  <span class="hljs-type">int</span> error= <span class="hljs-number">0</span>;
+  <span class="hljs-type">char</span> query_str[<span class="hljs-number">512</span>];
+  FILE *file= <span class="hljs-number">0</span>;
+
+  <span class="hljs-keyword">if</span> ((file= fopen(bootstrap_file, <span class="hljs-string">&quot;r&quot;</span>)) == <span class="hljs-literal">NULL</span>)
+  {
+    <span class="hljs-built_in">fprintf</span>(<span class="hljs-built_in">stderr</span>, <span class="hljs-string">&quot;ERROR: Cannot open bootstrap file for reading.\n&quot;</span>);
+    error= <span class="hljs-number">1</span>;
+    <span class="hljs-keyword">goto</span> <span class="hljs-built_in">exit</span>;
+  }
+  ret= fgets(query_str, <span class="hljs-number">512</span>, file);
+  <span class="hljs-keyword">if</span> (ret == <span class="hljs-number">0</span>)
+  {
+    <span class="hljs-built_in">fprintf</span>(<span class="hljs-built_in">stderr</span>, <span class="hljs-string">&quot;ERROR: Cannot read bootstrap file.\n&quot;</span>);
+    error= <span class="hljs-number">1</span>;
+    <span class="hljs-keyword">goto</span> <span class="hljs-built_in">exit</span>;
+  }
+  <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;# Query: %s\n&quot;</span>, query_str);
+
+<span class="hljs-built_in">exit</span>:
+  <span class="hljs-keyword">if</span> (file)
+  {
+    fclose(file);
+  }
+  <span class="hljs-keyword">return</span> error;
+}
+
+
+<span class="hljs-comment">/**
+  Bootstrap the server
+
+  Create a command line sequence to launch mysqld in bootstrap mode. This
+  will allow mysqld to launch a minimal server instance to read and
+  execute SQL commands from a file piped in (the bootstrap file). We use
+  the --no-defaults option to skip reading values from the config file.
+
+  The bootstrap mode skips loading of plugins and many other subsystems.
+  This allows the mysql_plugin tool to insert the correct rows into the
+  mysql.plugin table (for ENABLE) or delete the rows (for DISABLE). Once
+  the server is launched in normal mode, the plugin will be loaded
+  (for ENABLE) or not loaded (for DISABLE). In this way, we avoid the
+  (sometimes) complicated LOAD PLUGIN commands.
+
+  @param[in]  server_path     Path to server executable
+  @param[in]  bootstrap_file  Name of bootstrap file to read
+
+  @retval int error = 1, success = 0
+*/</span>
+
+<span class="hljs-type">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">bootstrap_server</span><span class="hljs-params">(<span class="hljs-type">char</span> *server_path, <span class="hljs-type">char</span> *bootstrap_file)</span>
+{
+  <span class="hljs-type">char</span> bootstrap_cmd[FN_REFLEN]= {<span class="hljs-number">0</span>};
+  <span class="hljs-type">char</span> lc_messages_dir_str[FN_REFLEN]= {<span class="hljs-number">0</span>};
+  <span class="hljs-type">int</span> error= <span class="hljs-number">0</span>;
+
+<span class="hljs-meta">#<span class="hljs-keyword">ifdef</span> _WIN32</span>
+  <span class="hljs-type">char</span> *format_str= <span class="hljs-number">0</span>;
+  <span class="hljs-type">const</span> <span class="hljs-type">char</span> *verbose_str= <span class="hljs-literal">NULL</span>;
+<span class="hljs-meta">#<span class="hljs-keyword">endif</span></span>
+
+  <span class="hljs-keyword">if</span> (opt_lc_messages_dir != <span class="hljs-literal">NULL</span>)
+    <span class="hljs-built_in">snprintf</span>(lc_messages_dir_str, <span class="hljs-keyword">sizeof</span>(lc_messages_dir_str), <span class="hljs-string">&quot;--lc-messages-dir=%s&quot;</span>,
+             opt_lc_messages_dir);
+
+<span class="hljs-meta">#<span class="hljs-keyword">ifdef</span> _WIN32</span>
+  <span class="hljs-keyword">if</span> (opt_verbose)
+    verbose_str= <span class="hljs-string">&quot;--console&quot;</span>;
+  <span class="hljs-keyword">else</span>
+    verbose_str= <span class="hljs-string">&quot;&quot;</span>;
+
+  <span class="hljs-keyword">if</span> (has_spaces(opt_datadir) || has_spaces(opt_basedir) ||
+      has_spaces(bootstrap_file) || has_spaces(lc_messages_dir_str))
+    format_str= <span class="hljs-string">&quot;\&quot;%s %s --bootstrap --datadir=%s --basedir=%s %s &lt;%s\&quot;&quot;</span>;
+  <span class="hljs-keyword">else</span>
+    format_str= <span class="hljs-string">&quot;%s %s --bootstrap --datadir=%s --basedir=%s %s &lt;%s&quot;</span>;
+
+  <span class="hljs-built_in">snprintf</span>(bootstrap_cmd, <span class="hljs-keyword">sizeof</span>(bootstrap_cmd), format_str,
+           add_quotes(convert_path(server_path)), verbose_str,
+           add_quotes(opt_datadir), add_quotes(opt_basedir),
+           add_quotes(lc_messages_dir_str), add_quotes(bootstrap_file));
+<span class="hljs-meta">#<span class="hljs-keyword">else</span></span>
+  <span class="hljs-built_in">snprintf</span>(bootstrap_cmd, <span class="hljs-keyword">sizeof</span>(bootstrap_cmd),
+           <span class="hljs-string">&quot;%s --no-defaults --bootstrap --datadir=%s --basedir=%s %s&quot;</span>
+           <span class="hljs-string">&quot; &lt;%s&quot;</span>, server_path, opt_datadir, opt_basedir, lc_messages_dir_str, bootstrap_file);
+<span class="hljs-meta">#<span class="hljs-keyword">endif</span></span>
+
+  <span class="hljs-comment">/* Execute the command */</span>
+  <span class="hljs-keyword">if</span> (opt_verbose)
+  {
+    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;# Command: %s\n&quot;</span>, bootstrap_cmd);
+  }
+  error= run_command(bootstrap_cmd, <span class="hljs-string">&quot;r&quot;</span>);
+  <span class="hljs-keyword">if</span> (error)
+    <span class="hljs-built_in">fprintf</span>(<span class="hljs-built_in">stderr</span>,
+            <span class="hljs-string">&quot;ERROR: Unexpected result from bootstrap. Error code: %d.\n&quot;</span>,
+            error);
+
+  <span class="hljs-keyword">return</span> error;
+}

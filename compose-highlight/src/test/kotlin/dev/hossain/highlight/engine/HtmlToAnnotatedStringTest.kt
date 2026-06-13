@@ -5,6 +5,7 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.font.FontWeight
 import com.google.common.truth.Truth.assertThat
 import dev.hossain.highlight.engine.internal.HtmlToAnnotatedString
+import dev.hossain.highlight.screenshot.TestSnippets
 import org.junit.Test
 
 class HtmlToAnnotatedStringTest {
@@ -17,8 +18,11 @@ class HtmlToAnnotatedStringTest {
             HljsSelectors.NUMBER to SpanStyle(color = Color(0xFFf5871f.toInt())),
             HljsSelectors.COMMENT to SpanStyle(color = Color(0xFF8e908c.toInt())),
             HljsSelectors.STRONG to SpanStyle(color = Color(0xFFeab700.toInt()), fontWeight = FontWeight.Bold),
-            // Compound key
+            // Compound and title keys
             HljsSelectors.TITLE_FUNCTION to SpanStyle(color = Color(0xFF4271ae.toInt())),
+            HljsSelectors.TITLE_CLASS to SpanStyle(color = Color(0xFF4271ae.toInt())),
+            HljsSelectors.TITLE to SpanStyle(color = Color(0xFF4271ae.toInt())),
+            HljsSelectors.OPERATOR to SpanStyle(color = Color(0xFF3e999f.toInt())),
         )
 
     /** colorMap without a base .hljs entry - for tests that verify pre-base-style behavior. */
@@ -36,6 +40,9 @@ class HtmlToAnnotatedStringTest {
             HljsSelectors.COMMENT to SpanStyle(color = Color(0xFF5C6370.toInt())),
             HljsSelectors.STRONG to SpanStyle(color = Color(0xFFE5C07B.toInt()), fontWeight = FontWeight.Bold),
             HljsSelectors.TITLE_FUNCTION to SpanStyle(color = Color(0xFF61AFEF.toInt())),
+            HljsSelectors.TITLE_CLASS to SpanStyle(color = Color(0xFF61AFEF.toInt())),
+            HljsSelectors.TITLE to SpanStyle(color = Color(0xFF61AFEF.toInt())),
+            HljsSelectors.OPERATOR to SpanStyle(color = Color(0xFF56B6C2.toInt())),
         )
 
     @Test
@@ -340,5 +347,415 @@ class HtmlToAnnotatedStringTest {
         val darkFullRange = dark.spanStyles.filter { it.start == 0 && it.end == dark.text.length }
         assertThat(lightFullRange).isEmpty()
         assertThat(darkFullRange).isEmpty()
+    }
+
+    @Test
+    fun `convert real-kotlin parses and styles correctly`() {
+        val snippet = TestSnippets.load("real-kotlin")
+        val result = HtmlToAnnotatedString.convert(snippet.highlightedHtml, colorMap)
+        assertThat(result.text).isEqualTo(snippet.code)
+        assertThat(result.spanStyles).isNotEmpty()
+
+        // Assert package statement and package keyword
+        val packageKeyword = "package dev.zacsweers.metro.compiler.graph"
+        val startPkg = result.text.indexOf(packageKeyword)
+        assertThat(startPkg).isNotEqualTo(-1)
+        val keywordSpans = result.spanStyles.filter { it.start == startPkg && it.end == startPkg + "package".length }
+        assertThat(keywordSpans).isNotEmpty()
+        assertThat(keywordSpans[0].item.color).isEqualTo(colorMap[HljsSelectors.KEYWORD]?.color)
+
+        // Assert class title GraphTopology
+        val className = "GraphTopology"
+        val startClass = result.text.indexOf(className)
+        assertThat(startClass).isNotEqualTo(-1)
+        val classSpans = result.spanStyles.filter { it.start == startClass && it.end == startClass + className.length }
+        assertThat(classSpans).isNotEmpty()
+        assertThat(classSpans[0].item.color).isEqualTo(colorMap[HljsSelectors.TITLE_CLASS]?.color)
+
+        // Verify comment styling for KDoc line
+        val targetComment = "* @property forward Maps each vertex to its dependencies (outgoing edges)."
+        val startComment = result.text.indexOf(targetComment)
+        assertThat(startComment).isNotEqualTo(-1)
+        val commentSpans = result.spanStyles.filter { it.start <= startComment && it.end >= startComment + targetComment.length }
+        assertThat(commentSpans).isNotEmpty()
+        val commentColor = colorMap[HljsSelectors.COMMENT]?.color
+        assertThat(commentSpans.any { it.item.color == commentColor }).isTrue()
+
+        // Verify convertBothThemes matches
+        val (light, dark) = HtmlToAnnotatedString.convertBothThemes(snippet.highlightedHtml, colorMap, darkColorMap)
+        assertThat(light.text).isEqualTo(snippet.code)
+        assertThat(dark.text).isEqualTo(snippet.code)
+
+        // Extensive token count validation
+        assertTokenCounts(
+            snippet.highlightedHtml,
+            mapOf(
+                "hljs-comment" to 106,
+                "hljs-keyword" to 286,
+                "hljs-doctag" to 27,
+                "hljs-title.class_" to 5,
+                "hljs-type" to 82,
+                "hljs-function" to 8,
+                "hljs-title" to 8,
+                "hljs-params" to 8,
+                "hljs-literal" to 16,
+                "hljs-string" to 6,
+                "hljs-number" to 30,
+                "hljs-built_in" to 7,
+                "hljs-symbol" to 4,
+                "hljs-meta" to 1,
+            ),
+        )
+    }
+
+    @Test
+    fun `convert real-c parses and decodes entities correctly`() {
+        val snippet = TestSnippets.load("real-c")
+        val result = HtmlToAnnotatedString.convert(snippet.highlightedHtml, colorMap)
+        assertThat(result.text).isEqualTo(snippet.code)
+        assertThat(result.spanStyles).isNotEmpty()
+
+        // Verify entity decoding and string literal styling:
+        // `&quot;lc-messages-dir&quot;` -> `"lc-messages-dir"`
+        val targetStr = "\"lc-messages-dir\""
+        val startStr = result.text.indexOf(targetStr)
+        assertThat(startStr).isNotEqualTo(-1)
+        val stringSpans = result.spanStyles.filter { it.start == startStr && it.end == startStr + targetStr.length }
+        assertThat(stringSpans).isNotEmpty()
+        assertThat(stringSpans[0].item.color).isEqualTo(colorMap[HljsSelectors.STRING]?.color)
+
+        // `&#x27;l&#x27;` -> `'l'`
+        val charAnchor = ", 'l', "
+        val startAnchor = result.text.indexOf(charAnchor)
+        assertThat(startAnchor).isNotEqualTo(-1)
+        val startChar = startAnchor + 2 // start of `'l'`
+        val charSpans = result.spanStyles.filter { it.start == startChar && it.end == startChar + 3 }
+        assertThat(charSpans).isNotEmpty()
+        assertThat(charSpans[0].item.color).isEqualTo(colorMap[HljsSelectors.STRING]?.color)
+
+        // Verify convertBothThemes matches
+        val (light, dark) = HtmlToAnnotatedString.convertBothThemes(snippet.highlightedHtml, colorMap, darkColorMap)
+        assertThat(light.text).isEqualTo(snippet.code)
+        assertThat(dark.text).isEqualTo(snippet.code)
+
+        // Extensive token count validation
+        assertTokenCounts(
+            snippet.highlightedHtml,
+            mapOf(
+                "hljs-comment" to 66,
+                "hljs-meta" to 18,
+                "hljs-keyword" to 243,
+                "hljs-string" to 195,
+                "hljs-type" to 212,
+                "hljs-number" to 261,
+                "hljs-class" to 2,
+                "hljs-title" to 3,
+                "hljs-title.function_" to 30,
+                "hljs-params" to 30,
+                "hljs-built_in" to 133,
+                "hljs-literal" to 11,
+            ),
+        )
+    }
+
+    @Test
+    fun `convert real-rust parses and styles correctly`() {
+        val snippet = TestSnippets.load("real-rust")
+        val result = HtmlToAnnotatedString.convert(snippet.highlightedHtml, colorMap)
+        assertThat(result.text).isEqualTo(snippet.code)
+        assertThat(result.spanStyles).isNotEmpty()
+
+        // Verify entity decoding for:
+        // `results.push((path, lineno.parse::<u64>()?, line));`
+        val targetRustLine = "results.push((path, lineno.parse::<u64>()?, line));"
+        val startRustLine = result.text.indexOf(targetRustLine)
+        assertThat(startRustLine).isNotEqualTo(-1)
+
+        // Verify `pub fn escape` keyword and function styling
+        val pubFnEscape = "pub fn escape"
+        val startPubFn = result.text.indexOf(pubFnEscape)
+        assertThat(startPubFn).isNotEqualTo(-1)
+
+        val pubSpans = result.spanStyles.filter { it.start == startPubFn && it.end == startPubFn + "pub".length }
+        assertThat(pubSpans).isNotEmpty()
+        assertThat(pubSpans[0].item.color).isEqualTo(colorMap[HljsSelectors.KEYWORD]?.color)
+
+        val fnSpans =
+            result.spanStyles.filter {
+                it.start == startPubFn + 4 && it.end == startPubFn + 4 + "fn".length
+            }
+        assertThat(fnSpans).isNotEmpty()
+        assertThat(fnSpans[0].item.color).isEqualTo(colorMap[HljsSelectors.KEYWORD]?.color)
+
+        val escapeName = "escape"
+        val startEscapeName = result.text.indexOf(escapeName, startPubFn)
+        assertThat(startEscapeName).isNotEqualTo(-1)
+        val escapeSpans =
+            result.spanStyles.filter {
+                it.start == startEscapeName && it.end == startEscapeName + escapeName.length
+            }
+        assertThat(escapeSpans).isNotEmpty()
+        assertThat(escapeSpans[0].item.color).isEqualTo(colorMap[HljsSelectors.TITLE_FUNCTION]?.color)
+
+        // Verify entity decoding and styling for arrow punctuation: `->`
+        val arrow = "->"
+        val startArrow = result.text.indexOf(arrow, startPubFn)
+        assertThat(startArrow).isNotEqualTo(-1)
+
+        // Verify block comment styling
+        val blockComment = "This crate provides routines for searching strings for matches"
+        val startBlockComment = result.text.indexOf(blockComment)
+        assertThat(startBlockComment).isNotEqualTo(-1)
+        val commentSpans =
+            result.spanStyles.filter {
+                it.start <= startBlockComment && it.end >= startBlockComment + blockComment.length
+            }
+        assertThat(commentSpans).isNotEmpty()
+        val commentColor = colorMap[HljsSelectors.COMMENT]?.color
+        assertThat(commentSpans.any { it.item.color == commentColor }).isTrue()
+
+        // Verify convertBothThemes matches
+        val (light, dark) = HtmlToAnnotatedString.convertBothThemes(snippet.highlightedHtml, colorMap, darkColorMap)
+        assertThat(light.text).isEqualTo(snippet.code)
+        assertThat(dark.text).isEqualTo(snippet.code)
+
+        // Extensive token count validation
+        assertTokenCounts(
+            snippet.highlightedHtml,
+            mapOf(
+                "hljs-comment" to 7,
+                "hljs-meta" to 8,
+                "hljs-string" to 4,
+                "hljs-keyword" to 18,
+                "hljs-title.function_" to 1,
+                "hljs-type" to 2,
+                "hljs-punctuation" to 1,
+                "hljs-title.function_.invoke__" to 1,
+            ),
+        )
+    }
+
+    @Test
+    fun `convert real-go parses and styles correctly`() {
+        val snippet = TestSnippets.load("real-go")
+        val result = HtmlToAnnotatedString.convert(snippet.highlightedHtml, colorMap)
+        assertThat(result.text).isEqualTo(snippet.code)
+        assertThat(result.spanStyles).isNotEmpty()
+
+        // Verify func New32 declaration and styling
+        val funcDeclaration = "func New32() hash.Hash32 {"
+        val startFunc = result.text.indexOf(funcDeclaration)
+        assertThat(startFunc).isNotEqualTo(-1)
+
+        // func keyword
+        val keywordSpans = result.spanStyles.filter { it.start == startFunc && it.end == startFunc + "func".length }
+        assertThat(keywordSpans).isNotEmpty()
+        assertThat(keywordSpans[0].item.color).isEqualTo(colorMap[HljsSelectors.KEYWORD]?.color)
+
+        // New32 function name
+        val functionName = "New32"
+        val startFuncName = result.text.indexOf(functionName, startFunc)
+        assertThat(startFuncName).isNotEqualTo(-1)
+        val funcNameSpans = result.spanStyles.filter { it.start == startFuncName && it.end == startFuncName + functionName.length }
+        assertThat(funcNameSpans).isNotEmpty()
+        assertThat(funcNameSpans[0].item.color).isEqualTo(colorMap[HljsSelectors.TITLE_FUNCTION]?.color)
+
+        // FNV-1 comment line
+        val fnvComment = "// New32 returns a new 32-bit FNV-1 [hash.Hash]."
+        val startFnvComment = result.text.indexOf(fnvComment)
+        assertThat(startFnvComment).isNotEqualTo(-1)
+        val commentSpans = result.spanStyles.filter { it.start == startFnvComment && it.end == startFnvComment + fnvComment.length }
+        assertThat(commentSpans).isNotEmpty()
+        assertThat(commentSpans[0].item.color).isEqualTo(colorMap[HljsSelectors.COMMENT]?.color)
+
+        // Verify convertBothThemes matches
+        val (light, dark) = HtmlToAnnotatedString.convertBothThemes(snippet.highlightedHtml, colorMap, darkColorMap)
+        assertThat(light.text).isEqualTo(snippet.code)
+        assertThat(dark.text).isEqualTo(snippet.code)
+
+        // Extensive token count validation
+        assertTokenCounts(
+            snippet.highlightedHtml,
+            mapOf(
+                "hljs-comment" to 27,
+                "hljs-keyword" to 169,
+                "hljs-string" to 22,
+                "hljs-type" to 126,
+                "hljs-number" to 72,
+                "hljs-function" to 64,
+                "hljs-title" to 6,
+                "hljs-params" to 64,
+                "hljs-built_in" to 45,
+                "hljs-literal" to 24,
+            ),
+        )
+    }
+
+    @Test
+    fun `convert real-csharp parses and styles correctly`() {
+        val snippet = TestSnippets.load("real-csharp")
+        val result = HtmlToAnnotatedString.convert(snippet.highlightedHtml, colorMap)
+        assertThat(result.text).isEqualTo(snippet.code)
+        assertThat(result.spanStyles).isNotEmpty()
+
+        // Verify namespace declaration
+        val namespaceLine = "namespace Microsoft.EntityFrameworkCore.Diagnostics;"
+        val startNamespace = result.text.indexOf(namespaceLine)
+        assertThat(startNamespace).isNotEqualTo(-1)
+        val nsSpans = result.spanStyles.filter { it.start == startNamespace && it.end == startNamespace + "namespace".length }
+        assertThat(nsSpans).isNotEmpty()
+        assertThat(nsSpans[0].item.color).isEqualTo(colorMap[HljsSelectors.KEYWORD]?.color)
+
+        // Verify class declaration and class title styling
+        val classDeclaration = "public class EventDefinition : EventDefinitionBase"
+        val startClassDecl = result.text.indexOf(classDeclaration)
+        assertThat(startClassDecl).isNotEqualTo(-1)
+
+        val classKeyword = "class"
+        val startClassKeyword = result.text.indexOf(classKeyword, startClassDecl)
+        val classKeywordSpans =
+            result.spanStyles.filter {
+                it.start == startClassKeyword &&
+                    it.end == startClassKeyword + classKeyword.length
+            }
+        assertThat(classKeywordSpans).isNotEmpty()
+        assertThat(classKeywordSpans[0].item.color).isEqualTo(colorMap[HljsSelectors.KEYWORD]?.color)
+
+        val className = "EventDefinition"
+        val startClassName = result.text.indexOf(className, startClassDecl)
+        val classNameSpans = result.spanStyles.filter { it.start == startClassName && it.end == startClassName + className.length }
+        assertThat(classNameSpans).isNotEmpty()
+        assertThat(classNameSpans[0].item.color).isEqualTo(colorMap[HljsSelectors.TITLE]?.color)
+
+        // Verify XML documentation tags/comments
+        val docComment = "/// <summary>"
+        val startDocComment = result.text.indexOf(docComment)
+        assertThat(startDocComment).isNotEqualTo(-1)
+        val docCommentSpans = result.spanStyles.filter { it.start <= startDocComment && it.end >= startDocComment + docComment.length }
+        assertThat(docCommentSpans).isNotEmpty()
+        val commentColor = colorMap[HljsSelectors.COMMENT]?.color
+        assertThat(docCommentSpans.any { it.item.color == commentColor }).isTrue()
+
+        // Verify convertBothThemes matches
+        val (light, dark) = HtmlToAnnotatedString.convertBothThemes(snippet.highlightedHtml, colorMap, darkColorMap)
+        assertThat(light.text).isEqualTo(snippet.code)
+        assertThat(dark.text).isEqualTo(snippet.code)
+
+        // Extensive token count validation
+        assertTokenCounts(
+            snippet.highlightedHtml,
+            mapOf(
+                "hljs-comment" to 31,
+                "hljs-keyword" to 21,
+                "hljs-title" to 8,
+                "hljs-doctag" to 63,
+                "hljs-function" to 3,
+                "hljs-params" to 3,
+                "hljs-built_in" to 2,
+                "hljs-literal" to 2,
+            ),
+        )
+    }
+
+    @Test
+    fun `convert real-sql parses and styles correctly`() {
+        val snippet = TestSnippets.load("real-sql")
+        val result = HtmlToAnnotatedString.convert(snippet.highlightedHtml, colorMap)
+        assertThat(result.text).isEqualTo(snippet.code)
+        assertThat(result.spanStyles).isNotEmpty()
+
+        // Verify operator styling
+        val sqlModeSetting = "SET sql_mode = 'NO_AUTO_VALUE_ON_ZERO';"
+        val startSqlMode = result.text.indexOf(sqlModeSetting)
+        assertThat(startSqlMode).isNotEqualTo(-1)
+
+        val setKeyword = "SET"
+        val startSet = result.text.indexOf(setKeyword, startSqlMode)
+        val setSpans = result.spanStyles.filter { it.start == startSet && it.end == startSet + setKeyword.length }
+        assertThat(setSpans).isNotEmpty()
+        assertThat(setSpans[0].item.color).isEqualTo(colorMap[HljsSelectors.KEYWORD]?.color)
+
+        val equalsOperator = "="
+        val startEquals = result.text.indexOf(equalsOperator, startSqlMode)
+        val equalsSpans = result.spanStyles.filter { it.start == startEquals && it.end == startEquals + equalsOperator.length }
+        assertThat(equalsSpans).isNotEmpty()
+        assertThat(equalsSpans[0].item.color).isEqualTo(colorMap[HljsSelectors.OPERATOR]?.color)
+
+        // Verify SQL comment string/character representation
+        val sqlComment = "-- Adminer 4.2.4 MySQL dump"
+        val startSqlComment = result.text.indexOf(sqlComment)
+        assertThat(startSqlComment).isNotEqualTo(-1)
+        val commentSpans = result.spanStyles.filter { it.start == startSqlComment && it.end == startSqlComment + sqlComment.length }
+        assertThat(commentSpans).isNotEmpty()
+        assertThat(commentSpans[0].item.color).isEqualTo(colorMap[HljsSelectors.COMMENT]?.color)
+
+        // Verify table comment string styling
+        val tableComment = "'The identifier of the category.'"
+        val startTableComment = result.text.indexOf(tableComment)
+        assertThat(startTableComment).isNotEqualTo(-1)
+        val commentStringSpans =
+            result.spanStyles.filter {
+                it.start == startTableComment &&
+                    it.end == startTableComment + tableComment.length
+            }
+        assertThat(commentStringSpans).isNotEmpty()
+        assertThat(commentStringSpans[0].item.color).isEqualTo(colorMap[HljsSelectors.STRING]?.color)
+
+        // Verify convertBothThemes matches
+        val (light, dark) = HtmlToAnnotatedString.convertBothThemes(snippet.highlightedHtml, colorMap, darkColorMap)
+        assertThat(light.text).isEqualTo(snippet.code)
+        assertThat(dark.text).isEqualTo(snippet.code)
+
+        // Extensive token count validation
+        assertTokenCounts(
+            snippet.highlightedHtml,
+            mapOf(
+                "hljs-comment" to 2,
+                "hljs-keyword" to 219,
+                "hljs-operator" to 49,
+                "hljs-string" to 59,
+                "hljs-number" to 81,
+                "hljs-type" to 40,
+                "hljs-built_in" to 1,
+            ),
+        )
+    }
+
+    private fun assertTokenCounts(
+        html: String,
+        expectedCounts: Map<String, Int>,
+    ) {
+        val uniqueColorMap =
+            mapOf(
+                "hljs-keyword" to SpanStyle(color = Color(1)),
+                "hljs-comment" to SpanStyle(color = Color(2)),
+                "hljs-doctag" to SpanStyle(color = Color(3)),
+                "hljs-type" to SpanStyle(color = Color(4)),
+                "hljs-literal" to SpanStyle(color = Color(5)),
+                "hljs-number" to SpanStyle(color = Color(6)),
+                "hljs-string" to SpanStyle(color = Color(7)),
+                "hljs-symbol" to SpanStyle(color = Color(8)),
+                "hljs-meta" to SpanStyle(color = Color(9)),
+                "hljs-operator" to SpanStyle(color = Color(10)),
+                "hljs-punctuation" to SpanStyle(color = Color(11)),
+                "hljs-built_in" to SpanStyle(color = Color(12)),
+                "hljs-params" to SpanStyle(color = Color(13)),
+                "hljs-title" to SpanStyle(color = Color(14)),
+                "hljs-title.class_" to SpanStyle(color = Color(15)),
+                "hljs-title.function_" to SpanStyle(color = Color(16)),
+                "hljs-title.function_.invoke__" to SpanStyle(color = Color(17)),
+                "hljs-class" to SpanStyle(color = Color(18)),
+                "hljs-function" to SpanStyle(color = Color(19)),
+            )
+
+        val colorToKey = uniqueColorMap.entries.associate { it.value.color to it.key }
+        val result = HtmlToAnnotatedString.convert(html, uniqueColorMap)
+        val actualCounts = mutableMapOf<String, Int>()
+        for (spanRange in result.spanStyles) {
+            val color = spanRange.item.color
+            val key = colorToKey[color] ?: continue
+            actualCounts[key] = (actualCounts[key] ?: 0) + 1
+        }
+        assertThat(actualCounts).isEqualTo(expectedCounts)
     }
 }

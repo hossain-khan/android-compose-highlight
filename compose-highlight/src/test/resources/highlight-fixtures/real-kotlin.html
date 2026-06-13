@@ -1,0 +1,899 @@
+<span class="hljs-comment">// Copyright (C) 2026 Zac Sweers</span>
+<span class="hljs-comment">// SPDX-License-Identifier: Apache-2.0</span>
+<span class="hljs-keyword">package</span> dev.zacsweers.metro.compiler.graph
+
+<span class="hljs-keyword">import</span> androidx.collection.IntList
+<span class="hljs-keyword">import</span> androidx.collection.MutableIntList
+<span class="hljs-keyword">import</span> androidx.collection.MutableObjectIntMap
+<span class="hljs-keyword">import</span> androidx.collection.ObjectIntMap
+<span class="hljs-keyword">import</span> androidx.collection.ScatterMap
+<span class="hljs-keyword">import</span> dev.zacsweers.metro.compiler.calculateInitialCapacity
+<span class="hljs-keyword">import</span> dev.zacsweers.metro.compiler.filterToSet
+<span class="hljs-keyword">import</span> dev.zacsweers.metro.compiler.getAndAdd
+<span class="hljs-keyword">import</span> dev.zacsweers.metro.compiler.tracing.TraceScope
+<span class="hljs-keyword">import</span> dev.zacsweers.metro.compiler.tracing.trace
+<span class="hljs-keyword">import</span> java.util.Collections.emptySortedSet
+<span class="hljs-keyword">import</span> java.util.PriorityQueue
+<span class="hljs-keyword">import</span> java.util.SortedMap
+<span class="hljs-keyword">import</span> java.util.SortedSet
+
+<span class="hljs-comment">/**
+ * <span class="hljs-doctag">@param</span> sortedKeys Topologically sorted list of keys.
+ * <span class="hljs-doctag">@param</span> deferredTypes Vertices that sit inside breakable cycles.
+ * <span class="hljs-doctag">@param</span> reachableKeys Vertices that were deemed reachable by any input roots.
+ * <span class="hljs-doctag">@param</span> adjacency The reachable adjacency (forward and reverse) used for topological sorting.
+ * <span class="hljs-doctag">@param</span> components The strongly connected components computed during sorting.
+ * <span class="hljs-doctag">@param</span> componentOf Mapping from vertex to component ID.
+ */</span>
+<span class="hljs-keyword">internal</span> <span class="hljs-keyword">data</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">GraphTopology</span>&lt;<span class="hljs-type">T</span>&gt;(
+  <span class="hljs-keyword">val</span> sortedKeys: List&lt;T&gt;,
+  <span class="hljs-keyword">val</span> deferredTypes: Set&lt;T&gt;,
+  <span class="hljs-keyword">val</span> reachableKeys: Set&lt;T&gt;,
+  <span class="hljs-keyword">val</span> adjacency: GraphAdjacency&lt;T&gt;,
+  <span class="hljs-keyword">val</span> components: List&lt;Component&lt;T&gt;&gt;,
+  <span class="hljs-keyword">val</span> componentOf: ObjectIntMap&lt;T&gt;,
+)
+
+<span class="hljs-comment">/**
+ * Result of building adjacency maps, containing both forward and reverse mappings.
+ *
+ * <span class="hljs-doctag">@property</span> forward Maps each vertex to its dependencies (outgoing edges).
+ * <span class="hljs-doctag">@property</span> reverse Maps each vertex to its dependents (incoming edges).
+ */</span>
+<span class="hljs-keyword">internal</span> <span class="hljs-keyword">data</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">GraphAdjacency</span>&lt;<span class="hljs-type">T</span>&gt;(
+  <span class="hljs-keyword">val</span> forward: SortedMap&lt;T, SortedSet&lt;T&gt;&gt;,
+  <span class="hljs-keyword">val</span> reverse: Map&lt;T, Set&lt;T&gt;&gt;,
+)
+
+<span class="hljs-comment">/**
+ * Returns the vertices in a valid topological order. Every edge in [fullAdjacency] is respected;
+ * strict cycles throw, breakable cycles (those containing a deferrable edge) are deferred.
+ *
+ * Two-phase binding graph validation pipeline:
+ * ```
+ * Binding Graph
+ *      │
+ *      ▼
+ * ┌─────────────────────┐
+ * │  Phase 1: Tarjan    │
+ * │  ┌─────────────────┐│
+ * │  │ Find SCCs       ││  ◄─── Detects cycles
+ * │  │ Classify cycles ││  ◄─── Hard vs Soft
+ * │  └─────────────────┘│
+ * └─────────────────────┘
+ *      │
+ *      ▼
+ * ┌──────────────────────┐
+ * │  Phase 2: Expand     │
+ * │  ┌──────────────────┐│
+ * │  │ Components -&gt; Vs ││  ◄─── Tarjan finish order
+ * │  └──────────────────┘│
+ * └──────────────────────┘
+ *      │
+ *      ▼
+ * TopoSortResult
+ * ├─ sortedKeys (dependency order)
+ * └─ deferredTypes (Lazy/Provider)
+ * ```
+ *
+ * ### Deferrable (breakable) cycles
+ *
+ * Some DI cycles can be &quot;valid&quot; if at least one edge is wrapped in a deferrable type (e.g.,
+ * `Provider`/`Lazy`/ `() -&gt; T`), which means the dependency is resolved on-demand rather than at
+ * construction. The [isDeferrable] predicate identifies such edges.
+ *
+ * ```
+ *      ┌────── Provider&lt;A&gt; ──────┐
+ *      │     (deferrable edge)   │
+ *      ▼                         │
+ *   ┌─────┐                  ┌───┴───┐
+ *   │  A  ├─────────────────►│   B   │
+ *   └─────┘                  └───────┘
+ *
+ *   Tarjan groups A and B into one SCC because of the back-edge B -&gt; A.
+ *   findMinimalDeferralSet picks B as the deferral candidate (its outgoing
+ *   edge to A is deferrable and that single choice breaks the cycle).
+ *   sortVerticesInSCC then ignores the soft edge B -&gt; A and produces:
+ *
+ *       A, B    (A constructed first; B receives Provider&lt;A&gt;)
+ *
+ *   The deferred set ends up in `deferredTypes` so codegen knows to emit
+ *   a DelegateFactory wrapper for B&#x27;s view of A.
+ * ```
+ *
+ * If a cycle has **no** deferrable edge, [onCycle] is invoked with the offending vertex list and
+ * the caller decides how to surface it (typically a compilation error). If a cycle has deferrable
+ * edges but no subset of deferring sources actually breaks it (rare, e.g., multiple interleaved
+ * cycles), [onCycle] is also invoked.
+ *
+ * <span class="hljs-doctag">@param</span> fullAdjacency outgoing‑edge map (every vertex key must be present)
+ * <span class="hljs-doctag">@param</span> isDeferrable predicate for &quot;edge may break a cycle&quot;
+ * <span class="hljs-doctag">@param</span> onCycle called with the offending cycle if no deferrable edge
+ * <span class="hljs-doctag">@param</span> roots optional set of source roots for computing reachability. If null, all keys will be
+ *   kept.
+ * <span class="hljs-doctag">@param</span> onSortedCycle optional callback reporting (sorted) cycles.
+ */</span>
+context(traceScope: TraceScope)
+<span class="hljs-keyword">internal</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-type">&lt;V : Comparable&lt;V&gt;</span>&gt; <span class="hljs-title">metroSort</span><span class="hljs-params">(
+  fullAdjacency: <span class="hljs-type">SortedMap</span>&lt;<span class="hljs-type">V</span>, SortedSet&lt;V&gt;&gt;,
+  isDeferrable: (<span class="hljs-type">from</span>: <span class="hljs-type">V</span>, <span class="hljs-type">to</span>: <span class="hljs-type">V</span>) -&gt; <span class="hljs-type">Boolean</span>,
+  onCycle: (<span class="hljs-type">List</span>&lt;<span class="hljs-type">V</span>&gt;) -&gt; <span class="hljs-type">Unit</span>,
+  roots: <span class="hljs-type">SortedSet</span>&lt;<span class="hljs-type">V</span>&gt;? = <span class="hljs-literal">null</span>,
+  isImplicitlyDeferrable: (<span class="hljs-type">V</span>) -&gt; <span class="hljs-type">Boolean</span> = { <span class="hljs-literal">false</span> },
+  onSortedCycle: (<span class="hljs-type">List</span>&lt;<span class="hljs-type">V</span>&gt;) -&gt; <span class="hljs-type">Unit</span> = {},
+)</span></span>: GraphTopology&lt;V&gt; {
+  <span class="hljs-keyword">val</span> deferredTypes = HashSet&lt;V&gt;()
+
+  <span class="hljs-comment">// Collapse the graph into strongly‑connected components</span>
+  <span class="hljs-comment">// Also builds reachable adjacency (forward and reverse) in the same pass (avoiding separate</span>
+  <span class="hljs-comment">// filter)</span>
+  <span class="hljs-keyword">val</span> (components, componentOf, reachableAdjacency) =
+    trace(<span class="hljs-string">&quot;Compute SCCs&quot;</span>) { fullAdjacency.computeStronglyConnectedComponents(roots) }
+
+  <span class="hljs-comment">// Check for cycles</span>
+  trace(<span class="hljs-string">&quot;Check for cycles&quot;</span>) {
+    <span class="hljs-keyword">for</span> (component <span class="hljs-keyword">in</span> components) {
+      <span class="hljs-keyword">val</span> vertices = component.vertices
+
+      <span class="hljs-keyword">if</span> (vertices.size == <span class="hljs-number">1</span>) {
+        <span class="hljs-keyword">val</span> isSelfLoop = fullAdjacency[vertices[<span class="hljs-number">0</span>]].orEmpty().any { it == vertices[<span class="hljs-number">0</span>] }
+        <span class="hljs-keyword">if</span> (!isSelfLoop) {
+          <span class="hljs-comment">// trivial acyclic</span>
+          <span class="hljs-keyword">continue</span>
+        }
+      }
+
+      <span class="hljs-comment">// Look for cycles - find minimal set of nodes to defer</span>
+      <span class="hljs-keyword">val</span> contributorsToCycle =
+        findMinimalDeferralSet(
+          vertices = vertices,
+          fullAdjacency = reachableAdjacency.forward,
+          componentOf = componentOf,
+          componentId = component.id,
+          isDeferrable = isDeferrable,
+          isImplicitlyDeferrable = isImplicitlyDeferrable,
+        )
+
+      <span class="hljs-keyword">if</span> (contributorsToCycle.isEmpty()) {
+        <span class="hljs-comment">// no deferrable -&gt; hard cycle</span>
+        onCycle(vertices)
+      } <span class="hljs-keyword">else</span> {
+        deferredTypes += contributorsToCycle
+      }
+    }
+  }
+
+  <span class="hljs-comment">// Tarjan emits components in finish order, which in turn is the topological ordering we want</span>
+  <span class="hljs-keyword">val</span> componentOrder =
+    trace(<span class="hljs-string">&quot;Component order from Tarjan finish order&quot;</span>) {
+      MutableIntList(components.size).apply {
+        <span class="hljs-keyword">for</span> (id <span class="hljs-keyword">in</span> components.indices) {
+          add(id)
+        }
+      }
+    }
+
+  <span class="hljs-keyword">val</span> sortedKeys =
+    trace(<span class="hljs-string">&quot;Expand components&quot;</span>) {
+      expandComponents(
+        componentOrder = componentOrder,
+        components = components,
+        forwardAdjacency = reachableAdjacency.forward,
+        deferredTypes = deferredTypes,
+        isDeferrable = isDeferrable,
+        onSortedCycle = onSortedCycle,
+        expectedSize = fullAdjacency.size,
+      )
+    }
+
+  <span class="hljs-keyword">return</span> GraphTopology(
+    sortedKeys,
+    deferredTypes,
+    reachableAdjacency.forward.keys,
+    reachableAdjacency,
+    components,
+    componentOf,
+  )
+}
+
+<span class="hljs-comment">/**
+ * Picks the smallest set of vertices in this SCC that, when their deferrable outgoing edges are
+ * cut, leaves the remaining graph acyclic.
+ *
+ * &quot;Minimal&quot; matters because every deferred vertex becomes a `DelegateFactory` in generated code:
+ * fewer deferred sources = fewer wrappers = cleaner output and less indirection at runtime.
+ *
+ * ### Strategy
+ *
+ * 1. Walk the SCC and build:
+ *     - `sccAdjacency` — edges that stay inside the SCC (cross-SCC edges can&#x27;t contribute to its
+ *       internal cycle).
+ *     - `deferrableEdgesFrom` — for each vertex, the set of its outgoing deferrable edges.
+ *     - `potentialCandidates` — every vertex that has at least one outgoing deferrable edge. Only
+ *       these can break the cycle, since deferring a vertex with no deferrable outgoing edge is a
+ *       no-op.
+ * 2. If there are no candidates, the cycle has no soft edges -&gt; return empty (caller treats this as
+ *    a hard cycle).
+ * 3. Try each candidate **alone**, in priority order. The first one whose deferral makes the SCC
+ *    acyclic wins. Single-vertex deferral is the common case (one `Provider&lt;T&gt;` typically breaks a
+ *    2-cycle).
+ * 4. If no individual candidate works, try **all candidates together** as a last resort. Some
+ *    interleaved cycles need multiple soft cuts.
+ * 5. If even that fails, return empty (the available deferrable edges aren&#x27;t enough to break the
+ *    cycle).
+ *
+ * Candidate priority: implicitly deferrable vertices (e.g. `<span class="hljs-doctag">@AssistedFactory</span>`s, which the user
+ * already marked as constructed-on-demand) come first, then natural order. This keeps generated
+ * code more stable and prefers obvious-on-the-source choices over arbitrary picks.
+ *
+ * Cycle-checking is done via [ReusableCycleChecker], which masks the deferred edges during a
+ * standard recursive DFS instead of materializing a new adjacency map for each candidate test.
+ *
+ * Example: `A &lt;-&gt; B` with `B -&gt; A` deferrable (`Provider&lt;A&gt;`):
+ * ```
+ *   sccAdjacency:        A -&gt; B,  B -&gt; A
+ *   deferrableEdgesFrom: B -&gt; {A}
+ *   candidates:          {B}
+ *
+ *   Try {B}: mask B -&gt; A, remaining edge is A -&gt; B -&gt; acyclic. Return {B}.
+ * ```
+ */</span>
+<span class="hljs-keyword">private</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-type">&lt;V : Comparable&lt;V&gt;</span>&gt; <span class="hljs-title">findMinimalDeferralSet</span><span class="hljs-params">(
+  vertices: <span class="hljs-type">List</span>&lt;<span class="hljs-type">V</span>&gt;,
+  fullAdjacency: <span class="hljs-type">SortedMap</span>&lt;<span class="hljs-type">V</span>, SortedSet&lt;V&gt;&gt;,
+  componentOf: <span class="hljs-type">ObjectIntMap</span>&lt;<span class="hljs-type">V</span>&gt;,
+  componentId: <span class="hljs-type">Int</span>,
+  isDeferrable: (<span class="hljs-type">V</span>, <span class="hljs-type">V</span>) -&gt; <span class="hljs-type">Boolean</span>,
+  isImplicitlyDeferrable: (<span class="hljs-type">V</span>) -&gt; <span class="hljs-type">Boolean</span>,
+)</span></span>: Set&lt;V&gt; {
+  <span class="hljs-comment">// Build the SCC-internal adjacency and deferrable edges ONCE upfront</span>
+  <span class="hljs-comment">// This avoids rebuilding these structures for each candidate test.</span>
+  <span class="hljs-comment">// Each collection here is bounded by the SCC&#x27;s vertex count, so size them up front.</span>
+  <span class="hljs-keyword">val</span> cap = calculateInitialCapacity(vertices.size)
+  <span class="hljs-keyword">val</span> sccAdjacency = HashMap&lt;V, MutableSet&lt;V&gt;&gt;(cap)
+  <span class="hljs-keyword">val</span> deferrableEdgesFrom = HashMap&lt;V, MutableSet&lt;V&gt;&gt;(cap)
+  <span class="hljs-keyword">val</span> potentialCandidates = HashSet&lt;V&gt;(cap)
+
+  <span class="hljs-keyword">for</span> (from <span class="hljs-keyword">in</span> vertices) {
+    <span class="hljs-comment">// Targets bounded by `from`&#x27;s outgoing degree.</span>
+    <span class="hljs-keyword">val</span> targets = LinkedHashSet&lt;V&gt;(calculateInitialCapacity(fullAdjacency[from]?.size ?: <span class="hljs-number">0</span>))
+    <span class="hljs-keyword">for</span> (to <span class="hljs-keyword">in</span> fullAdjacency[from].orEmpty()) {
+      <span class="hljs-comment">// Only consider edges that stay inside the SCC</span>
+      <span class="hljs-keyword">if</span> (componentOf[to] == componentId) {
+        targets.add(to)
+        <span class="hljs-keyword">if</span> (isDeferrable(from, to)) {
+          <span class="hljs-comment">// Track deferrable edges and candidates</span>
+          deferrableEdgesFrom.getOrPut(from) { HashSet() }.add(to)
+          potentialCandidates.add(from)
+        }
+      }
+    }
+    sccAdjacency[from] = targets
+  }
+
+  <span class="hljs-keyword">if</span> (potentialCandidates.isEmpty()) {
+    <span class="hljs-keyword">return</span> emptySet()
+  }
+
+  <span class="hljs-comment">// Create reusable cycle checker that can mask edges dynamically</span>
+  <span class="hljs-keyword">val</span> cycleChecker = ReusableCycleChecker(vertices, sccAdjacency, deferrableEdgesFrom)
+
+  <span class="hljs-comment">// Two flavors of &quot;deferrable&quot; inform candidate priority:</span>
+  <span class="hljs-comment">// - implicit (whole-node, e.g., @AssistedFactory, user already marked it on-demand)</span>
+  <span class="hljs-comment">// - explicit (edge-only, source wraps the target in Provider/Lazy)</span>
+  <span class="hljs-comment">//</span>
+  <span class="hljs-comment">// Implicit wins ties so codegen prefers the user-visible choice.</span>
+  <span class="hljs-comment">// A DeferralKind { WHOLE_NODE, EDGE, NONE } ordinal would express this more cleanly but isn&#x27;t</span>
+  <span class="hljs-comment">// worth the ripple through the rest of this logic.</span>
+  <span class="hljs-comment">// Sort candidates once upfront instead of sorting in each loop.</span>
+  <span class="hljs-keyword">val</span> sortedCandidates =
+    potentialCandidates.sortedWith(
+      compareBy(
+        { !isImplicitlyDeferrable(it) }, <span class="hljs-comment">// implicitly deferrable first (false &lt; true)</span>
+        { it }, <span class="hljs-comment">// then by natural order</span>
+      )
+    )
+
+  <span class="hljs-comment">// Try each candidate</span>
+  <span class="hljs-keyword">for</span> (candidate <span class="hljs-keyword">in</span> sortedCandidates) {
+    <span class="hljs-keyword">if</span> (cycleChecker.isAcyclicWith(setOf(candidate))) {
+      <span class="hljs-keyword">return</span> setOf(candidate)
+    }
+  }
+
+  <span class="hljs-comment">// If no single candidate works, try all candidates together</span>
+  <span class="hljs-keyword">if</span> (cycleChecker.isAcyclicWith(potentialCandidates)) {
+    <span class="hljs-keyword">return</span> potentialCandidates
+  }
+
+  <span class="hljs-comment">// No combination of deferrable edges can break the cycle</span>
+  <span class="hljs-keyword">return</span> emptySet()
+}
+
+<span class="hljs-comment">/**
+ * Reusable cycle checker that avoids rebuilding adjacency maps for each candidate test. Instead, it
+ * masks deferrable edges dynamically during DFS traversal.
+ */</span>
+<span class="hljs-keyword">private</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">ReusableCycleChecker</span>&lt;<span class="hljs-type">V</span>&gt;(
+  <span class="hljs-keyword">private</span> <span class="hljs-keyword">val</span> vertices: List&lt;V&gt;,
+  <span class="hljs-keyword">private</span> <span class="hljs-keyword">val</span> sccAdjacency: Map&lt;V, Set&lt;V&gt;&gt;,
+  <span class="hljs-keyword">private</span> <span class="hljs-keyword">val</span> deferrableEdgesFrom: Map&lt;V, Set&lt;V&gt;&gt;,
+) {
+  <span class="hljs-comment">// Reuse these sets across checks to reduce allocations.</span>
+  <span class="hljs-keyword">private</span> <span class="hljs-keyword">val</span> visited: HashSet&lt;V&gt;
+  <span class="hljs-keyword">private</span> <span class="hljs-keyword">val</span> inStack: HashSet&lt;V&gt;
+
+  <span class="hljs-keyword">init</span> {
+    <span class="hljs-comment">// Sized to the full SCC since the worst case is &quot;every vertex visited.&quot;</span>
+    <span class="hljs-keyword">val</span> cap = calculateInitialCapacity(vertices.size)
+    visited = HashSet(cap)
+    inStack = HashSet(cap)
+  }
+
+  <span class="hljs-comment">/**
+   * Checks if the graph would be acyclic if we defer the given nodes. When a node is deferred, its
+   * deferrable outgoing edges are skipped.
+   */</span>
+  <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">isAcyclicWith</span><span class="hljs-params">(deferredNodes: <span class="hljs-type">Set</span>&lt;<span class="hljs-type">V</span>&gt;)</span></span>: <span class="hljs-built_in">Boolean</span> {
+    visited.clear()
+    inStack.clear()
+
+    <span class="hljs-keyword">for</span> (node <span class="hljs-keyword">in</span> vertices) {
+      <span class="hljs-keyword">if</span> (node !<span class="hljs-keyword">in</span> visited &amp;&amp; !dfs(node, deferredNodes)) {
+        <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>
+      }
+    }
+    <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>
+  }
+
+  <span class="hljs-keyword">private</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">dfs</span><span class="hljs-params">(node: <span class="hljs-type">V</span>, deferredNodes: <span class="hljs-type">Set</span>&lt;<span class="hljs-type">V</span>&gt;)</span></span>: <span class="hljs-built_in">Boolean</span> {
+    <span class="hljs-keyword">if</span> (node <span class="hljs-keyword">in</span> inStack) {
+      <span class="hljs-comment">// Cycle found</span>
+      <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>
+    }
+    <span class="hljs-keyword">if</span> (node <span class="hljs-keyword">in</span> visited) {
+      <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>
+    }
+
+    visited.add(node)
+    inStack.add(node)
+
+    <span class="hljs-keyword">val</span> neighbors = sccAdjacency[node].orEmpty()
+    <span class="hljs-keyword">val</span> deferrableFromThis =
+      <span class="hljs-keyword">if</span> (node <span class="hljs-keyword">in</span> deferredNodes) {
+        deferrableEdgesFrom[node]
+      } <span class="hljs-keyword">else</span> {
+        <span class="hljs-literal">null</span>
+      }
+
+    <span class="hljs-keyword">for</span> (neighbor <span class="hljs-keyword">in</span> neighbors) {
+      <span class="hljs-comment">// Skip deferrable edges from deferred nodes (this matches what sortVerticesInSCC will do)</span>
+      <span class="hljs-keyword">if</span> (deferrableFromThis != <span class="hljs-literal">null</span> &amp;&amp; neighbor <span class="hljs-keyword">in</span> deferrableFromThis) <span class="hljs-keyword">continue</span>
+      <span class="hljs-keyword">if</span> (!dfs(neighbor, deferredNodes)) <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>
+    }
+
+    inStack.remove(node)
+    <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>
+  }
+}
+
+<span class="hljs-comment">/**
+ * Expands the topologically sorted list of component IDs back into a flat list of original
+ * vertices.
+ *
+ * For each component (in dependency-respecting order):
+ * - If the component has a single vertex (a non-cycle node, or a cycle of size 1 from a self-loop),
+ *   append it directly.
+ * - If the component has multiple vertices (i.e., it&#x27;s a cycle), call [sortVerticesInSCC] to order
+ *   the cycle&#x27;s vertices internally, ignoring the deferrable edges from the chosen deferred
+ *   sources. Notify the caller via [onSortedCycle] so they can record the cycle for diagnostics or
+ *   codegen.
+ *
+ * Visual:
+ * ```
+ *   componentOrder:   [c0, c1, c2]      (Kahn&#x27;s output: c0 has no deps, c2 depends on c0/c1)
+ *   components[c0]:   {X}               (single vertex)
+ *   components[c1]:   {A, B}            (cycle, B -&gt; A is deferrable; A first then B)
+ *   components[c2]:   {Y}               (single vertex)
+ *
+ *   expanded:         [X, A, B, Y]
+ * ```
+ *
+ * <span class="hljs-doctag">@param</span> componentOrder component IDs in init order (prereqs first), taken directly from Tarjan&#x27;s
+ *   finish order.
+ * <span class="hljs-doctag">@param</span> components vertices grouped by component ID (from [computeStronglyConnectedComponents]).
+ * <span class="hljs-doctag">@param</span> forwardAdjacency the reachable forward adjacency, used by [sortVerticesInSCC] to walk
+ *   intra-SCC dependencies.
+ * <span class="hljs-doctag">@param</span> deferredTypes the set of vertices the caller has elected to defer (sources of soft edges).
+ * <span class="hljs-doctag">@param</span> isDeferrable predicate matching [metroSort]&#x27;s parameter.
+ * <span class="hljs-doctag">@param</span> onSortedCycle invoked once per multi-vertex SCC with the sorted cycle vertices.
+ * <span class="hljs-doctag">@param</span> expectedSize total vertex count (used to pre-size the result list).
+ */</span>
+<span class="hljs-keyword">private</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-type">&lt;V : Comparable&lt;V&gt;</span>&gt; <span class="hljs-title">expandComponents</span><span class="hljs-params">(
+  componentOrder: <span class="hljs-type">IntList</span>,
+  components: <span class="hljs-type">List</span>&lt;<span class="hljs-type">Component</span>&lt;<span class="hljs-type">V</span>&gt;&gt;,
+  forwardAdjacency: <span class="hljs-type">SortedMap</span>&lt;<span class="hljs-type">V</span>, SortedSet&lt;V&gt;&gt;,
+  deferredTypes: <span class="hljs-type">Set</span>&lt;<span class="hljs-type">V</span>&gt;,
+  isDeferrable: (<span class="hljs-type">V</span>, <span class="hljs-type">V</span>) -&gt; <span class="hljs-type">Boolean</span>,
+  onSortedCycle: (<span class="hljs-type">List</span>&lt;<span class="hljs-type">V</span>&gt;) -&gt; <span class="hljs-type">Unit</span>,
+  expectedSize: <span class="hljs-type">Int</span>,
+)</span></span>: List&lt;V&gt; {
+  <span class="hljs-keyword">val</span> sortedKeys = ArrayList&lt;V&gt;(expectedSize)
+  componentOrder.forEach { id -&gt;
+    <span class="hljs-keyword">val</span> component = components[id]
+    <span class="hljs-keyword">if</span> (component.vertices.size == <span class="hljs-number">1</span>) {
+      <span class="hljs-comment">// Single vertex (no cycle, or cycle-of-one from a self-loop). Emit it directly.</span>
+      sortedKeys += component.vertices[<span class="hljs-number">0</span>]
+    } <span class="hljs-keyword">else</span> {
+      <span class="hljs-comment">// Multi-vertex SCC: sort the cycle internally, ignoring soft edges from deferred sources.</span>
+      <span class="hljs-keyword">val</span> deferredInScc = component.vertices.filterToSet { it <span class="hljs-keyword">in</span> deferredTypes }
+      sortedKeys +=
+        sortVerticesInSCC(component.vertices, forwardAdjacency, isDeferrable, deferredInScc).also {
+          onSortedCycle(it)
+        }
+    }
+  }
+  <span class="hljs-keyword">return</span> sortedKeys
+}
+
+<span class="hljs-comment">/**
+ * Orders the vertices **inside a single SCC** (a cycle) into a sensible linear order, ignoring the
+ * deferrable edges that will be cut at codegen time.
+ *
+ * Within an SCC we classify each edge as either **hard** (non-deferrable, or deferrable but the
+ * source isn&#x27;t in [deferredInScc]) or **soft** (deferrable + source is deferred). Soft edges are
+ * the ones a `DelegateFactory` will paper over at runtime, so we pretend they don&#x27;t exist when
+ * ordering — the remaining hard edges form a DAG inside the SCC, which we Kahn-sort.
+ *
+ * Example: `A &lt;-&gt; B` cycle, B -&gt; A is deferrable, deferredInScc = {B}.
+ *
+ * ```
+ *   Edges (inside SCC):
+ *     A -&gt; B   (hard: forward edge, A constructs B)
+ *     B -&gt; A   (soft: deferrable AND B is deferred -&gt; ignored)
+ *
+ *   Hard DAG inside SCC:    A -&gt; B
+ *   Kahn output:            [A, B]
+ *
+ *   Generated code:
+ *     A is built normally
+ *     B is built with Provider&lt;A&gt; wrapping A&#x27;s eventual instance
+ * ```
+ *
+ * The PriorityQueue tie-breaks the &quot;ready&quot; set to keep emission stable and codegen-friendly:
+ * 1. Deferred nodes first (they emit a `DelegateFactory` that their dependents need to wrap).
+ * 2. Then more hard dependents (popping high-fanout nodes earliest unblocks the most work).
+ * 3. Then natural order for determinism.
+ *
+ * <span class="hljs-doctag">@throws</span> IllegalStateException if a hard cycle remains after removing soft edges (shouldn&#x27;t happen
+ *   — [findMinimalDeferralSet] is supposed to have proved acyclicity).
+ */</span>
+<span class="hljs-keyword">private</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-type">&lt;V : Comparable&lt;V&gt;</span>&gt; <span class="hljs-title">sortVerticesInSCC</span><span class="hljs-params">(
+  vertices: <span class="hljs-type">List</span>&lt;<span class="hljs-type">V</span>&gt;,
+  fullAdjacency: <span class="hljs-type">SortedMap</span>&lt;<span class="hljs-type">V</span>, SortedSet&lt;V&gt;&gt;,
+  isDeferrable: (<span class="hljs-type">V</span>, <span class="hljs-type">V</span>) -&gt; <span class="hljs-type">Boolean</span>,
+  deferredInScc: <span class="hljs-type">Set</span>&lt;<span class="hljs-type">V</span>&gt;,
+)</span></span>: List&lt;V&gt; {
+  <span class="hljs-keyword">if</span> (vertices.size &lt;= <span class="hljs-number">1</span>) <span class="hljs-keyword">return</span> vertices
+  <span class="hljs-keyword">val</span> inScc = vertices.toSet()
+
+  <span class="hljs-comment">// An edge is &quot;soft&quot; inside this SCC only if it&#x27;s deferrable and the source is deferred</span>
+  <span class="hljs-keyword">val</span> isSoftEdge: (from: V, to: V) -&gt; <span class="hljs-built_in">Boolean</span> = { from, to -&gt;
+    isDeferrable(from, to) &amp;&amp; from <span class="hljs-keyword">in</span> deferredInScc
+  }
+
+  <span class="hljs-comment">// v -&gt; hard prereqs (non-soft edges). Bounded by SCC size.</span>
+  <span class="hljs-keyword">val</span> cap = calculateInitialCapacity(vertices.size)
+  <span class="hljs-keyword">val</span> hardDeps = HashMap&lt;V, MutableSet&lt;V&gt;&gt;(cap)
+  <span class="hljs-comment">// prereq -&gt; dependents (via hard edges). Bounded by SCC size.</span>
+  <span class="hljs-keyword">val</span> revHard = HashMap&lt;V, MutableSet&lt;V&gt;&gt;(cap)
+
+  <span class="hljs-keyword">for</span> (v <span class="hljs-keyword">in</span> vertices) {
+    <span class="hljs-keyword">for</span> (dep <span class="hljs-keyword">in</span> fullAdjacency[v].orEmpty()) {
+      <span class="hljs-keyword">if</span> (dep !<span class="hljs-keyword">in</span> inScc) <span class="hljs-keyword">continue</span>
+      <span class="hljs-keyword">if</span> (isSoftEdge(v, dep)) {
+        <span class="hljs-comment">// ignore only these edges when ordering</span>
+        <span class="hljs-keyword">continue</span>
+      }
+      hardDeps.getAndAdd(v, dep)
+      revHard.getAndAdd(dep, v)
+    }
+  }
+
+  <span class="hljs-keyword">val</span> hardIn = vertices.associateWithTo(HashMap(cap)) { hardDeps[it]?.size ?: <span class="hljs-number">0</span> }
+
+  <span class="hljs-comment">// Sort ready by:</span>
+  <span class="hljs-comment">// 1 - nodes that are in deferredInScc (i.e., emit DelegateFactory before its users)</span>
+  <span class="hljs-comment">// 2 - more hard dependents (unlocks more)</span>
+  <span class="hljs-comment">// 3 - natural order for determinism</span>
+  <span class="hljs-comment">// The ready set holds at most every vertex in the SCC; size up front.</span>
+  <span class="hljs-keyword">val</span> ready =
+    PriorityQueue&lt;V&gt;(vertices.size) { a, b -&gt;
+      <span class="hljs-keyword">val</span> aDef = a <span class="hljs-keyword">in</span> deferredInScc
+      <span class="hljs-keyword">val</span> bDef = b <span class="hljs-keyword">in</span> deferredInScc
+      <span class="hljs-keyword">if</span> (aDef != bDef) <span class="hljs-keyword">return</span><span class="hljs-symbol">@PriorityQueue</span> <span class="hljs-keyword">if</span> (aDef) -<span class="hljs-number">1</span> <span class="hljs-keyword">else</span> <span class="hljs-number">1</span>
+
+      <span class="hljs-keyword">val</span> aFanOut = revHard[a]?.size ?: <span class="hljs-number">0</span>
+      <span class="hljs-keyword">val</span> bFanOut = revHard[b]?.size ?: <span class="hljs-number">0</span>
+      <span class="hljs-keyword">if</span> (aFanOut != bFanOut) <span class="hljs-keyword">return</span><span class="hljs-symbol">@PriorityQueue</span> bFanOut - aFanOut
+
+      a.compareTo(b)
+    }
+
+  <span class="hljs-comment">// Seed with nodes that have no hard deps</span>
+  vertices.filterTo(ready) { hardIn.getValue(it) == <span class="hljs-number">0</span> }
+
+  <span class="hljs-keyword">val</span> result = ArrayDeque&lt;V&gt;(vertices.size)
+  <span class="hljs-keyword">while</span> (ready.isNotEmpty()) {
+    <span class="hljs-keyword">val</span> v = ready.remove()
+    result += v
+    <span class="hljs-keyword">for</span> (depender <span class="hljs-keyword">in</span> revHard[v].orEmpty()) {
+      <span class="hljs-keyword">val</span> degree = hardIn.getValue(depender) - <span class="hljs-number">1</span>
+      hardIn[depender] = degree
+      <span class="hljs-keyword">if</span> (degree == <span class="hljs-number">0</span>) {
+        ready += depender
+      }
+    }
+  }
+
+  check(result.size == vertices.size) {
+    <span class="hljs-string">&quot;Hard cycle remained inside SCC after removing selected soft edges&quot;</span>
+  }
+  <span class="hljs-keyword">return</span> result
+}
+
+<span class="hljs-keyword">internal</span> <span class="hljs-keyword">data</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">Component</span>&lt;<span class="hljs-type">V</span>&gt;(<span class="hljs-keyword">val</span> id: <span class="hljs-built_in">Int</span>, <span class="hljs-keyword">val</span> vertices: MutableList&lt;V&gt; = mutableListOf())
+
+<span class="hljs-keyword">internal</span> <span class="hljs-keyword">data</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">TarjanResult</span>&lt;<span class="hljs-type">V : Comparable&lt;V</span>&gt;&gt;(
+  <span class="hljs-keyword">val</span> components: List&lt;Component&lt;V&gt;&gt;,
+  <span class="hljs-keyword">val</span> componentOf: ObjectIntMap&lt;V&gt;,
+  <span class="hljs-comment">/**
+   * Adjacency (forward and reverse) filtered to only reachable vertices (built during SCC
+   * traversal).
+   */</span>
+  <span class="hljs-keyword">val</span> reachableAdjacency: GraphAdjacency&lt;V&gt;,
+)
+
+<span class="hljs-comment">/**
+ * Computes the strongly connected components (SCCs) of a directed graph using Tarjan&#x27;s algorithm.
+ *
+ * An SCC is a maximal subset of vertices in which every vertex can reach every other vertex **and
+ * is reachable from every other vertex** (mutual reachability — one-way reachability is not
+ * enough). A cycle is a single SCC containing every vertex on it; vertices that can be reached but
+ * cannot reach back form their own size-1 SCCs.
+ *
+ * Example: five vertices forming one cycle plus one terminal vertex -&gt;
+ *
+ * ```
+ *           ┌────────────────────── back-edge ─────────────┐
+ *           │                                              │
+ *           ▼                                              │
+ *       ┌───────┐    ┌───────┐    ┌───────┐    ┌───────┐   │
+ *       │   A   ├───►│   B   ├───►│   D   ├───►│   E   │   │
+ *       └───────┘    └───────┘    └───┬───┘    └───────┘   │
+ *                                     │                    │
+ *                                     ▼                    │
+ *                                 ┌───────┐                │
+ *                                 │   C   ├────────────────┘
+ *                                 └───────┘
+ *
+ *   SCCs:  {A, B, C, D}    cycle  A -&gt; B -&gt; D -&gt; C -&gt; A
+ *          {E}             reachable from the cycle but cannot reach back (no outgoing edge),
+ *                          so E is its own component despite being reachable from A
+ * ```
+ *
+ * Components are returned in **reverse topological order** (a property of Tarjan&#x27;s): the first
+ * popped SCC is a sink (depends on no later SCC), the last is a source. Since edges here point from
+ * dependent to prerequisite, the sink is a leaf prerequisite and iterating ids 0..N is already the
+ * desired init order (prereqs first, dependents last).
+ *
+ * ### How it works
+ *
+ * Tarjan does a single DFS, marking each vertex with two integers:
+ * - `index[v]` — the order in which v was first visited (0, 1, 2, …).
+ * - `lowlink[v]` — the smallest `index` reachable from v&#x27;s DFS subtree **without leaving the
+ *   current DFS path**.
+ *
+ * `lowlink[v] == index[v]` precisely when v is the root of an SCC: no descendant could reach an
+ * ancestor of v, so everything sitting above v on the SCC stack belongs to v&#x27;s component.
+ *
+ * Two stacks are needed:
+ * - **DFS stack** — the current call path (`callStack` here, with parallel `edgeCursor` for &quot;which
+ *   outgoing edge of v are we up to&quot;). Pops as the DFS unwinds.
+ * - **SCC stack** — vertices visited but **not yet assigned to a component**, in DFS-discovery
+ *   order (`dfsStack`). When an SCC root finalises, we pop everything down to and including that
+ *   root from this stack — those popped vertices form the SCC.
+ *
+ * The two stacks differ because the SCC stack can hold a long chain across many backtracked DFS
+ * frames. In the example above, when we finish processing C&#x27;s only outgoing edge (`C -&gt; A`), C
+ * stays on the SCC stack — C still has no SCC assigned. Only when we finally backtrack all the way
+ * to A and find `lowlink[A] == index[A]` do we pop C, D, B, A together as one SCC.
+ *
+ * Walk-through of the example (edges visited in sorted order):
+ * ```
+ *  step  action                            index   lowlink  dfsStack          popped
+ *  ───────────────────────────────────────────────────────────────────────────────────
+ *  1     visit A                           A=0     A=0      [A]
+ *  2     A-&gt;B  visit B                     B=1     B=1      [A,B]
+ *  3     B-&gt;D  visit D                     D=2     D=2      [A,B,D]
+ *  4     D-&gt;C  visit C                     C=3     C=3      [A,B,D,C]
+ *  5     C-&gt;A  (A on stack; back-edge)             C=0      [A,B,D,C]
+ *  6     C done; lowlink!=index, don&#x27;t pop
+ *        D inherits lowlink from C                 D=0      [A,B,D,C]
+ *  7     D-&gt;E  visit E                     E=4     E=4      [A,B,D,C,E]
+ *  8     E done; lowlink==index -&gt; pop                      [A,B,D,C]         {E}
+ *  9     D done; lowlink!=index, don&#x27;t pop
+ *  10    B inherits                                B=0      [A,B,D,C]
+ *  11    A inherits                                A=0      [A,B,D,C]
+ *  12    A done; lowlink==index -&gt; pop                      []                {C,D,B,A}
+ * ```
+ *
+ * Result: components = [{E}, {C, D, B, A}] (reverse-topo: sink first, source last).
+ *
+ * ### Implementation notes
+ *
+ * Standard Tarjan is recursive. For deep dependency chains (the 1000-module benchmark hits 1000+
+ * levels) recursion overflows the JVM stack, so we run an explicit iterative DFS using the
+ * `(callStack, edgeCursor)` pair where each frame holds `(v, current edge index)`.
+ *
+ * Vertices are mapped to dense int ids in sorted order. Adjacency, visited flags, and stacks become
+ * primitive `IntArray` / `BooleanArray` / `MutableIntList`s. This is cheaper than per-edge
+ * `IrTypeKey.compareTo` / `equals` work that Metro previously used, which then dominated the inner
+ * loop.
+ *
+ * <span class="hljs-doctag">NOTE:</span> The receiver adjacency (both keys and each value set) is assumed to be already sorted. This
+ * preserves determinism of the int-id mapping and of the per-vertex edge ordering, so a given input
+ * always produces the same output.
+ *
+ * <span class="hljs-doctag">@param</span> roots Optional set of source roots to walk from. If null, every key in the receiver is
+ *   walked (the entire graph is reachable). If provided, only vertices reachable from these roots
+ *   are visited; the rest stay [UNVISITED] and are filtered out of
+ *   [TarjanResult.reachableAdjacency].
+ * <span class="hljs-doctag">@return</span> The list of components (in reverse topological order), the vertex-&gt;component-id map, and
+ *   the reachable forward/reverse adjacency over visited vertices only.
+ * <span class="hljs-doctag">@receiver</span> A directed graph as `vertex -&gt; outgoing edges`. Both the key set and each edge set must
+ *   be sorted.
+ * <span class="hljs-doctag">@see</span> &lt;a
+ *   href=&quot;https://en.wikipedia.org/wiki/Tarjan%27s_strongly_connected_components_algorithm&quot;&gt;Tarjan&#x27;s
+ *   algorithm&lt;/a&gt;
+ */</span>
+<span class="hljs-keyword">internal</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-type">&lt;V : Comparable&lt;V&gt;</span>&gt; SortedMap<span class="hljs-type">&lt;V, SortedSet&lt;V&gt;</span>&gt;.<span class="hljs-title">computeStronglyConnectedComponents</span><span class="hljs-params">(
+  roots: <span class="hljs-type">SortedSet</span>&lt;<span class="hljs-type">V</span>&gt;? = <span class="hljs-literal">null</span>
+)</span></span>: TarjanResult&lt;V&gt; {
+  <span class="hljs-comment">// Map vertices to dense int ids in sorted order so adjacency lookups, visited bookkeeping, and</span>
+  <span class="hljs-comment">// the DFS stack can run on primitive arrays. This avoids per-edge string-keyed map lookups</span>
+  <span class="hljs-comment">// (IrTypeKey.compareTo / equals) inside the recursion.</span>
+  <span class="hljs-keyword">val</span> n = size
+  <span class="hljs-keyword">if</span> (n == <span class="hljs-number">0</span>) {
+    <span class="hljs-keyword">return</span> TarjanResult(
+      components = emptyList(),
+      componentOf = MutableObjectIntMap(),
+      reachableAdjacency = GraphAdjacency(sortedMapOf(), emptyMap()),
+    )
+  }
+
+  <span class="hljs-comment">// Store as Array&lt;Any?&gt; to avoid array-class cast issues with generic V; we cast individual</span>
+  <span class="hljs-comment">// elements back to V on read.</span>
+  <span class="hljs-keyword">val</span> idToVertex = arrayOfNulls&lt;Any&gt;(n)
+  <span class="hljs-keyword">val</span> vertexToId = MutableObjectIntMap&lt;V&gt;(n)
+  run {
+    <span class="hljs-keyword">for</span> ((i, key) <span class="hljs-keyword">in</span> keys.withIndex()) {
+      idToVertex[i] = key
+      vertexToId[key] = i
+    }
+  }
+
+  <span class="hljs-keyword">val</span> vertexAt: (id: <span class="hljs-built_in">Int</span>) -&gt; V = { id -&gt;
+    <span class="hljs-meta">@Suppress(<span class="hljs-string">&quot;UNCHECKED_CAST&quot;</span>)</span>
+    idToVertex[id] <span class="hljs-keyword">as</span> V
+  }
+
+  <span class="hljs-comment">// Build int-indexed adjacency. Each row is already sorted because the source SortedSet is</span>
+  <span class="hljs-comment">// sorted and ids preserve that order.</span>
+  <span class="hljs-keyword">val</span> adj = arrayOfNulls&lt;IntArray&gt;(n)
+  <span class="hljs-keyword">for</span> ((vertex, edges) <span class="hljs-keyword">in</span> <span class="hljs-keyword">this</span>) {
+    <span class="hljs-keyword">val</span> fromId = vertexToId[vertex]
+    <span class="hljs-keyword">if</span> (edges.isEmpty()) {
+      adj[fromId] = EMPTY_INT_ARRAY
+    } <span class="hljs-keyword">else</span> {
+      <span class="hljs-keyword">val</span> arr = IntArray(edges.size)
+      <span class="hljs-keyword">var</span> i = <span class="hljs-number">0</span>
+      <span class="hljs-keyword">for</span> (e <span class="hljs-keyword">in</span> edges) {
+        arr[i++] = vertexToId[e]
+      }
+      adj[fromId] = arr
+    }
+  }
+
+  <span class="hljs-comment">// Tarjan state, all primitive-backed.</span>
+  <span class="hljs-comment">// indexOfId[v] is v&#x27;s DFS discovery time (analogous to &quot;v.index&quot; in the classic algorithm).</span>
+  <span class="hljs-comment">// lowLinkOfId[v] is the lowest discovery index v can reach without leaving the current DFS</span>
+  <span class="hljs-comment">// stack (analogous to &quot;v.lowlink&quot;).</span>
+  <span class="hljs-comment">// onStack[v] tracks whether v is currently on `dfsStack` (the SCC-membership stack).</span>
+  <span class="hljs-comment">// componentOfId[v] is filled with the SCC id once v has been assigned to a component.</span>
+  <span class="hljs-comment">// dfsStack holds vertices of the current DFS branch.</span>
+  <span class="hljs-keyword">val</span> indexOfId = IntArray(n) { UNVISITED }
+  <span class="hljs-keyword">val</span> lowLinkOfId = IntArray(n)
+  <span class="hljs-keyword">val</span> onStack = BooleanArray(n)
+  <span class="hljs-keyword">val</span> componentOfId = IntArray(n) { UNVISITED }
+  <span class="hljs-keyword">val</span> dfsStack = MutableIntList(n)
+
+  <span class="hljs-keyword">var</span> nextIndex = <span class="hljs-number">0</span>
+  <span class="hljs-keyword">var</span> nextComponentId = <span class="hljs-number">0</span>
+  <span class="hljs-comment">// Materialised SCC vertex lists (in int form) keyed by component id.</span>
+  <span class="hljs-comment">// At most one component per vertex (degenerate case where every vertex is its own SCC).</span>
+  <span class="hljs-keyword">val</span> componentMembers = ArrayList&lt;MutableIntList&gt;(n)
+
+  <span class="hljs-comment">// Iterative Tarjan: a recursive `strongConnect(v)` would blow the JVM stack on deep dependency</span>
+  <span class="hljs-comment">// chains, so we fold the recursion into an explicit (callStack, edgeCursor) pair where each</span>
+  <span class="hljs-comment">// frame is `(v, current edge index)`.</span>
+  <span class="hljs-keyword">val</span> callStack = MutableIntList(n)
+  <span class="hljs-keyword">val</span> edgeCursor = MutableIntList(n)
+
+  <span class="hljs-keyword">val</span> visit: (start: <span class="hljs-built_in">Int</span>) -&gt; <span class="hljs-built_in">Unit</span> = <span class="hljs-symbol">visit@</span>{ start -&gt;
+    <span class="hljs-keyword">if</span> (indexOfId[start] != UNVISITED) <span class="hljs-keyword">return</span><span class="hljs-symbol">@visit</span>
+    <span class="hljs-comment">// Set the depth index for `start` to the smallest unused index and push the first frame.</span>
+    callStack.add(start)
+    edgeCursor.add(<span class="hljs-number">0</span>)
+    indexOfId[start] = nextIndex
+    lowLinkOfId[start] = nextIndex
+    nextIndex++
+    dfsStack.add(start)
+    onStack[start] = <span class="hljs-literal">true</span>
+
+    <span class="hljs-keyword">while</span> (callStack.isNotEmpty()) {
+      <span class="hljs-keyword">val</span> top = callStack.size - <span class="hljs-number">1</span>
+      <span class="hljs-keyword">val</span> v = callStack[top]
+      <span class="hljs-keyword">val</span> edges = adj[v]!!
+      <span class="hljs-keyword">val</span> cursor = edgeCursor[top]
+
+      <span class="hljs-keyword">if</span> (cursor &lt; edges.size) {
+        edgeCursor[top] = cursor + <span class="hljs-number">1</span>
+        <span class="hljs-keyword">val</span> w = edges[cursor]
+        <span class="hljs-keyword">if</span> (indexOfId[w] == UNVISITED) {
+          <span class="hljs-comment">// Successor w has not yet been visited; &quot;recurse&quot; on it by pushing a new frame.</span>
+          indexOfId[w] = nextIndex
+          lowLinkOfId[w] = nextIndex
+          nextIndex++
+          dfsStack.add(w)
+          onStack[w] = <span class="hljs-literal">true</span>
+          callStack.add(w)
+          edgeCursor.add(<span class="hljs-number">0</span>)
+        } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (onStack[w]) {
+          <span class="hljs-comment">// Successor w is on the SCC stack and hence in the current SCC. If w is not on the</span>
+          <span class="hljs-comment">// stack, then (v, w) points to an SCC already finalised and must be ignored.</span>
+          <span class="hljs-keyword">if</span> (indexOfId[w] &lt; lowLinkOfId[v]) {
+            lowLinkOfId[v] = indexOfId[w]
+          }
+        }
+        <span class="hljs-keyword">continue</span>
+      }
+
+      <span class="hljs-comment">// All edges of v processed. If v is an SCC root (lowlink == index), pop everything down to</span>
+      <span class="hljs-comment">// and including v from the SCC stack and materialise it as a component.</span>
+      <span class="hljs-keyword">if</span> (lowLinkOfId[v] == indexOfId[v]) {
+        <span class="hljs-keyword">val</span> componentId = nextComponentId++
+        <span class="hljs-keyword">val</span> members = MutableIntList()
+        <span class="hljs-keyword">while</span> (<span class="hljs-literal">true</span>) {
+          <span class="hljs-keyword">val</span> popped = dfsStack.removeAt(dfsStack.size - <span class="hljs-number">1</span>)
+          onStack[popped] = <span class="hljs-literal">false</span>
+          members.add(popped)
+          componentOfId[popped] = componentId
+          <span class="hljs-keyword">if</span> (popped == v) <span class="hljs-keyword">break</span>
+        }
+        componentMembers.add(members)
+      }
+
+      callStack.removeAt(top)
+      edgeCursor.removeAt(top)
+      <span class="hljs-comment">// Propagate lowlink up to the parent frame, mirroring the recursive</span>
+      <span class="hljs-comment">// `lowLinkMap[parent] = min(lowLinkMap[parent], lowLinkMap[v])` step.</span>
+      <span class="hljs-keyword">if</span> (callStack.isNotEmpty()) {
+        <span class="hljs-keyword">val</span> parent = callStack[callStack.size - <span class="hljs-number">1</span>]
+        <span class="hljs-keyword">if</span> (lowLinkOfId[v] &lt; lowLinkOfId[parent]) {
+          lowLinkOfId[parent] = lowLinkOfId[v]
+        }
+      }
+    }
+  }
+
+  <span class="hljs-keyword">if</span> (roots != <span class="hljs-literal">null</span>) {
+    <span class="hljs-keyword">for</span> (root <span class="hljs-keyword">in</span> roots) {
+      <span class="hljs-keyword">val</span> rootId = vertexToId.getOrDefault(root, UNVISITED)
+      <span class="hljs-keyword">if</span> (rootId != UNVISITED) visit(rootId)
+    }
+  } <span class="hljs-keyword">else</span> {
+    <span class="hljs-keyword">for</span> (id <span class="hljs-keyword">in</span> <span class="hljs-number">0</span> until n) {
+      visit(id)
+    }
+  }
+
+  <span class="hljs-comment">// Materialise V-typed Component list and componentOf map.</span>
+  <span class="hljs-keyword">val</span> components = ArrayList&lt;Component&lt;V&gt;&gt;(componentMembers.size)
+  <span class="hljs-keyword">val</span> componentOf = MutableObjectIntMap&lt;V&gt;(n)
+  <span class="hljs-keyword">for</span> ((cid, members) <span class="hljs-keyword">in</span> componentMembers.withIndex()) {
+    <span class="hljs-keyword">val</span> component = Component&lt;V&gt;(cid)
+    members.forEach { id -&gt;
+      <span class="hljs-keyword">val</span> vertex = vertexAt(id)
+      component.vertices += vertex
+      componentOf[vertex] = cid
+    }
+    components += component
+  }
+
+  <span class="hljs-comment">// ── Build the reachable adjacency in V-space ──</span>
+  <span class="hljs-comment">//</span>
+  <span class="hljs-comment">// The original receiver adjacency may include vertices that the DFS never reached (they sit</span>
+  <span class="hljs-comment">// outside the chosen `roots`). The contract here is to return a `SortedMap&lt;V, SortedSet&lt;V&gt;&gt;`</span>
+  <span class="hljs-comment">// covering ONLY the vertices the DFS touched, with edges to UNVISITED targets filtered out.</span>
+  <span class="hljs-comment">//</span>
+  <span class="hljs-comment">// Build into HashMap/HashSet (O(1) inserts, sized to known counts) and convert to the sorted</span>
+  <span class="hljs-comment">// contract in a single bulk pass at the end. For dense graphs (~6500 edges per vertex on the</span>
+  <span class="hljs-comment">// benchmark) per-edge TreeSet inserts (O(log m) each) added up; HashSet -&gt; toSortedSet() does</span>
+  <span class="hljs-comment">// the sort once per row with much smaller per-edge constants.</span>
+  <span class="hljs-keyword">val</span> rawForward = HashMap&lt;V, HashSet&lt;V&gt;&gt;(n)
+  <span class="hljs-keyword">val</span> reachableReverse = HashMap&lt;V, MutableSet&lt;V&gt;&gt;(n)
+  <span class="hljs-keyword">for</span> (id <span class="hljs-keyword">in</span> <span class="hljs-number">0</span> until n) {
+    <span class="hljs-comment">// Skip vertices the DFS never visited — they&#x27;re not part of the reachable subgraph.</span>
+    <span class="hljs-keyword">if</span> (indexOfId[id] == UNVISITED) <span class="hljs-keyword">continue</span>
+    <span class="hljs-keyword">val</span> vertex = vertexAt(id)
+    <span class="hljs-keyword">val</span> edges = adj[id]!!
+    <span class="hljs-keyword">if</span> (edges.isEmpty()) {
+      <span class="hljs-comment">// Vertex has no outgoing edges. Record an empty set so callers that index into the result</span>
+      <span class="hljs-comment">// (e.g. `forward[v]`) see a present-but-empty entry rather than null.</span>
+      rawForward[vertex] = HashSet(<span class="hljs-number">0</span>)
+      <span class="hljs-keyword">continue</span>
+    }
+    <span class="hljs-keyword">val</span> reachableEdges = HashSet&lt;V&gt;(edges.size)
+    <span class="hljs-keyword">for</span> (toId <span class="hljs-keyword">in</span> edges) {
+      <span class="hljs-comment">// Filter out edges that leave the reachable subgraph: if the DFS didn&#x27;t reach `toId`,</span>
+      <span class="hljs-comment">// it&#x27;s not part of the result and any edge into it is dropped.</span>
+      <span class="hljs-keyword">if</span> (indexOfId[toId] == UNVISITED) <span class="hljs-keyword">continue</span>
+      <span class="hljs-keyword">val</span> toVertex = vertexAt(toId)
+      reachableEdges.add(toVertex)
+      <span class="hljs-comment">// Mirror the edge into the reverse adjacency so consumers can walk dependents.</span>
+      reachableReverse.getAndAdd(toVertex, vertex)
+    }
+    rawForward[vertex] = reachableEdges
+  }
+
+  <span class="hljs-comment">// Convert HashMap&lt;V, HashSet&lt;V&gt;&gt; -&gt; SortedMap&lt;V, SortedSet&lt;V&gt;&gt;. The TreeMap inserts here are</span>
+  <span class="hljs-comment">// O(log(n)) but they happen once per vertex (not once per edge); per-row sorts via</span>
+  <span class="hljs-comment">// `toSortedSet()` are O(mlog(m)) in bulk.</span>
+  <span class="hljs-keyword">val</span> reachableForward = sortedMapOf&lt;V, SortedSet&lt;V&gt;&gt;()
+  <span class="hljs-keyword">for</span> ((vertex, <span class="hljs-keyword">set</span>) <span class="hljs-keyword">in</span> rawForward) {
+    reachableForward[vertex] = <span class="hljs-keyword">if</span> (<span class="hljs-keyword">set</span>.isEmpty()) emptySortedSet() <span class="hljs-keyword">else</span> <span class="hljs-keyword">set</span>.toSortedSet()
+  }
+
+  <span class="hljs-keyword">return</span> TarjanResult(components, componentOf, GraphAdjacency(reachableForward, reachableReverse))
+}
+
+<span class="hljs-keyword">private</span> <span class="hljs-keyword">const</span> <span class="hljs-keyword">val</span> UNVISITED = -<span class="hljs-number">1</span>
+<span class="hljs-keyword">private</span> <span class="hljs-keyword">val</span> EMPTY_INT_ARRAY = IntArray(<span class="hljs-number">0</span>)
+
+<span class="hljs-keyword">internal</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-type">&lt;T : Comparable&lt;T&gt;</span>&gt; <span class="hljs-title">buildFullAdjacency</span><span class="hljs-params">(
+  map: <span class="hljs-type">ScatterMap</span>&lt;<span class="hljs-type">T</span>, *&gt;,
+  sourceToTarget: (<span class="hljs-type">T</span>) -&gt; <span class="hljs-type">Iterable</span>&lt;<span class="hljs-type">T</span>&gt;,
+  onMissing: (<span class="hljs-type">source</span>: <span class="hljs-type">T</span>, <span class="hljs-type">missing</span>: <span class="hljs-type">T</span>) -&gt; <span class="hljs-type">Unit</span>,
+)</span></span>: SortedMap&lt;T, SortedSet&lt;T&gt;&gt; {
+  <span class="hljs-comment">/**
+   * Sort our map keys and list values here for better performance later (avoiding needing to
+   * defensively sort in [computeStronglyConnectedComponents]).
+   */</span>
+  <span class="hljs-keyword">val</span> adjacency = sortedMapOf&lt;T, SortedSet&lt;T&gt;&gt;()
+
+  map.forEachKey { key -&gt;
+    <span class="hljs-keyword">val</span> dependencies = adjacency.getOrPut(key, ::sortedSetOf)
+
+    <span class="hljs-keyword">for</span> (targetKey <span class="hljs-keyword">in</span> sourceToTarget(key)) {
+      <span class="hljs-keyword">if</span> (targetKey !<span class="hljs-keyword">in</span> map) {
+        <span class="hljs-comment">// may throw, or silently allow</span>
+        onMissing(key, targetKey)
+        <span class="hljs-comment">// If we got here, this missing target is allowable (i.e. a default value). Just ignore it</span>
+        <span class="hljs-keyword">continue</span>
+      }
+      dependencies += targetKey
+    }
+  }
+  <span class="hljs-keyword">return</span> adjacency
+}

@@ -172,6 +172,10 @@ dependencies {
     testImplementation(libs.androidx.test.ext.junit)
     testImplementation(libs.roborazzi)
     testImplementation(libs.roborazzi.compose)
+    // Provides the real Java implementation of JSONObject for pure JVM unit tests.
+    // This overrides the unmocked Android SDK stub at test runtime without requiring Robolectric.
+    // Source: https://mvnrepository.com/artifact/org.json/json
+    testImplementation("org.json:json:20260522")
 
     androidTestImplementation(composeBom)
     androidTestImplementation(libs.truth)

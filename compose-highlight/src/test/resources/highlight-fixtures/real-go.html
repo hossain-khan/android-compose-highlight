@@ -1,0 +1,380 @@
+<span class="hljs-comment">// Copyright 2011 The Go Authors. All rights reserved.</span>
+<span class="hljs-comment">// Use of this source code is governed by a BSD-style</span>
+<span class="hljs-comment">// license that can be found in the LICENSE file.</span>
+
+<span class="hljs-comment">// Package fnv implements FNV-1 and FNV-1a, non-cryptographic hash functions</span>
+<span class="hljs-comment">// created by Glenn Fowler, Landon Curt Noll, and Phong Vo.</span>
+<span class="hljs-comment">// See</span>
+<span class="hljs-comment">// https://en.wikipedia.org/wiki/Fowler-Noll-Vo_hash_function.</span>
+<span class="hljs-comment">//</span>
+<span class="hljs-comment">// All the hash.Hash implementations returned by this package also</span>
+<span class="hljs-comment">// implement encoding.BinaryMarshaler and encoding.BinaryUnmarshaler to</span>
+<span class="hljs-comment">// marshal and unmarshal the internal state of the hash.</span>
+<span class="hljs-keyword">package</span> fnv
+
+<span class="hljs-keyword">import</span> (
+	<span class="hljs-string">&quot;errors&quot;</span>
+	<span class="hljs-string">&quot;hash&quot;</span>
+	<span class="hljs-string">&quot;internal/byteorder&quot;</span>
+	<span class="hljs-string">&quot;math/bits&quot;</span>
+)
+
+<span class="hljs-keyword">type</span> (
+	sum32   <span class="hljs-type">uint32</span>
+	sum32a  <span class="hljs-type">uint32</span>
+	sum64   <span class="hljs-type">uint64</span>
+	sum64a  <span class="hljs-type">uint64</span>
+	sum128  [<span class="hljs-number">2</span>]<span class="hljs-type">uint64</span>
+	sum128a [<span class="hljs-number">2</span>]<span class="hljs-type">uint64</span>
+)
+
+<span class="hljs-keyword">const</span> (
+	offset32        = <span class="hljs-number">2166136261</span>
+	offset64        = <span class="hljs-number">14695981039346656037</span>
+	offset128Lower  = <span class="hljs-number">0x62b821756295c58d</span>
+	offset128Higher = <span class="hljs-number">0x6c62272e07bb0142</span>
+	prime32         = <span class="hljs-number">16777619</span>
+	prime64         = <span class="hljs-number">1099511628211</span>
+	prime128Lower   = <span class="hljs-number">0x13b</span>
+	prime128Shift   = <span class="hljs-number">24</span>
+)
+
+<span class="hljs-comment">// New32 returns a new 32-bit FNV-1 [hash.Hash].</span>
+<span class="hljs-comment">// Its Sum method will lay the value out in big-endian byte order.</span>
+<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">New32</span><span class="hljs-params">()</span></span> hash.Hash32 {
+	<span class="hljs-keyword">var</span> s sum32 = offset32
+	<span class="hljs-keyword">return</span> &amp;s
+}
+
+<span class="hljs-comment">// New32a returns a new 32-bit FNV-1a [hash.Hash].</span>
+<span class="hljs-comment">// Its Sum method will lay the value out in big-endian byte order.</span>
+<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">New32a</span><span class="hljs-params">()</span></span> hash.Hash32 {
+	<span class="hljs-keyword">var</span> s sum32a = offset32
+	<span class="hljs-keyword">return</span> &amp;s
+}
+
+<span class="hljs-comment">// New64 returns a new 64-bit FNV-1 [hash.Hash].</span>
+<span class="hljs-comment">// Its Sum method will lay the value out in big-endian byte order.</span>
+<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">New64</span><span class="hljs-params">()</span></span> hash.Hash64 {
+	<span class="hljs-keyword">var</span> s sum64 = offset64
+	<span class="hljs-keyword">return</span> &amp;s
+}
+
+<span class="hljs-comment">// New64a returns a new 64-bit FNV-1a [hash.Hash].</span>
+<span class="hljs-comment">// Its Sum method will lay the value out in big-endian byte order.</span>
+<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">New64a</span><span class="hljs-params">()</span></span> hash.Hash64 {
+	<span class="hljs-keyword">var</span> s sum64a = offset64
+	<span class="hljs-keyword">return</span> &amp;s
+}
+
+<span class="hljs-comment">// New128 returns a new 128-bit FNV-1 [hash.Hash].</span>
+<span class="hljs-comment">// Its Sum method will lay the value out in big-endian byte order.</span>
+<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">New128</span><span class="hljs-params">()</span></span> hash.Hash {
+	<span class="hljs-keyword">var</span> s sum128
+	s[<span class="hljs-number">0</span>] = offset128Higher
+	s[<span class="hljs-number">1</span>] = offset128Lower
+	<span class="hljs-keyword">return</span> &amp;s
+}
+
+<span class="hljs-comment">// New128a returns a new 128-bit FNV-1a [hash.Hash].</span>
+<span class="hljs-comment">// Its Sum method will lay the value out in big-endian byte order.</span>
+<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">New128a</span><span class="hljs-params">()</span></span> hash.Hash {
+	<span class="hljs-keyword">var</span> s sum128a
+	s[<span class="hljs-number">0</span>] = offset128Higher
+	s[<span class="hljs-number">1</span>] = offset128Lower
+	<span class="hljs-keyword">return</span> &amp;s
+}
+
+<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(s *sum32)</span></span> Reset()   { *s = offset32 }
+<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(s *sum32a)</span></span> Reset()  { *s = offset32 }
+<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(s *sum64)</span></span> Reset()   { *s = offset64 }
+<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(s *sum64a)</span></span> Reset()  { *s = offset64 }
+<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(s *sum128)</span></span> Reset()  { s[<span class="hljs-number">0</span>] = offset128Higher; s[<span class="hljs-number">1</span>] = offset128Lower }
+<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(s *sum128a)</span></span> Reset() { s[<span class="hljs-number">0</span>] = offset128Higher; s[<span class="hljs-number">1</span>] = offset128Lower }
+
+<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(s *sum32)</span></span> Sum32() <span class="hljs-type">uint32</span>  { <span class="hljs-keyword">return</span> <span class="hljs-type">uint32</span>(*s) }
+<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(s *sum32a)</span></span> Sum32() <span class="hljs-type">uint32</span> { <span class="hljs-keyword">return</span> <span class="hljs-type">uint32</span>(*s) }
+<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(s *sum64)</span></span> Sum64() <span class="hljs-type">uint64</span>  { <span class="hljs-keyword">return</span> <span class="hljs-type">uint64</span>(*s) }
+<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(s *sum64a)</span></span> Sum64() <span class="hljs-type">uint64</span> { <span class="hljs-keyword">return</span> <span class="hljs-type">uint64</span>(*s) }
+
+<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(s *sum32)</span></span> Write(data []<span class="hljs-type">byte</span>) (<span class="hljs-type">int</span>, <span class="hljs-type">error</span>) {
+	hash := *s
+	<span class="hljs-keyword">for</span> _, c := <span class="hljs-keyword">range</span> data {
+		hash *= prime32
+		hash ^= sum32(c)
+	}
+	*s = hash
+	<span class="hljs-keyword">return</span> <span class="hljs-built_in">len</span>(data), <span class="hljs-literal">nil</span>
+}
+
+<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(s *sum32a)</span></span> Write(data []<span class="hljs-type">byte</span>) (<span class="hljs-type">int</span>, <span class="hljs-type">error</span>) {
+	hash := *s
+	<span class="hljs-keyword">for</span> _, c := <span class="hljs-keyword">range</span> data {
+		hash ^= sum32a(c)
+		hash *= prime32
+	}
+	*s = hash
+	<span class="hljs-keyword">return</span> <span class="hljs-built_in">len</span>(data), <span class="hljs-literal">nil</span>
+}
+
+<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(s *sum64)</span></span> Write(data []<span class="hljs-type">byte</span>) (<span class="hljs-type">int</span>, <span class="hljs-type">error</span>) {
+	hash := *s
+	<span class="hljs-keyword">for</span> _, c := <span class="hljs-keyword">range</span> data {
+		hash *= prime64
+		hash ^= sum64(c)
+	}
+	*s = hash
+	<span class="hljs-keyword">return</span> <span class="hljs-built_in">len</span>(data), <span class="hljs-literal">nil</span>
+}
+
+<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(s *sum64a)</span></span> Write(data []<span class="hljs-type">byte</span>) (<span class="hljs-type">int</span>, <span class="hljs-type">error</span>) {
+	hash := *s
+	<span class="hljs-keyword">for</span> _, c := <span class="hljs-keyword">range</span> data {
+		hash ^= sum64a(c)
+		hash *= prime64
+	}
+	*s = hash
+	<span class="hljs-keyword">return</span> <span class="hljs-built_in">len</span>(data), <span class="hljs-literal">nil</span>
+}
+
+<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(s *sum128)</span></span> Write(data []<span class="hljs-type">byte</span>) (<span class="hljs-type">int</span>, <span class="hljs-type">error</span>) {
+	<span class="hljs-keyword">for</span> _, c := <span class="hljs-keyword">range</span> data {
+		<span class="hljs-comment">// Compute the multiplication</span>
+		s0, s1 := bits.Mul64(prime128Lower, s[<span class="hljs-number">1</span>])
+		s0 += s[<span class="hljs-number">1</span>]&lt;&lt;prime128Shift + prime128Lower*s[<span class="hljs-number">0</span>]
+		<span class="hljs-comment">// Update the values</span>
+		s[<span class="hljs-number">1</span>] = s1
+		s[<span class="hljs-number">0</span>] = s0
+		s[<span class="hljs-number">1</span>] ^= <span class="hljs-type">uint64</span>(c)
+	}
+	<span class="hljs-keyword">return</span> <span class="hljs-built_in">len</span>(data), <span class="hljs-literal">nil</span>
+}
+
+<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(s *sum128a)</span></span> Write(data []<span class="hljs-type">byte</span>) (<span class="hljs-type">int</span>, <span class="hljs-type">error</span>) {
+	<span class="hljs-keyword">for</span> _, c := <span class="hljs-keyword">range</span> data {
+		s[<span class="hljs-number">1</span>] ^= <span class="hljs-type">uint64</span>(c)
+		<span class="hljs-comment">// Compute the multiplication</span>
+		s0, s1 := bits.Mul64(prime128Lower, s[<span class="hljs-number">1</span>])
+		s0 += s[<span class="hljs-number">1</span>]&lt;&lt;prime128Shift + prime128Lower*s[<span class="hljs-number">0</span>]
+		<span class="hljs-comment">// Update the values</span>
+		s[<span class="hljs-number">1</span>] = s1
+		s[<span class="hljs-number">0</span>] = s0
+	}
+	<span class="hljs-keyword">return</span> <span class="hljs-built_in">len</span>(data), <span class="hljs-literal">nil</span>
+}
+
+<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(s *sum32)</span></span> Size() <span class="hljs-type">int</span>   { <span class="hljs-keyword">return</span> <span class="hljs-number">4</span> }
+<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(s *sum32a)</span></span> Size() <span class="hljs-type">int</span>  { <span class="hljs-keyword">return</span> <span class="hljs-number">4</span> }
+<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(s *sum64)</span></span> Size() <span class="hljs-type">int</span>   { <span class="hljs-keyword">return</span> <span class="hljs-number">8</span> }
+<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(s *sum64a)</span></span> Size() <span class="hljs-type">int</span>  { <span class="hljs-keyword">return</span> <span class="hljs-number">8</span> }
+<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(s *sum128)</span></span> Size() <span class="hljs-type">int</span>  { <span class="hljs-keyword">return</span> <span class="hljs-number">16</span> }
+<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(s *sum128a)</span></span> Size() <span class="hljs-type">int</span> { <span class="hljs-keyword">return</span> <span class="hljs-number">16</span> }
+
+<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(s *sum32)</span></span> BlockSize() <span class="hljs-type">int</span>   { <span class="hljs-keyword">return</span> <span class="hljs-number">1</span> }
+<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(s *sum32a)</span></span> BlockSize() <span class="hljs-type">int</span>  { <span class="hljs-keyword">return</span> <span class="hljs-number">1</span> }
+<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(s *sum64)</span></span> BlockSize() <span class="hljs-type">int</span>   { <span class="hljs-keyword">return</span> <span class="hljs-number">1</span> }
+<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(s *sum64a)</span></span> BlockSize() <span class="hljs-type">int</span>  { <span class="hljs-keyword">return</span> <span class="hljs-number">1</span> }
+<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(s *sum128)</span></span> BlockSize() <span class="hljs-type">int</span>  { <span class="hljs-keyword">return</span> <span class="hljs-number">1</span> }
+<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(s *sum128a)</span></span> BlockSize() <span class="hljs-type">int</span> { <span class="hljs-keyword">return</span> <span class="hljs-number">1</span> }
+
+<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(s *sum32)</span></span> Sum(in []<span class="hljs-type">byte</span>) []<span class="hljs-type">byte</span> {
+	v := <span class="hljs-type">uint32</span>(*s)
+	<span class="hljs-keyword">return</span> byteorder.BEAppendUint32(in, v)
+}
+
+<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(s *sum32a)</span></span> Sum(in []<span class="hljs-type">byte</span>) []<span class="hljs-type">byte</span> {
+	v := <span class="hljs-type">uint32</span>(*s)
+	<span class="hljs-keyword">return</span> byteorder.BEAppendUint32(in, v)
+}
+
+<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(s *sum64)</span></span> Sum(in []<span class="hljs-type">byte</span>) []<span class="hljs-type">byte</span> {
+	v := <span class="hljs-type">uint64</span>(*s)
+	<span class="hljs-keyword">return</span> byteorder.BEAppendUint64(in, v)
+}
+
+<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(s *sum64a)</span></span> Sum(in []<span class="hljs-type">byte</span>) []<span class="hljs-type">byte</span> {
+	v := <span class="hljs-type">uint64</span>(*s)
+	<span class="hljs-keyword">return</span> byteorder.BEAppendUint64(in, v)
+}
+
+<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(s *sum128)</span></span> Sum(in []<span class="hljs-type">byte</span>) []<span class="hljs-type">byte</span> {
+	ret := byteorder.BEAppendUint64(in, s[<span class="hljs-number">0</span>])
+	<span class="hljs-keyword">return</span> byteorder.BEAppendUint64(ret, s[<span class="hljs-number">1</span>])
+}
+
+<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(s *sum128a)</span></span> Sum(in []<span class="hljs-type">byte</span>) []<span class="hljs-type">byte</span> {
+	ret := byteorder.BEAppendUint64(in, s[<span class="hljs-number">0</span>])
+	<span class="hljs-keyword">return</span> byteorder.BEAppendUint64(ret, s[<span class="hljs-number">1</span>])
+}
+
+<span class="hljs-keyword">const</span> (
+	magic32          = <span class="hljs-string">&quot;fnv\x01&quot;</span>
+	magic32a         = <span class="hljs-string">&quot;fnv\x02&quot;</span>
+	magic64          = <span class="hljs-string">&quot;fnv\x03&quot;</span>
+	magic64a         = <span class="hljs-string">&quot;fnv\x04&quot;</span>
+	magic128         = <span class="hljs-string">&quot;fnv\x05&quot;</span>
+	magic128a        = <span class="hljs-string">&quot;fnv\x06&quot;</span>
+	marshaledSize32  = <span class="hljs-built_in">len</span>(magic32) + <span class="hljs-number">4</span>
+	marshaledSize64  = <span class="hljs-built_in">len</span>(magic64) + <span class="hljs-number">8</span>
+	marshaledSize128 = <span class="hljs-built_in">len</span>(magic128) + <span class="hljs-number">8</span>*<span class="hljs-number">2</span>
+)
+
+<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(s *sum32)</span></span> AppendBinary(b []<span class="hljs-type">byte</span>) ([]<span class="hljs-type">byte</span>, <span class="hljs-type">error</span>) {
+	b = <span class="hljs-built_in">append</span>(b, magic32...)
+	b = byteorder.BEAppendUint32(b, <span class="hljs-type">uint32</span>(*s))
+	<span class="hljs-keyword">return</span> b, <span class="hljs-literal">nil</span>
+}
+
+<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(s *sum32)</span></span> MarshalBinary() ([]<span class="hljs-type">byte</span>, <span class="hljs-type">error</span>) {
+	<span class="hljs-keyword">return</span> s.AppendBinary(<span class="hljs-built_in">make</span>([]<span class="hljs-type">byte</span>, <span class="hljs-number">0</span>, marshaledSize32))
+}
+
+<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(s *sum32a)</span></span> AppendBinary(b []<span class="hljs-type">byte</span>) ([]<span class="hljs-type">byte</span>, <span class="hljs-type">error</span>) {
+	b = <span class="hljs-built_in">append</span>(b, magic32a...)
+	b = byteorder.BEAppendUint32(b, <span class="hljs-type">uint32</span>(*s))
+	<span class="hljs-keyword">return</span> b, <span class="hljs-literal">nil</span>
+}
+
+<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(s *sum32a)</span></span> MarshalBinary() ([]<span class="hljs-type">byte</span>, <span class="hljs-type">error</span>) {
+	<span class="hljs-keyword">return</span> s.AppendBinary(<span class="hljs-built_in">make</span>([]<span class="hljs-type">byte</span>, <span class="hljs-number">0</span>, marshaledSize32))
+}
+
+<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(s *sum64)</span></span> AppendBinary(b []<span class="hljs-type">byte</span>) ([]<span class="hljs-type">byte</span>, <span class="hljs-type">error</span>) {
+	b = <span class="hljs-built_in">append</span>(b, magic64...)
+	b = byteorder.BEAppendUint64(b, <span class="hljs-type">uint64</span>(*s))
+	<span class="hljs-keyword">return</span> b, <span class="hljs-literal">nil</span>
+}
+
+<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(s *sum64)</span></span> MarshalBinary() ([]<span class="hljs-type">byte</span>, <span class="hljs-type">error</span>) {
+	<span class="hljs-keyword">return</span> s.AppendBinary(<span class="hljs-built_in">make</span>([]<span class="hljs-type">byte</span>, <span class="hljs-number">0</span>, marshaledSize64))
+}
+
+<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(s *sum64a)</span></span> AppendBinary(b []<span class="hljs-type">byte</span>) ([]<span class="hljs-type">byte</span>, <span class="hljs-type">error</span>) {
+	b = <span class="hljs-built_in">append</span>(b, magic64a...)
+	b = byteorder.BEAppendUint64(b, <span class="hljs-type">uint64</span>(*s))
+	<span class="hljs-keyword">return</span> b, <span class="hljs-literal">nil</span>
+}
+
+<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(s *sum64a)</span></span> MarshalBinary() ([]<span class="hljs-type">byte</span>, <span class="hljs-type">error</span>) {
+	<span class="hljs-keyword">return</span> s.AppendBinary(<span class="hljs-built_in">make</span>([]<span class="hljs-type">byte</span>, <span class="hljs-number">0</span>, marshaledSize64))
+}
+
+<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(s *sum128)</span></span> AppendBinary(b []<span class="hljs-type">byte</span>) ([]<span class="hljs-type">byte</span>, <span class="hljs-type">error</span>) {
+	b = <span class="hljs-built_in">append</span>(b, magic128...)
+	b = byteorder.BEAppendUint64(b, s[<span class="hljs-number">0</span>])
+	b = byteorder.BEAppendUint64(b, s[<span class="hljs-number">1</span>])
+	<span class="hljs-keyword">return</span> b, <span class="hljs-literal">nil</span>
+}
+
+<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(s *sum128)</span></span> MarshalBinary() ([]<span class="hljs-type">byte</span>, <span class="hljs-type">error</span>) {
+	<span class="hljs-keyword">return</span> s.AppendBinary(<span class="hljs-built_in">make</span>([]<span class="hljs-type">byte</span>, <span class="hljs-number">0</span>, marshaledSize128))
+}
+
+<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(s *sum128a)</span></span> AppendBinary(b []<span class="hljs-type">byte</span>) ([]<span class="hljs-type">byte</span>, <span class="hljs-type">error</span>) {
+	b = <span class="hljs-built_in">append</span>(b, magic128a...)
+	b = byteorder.BEAppendUint64(b, s[<span class="hljs-number">0</span>])
+	b = byteorder.BEAppendUint64(b, s[<span class="hljs-number">1</span>])
+	<span class="hljs-keyword">return</span> b, <span class="hljs-literal">nil</span>
+}
+
+<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(s *sum128a)</span></span> MarshalBinary() ([]<span class="hljs-type">byte</span>, <span class="hljs-type">error</span>) {
+	<span class="hljs-keyword">return</span> s.AppendBinary(<span class="hljs-built_in">make</span>([]<span class="hljs-type">byte</span>, <span class="hljs-number">0</span>, marshaledSize128))
+}
+
+<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(s *sum32)</span></span> UnmarshalBinary(b []<span class="hljs-type">byte</span>) <span class="hljs-type">error</span> {
+	<span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(b) &lt; <span class="hljs-built_in">len</span>(magic32) || <span class="hljs-type">string</span>(b[:<span class="hljs-built_in">len</span>(magic32)]) != magic32 {
+		<span class="hljs-keyword">return</span> errors.New(<span class="hljs-string">&quot;hash/fnv: invalid hash state identifier&quot;</span>)
+	}
+	<span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(b) != marshaledSize32 {
+		<span class="hljs-keyword">return</span> errors.New(<span class="hljs-string">&quot;hash/fnv: invalid hash state size&quot;</span>)
+	}
+	*s = sum32(byteorder.BEUint32(b[<span class="hljs-number">4</span>:]))
+	<span class="hljs-keyword">return</span> <span class="hljs-literal">nil</span>
+}
+
+<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(s *sum32a)</span></span> UnmarshalBinary(b []<span class="hljs-type">byte</span>) <span class="hljs-type">error</span> {
+	<span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(b) &lt; <span class="hljs-built_in">len</span>(magic32a) || <span class="hljs-type">string</span>(b[:<span class="hljs-built_in">len</span>(magic32a)]) != magic32a {
+		<span class="hljs-keyword">return</span> errors.New(<span class="hljs-string">&quot;hash/fnv: invalid hash state identifier&quot;</span>)
+	}
+	<span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(b) != marshaledSize32 {
+		<span class="hljs-keyword">return</span> errors.New(<span class="hljs-string">&quot;hash/fnv: invalid hash state size&quot;</span>)
+	}
+	*s = sum32a(byteorder.BEUint32(b[<span class="hljs-number">4</span>:]))
+	<span class="hljs-keyword">return</span> <span class="hljs-literal">nil</span>
+}
+
+<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(s *sum64)</span></span> UnmarshalBinary(b []<span class="hljs-type">byte</span>) <span class="hljs-type">error</span> {
+	<span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(b) &lt; <span class="hljs-built_in">len</span>(magic64) || <span class="hljs-type">string</span>(b[:<span class="hljs-built_in">len</span>(magic64)]) != magic64 {
+		<span class="hljs-keyword">return</span> errors.New(<span class="hljs-string">&quot;hash/fnv: invalid hash state identifier&quot;</span>)
+	}
+	<span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(b) != marshaledSize64 {
+		<span class="hljs-keyword">return</span> errors.New(<span class="hljs-string">&quot;hash/fnv: invalid hash state size&quot;</span>)
+	}
+	*s = sum64(byteorder.BEUint64(b[<span class="hljs-number">4</span>:]))
+	<span class="hljs-keyword">return</span> <span class="hljs-literal">nil</span>
+}
+
+<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(s *sum64a)</span></span> UnmarshalBinary(b []<span class="hljs-type">byte</span>) <span class="hljs-type">error</span> {
+	<span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(b) &lt; <span class="hljs-built_in">len</span>(magic64a) || <span class="hljs-type">string</span>(b[:<span class="hljs-built_in">len</span>(magic64a)]) != magic64a {
+		<span class="hljs-keyword">return</span> errors.New(<span class="hljs-string">&quot;hash/fnv: invalid hash state identifier&quot;</span>)
+	}
+	<span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(b) != marshaledSize64 {
+		<span class="hljs-keyword">return</span> errors.New(<span class="hljs-string">&quot;hash/fnv: invalid hash state size&quot;</span>)
+	}
+	*s = sum64a(byteorder.BEUint64(b[<span class="hljs-number">4</span>:]))
+	<span class="hljs-keyword">return</span> <span class="hljs-literal">nil</span>
+}
+
+<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(s *sum128)</span></span> UnmarshalBinary(b []<span class="hljs-type">byte</span>) <span class="hljs-type">error</span> {
+	<span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(b) &lt; <span class="hljs-built_in">len</span>(magic128) || <span class="hljs-type">string</span>(b[:<span class="hljs-built_in">len</span>(magic128)]) != magic128 {
+		<span class="hljs-keyword">return</span> errors.New(<span class="hljs-string">&quot;hash/fnv: invalid hash state identifier&quot;</span>)
+	}
+	<span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(b) != marshaledSize128 {
+		<span class="hljs-keyword">return</span> errors.New(<span class="hljs-string">&quot;hash/fnv: invalid hash state size&quot;</span>)
+	}
+	s[<span class="hljs-number">0</span>] = byteorder.BEUint64(b[<span class="hljs-number">4</span>:])
+	s[<span class="hljs-number">1</span>] = byteorder.BEUint64(b[<span class="hljs-number">12</span>:])
+	<span class="hljs-keyword">return</span> <span class="hljs-literal">nil</span>
+}
+
+<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(s *sum128a)</span></span> UnmarshalBinary(b []<span class="hljs-type">byte</span>) <span class="hljs-type">error</span> {
+	<span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(b) &lt; <span class="hljs-built_in">len</span>(magic128a) || <span class="hljs-type">string</span>(b[:<span class="hljs-built_in">len</span>(magic128a)]) != magic128a {
+		<span class="hljs-keyword">return</span> errors.New(<span class="hljs-string">&quot;hash/fnv: invalid hash state identifier&quot;</span>)
+	}
+	<span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(b) != marshaledSize128 {
+		<span class="hljs-keyword">return</span> errors.New(<span class="hljs-string">&quot;hash/fnv: invalid hash state size&quot;</span>)
+	}
+	s[<span class="hljs-number">0</span>] = byteorder.BEUint64(b[<span class="hljs-number">4</span>:])
+	s[<span class="hljs-number">1</span>] = byteorder.BEUint64(b[<span class="hljs-number">12</span>:])
+	<span class="hljs-keyword">return</span> <span class="hljs-literal">nil</span>
+}
+
+<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(d *sum32)</span></span> Clone() (hash.Cloner, <span class="hljs-type">error</span>) {
+	r := *d
+	<span class="hljs-keyword">return</span> &amp;r, <span class="hljs-literal">nil</span>
+}
+
+<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(d *sum32a)</span></span> Clone() (hash.Cloner, <span class="hljs-type">error</span>) {
+	r := *d
+	<span class="hljs-keyword">return</span> &amp;r, <span class="hljs-literal">nil</span>
+}
+
+<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(d *sum64)</span></span> Clone() (hash.Cloner, <span class="hljs-type">error</span>) {
+	r := *d
+	<span class="hljs-keyword">return</span> &amp;r, <span class="hljs-literal">nil</span>
+}
+
+<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(d *sum64a)</span></span> Clone() (hash.Cloner, <span class="hljs-type">error</span>) {
+	r := *d
+	<span class="hljs-keyword">return</span> &amp;r, <span class="hljs-literal">nil</span>
+}
+
+<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(d *sum128)</span></span> Clone() (hash.Cloner, <span class="hljs-type">error</span>) {
+	r := *d
+	<span class="hljs-keyword">return</span> &amp;r, <span class="hljs-literal">nil</span>
+}
+
+<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(d *sum128a)</span></span> Clone() (hash.Cloner, <span class="hljs-type">error</span>) {
+	r := *d
+	<span class="hljs-keyword">return</span> &amp;r, <span class="hljs-literal">nil</span>
+}
