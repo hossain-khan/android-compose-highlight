@@ -385,6 +385,27 @@ class HtmlToAnnotatedStringTest {
         val (light, dark) = HtmlToAnnotatedString.convertBothThemes(snippet.highlightedHtml, colorMap, darkColorMap)
         assertThat(light.text).isEqualTo(snippet.code)
         assertThat(dark.text).isEqualTo(snippet.code)
+
+        // Extensive token count validation
+        assertTokenCounts(
+            snippet.highlightedHtml,
+            mapOf(
+                "hljs-comment" to 106,
+                "hljs-keyword" to 286,
+                "hljs-doctag" to 27,
+                "hljs-title.class_" to 5,
+                "hljs-type" to 82,
+                "hljs-function" to 8,
+                "hljs-title" to 8,
+                "hljs-params" to 8,
+                "hljs-literal" to 16,
+                "hljs-string" to 6,
+                "hljs-number" to 30,
+                "hljs-built_in" to 7,
+                "hljs-symbol" to 4,
+                "hljs-meta" to 1,
+            ),
+        )
     }
 
     @Test
@@ -416,6 +437,25 @@ class HtmlToAnnotatedStringTest {
         val (light, dark) = HtmlToAnnotatedString.convertBothThemes(snippet.highlightedHtml, colorMap, darkColorMap)
         assertThat(light.text).isEqualTo(snippet.code)
         assertThat(dark.text).isEqualTo(snippet.code)
+
+        // Extensive token count validation
+        assertTokenCounts(
+            snippet.highlightedHtml,
+            mapOf(
+                "hljs-comment" to 66,
+                "hljs-meta" to 18,
+                "hljs-keyword" to 243,
+                "hljs-string" to 195,
+                "hljs-type" to 212,
+                "hljs-number" to 261,
+                "hljs-class" to 2,
+                "hljs-title" to 3,
+                "hljs-title.function_" to 30,
+                "hljs-params" to 30,
+                "hljs-built_in" to 133,
+                "hljs-literal" to 11,
+            ),
+        )
     }
 
     @Test
@@ -478,6 +518,21 @@ class HtmlToAnnotatedStringTest {
         val (light, dark) = HtmlToAnnotatedString.convertBothThemes(snippet.highlightedHtml, colorMap, darkColorMap)
         assertThat(light.text).isEqualTo(snippet.code)
         assertThat(dark.text).isEqualTo(snippet.code)
+
+        // Extensive token count validation
+        assertTokenCounts(
+            snippet.highlightedHtml,
+            mapOf(
+                "hljs-comment" to 7,
+                "hljs-meta" to 8,
+                "hljs-string" to 4,
+                "hljs-keyword" to 18,
+                "hljs-title.function_" to 1,
+                "hljs-type" to 2,
+                "hljs-punctuation" to 1,
+                "hljs-title.function_.invoke__" to 1,
+            ),
+        )
     }
 
     @Test
@@ -517,6 +572,23 @@ class HtmlToAnnotatedStringTest {
         val (light, dark) = HtmlToAnnotatedString.convertBothThemes(snippet.highlightedHtml, colorMap, darkColorMap)
         assertThat(light.text).isEqualTo(snippet.code)
         assertThat(dark.text).isEqualTo(snippet.code)
+
+        // Extensive token count validation
+        assertTokenCounts(
+            snippet.highlightedHtml,
+            mapOf(
+                "hljs-comment" to 27,
+                "hljs-keyword" to 169,
+                "hljs-string" to 22,
+                "hljs-type" to 126,
+                "hljs-number" to 72,
+                "hljs-function" to 64,
+                "hljs-title" to 6,
+                "hljs-params" to 64,
+                "hljs-built_in" to 45,
+                "hljs-literal" to 24,
+            ),
+        )
     }
 
     @Test
@@ -568,6 +640,21 @@ class HtmlToAnnotatedStringTest {
         val (light, dark) = HtmlToAnnotatedString.convertBothThemes(snippet.highlightedHtml, colorMap, darkColorMap)
         assertThat(light.text).isEqualTo(snippet.code)
         assertThat(dark.text).isEqualTo(snippet.code)
+
+        // Extensive token count validation
+        assertTokenCounts(
+            snippet.highlightedHtml,
+            mapOf(
+                "hljs-comment" to 31,
+                "hljs-keyword" to 21,
+                "hljs-title" to 8,
+                "hljs-doctag" to 63,
+                "hljs-function" to 3,
+                "hljs-params" to 3,
+                "hljs-built_in" to 2,
+                "hljs-literal" to 2,
+            ),
+        )
     }
 
     @Test
@@ -618,5 +705,57 @@ class HtmlToAnnotatedStringTest {
         val (light, dark) = HtmlToAnnotatedString.convertBothThemes(snippet.highlightedHtml, colorMap, darkColorMap)
         assertThat(light.text).isEqualTo(snippet.code)
         assertThat(dark.text).isEqualTo(snippet.code)
+
+        // Extensive token count validation
+        assertTokenCounts(
+            snippet.highlightedHtml,
+            mapOf(
+                "hljs-comment" to 2,
+                "hljs-keyword" to 219,
+                "hljs-operator" to 49,
+                "hljs-string" to 59,
+                "hljs-number" to 81,
+                "hljs-type" to 40,
+                "hljs-built_in" to 1,
+            ),
+        )
+    }
+
+    private fun assertTokenCounts(
+        html: String,
+        expectedCounts: Map<String, Int>,
+    ) {
+        val uniqueColorMap =
+            mapOf(
+                "hljs-keyword" to SpanStyle(color = Color(1)),
+                "hljs-comment" to SpanStyle(color = Color(2)),
+                "hljs-doctag" to SpanStyle(color = Color(3)),
+                "hljs-type" to SpanStyle(color = Color(4)),
+                "hljs-literal" to SpanStyle(color = Color(5)),
+                "hljs-number" to SpanStyle(color = Color(6)),
+                "hljs-string" to SpanStyle(color = Color(7)),
+                "hljs-symbol" to SpanStyle(color = Color(8)),
+                "hljs-meta" to SpanStyle(color = Color(9)),
+                "hljs-operator" to SpanStyle(color = Color(10)),
+                "hljs-punctuation" to SpanStyle(color = Color(11)),
+                "hljs-built_in" to SpanStyle(color = Color(12)),
+                "hljs-params" to SpanStyle(color = Color(13)),
+                "hljs-title" to SpanStyle(color = Color(14)),
+                "hljs-title.class_" to SpanStyle(color = Color(15)),
+                "hljs-title.function_" to SpanStyle(color = Color(16)),
+                "hljs-title.function_.invoke__" to SpanStyle(color = Color(17)),
+                "hljs-class" to SpanStyle(color = Color(18)),
+                "hljs-function" to SpanStyle(color = Color(19)),
+            )
+
+        val colorToKey = uniqueColorMap.entries.associate { it.value.color to it.key }
+        val result = HtmlToAnnotatedString.convert(html, uniqueColorMap)
+        val actualCounts = mutableMapOf<String, Int>()
+        for (spanRange in result.spanStyles) {
+            val color = spanRange.item.color
+            val key = colorToKey[color] ?: continue
+            actualCounts[key] = (actualCounts[key] ?: 0) + 1
+        }
+        assertThat(actualCounts).isEqualTo(expectedCounts)
     }
 }
