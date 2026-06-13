@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.30.0] - 2026-06-13
+
 ### Changed
 
 - **Replaced Jsoup with a lightweight custom HTML parser** - Replaced the JVM-only Jsoup dependency

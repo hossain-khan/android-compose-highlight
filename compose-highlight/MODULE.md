@@ -131,7 +131,7 @@ The friction is intentional. A new built-in is an API decision, not "I dropped a
 
 **Public API requires KDoc.** Dokka publishes the public API docs from KDoc, so all public classes, functions, and properties need KDoc, with usage examples on non-trivial APIs.
 
-**Testing split:** JVM tests live in `src/test/` and should use `ThemeParser.parse(cssString)` and direct `unescapeJsString(...)` calls where possible. Instrumented tests and benchmarks live in `src/androidTest/`. Roborazzi-driven screenshot regression tests live in `src/test/kotlin/dev/hossain/highlight/screenshot/`; see [SCREENSHOT_TESTS.md](SCREENSHOT_TESTS.md) for the workflow.
+**Testing split:** JVM tests live in `src/test/` and should use `ThemeParser.parse(cssString)` and direct `unescapeJsString(...)` calls where possible. The opt-in `HtmlParserBenchmark` JVM microbenchmark also lives under `src/test/kotlin/dev/hossain/highlight/benchmark/` (skipped by default; enable with `-PrunBenchmark=true`). Instrumented tests and on-device benchmarks live in `src/androidTest/`. Roborazzi-driven screenshot regression tests live in `src/test/kotlin/dev/hossain/highlight/screenshot/`; see [SCREENSHOT_TESTS.md](SCREENSHOT_TESTS.md) for the workflow.
 
 ## Contributor workflow
 

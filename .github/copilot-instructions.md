@@ -30,6 +30,16 @@ npx markdownlint --fix CHANGELOG.md
 # Build the sample app
 ./gradlew :sample:assembleDebug
 
+# JVM microbenchmark for HtmlToAnnotatedString (no device needed, opt-in via flag).
+# Skipped from regular `:test` runs via Assume.assumeTrue, so the default test suite stays fast.
+# Writes a JSON report to compose-highlight/build/reports/benchmarks/html-parser-baseline-<epoch-ms>.json
+# with mean/stddev/min/max in microseconds for each of the 12 @Test methods (6 single-theme convert
+# + 6 dual-theme convertBothThemes against the real-world hljs HTML fixtures).
+# Use this to catch parser regressions: capture a baseline, swap the parser, re-run, diff the JSON.
+./gradlew :compose-highlight:testDebugUnitTest \
+  --tests "dev.hossain.highlight.benchmark.HtmlParserBenchmark" \
+  -PrunBenchmark=true --rerun-tasks
+
 # Run microbenchmarks on a connected device (requires physical device or emulator)
 ./gradlew :compose-highlight:connectedAndroidTest
 

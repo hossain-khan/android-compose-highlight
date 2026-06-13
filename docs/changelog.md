@@ -6,6 +6,14 @@ For release artifacts and APK downloads, see the [GitHub Releases page](https://
 
 ## Recent highlights
 
+### 0.30.0 - Custom HTML parser replaces Jsoup
+
+- Replaced the JVM-only Jsoup dependency with a single-pass pure-Kotlin HTML tokenizer scoped to the hljs HTML subset
+- Removes the ~501 KB Jsoup transitive jar and 4 R8/ProGuard `-keep` rules from downstream consumers (library AAR grows by ~7 KB for the in-module parser)
+- Dual-theme highlight path is 1.27×-1.97× faster on real-world Kotlin/C/Rust/Go/C#/SQL fixtures
+- Added real-world language test coverage with extensive token-count assertions and an opt-in JVM microbenchmark (`HtmlParserBenchmark`)
+- Prepares the codebase for Kotlin Multiplatform (KMP)
+
 ### 0.29.0 - Tab and auto-indent support in text editor
 
 - Added `indentation`, `autoIndentEnabled`, and `tabKeyInterceptionEnabled` parameters to `SyntaxHighlightedTextEditor`
@@ -36,14 +44,6 @@ For release artifacts and APK downloads, see the [GitHub Releases page](https://
 - Rewrote `escapeForJs` to a single-pass `StringBuilder` walk to reduce per-highlight allocations
 - Reorganized implementation-only code into `.internal` packages and hid internals from Dokka API docs
 - Added broad parser and escaping boundary test coverage for the new selector and escape paths
-
-### 0.25.0 - Editor callbacks and Dokka retheme
-
-- Added `onError` callback to `SyntaxHighlightedTextEditor` and `rememberSyntaxHighlightedEditorValue` for failure observability
-- Fixed span color loss on multi-line strings and block comments during mid-text edits
-- Added `SyntaxHighlightedTextEditorDefaults` object with pre-allocated singletons to reduce GC pressure while typing
-- Dokka API site rethemed to match the main docs site with shared light/dark palette state
-- Upgraded Zensical to 0.0.43 with improved link validation
 
 ---
 
