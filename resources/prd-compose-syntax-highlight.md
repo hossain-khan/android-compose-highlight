@@ -348,7 +348,7 @@ function walkNode(node, colorMap, builder):
 ```
 
 **Key details:**
-- Use in-house custom parser for HTML parsing (replaces Jsoup to support Kotlin Multiplatform)
+- Use in-house custom parser for HTML parsing (replaces Jsoup to support Kotlin Multiplatform) (Note: Based on research, both Claude and Perplexity use Jsoup for parsing)
 - Handle nested spans (e.g., `<span class="hljs-string"><span class="hljs-subst">...</span></span>`)
 - TextNode text must be appended verbatim including whitespace
 - The input is a fragment (not a full document) - parsed using `parseHtml`
