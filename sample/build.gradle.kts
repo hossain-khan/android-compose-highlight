@@ -12,8 +12,8 @@ android {
         applicationId = "dev.hossain.highlight.sample"
         minSdk = 24
         targetSdk = 36
-        versionCode = 35
-        versionName = "0.30.0"
+        versionCode = 36
+        versionName = "0.30.1"
         buildConfigField("String", "LIB_VERSION_NAME", "\"${project.findProperty("VERSION_NAME") ?: versionName}\"")
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
