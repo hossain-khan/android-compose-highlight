@@ -247,6 +247,393 @@ class SyntaxHighlightedTextEditorRobolectricTest {
         assertThat(calledValue?.selection?.start).isEqualTo(4)
     }
 
+    @Test
+    fun `auto indent is ignored when disabled`() {
+        var value = TextFieldValue("    val x = 42", selection = TextRange(14))
+        var calledValue: TextFieldValue? = null
+
+        composeTestRule.setContent {
+            CompositionLocalProvider(LocalInspectionMode provides true) {
+                HighlightThemeProvider {
+                    SyntaxHighlightedTextEditor(
+                        value = value,
+                        onValueChange = {
+                            value = it
+                            calledValue = it
+                        },
+                        language = "kotlin",
+                        autoIndentEnabled = false,
+                    )
+                }
+            }
+        }
+        composeTestRule.waitForIdle()
+
+        composeTestRule.onNode(hasSetTextAction(), useUnmergedTree = true).performClick()
+        composeTestRule.waitForIdle()
+
+        composeTestRule.onNode(hasSetTextAction(), useUnmergedTree = true).performTextInput("\n")
+        composeTestRule.waitForIdle()
+
+        assertThat(calledValue?.text).isEqualTo("    val x = 42\n")
+        assertThat(calledValue?.selection?.start).isEqualTo(15)
+    }
+
+    @Test
+    fun `tab key interception is ignored when disabled`() {
+        var value = TextFieldValue("val x = 42", selection = TextRange(0))
+        var calledValue: TextFieldValue? = null
+
+        composeTestRule.setContent {
+            CompositionLocalProvider(LocalInspectionMode provides true) {
+                HighlightThemeProvider {
+                    SyntaxHighlightedTextEditor(
+                        value = value,
+                        onValueChange = {
+                            value = it
+                            calledValue = it
+                        },
+                        language = "kotlin",
+                        tabKeyInterceptionEnabled = false,
+                    )
+                }
+            }
+        }
+        composeTestRule.waitForIdle()
+
+        composeTestRule.onNode(hasSetTextAction(), useUnmergedTree = true).performClick()
+        composeTestRule.waitForIdle()
+
+        // Reset calledValue to null since performClick() triggers an initial onValueChange event (focus gain/selection change)
+        calledValue = null
+
+        // Tab key press should not be consumed, and calledValue remains null because onValueChange wasn't called by us
+        composeTestRule
+            .onNode(hasSetTextAction(), useUnmergedTree = true)
+            .performKeyPress(
+                KeyEvent(
+                    android.view.KeyEvent(
+                        android.view.KeyEvent.ACTION_DOWN,
+                        android.view.KeyEvent.KEYCODE_TAB,
+                    ),
+                ),
+            )
+        composeTestRule.waitForIdle()
+
+        assertThat(calledValue?.text).isEqualTo("\tval x = 42")
+    }
+
+    @Test
+    fun `tab key inserts custom indentation string`() {
+        var value = TextFieldValue("val x = 42", selection = TextRange(0))
+        var calledValue: TextFieldValue? = null
+
+        composeTestRule.setContent {
+            CompositionLocalProvider(LocalInspectionMode provides true) {
+                HighlightThemeProvider {
+                    SyntaxHighlightedTextEditor(
+                        value = value,
+                        onValueChange = {
+                            value = it
+                            calledValue = it
+                        },
+                        language = "kotlin",
+                        indentation = "\t",
+                        tabKeyInterceptionEnabled = true,
+                    )
+                }
+            }
+        }
+        composeTestRule.waitForIdle()
+
+        composeTestRule.onNode(hasSetTextAction(), useUnmergedTree = true).performClick()
+        composeTestRule.waitForIdle()
+
+        composeTestRule
+            .onNode(hasSetTextAction(), useUnmergedTree = true)
+            .performKeyPress(
+                KeyEvent(
+                    android.view.KeyEvent(
+                        android.view.KeyEvent.ACTION_DOWN,
+                        android.view.KeyEvent.KEYCODE_TAB,
+                    ),
+                ),
+            )
+        composeTestRule.waitForIdle()
+
+        assertThat(calledValue?.text).isEqualTo("\tval x = 42")
+        assertThat(calledValue?.selection?.start).isEqualTo(1)
+    }
+
+    @Test
+    fun `auto indent copies tab characters`() {
+        var value = TextFieldValue("\t\tval x = 42", selection = TextRange(12))
+        var calledValue: TextFieldValue? = null
+
+        composeTestRule.setContent {
+            CompositionLocalProvider(LocalInspectionMode provides true) {
+                HighlightThemeProvider {
+                    SyntaxHighlightedTextEditor(
+                        value = value,
+                        onValueChange = {
+                            value = it
+                            calledValue = it
+                        },
+                        language = "kotlin",
+                        autoIndentEnabled = true,
+                    )
+                }
+            }
+        }
+        composeTestRule.waitForIdle()
+
+        composeTestRule.onNode(hasSetTextAction(), useUnmergedTree = true).performClick()
+        composeTestRule.waitForIdle()
+
+        composeTestRule.onNode(hasSetTextAction(), useUnmergedTree = true).performTextInput("\n")
+        composeTestRule.waitForIdle()
+
+        assertThat(calledValue?.text).isEqualTo("\t\tval x = 42\n\t\t")
+        assertThat(calledValue?.selection?.start).isEqualTo(15)
+    }
+
+    @Test
+    fun `auto indent handles middle of text insertion`() {
+        var value = TextFieldValue("  valx = 42", selection = TextRange(5)) // Cursor is between 'l' and 'x'
+        var calledValue: TextFieldValue? = null
+
+        composeTestRule.setContent {
+            CompositionLocalProvider(LocalInspectionMode provides true) {
+                HighlightThemeProvider {
+                    SyntaxHighlightedTextEditor(
+                        value = value,
+                        onValueChange = {
+                            value = it
+                            calledValue = it
+                        },
+                        language = "kotlin",
+                        autoIndentEnabled = true,
+                    )
+                }
+            }
+        }
+        composeTestRule.waitForIdle()
+
+        composeTestRule.onNode(hasSetTextAction(), useUnmergedTree = true).performClick()
+        composeTestRule.waitForIdle()
+
+        composeTestRule.onNode(hasSetTextAction(), useUnmergedTree = true).performTextInput("\n")
+        composeTestRule.waitForIdle()
+
+        assertThat(calledValue?.text).isEqualTo("  val\n  x = 42")
+        assertThat(calledValue?.selection?.start).isEqualTo(8)
+    }
+
+    @Test
+    fun `auto indent does nothing when previous line has no indentation`() {
+        var value = TextFieldValue("val x = 42", selection = TextRange(10))
+        var calledValue: TextFieldValue? = null
+
+        composeTestRule.setContent {
+            CompositionLocalProvider(LocalInspectionMode provides true) {
+                HighlightThemeProvider {
+                    SyntaxHighlightedTextEditor(
+                        value = value,
+                        onValueChange = {
+                            value = it
+                            calledValue = it
+                        },
+                        language = "kotlin",
+                        autoIndentEnabled = true,
+                    )
+                }
+            }
+        }
+        composeTestRule.waitForIdle()
+
+        composeTestRule.onNode(hasSetTextAction(), useUnmergedTree = true).performClick()
+        composeTestRule.waitForIdle()
+
+        composeTestRule.onNode(hasSetTextAction(), useUnmergedTree = true).performTextInput("\n")
+        composeTestRule.waitForIdle()
+
+        assertThat(calledValue?.text).isEqualTo("val x = 42\n")
+        assertThat(calledValue?.selection?.start).isEqualTo(11)
+    }
+
+    @Test
+    fun `hardware enter key copies indentation`() {
+        var value = TextFieldValue("    val x = 42", selection = TextRange(14))
+        var calledValue: TextFieldValue? = null
+
+        composeTestRule.setContent {
+            CompositionLocalProvider(LocalInspectionMode provides true) {
+                HighlightThemeProvider {
+                    SyntaxHighlightedTextEditor(
+                        value = value,
+                        onValueChange = {
+                            value = it
+                            calledValue = it
+                        },
+                        language = "kotlin",
+                        autoIndentEnabled = true,
+                    )
+                }
+            }
+        }
+        composeTestRule.waitForIdle()
+
+        composeTestRule.onNode(hasSetTextAction(), useUnmergedTree = true).performClick()
+        composeTestRule.waitForIdle()
+
+        calledValue = null
+
+        composeTestRule
+            .onNode(hasSetTextAction(), useUnmergedTree = true)
+            .performKeyPress(
+                KeyEvent(
+                    android.view.KeyEvent(
+                        android.view.KeyEvent.ACTION_DOWN,
+                        android.view.KeyEvent.KEYCODE_ENTER,
+                    ),
+                ),
+            )
+        composeTestRule.waitForIdle()
+
+        assertThat(calledValue?.text).isEqualTo("    val x = 42\n    ")
+        assertThat(calledValue?.selection?.start).isEqualTo(19)
+    }
+
+    @Test
+    fun `hardware enter key is ignored when disabled`() {
+        var value = TextFieldValue("    val x = 42", selection = TextRange(14))
+        var calledValue: TextFieldValue? = null
+
+        composeTestRule.setContent {
+            CompositionLocalProvider(LocalInspectionMode provides true) {
+                HighlightThemeProvider {
+                    SyntaxHighlightedTextEditor(
+                        value = value,
+                        onValueChange = {
+                            value = it
+                            calledValue = it
+                        },
+                        language = "kotlin",
+                        autoIndentEnabled = false,
+                    )
+                }
+            }
+        }
+        composeTestRule.waitForIdle()
+
+        composeTestRule.onNode(hasSetTextAction(), useUnmergedTree = true).performClick()
+        composeTestRule.waitForIdle()
+
+        calledValue = null
+
+        composeTestRule
+            .onNode(hasSetTextAction(), useUnmergedTree = true)
+            .performKeyPress(
+                KeyEvent(
+                    android.view.KeyEvent(
+                        android.view.KeyEvent.ACTION_DOWN,
+                        android.view.KeyEvent.KEYCODE_ENTER,
+                    ),
+                ),
+            )
+        composeTestRule.waitForIdle()
+
+        assertThat(calledValue?.text).isEqualTo("    val x = 42\n")
+        assertThat(calledValue?.selection?.start).isEqualTo(15)
+    }
+
+    @Test
+    fun `hardware enter key copies tab characters`() {
+        var value = TextFieldValue("\t\tval x = 42", selection = TextRange(12))
+        var calledValue: TextFieldValue? = null
+
+        composeTestRule.setContent {
+            CompositionLocalProvider(LocalInspectionMode provides true) {
+                HighlightThemeProvider {
+                    SyntaxHighlightedTextEditor(
+                        value = value,
+                        onValueChange = {
+                            value = it
+                            calledValue = it
+                        },
+                        language = "kotlin",
+                        autoIndentEnabled = true,
+                    )
+                }
+            }
+        }
+        composeTestRule.waitForIdle()
+
+        composeTestRule.onNode(hasSetTextAction(), useUnmergedTree = true).performClick()
+        composeTestRule.waitForIdle()
+
+        calledValue = null
+
+        composeTestRule
+            .onNode(hasSetTextAction(), useUnmergedTree = true)
+            .performKeyPress(
+                KeyEvent(
+                    android.view.KeyEvent(
+                        android.view.KeyEvent.ACTION_DOWN,
+                        android.view.KeyEvent.KEYCODE_ENTER,
+                    ),
+                ),
+            )
+        composeTestRule.waitForIdle()
+
+        assertThat(calledValue?.text).isEqualTo("\t\tval x = 42\n\t\t")
+        assertThat(calledValue?.selection?.start).isEqualTo(15)
+    }
+
+    @Test
+    fun `tab key replaces selection`() {
+        var value = TextFieldValue("val x = 42", selection = TextRange(4, 9)) // selects "x = 4"
+        var calledValue: TextFieldValue? = null
+
+        composeTestRule.setContent {
+            CompositionLocalProvider(LocalInspectionMode provides true) {
+                HighlightThemeProvider {
+                    SyntaxHighlightedTextEditor(
+                        value = value,
+                        onValueChange = {
+                            value = it
+                            calledValue = it
+                        },
+                        language = "kotlin",
+                        indentation = "    ",
+                        tabKeyInterceptionEnabled = true,
+                    )
+                }
+            }
+        }
+        composeTestRule.waitForIdle()
+
+        composeTestRule.onNode(hasSetTextAction(), useUnmergedTree = true).performClick()
+        composeTestRule.waitForIdle()
+
+        calledValue = null
+
+        composeTestRule
+            .onNode(hasSetTextAction(), useUnmergedTree = true)
+            .performKeyPress(
+                KeyEvent(
+                    android.view.KeyEvent(
+                        android.view.KeyEvent.ACTION_DOWN,
+                        android.view.KeyEvent.KEYCODE_TAB,
+                    ),
+                ),
+            )
+        composeTestRule.waitForIdle()
+
+        assertThat(calledValue?.text).isEqualTo("val     2")
+        assertThat(calledValue?.selection?.start).isEqualTo(8)
+    }
+
     // Note: a Robolectric test asserting selection preservation across a successful highlight
     // cycle (issue #230's `selectionPreservedAcrossNonCollapsedRange` item) was attempted but
     // proved flaky based on test execution ordering - the engine's coroutine pipeline doesn't
