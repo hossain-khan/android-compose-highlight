@@ -1,0 +1,69 @@
+<span class="hljs-comment">// Licensed to the .NET Foundation under one or more agreements.</span>
+<span class="hljs-comment">// The .NET Foundation licenses this file to you under the MIT license.</span>
+
+<span class="hljs-keyword">namespace</span> <span class="hljs-title">Microsoft.EntityFrameworkCore.Diagnostics</span>;
+
+<span class="hljs-comment"><span class="hljs-doctag">///</span> <span class="hljs-doctag">&lt;summary&gt;</span></span>
+<span class="hljs-comment"><span class="hljs-doctag">///</span>     Defines metadata for an event with no parameters and a cached delegate to log the</span>
+<span class="hljs-comment"><span class="hljs-doctag">///</span>     event with reduced allocations.</span>
+<span class="hljs-comment"><span class="hljs-doctag">///</span> <span class="hljs-doctag">&lt;/summary&gt;</span></span>
+<span class="hljs-comment"><span class="hljs-doctag">///</span> <span class="hljs-doctag">&lt;remarks&gt;</span></span>
+<span class="hljs-comment"><span class="hljs-doctag">///</span>     See <span class="hljs-doctag">&lt;see href=&quot;https://aka.ms/efcore-docs-providers&quot;&gt;</span>Implementation of database providers and extensions<span class="hljs-doctag">&lt;/see&gt;</span></span>
+<span class="hljs-comment"><span class="hljs-doctag">///</span>     for more information and examples.</span>
+<span class="hljs-comment"><span class="hljs-doctag">///</span> <span class="hljs-doctag">&lt;/remarks&gt;</span></span>
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title">EventDefinition</span> : <span class="hljs-title">EventDefinitionBase</span>
+{
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> Action&lt;ILogger, Exception?&gt; _logAction;
+
+    <span class="hljs-comment"><span class="hljs-doctag">///</span> <span class="hljs-doctag">&lt;summary&gt;</span></span>
+    <span class="hljs-comment"><span class="hljs-doctag">///</span>     Creates an event definition instance.</span>
+    <span class="hljs-comment"><span class="hljs-doctag">///</span> <span class="hljs-doctag">&lt;/summary&gt;</span></span>
+    <span class="hljs-comment"><span class="hljs-doctag">///</span> <span class="hljs-doctag">&lt;param name=&quot;loggingOptions&quot;&gt;</span>Logging options.<span class="hljs-doctag">&lt;/param&gt;</span></span>
+    <span class="hljs-comment"><span class="hljs-doctag">///</span> <span class="hljs-doctag">&lt;param name=&quot;eventId&quot;&gt;</span>The <span class="hljs-doctag">&lt;see cref=&quot;EventId&quot; /&gt;</span>.<span class="hljs-doctag">&lt;/param&gt;</span></span>
+    <span class="hljs-comment"><span class="hljs-doctag">///</span> <span class="hljs-doctag">&lt;param name=&quot;level&quot;&gt;</span>The <span class="hljs-doctag">&lt;see cref=&quot;LogLevel&quot; /&gt;</span> at which the event will be logged.<span class="hljs-doctag">&lt;/param&gt;</span></span>
+    <span class="hljs-comment"><span class="hljs-doctag">///</span> <span class="hljs-doctag">&lt;param name=&quot;logActionFunc&quot;&gt;</span>Function to create a cached delegate for logging the event.<span class="hljs-doctag">&lt;/param&gt;</span></span>
+    <span class="hljs-comment"><span class="hljs-doctag">///</span> <span class="hljs-doctag">&lt;param name=&quot;eventIdCode&quot;&gt;</span></span>
+    <span class="hljs-comment"><span class="hljs-doctag">///</span>     A string representing the code that should be passed to <span class="hljs-doctag">&lt;see cref=&quot;DbContextOptionsBuilder.ConfigureWarnings&quot; /&gt;</span>.</span>
+    <span class="hljs-comment"><span class="hljs-doctag">///</span> <span class="hljs-doctag">&lt;/param&gt;</span></span>
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">EventDefinition</span>(<span class="hljs-params">
+        ILoggingOptions loggingOptions,
+        EventId eventId,
+        LogLevel level,
+        <span class="hljs-built_in">string</span> eventIdCode,
+        Func&lt;LogLevel, Action&lt;ILogger, Exception?&gt;&gt; logActionFunc</span>)
+        : <span class="hljs-title">base</span>(<span class="hljs-params">loggingOptions, eventId, level, eventIdCode</span>)</span>
+        =&gt; _logAction = logActionFunc(Level);
+
+    <span class="hljs-comment"><span class="hljs-doctag">///</span> <span class="hljs-doctag">&lt;summary&gt;</span></span>
+    <span class="hljs-comment"><span class="hljs-doctag">///</span>     Generates the message that would be logged without logging it.</span>
+    <span class="hljs-comment"><span class="hljs-doctag">///</span>     Typically used for throwing an exception in warning-as-error cases.</span>
+    <span class="hljs-comment"><span class="hljs-doctag">///</span> <span class="hljs-doctag">&lt;/summary&gt;</span></span>
+    <span class="hljs-comment"><span class="hljs-doctag">///</span> <span class="hljs-doctag">&lt;returns&gt;</span>The message string.<span class="hljs-doctag">&lt;/returns&gt;</span></span>
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">virtual</span> <span class="hljs-built_in">string</span> <span class="hljs-title">GenerateMessage</span>()</span>
+    {
+        <span class="hljs-keyword">var</span> extractor = <span class="hljs-keyword">new</span> MessageExtractingLogger();
+        _logAction(extractor, <span class="hljs-literal">null</span>);
+        <span class="hljs-keyword">return</span> extractor.Message;
+    }
+
+    <span class="hljs-comment"><span class="hljs-doctag">///</span> <span class="hljs-doctag">&lt;summary&gt;</span></span>
+    <span class="hljs-comment"><span class="hljs-doctag">///</span>     Logs the event, or throws if the event has been configured to be treated as an error.</span>
+    <span class="hljs-comment"><span class="hljs-doctag">///</span> <span class="hljs-doctag">&lt;/summary&gt;</span></span>
+    <span class="hljs-comment"><span class="hljs-doctag">///</span> <span class="hljs-doctag">&lt;typeparam name=&quot;TLoggerCategory&quot;&gt;</span>The <span class="hljs-doctag">&lt;see cref=&quot;DbLoggerCategory&quot; /&gt;</span>.<span class="hljs-doctag">&lt;/typeparam&gt;</span></span>
+    <span class="hljs-comment"><span class="hljs-doctag">///</span> <span class="hljs-doctag">&lt;param name=&quot;logger&quot;&gt;</span>The logger to which the event should be logged.<span class="hljs-doctag">&lt;/param&gt;</span></span>
+    <span class="hljs-comment"><span class="hljs-doctag">///</span> <span class="hljs-doctag">&lt;param name=&quot;exception&quot;&gt;</span>Optional exception associated with the event.<span class="hljs-doctag">&lt;/param&gt;</span></span>
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">virtual</span> <span class="hljs-keyword">void</span> <span class="hljs-title">Log</span>&lt;<span class="hljs-title">TLoggerCategory</span>&gt;(<span class="hljs-params">
+        IDiagnosticsLogger&lt;TLoggerCategory&gt; logger,
+        Exception? exception = <span class="hljs-literal">null</span></span>)
+        <span class="hljs-keyword">where</span> TLoggerCategory : LoggerCategory&lt;TLoggerCategory&gt;, <span class="hljs-keyword">new</span>()</span>
+    {
+        <span class="hljs-keyword">switch</span> (WarningBehavior)
+        {
+            <span class="hljs-keyword">case</span> WarningBehavior.Log:
+                _logAction(logger.Logger, exception);
+                <span class="hljs-keyword">break</span>;
+            <span class="hljs-keyword">case</span> WarningBehavior.Throw:
+                <span class="hljs-keyword">throw</span> WarningAsError(GenerateMessage());
+        }
+    }
+}
