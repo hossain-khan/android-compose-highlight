@@ -6,6 +6,13 @@ For release artifacts and APK downloads, see the [GitHub Releases page](https://
 
 ## Recent highlights
 
+### 0.29.0 - Tab and auto-indent support in text editor
+
+- Added `indentation`, `autoIndentEnabled`, and `tabKeyInterceptionEnabled` parameters to `SyntaxHighlightedTextEditor`
+- Tab key hardware interception to insert custom indentation instead of shifting focus
+- Auto-indentation to automatically copy the previous line's leading whitespace on hardware/virtual keyboards
+- Intercepted arrow keys to prevent focus from escaping the editor boundaries
+
 ### 0.28.0 - Vector copy icon and sample app polish
 
 - Default copy icon replaced with vector drawable (`copy_code_block.xml`) with proportional scaling
@@ -37,13 +44,6 @@ For release artifacts and APK downloads, see the [GitHub Releases page](https://
 - Added `SyntaxHighlightedTextEditorDefaults` object with pre-allocated singletons to reduce GC pressure while typing
 - Dokka API site rethemed to match the main docs site with shared light/dark palette state
 - Upgraded Zensical to 0.0.43 with improved link validation
-
-### 0.24.1 - Live editor state management fixes
-
-- Fixed span color loss in `SyntaxHighlightedTextEditor` during mid-text edits via prefix/suffix analysis
-- Added `onHighlightComplete` callback to `SyntaxHighlightedTextEditor` for deterministic testing
-- New public helper `rememberSyntaxHighlightedEditorValue()` for custom editor layouts with syntax highlighting
-- Eliminated stale `LaunchedEffect` for span clearing; stale detection now happens in-composition
 
 ---
 

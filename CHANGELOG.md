@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.29.0] - 2026-06-12
+
 ### Added
 
 - **Tab and auto-indent support in SyntaxHighlightedTextEditor** - Added `indentation`, `autoIndentEnabled`,
