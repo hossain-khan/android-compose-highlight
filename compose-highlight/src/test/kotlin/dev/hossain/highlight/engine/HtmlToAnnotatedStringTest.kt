@@ -5,6 +5,7 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.font.FontWeight
 import com.google.common.truth.Truth.assertThat
 import dev.hossain.highlight.engine.internal.HtmlToAnnotatedString
+import dev.hossain.highlight.screenshot.TestSnippets
 import org.junit.Test
 
 class HtmlToAnnotatedStringTest {
@@ -340,5 +341,25 @@ class HtmlToAnnotatedStringTest {
         val darkFullRange = dark.spanStyles.filter { it.start == 0 && it.end == dark.text.length }
         assertThat(lightFullRange).isEmpty()
         assertThat(darkFullRange).isEmpty()
+    }
+
+    @Test
+    fun `convert matches original source code exactly for real world snippets`() {
+        val realSnippets = listOf("real-kotlin", "real-c", "real-rust", "real-go", "real-csharp")
+        for (name in realSnippets) {
+            val snippet = TestSnippets.load(name)
+            val result = HtmlToAnnotatedString.convert(snippet.highlightedHtml, colorMap)
+            // The converted plain text must match the original source code exactly.
+            assertThat(result.text).isEqualTo(snippet.code)
+            // There should be some highlighted span styles present.
+            assertThat(result.spanStyles).isNotEmpty()
+
+            // Verify convertBothThemes also works and matches.
+            val (light, dark) = HtmlToAnnotatedString.convertBothThemes(snippet.highlightedHtml, colorMap, darkColorMap)
+            assertThat(light.text).isEqualTo(snippet.code)
+            assertThat(dark.text).isEqualTo(snippet.code)
+            assertThat(light.spanStyles).isNotEmpty()
+            assertThat(dark.spanStyles).isNotEmpty()
+        }
     }
 }

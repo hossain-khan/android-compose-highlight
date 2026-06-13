@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+
+- **Real-world language HTML parsing test coverage** - Added comprehensive test coverage for
+  Kotlin, C, Rust, Go, and C# source code snippets taken from popular open-source libraries.
+
 ## [0.29.0] - 2026-06-12
 
 ### Added
