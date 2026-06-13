@@ -15,15 +15,17 @@ All notable changes to this project will be documented in this file.
   walker (`HtmlToAnnotatedString`) was updated to use the new lightweight node tree.
 
   **Why this matters for downstream apps**:
-  - **Removes the Jsoup transitive dependency** (`org.jsoup:jsoup:1.22.2`,
-    ~501 KB compressed jar / ~979 KB unpacked across 329 classes) from the published POM.
-    Consumers no longer pull it at build or runtime.
+  - **Removes the Jsoup transitive dependency** (`org.jsoup:jsoup:1.22.2`) from the published POM.
+    Consumers no longer pull the ~501 KB unshrunk jar (329 classes) at build or runtime.
   - **Removes 4 R8/ProGuard `-keep` rules** from `consumer-rules.pro` (`org.jsoup.Jsoup`,
     `org.jsoup.parser.**`, `org.jsoup.nodes.**`, `org.jsoup.select.**`). One fewer transitive
     library for downstream R8/ProGuard pipelines to analyze; one fewer source of shrinker bugs.
-  - **Library AAR grows by ~7 KB** (546 KB → 553 KB) because the parser code now ships in the
-    module. The AAR never bundled Jsoup itself - it was always pulled separately - so the net
-    consumer-side footprint impact is ~501 KB lighter (before R8 shrink; smaller after).
+  - **Sample APK is 128.7 KB smaller (-5.49%)** post-R8 — measured by diffing the published
+    sample APKs for 0.29.0 vs 0.30.0 with `diffuse`. The dex shrunk by 268 KB uncompressed
+    (-271 classes, -2,298 methods); other APK sections (resources, manifest, assets) are
+    byte-identical. The library AAR itself grows by ~7 KB (546 KB → 553 KB) because the
+    parser code now ships in the module — but the AAR never bundled Jsoup, so the net
+    consumer-side footprint is meaningfully lighter.
   - **Prepares the codebase for Kotlin Multiplatform (KMP)** - Jsoup is JVM-only; the new
     parser is pure Kotlin with no JVM-specific APIs.
 
