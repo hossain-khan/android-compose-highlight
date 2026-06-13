@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Performance
+
+- **Optimized HTML-to-AnnotatedString pipeline with SAX-style single-pass parsing** -
+  Replaced the two-phase approach (parse HTML into intermediate `CustomNode` tree, then walk
+  the tree to build `AnnotatedString`) with SAX-style `parseAndBuild`/`parseAndBuildBoth`
+  functions that parse HTML and emit spans in a single pass, eliminating all intermediate tree
+  allocations. Combined with substring avoidance in tag parsing, in-place attribute extraction,
+  lazy entity decoding, and allocation-free numeric character reference parsing.
+  Benchmarks show **29-57% faster single-theme** and **5-39% faster dual-theme** conversions
+  across all six real-world fixtures (100 warmup, 50 measurement iterations).
+
 ## [0.30.0] - 2026-06-13
 
 ### Changed
