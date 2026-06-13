@@ -81,8 +81,8 @@ class HtmlParserBenchmark {
     }
 
     companion object {
-        private const val WARMUP_ITERATIONS = 5
-        private const val MEASUREMENT_ITERATIONS = 30
+        private const val WARMUP_ITERATIONS = 100
+        private const val MEASUREMENT_ITERATIONS = 50
 
         private lateinit var kotlinHtml: String
         private lateinit var cHtml: String
