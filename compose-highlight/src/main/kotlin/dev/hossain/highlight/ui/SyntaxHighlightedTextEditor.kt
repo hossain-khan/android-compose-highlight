@@ -13,8 +13,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
@@ -148,6 +154,11 @@ import dev.hossain.highlight.engine.HighlightTheme
  *   fails. The editor falls back to plain text on failure regardless of whether this callback
  *   is set - it is purely observational. Use it to log failures, show a snackbar, or record
  *   analytics. Defaults to `null` (no callback).
+ * @param indentation Indentation string to insert when the Tab key is pressed. Defaults to 4 spaces.
+ * @param autoIndentEnabled Whether to automatically copy the indentation of the previous line when
+ *   inserting a newline. Defaults to true.
+ * @param tabKeyInterceptionEnabled Whether to intercept the hardware Tab key to insert spaces
+ *   instead of shifting focus to the next view. Defaults to true.
  *
  * **Note on [shape]:** if you pass a custom [Shape] (e.g. `RoundedCornerShape(8.dp)`), wrap
  * it in `remember` at the call site so that a new instance is not created on every
@@ -169,6 +180,9 @@ fun SyntaxHighlightedTextEditor(
     debounceMs: Long = SyntaxHighlightedTextEditorDefaults.DEBOUNCE_MS,
     onHighlightComplete: ((HighlightResult) -> Unit)? = null,
     onError: ((HighlightException) -> Unit)? = null,
+    indentation: String = SyntaxHighlightedTextEditorDefaults.DEFAULT_INDENTATION,
+    autoIndentEnabled: Boolean = SyntaxHighlightedTextEditorDefaults.AUTO_INDENT_ENABLED,
+    tabKeyInterceptionEnabled: Boolean = SyntaxHighlightedTextEditorDefaults.TAB_KEY_INTERCEPTION_ENABLED,
 ) {
     val displayValue =
         rememberSyntaxHighlightedEditorValue(
@@ -200,6 +214,107 @@ fun SyntaxHighlightedTextEditor(
             resolveEditorCursorBrush(cursorBrush, textColor)
         }
 
+    val handleValueChange: (TextFieldValue) -> Unit = { newValue ->
+        if (autoIndentEnabled) {
+            val oldText = value.text
+            val newText = newValue.text
+
+            // Detect single character insertion where the new char is newline '\n'
+            if (newText.length == oldText.length + 1 &&
+                newValue.selection.start == value.selection.start + 1 &&
+                newText[value.selection.start] == '\n'
+            ) {
+                val cursorPosition = value.selection.start
+
+                // Find start of previous line
+                var lineStart = cursorPosition - 1
+                while (lineStart >= 0 && oldText[lineStart] != '\n') {
+                    lineStart--
+                }
+                lineStart++ // Move past '\n' or start at index 0
+
+                // Extract previous line's indent
+                var indentEnd = lineStart
+                while (indentEnd < cursorPosition && (oldText[indentEnd] == ' ' || oldText[indentEnd] == '\t')) {
+                    indentEnd++
+                }
+                val indent = oldText.substring(lineStart, indentEnd)
+
+                if (indent.isNotEmpty()) {
+                    val autoIndentedText =
+                        newText.substring(0, newValue.selection.start) +
+                            indent +
+                            newText.substring(newValue.selection.start)
+                    val autoIndentedSelection = TextRange(newValue.selection.start + indent.length)
+                    onValueChange(newValue.copy(text = autoIndentedText, selection = autoIndentedSelection))
+                } else {
+                    onValueChange(newValue)
+                }
+            } else {
+                onValueChange(newValue)
+            }
+        } else {
+            onValueChange(newValue)
+        }
+    }
+
+    val previewKeyModifier =
+        if (tabKeyInterceptionEnabled || autoIndentEnabled) {
+            Modifier.onPreviewKeyEvent { keyEvent ->
+                if (keyEvent.type != KeyEventType.KeyDown) return@onPreviewKeyEvent false
+
+                when (keyEvent.key) {
+                    Key.Tab -> {
+                        if (tabKeyInterceptionEnabled) {
+                            val text = value.text
+                            val selection = value.selection
+                            val newText = text.replaceRange(selection.min, selection.max, indentation)
+                            val newSelection = TextRange(selection.min + indentation.length)
+                            onValueChange(value.copy(text = newText, selection = newSelection))
+                            true
+                        } else {
+                            false
+                        }
+                    }
+
+                    Key.Enter -> {
+                        if (autoIndentEnabled) {
+                            val text = value.text
+                            val selection = value.selection
+                            val cursorPosition = selection.start
+
+                            var lineStart = cursorPosition - 1
+                            while (lineStart >= 0 && text[lineStart] != '\n') {
+                                lineStart--
+                            }
+                            lineStart++
+
+                            var indentEnd = lineStart
+                            while (indentEnd < cursorPosition && (text[indentEnd] == ' ' || text[indentEnd] == '\t')) {
+                                indentEnd++
+                            }
+                            val indent = text.substring(lineStart, indentEnd)
+
+                            val insertion = "\n" + indent
+                            val newText = text.replaceRange(selection.min, selection.max, insertion)
+                            val newSelection = TextRange(selection.min + insertion.length)
+
+                            onValueChange(value.copy(text = newText, selection = newSelection))
+                            true
+                        } else {
+                            false
+                        }
+                    }
+
+                    else -> {
+                        false
+                    }
+                }
+            }
+        } else {
+            Modifier
+        }
+
     Surface(
         modifier = modifier.testTag("syntax-highlighted-text-editor"),
         shape = shape,
@@ -208,11 +323,11 @@ fun SyntaxHighlightedTextEditor(
     ) {
         BasicTextField(
             value = displayValue,
-            onValueChange = onValueChange,
+            onValueChange = handleValueChange,
             textStyle = themedTextStyle,
             keyboardOptions = keyboardOptions,
             cursorBrush = resolvedCursorBrush,
-            modifier = Modifier.padding(contentPadding),
+            modifier = previewKeyModifier.padding(contentPadding),
         )
     }
 }

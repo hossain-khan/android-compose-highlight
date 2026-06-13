@@ -74,4 +74,13 @@ object SyntaxHighlightedTextEditorDefaults {
             autoCorrectEnabled = false,
             keyboardType = KeyboardType.Ascii,
         )
+
+    /** Default indentation string: 4 spaces. */
+    const val DEFAULT_INDENTATION: String = "    "
+
+    /** Default enablement of auto-indentation. */
+    const val AUTO_INDENT_ENABLED: Boolean = true
+
+    /** Default enablement of Tab key interception to insert spaces rather than shift focus. */
+    const val TAB_KEY_INTERCEPTION_ENABLED: Boolean = true
 }

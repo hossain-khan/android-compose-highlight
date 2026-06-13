@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+
+- **Tab and auto-indent support in SyntaxHighlightedTextEditor** - Added `indentation`, `autoIndentEnabled`,
+  and `tabKeyInterceptionEnabled` parameters. Features include Tab key hardware interception to insert spaces, and
+  auto-indentation copy of the previous line's leading whitespace on hardware/virtual keyboards (e.g. Gboard).
+
 ## [0.28.0] - 2026-06-06
 
 ### Changed

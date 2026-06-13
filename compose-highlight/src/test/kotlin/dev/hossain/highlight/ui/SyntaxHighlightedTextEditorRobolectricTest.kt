@@ -2,11 +2,17 @@ package dev.hossain.highlight.ui
 
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
+import androidx.compose.ui.input.key.KeyEvent
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performKeyPress
+import androidx.compose.ui.test.performTextInput
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
@@ -160,6 +166,85 @@ class SyntaxHighlightedTextEditorRobolectricTest {
         assertThat(errors[0]).isInstanceOf(HighlightException.JsExecutionFailed::class.java)
 
         engine.destroy()
+    }
+
+    @Test
+    fun `auto indent copies indentation on newline`() {
+        var value = TextFieldValue("    val x = 42", selection = TextRange(14))
+        var calledValue: TextFieldValue? = null
+
+        composeTestRule.setContent {
+            CompositionLocalProvider(LocalInspectionMode provides true) {
+                HighlightThemeProvider {
+                    SyntaxHighlightedTextEditor(
+                        value = value,
+                        onValueChange = {
+                            value = it
+                            calledValue = it
+                        },
+                        language = "kotlin",
+                        autoIndentEnabled = true,
+                    )
+                }
+            }
+        }
+        composeTestRule.waitForIdle()
+
+        // Focus the text field
+        composeTestRule.onNode(hasSetTextAction(), useUnmergedTree = true).performClick()
+        composeTestRule.waitForIdle()
+
+        // Simulate user typing a newline character at the end of the text
+        composeTestRule.onNode(hasSetTextAction(), useUnmergedTree = true).performTextInput("\n")
+        composeTestRule.waitForIdle()
+
+        // The expected value should have the indentation "    " automatically appended
+        assertThat(calledValue?.text).isEqualTo("    val x = 42\n    ")
+        assertThat(calledValue?.selection?.start).isEqualTo(19)
+    }
+
+    @Test
+    fun `tab key inserts spaces`() {
+        var value = TextFieldValue("val x = 42", selection = TextRange(0))
+        var calledValue: TextFieldValue? = null
+
+        composeTestRule.setContent {
+            CompositionLocalProvider(LocalInspectionMode provides true) {
+                HighlightThemeProvider {
+                    SyntaxHighlightedTextEditor(
+                        value = value,
+                        onValueChange = {
+                            value = it
+                            calledValue = it
+                        },
+                        language = "kotlin",
+                        indentation = "    ",
+                        tabKeyInterceptionEnabled = true,
+                    )
+                }
+            }
+        }
+        composeTestRule.waitForIdle()
+
+        // Focus the text field
+        composeTestRule.onNode(hasSetTextAction(), useUnmergedTree = true).performClick()
+        composeTestRule.waitForIdle()
+
+        // Simulate pressing Tab on hardware keyboard
+        composeTestRule
+            .onNode(hasSetTextAction(), useUnmergedTree = true)
+            .performKeyPress(
+                KeyEvent(
+                    android.view.KeyEvent(
+                        android.view.KeyEvent.ACTION_DOWN,
+                        android.view.KeyEvent.KEYCODE_TAB,
+                    ),
+                ),
+            )
+        composeTestRule.waitForIdle()
+
+        assertThat(calledValue?.text).isEqualTo("    val x = 42")
+        assertThat(calledValue?.selection?.start).isEqualTo(4)
     }
 
     // Note: a Robolectric test asserting selection preservation across a successful highlight
