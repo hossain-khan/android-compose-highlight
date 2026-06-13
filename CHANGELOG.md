@@ -7,7 +7,7 @@ All notable changes to this project will be documented in this file.
 ### Changed
 
 - **Replaced Jsoup with lightweight custom HTML parser** - Replaced the JVM-only Jsoup dependency
-  with a custom HTML parser in `HtmlToAnnotatedString`. This removes the Jsoup dependency, resolves
+  with a custom HTML parser in `HtmlParser`. This removes the Jsoup dependency, resolves
   R8 Proguard issues, reduces build sizes, and prepares the codebase for Kotlin Multiplatform (KMP).
 
 ### Added
