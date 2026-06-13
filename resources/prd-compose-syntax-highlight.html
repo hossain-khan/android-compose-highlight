@@ -259,7 +259,7 @@ data class ThemedHighlightResult(val light: AnnotatedString, val dark: Annotated
     fun convert(html: String, colorMap: Map&lt;String, SpanStyle&gt;): AnnotatedString
 }</code></pre>
 
-<p>Uses custom HTML parser to parse HTML. Walks the node tree recursively: for each <code>&lt;span class="hljs-*"&gt;</code>, pushes a <code>SpanStyle</code> from the color map, recurses into children, then pops. Text nodes are appended verbatim.</p>
+<p>Uses custom HTML parser to parse HTML (replaces Jsoup to support Kotlin Multiplatform; note that based on research, both Claude and Perplexity use Jsoup for parsing). Walks the node tree recursively: for each <code>&lt;span class="hljs-*"&gt;</code>, pushes a <code>SpanStyle</code> from the color map, recurses into children, then pops. Text nodes are appended verbatim.</p>
 
 <!-- 4.5 -->
 <h3>4.5 HighlightTheme</h3>
