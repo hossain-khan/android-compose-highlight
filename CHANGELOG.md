@@ -6,14 +6,45 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
-- **Replaced Jsoup with lightweight custom HTML parser** - Replaced the JVM-only Jsoup dependency
-  with a custom HTML parser in `HtmlParser`. This removes the Jsoup dependency, resolves
-  R8 Proguard issues, reduces build sizes, and prepares the codebase for Kotlin Multiplatform (KMP).
+- **Replaced Jsoup with a lightweight custom HTML parser** - Replaced the JVM-only Jsoup dependency
+  with a single-pass pure-Kotlin HTML tokenizer (`HtmlParser.kt`) scoped to the narrow subset of
+  HTML that highlight.js emits (nested `<span class="hljs-*">` elements, comments, text, and the
+  six common named entities plus numeric character references). The HTML-to-`AnnotatedString`
+  walker (`HtmlToAnnotatedString`) was updated to use the new lightweight node tree.
+
+  **Why this matters for downstream apps**:
+  - **Removes the Jsoup transitive dependency** (`org.jsoup:jsoup:1.22.2`,
+    ~501 KB compressed jar / ~979 KB unpacked across 329 classes) from the published POM.
+    Consumers no longer pull it at build or runtime.
+  - **Removes 4 R8/ProGuard `-keep` rules** from `consumer-rules.pro` (`org.jsoup.Jsoup`,
+    `org.jsoup.parser.**`, `org.jsoup.nodes.**`, `org.jsoup.select.**`). One fewer transitive
+    library for downstream R8/ProGuard pipelines to analyze; one fewer source of shrinker bugs.
+  - **Library AAR grows by ~7 KB** (546 KB → 553 KB) because the parser code now ships in the
+    module. The AAR never bundled Jsoup itself - it was always pulled separately - so the net
+    consumer-side footprint impact is ~501 KB lighter (before R8 shrink; smaller after).
+  - **Prepares the codebase for Kotlin Multiplatform (KMP)** - Jsoup is JVM-only; the new
+    parser is pure Kotlin with no JVM-specific APIs.
+
+  **Performance** (JVM benchmark on the six real-world fixtures, median of 3 runs at the `min`
+  data point):
+  - Dual-theme `convertBothThemes` (the path the engine uses) is **1.27×-1.97× faster** across
+    all six fixtures.
+  - Single-theme `convert` is mostly faster (1.27×-1.98× on C#/Go/C); SQL/Kotlin/Rust were
+    within run-to-run noise on this hardware.
+
+  **Behavioral change** - the new parser uses HTML5-style implicit-close recovery for malformed
+  inputs (e.g. `<span><b>x</span>`), matching what Jsoup did. highlight.js does not emit such
+  inputs; this only affects callers who feed non-hljs HTML directly to internal API.
 
 ### Added
 
 - **Real-world language HTML parsing test coverage** - Added comprehensive test coverage for
   Kotlin, C, Rust, Go, C#, and SQL source code snippets taken from popular open-source libraries.
+- **JVM microbenchmark for `HtmlToAnnotatedString`** - `HtmlParserBenchmark` in
+  `src/test/kotlin/.../benchmark/`, opt-in via `-PrunBenchmark=true`, runs 5 warmup + 30
+  measurement iterations against the six real-world fixtures and emits a JSON report at
+  `compose-highlight/build/reports/benchmarks/html-parser-baseline-<epoch-ms>.json`. Skipped by
+  default, so `:test` stays fast.
 
 ## [0.29.0] - 2026-06-12
 
