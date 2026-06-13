@@ -289,7 +289,7 @@ mutex.withLock {                           // 1 JS call at a time
     }
 }</code></pre>
 
-<p><code>WebView</code> can only handle one <code>evaluateJavascript</code> at a time. With N composables firing concurrent <code>highlight()</code> calls, the engine queues them through the mutex so they don&rsquo;t clobber each other. CPU work that follows the JS call (theme parsing, jsoup HTML walk) runs <em>outside</em> the mutex on <code>Dispatchers.Default</code> &mdash; the lock is released as soon as the JS call returns.</p>
+<p><code>WebView</code> can only handle one <code>evaluateJavascript</code> at a time. With N composables firing concurrent <code>highlight()</code> calls, the engine queues them through the mutex so they don&rsquo;t clobber each other. CPU work that follows the JS call (theme parsing, custom HTML parser) runs <em>outside</em> the mutex on <code>Dispatchers.Default</code> &mdash; the lock is released as soon as the JS call returns.</p>
 
 <h2>Walkthrough: a single highlight call inside a provider</h2>
 
@@ -332,7 +332,7 @@ sequenceDiagram
     Engine->>Default: switch dispatcher
     activate Default
     Default->>Default: theme.timedColorMap()<br/>(CSS parse, lazy)
-    Default->>Default: HtmlToAnnotatedString.convert<br/>(jsoup tree walk)
+    Default->>Default: HtmlToAnnotatedString.convert<br/>(custom parser + tree walk)
     Default-->>Engine: HighlightResult
     deactivate Default
 

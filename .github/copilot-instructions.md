@@ -106,7 +106,7 @@ SyntaxHighlightedCode   ← primary public composable
                    ├── engine/internal/WebViewManager           ← owns the hidden WebView
                    ├── HighlightTheme                           ← public, CSS-backed theme model
                    │     └── engine/internal/ThemeParser        ← CSS → Map<selector, SpanStyle>
-                   ├── engine/internal/HtmlToAnnotatedString    ← jsoup → AnnotatedString
+                   ├── engine/internal/HtmlToAnnotatedString    ← HtmlParser → AnnotatedString
                    ├── engine/internal/JsStringEscape           ← escapeForJs / unescapeJsString
                    └── engine/internal/EngineErrorHandling      ← withEngine* / withHtmlParsing* helpers
 
@@ -128,7 +128,7 @@ human-readable signal; the modifier is the enforcement. Dokka suppresses
 1. `WebViewManager` creates a hidden (off-screen) `WebView` on the Main thread and loads `bridge.html` from `assets/compose-highlight/`. This page loads `highlight.min.js` and exposes `highlightCode(code, lang)`.
 2. `HighlightEngine` serializes calls with a `Mutex` and calls `evaluateJavascript()` to invoke `highlightCode`, getting back HTML with `<span class="hljs-*">` tokens.
 3. `ThemeParser` lazily parses a Highlight.js CSS file into a `Map<String, SpanStyle>` (selector → style), cached per `HighlightTheme` instance.
-4. `HtmlToAnnotatedString` uses jsoup to walk the HTML and applies the theme's `SpanStyle` map to produce a Compose `AnnotatedString`.
+4. `HtmlToAnnotatedString` uses `HtmlParser` to parse the HTML and applies the theme's `SpanStyle` map to produce a Compose `AnnotatedString`.
 
 **Shared engine via `HighlightThemeProvider`:** The provider creates a single `HighlightEngine` (one hidden WebView) for its entire subtree and exposes it via the internal `LocalHighlightEngine` CompositionLocal. `rememberHighlightEngine()` reads it when inside the provider - no extra WebView is created. Outside the provider, `rememberHighlightEngine()` creates a standalone engine that it destroys itself via `DisposableEffect`. This means N code blocks inside a provider share 1 WebView instead of N.
 

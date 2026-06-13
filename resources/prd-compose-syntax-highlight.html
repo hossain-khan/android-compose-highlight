@@ -158,7 +158,7 @@
 └──────────────────┬──────────────────────────────┘
                    ▼
 ┌─ HtmlToAnnotatedString ────────────────────────┐
-│  Jsoup.parse(html) → recursive tree walk       │
+│  parseHtml(html) → recursive tree walk         │
 │  &lt;span class="hljs-keyword"&gt;                   │
 │    → pushStyle(map["hljs-keyword"])             │
 │    → recurse children → pop()                   │
@@ -259,7 +259,7 @@ data class ThemedHighlightResult(val light: AnnotatedString, val dark: Annotated
     fun convert(html: String, colorMap: Map&lt;String, SpanStyle&gt;): AnnotatedString
 }</code></pre>
 
-<p>Uses jsoup to parse HTML. Walks the DOM tree recursively: for each <code>&lt;span class="hljs-*"&gt;</code>, pushes a <code>SpanStyle</code> from the color map, recurses into children, then pops. Text nodes are appended verbatim.</p>
+<p>Uses custom HTML parser to parse HTML (replaces Jsoup to support Kotlin Multiplatform; note that based on research, both Claude and Perplexity use Jsoup for parsing). Walks the node tree recursively: for each <code>&lt;span class="hljs-*"&gt;</code>, pushes a <code>SpanStyle</code> from the color map, recurses into children, then pops. Text nodes are appended verbatim.</p>
 
 <!-- 4.5 -->
 <h3>4.5 HighlightTheme</h3>
@@ -374,7 +374,7 @@ LaunchedEffect(code) {
   <thead><tr><th>Dependency</th><th>Purpose</th></tr></thead>
   <tbody>
     <tr><td><code>androidx.webkit:webkit:1.11.0</code></td><td>WebViewAssetLoader (Perplexity's approach)</td></tr>
-    <tr><td><code>org.jsoup:jsoup:1.18.1</code></td><td>HTML parsing (used by Claude + Perplexity)</td></tr>
+    <tr><td>(None)</td><td>Custom HTML parsing (replaces Jsoup)</td></tr>
     <tr><td><code>androidx.compose:compose-bom</code></td><td>Compose UI, Foundation, Material3</td></tr>
     <tr><td><code>kotlinx-coroutines-android</code></td><td>Main-thread dispatching, Mutex</td></tr>
   </tbody>
@@ -506,7 +506,7 @@ LaunchedEffect(code) {
   <li><strong>Project setup</strong> &mdash; Gradle project, dependencies, build config</li>
   <li><strong>Asset bundle</strong> &mdash; Download highlight.min.js, create bridge.html, add theme CSS</li>
   <li><strong>ThemeParser</strong> &mdash; Implement + unit test (no Android deps)</li>
-  <li><strong>HtmlToAnnotatedString</strong> &mdash; Implement + unit test (jsoup only)</li>
+  <li><strong>HtmlToAnnotatedString</strong> &mdash; Implement + unit test (replaces Jsoup with custom parser)</li>
   <li><strong>HighlightEngine</strong> &mdash; WebView manager + JS bridge + instrumented tests</li>
   <li><strong>HighlightTheme</strong> &mdash; Wire up lazy theme maps</li>
   <li><strong>SyntaxHighlightedCode</strong> &mdash; Full composable with all UI features</li>

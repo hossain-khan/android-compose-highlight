@@ -52,7 +52,7 @@ class HighlightEngineHtmlParsingErrorHandlingTest {
     @Test
     fun `generic Exception is wrapped in HtmlParseFailed`() =
         runTest {
-            val cause = RuntimeException("jsoup parse error")
+            val cause = RuntimeException("HTML parse error")
 
             val result = withHtmlParsingErrorHandling<Unit> { throw cause }
 

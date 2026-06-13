@@ -209,7 +209,7 @@ internal fun ComposeContentTestRule.captureHighlightedScreenshot(
 
     // After invoking the JS callback the engine still has 4 stages to walk:
     //   (1) resume the suspended coroutine on Dispatchers.Main,
-    //   (2) hop to Dispatchers.Default for jsoup parse + AnnotatedString build,
+    //   (2) hop to Dispatchers.Default for custom HTML parse + AnnotatedString build,
     //   (3) hop back to Main and write State<AnnotatedString?>,
     //   (4) trigger recomposition + AnimatedContent fade frames.
     // Under v2 createComposeRule's StandardTestDispatcher each hop is its own scheduler

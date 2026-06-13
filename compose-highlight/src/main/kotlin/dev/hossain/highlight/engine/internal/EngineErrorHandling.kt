@@ -42,7 +42,7 @@ internal suspend fun <T> withEngineErrorHandling(block: suspend () -> Result<T>)
  * Used by [dev.hossain.highlight.engine.HighlightEngine.highlight],
  * [dev.hossain.highlight.engine.HighlightEngine.highlightBothThemes], and
  * [dev.hossain.highlight.engine.HighlightEngine.highlightAuto] inside their
- * `withContext(Dispatchers.Default)` blocks to handle errors from theme resolution and jsoup
+ * `withContext(Dispatchers.Default)` blocks to handle errors from theme resolution and HTML parser
  * conversion. Extracted as an internal helper to eliminate the repeated catch chain and enable
  * direct unit testing without a real WebView.
  */

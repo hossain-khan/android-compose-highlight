@@ -7,16 +7,16 @@ import androidx.compose.ui.text.buildAnnotatedString
 import dev.hossain.highlight.engine.HighlightEngine
 import dev.hossain.highlight.engine.HighlightTimings
 import dev.hossain.highlight.engine.HljsSelectors
-import org.jsoup.Jsoup
-import org.jsoup.nodes.Element
-import org.jsoup.nodes.TextNode
 import kotlin.time.Duration
 import kotlin.time.measureTimedValue
+
+// Hoisted to module scope so the dual-theme tree walk doesn't recompile the pattern per span.
+private val WHITESPACE_REGEX = Regex("\\s+")
 
 /**
  * Converts Highlight.js HTML output into a Compose [AnnotatedString].
  *
- * Uses jsoup to parse the HTML fragment and performs a recursive tree walk,
+ * Uses a lightweight, custom HTML tokenizer/parser that runs in a single pass,
  * pushing/popping [SpanStyle] for each `<span class="hljs-*">` element.
  */
 internal object HtmlToAnnotatedString {
@@ -39,7 +39,7 @@ internal object HtmlToAnnotatedString {
     /**
      * Converts highlighted HTML to [AnnotatedString] with per-stage timing data.
      *
-     * Measures time separately for the jsoup parse pass and the DOM tree walk,
+     * Measures time separately for the custom parse pass and the tree walk,
      * so [HighlightEngine] can populate [HighlightTimings] fields.
      *
      * @param html HTML fragment output from highlight.js (not a full document)
@@ -52,8 +52,7 @@ internal object HtmlToAnnotatedString {
     ): TimedConvertResult {
         if (html.isBlank()) return TimedConvertResult(AnnotatedString(""), Duration.ZERO, Duration.ZERO)
 
-        val (doc, htmlParseDuration) = measureTimedValue { Jsoup.parseBodyFragment(html) }
-        val body = doc.body()
+        val (bodyNodes, htmlParseDuration) = measureTimedValue { parseHtml(html) }
 
         // Apply the .hljs base text color across the entire string so that plain-text tokens
         // (identifiers, whitespace, etc.) inherit the theme color rather than LocalContentColor.
@@ -64,7 +63,7 @@ internal object HtmlToAnnotatedString {
             measureTimedValue {
                 buildAnnotatedString {
                     if (baseStyle != null) pushStyle(baseStyle)
-                    body.childNodes().forEach { node ->
+                    bodyNodes.forEach { node ->
                         walkNode(node, colorMap, this)
                     }
                     if (baseStyle != null) pop()
@@ -76,10 +75,10 @@ internal object HtmlToAnnotatedString {
 
     /**
      * Converts highlighted HTML to two [AnnotatedString] values - one per theme - in a single
-     * DOM parse and traversal pass.
+     * parse and traversal pass.
      *
      * Semantically equivalent to calling [convert] twice with different color maps, but more
-     * efficient: the HTML is parsed once and the DOM is walked once. Both builders receive
+     * efficient: the HTML is parsed once and the custom tree is walked once. Both builders receive
      * text nodes and span styles in parallel, each resolved against their own color map.
      *
      * Each builder independently applies the `.hljs` base text color from its own color map,
@@ -103,7 +102,7 @@ internal object HtmlToAnnotatedString {
      * Converts highlighted HTML to two [AnnotatedString] values with per-stage timing data.
      *
      * Semantically equivalent to [convertBothThemes] but also returns timing for the shared
-     * jsoup parse and the combined dual-theme tree walk.
+     * HTML parse and the combined dual-theme tree walk.
      *
      * @param html HTML fragment output from highlight.js (not a full document)
      * @param lightColorMap Color map for the light theme, from [ThemeParser]
@@ -124,8 +123,7 @@ internal object HtmlToAnnotatedString {
             )
         }
 
-        val (doc, htmlParseDuration) = measureTimedValue { Jsoup.parseBodyFragment(html) }
-        val body = doc.body()
+        val (bodyNodes, htmlParseDuration) = measureTimedValue { parseHtml(html) }
 
         // Each builder gets its own independent base text color from its own color map.
         // Do NOT share a single base style - light and dark themes have different default colors.
@@ -140,7 +138,7 @@ internal object HtmlToAnnotatedString {
                 if (lightBaseStyle != null) lightBuilder.pushStyle(lightBaseStyle)
                 if (darkBaseStyle != null) darkBuilder.pushStyle(darkBaseStyle)
 
-                body.childNodes().forEach { node ->
+                bodyNodes.forEach { node ->
                     walkNodeBothThemes(node, lightColorMap, darkColorMap, lightBuilder, darkBuilder)
                 }
 
@@ -157,15 +155,15 @@ internal object HtmlToAnnotatedString {
     }
 
     private fun walkNode(
-        node: org.jsoup.nodes.Node,
+        node: CustomNode,
         colorMap: Map<String, SpanStyle>,
         builder: AnnotatedString.Builder,
     ) {
         when (node) {
-            is Element -> {
+            is CustomElement -> {
                 val style =
-                    if (node.tagName() == "span") {
-                        val cls = node.className()
+                    if (node.tagName == "span") {
+                        val cls = node.className
                         resolveStyle(cls, colorMap)
                     } else {
                         null
@@ -173,40 +171,40 @@ internal object HtmlToAnnotatedString {
 
                 if (style != null) builder.pushStyle(style)
 
-                node.childNodes().forEach { child ->
+                node.childNodes.forEach { child ->
                     walkNode(child, colorMap, builder)
                 }
 
                 if (style != null) builder.pop()
             }
 
-            is TextNode -> {
+            is CustomTextNode -> {
                 builder.append(node.wholeText)
             }
         }
     }
 
     private fun walkNodeBothThemes(
-        node: org.jsoup.nodes.Node,
+        node: CustomNode,
         lightColorMap: Map<String, SpanStyle>,
         darkColorMap: Map<String, SpanStyle>,
         lightBuilder: AnnotatedString.Builder,
         darkBuilder: AnnotatedString.Builder,
     ) {
         when (node) {
-            is Element -> {
+            is CustomElement -> {
                 // Evaluate tagName once; resolve styles for both color maps in the same pass.
                 val lightStyle: SpanStyle?
                 val darkStyle: SpanStyle?
-                if (node.tagName() == "span") {
-                    val cls = node.className()
+                if (node.tagName == "span") {
+                    val cls = node.className
                     if (cls.isBlank()) {
                         lightStyle = null
                         darkStyle = null
                     } else {
                         // Parse the class list once; reuse for both color-map lookups to avoid
                         // redundant trim/split/Regex work on the hot dual-theme path.
-                        val classes = cls.trim().split(Regex("\\s+"))
+                        val classes = cls.trim().split(WHITESPACE_REGEX)
                         lightStyle = resolveStyleFromClasses(cls, classes, lightColorMap)
                         darkStyle = resolveStyleFromClasses(cls, classes, darkColorMap)
                     }
@@ -218,7 +216,7 @@ internal object HtmlToAnnotatedString {
                 if (lightStyle != null) lightBuilder.pushStyle(lightStyle)
                 if (darkStyle != null) darkBuilder.pushStyle(darkStyle)
 
-                node.childNodes().forEach { child ->
+                node.childNodes.forEach { child ->
                     walkNodeBothThemes(child, lightColorMap, darkColorMap, lightBuilder, darkBuilder)
                 }
 
@@ -226,7 +224,7 @@ internal object HtmlToAnnotatedString {
                 if (darkStyle != null) darkBuilder.pop()
             }
 
-            is TextNode -> {
+            is CustomTextNode -> {
                 lightBuilder.append(node.wholeText)
                 darkBuilder.append(node.wholeText)
             }
@@ -247,18 +245,12 @@ internal object HtmlToAnnotatedString {
         colorMap: Map<String, SpanStyle>,
     ): SpanStyle? {
         if (classAttr.isBlank()) return null
-
-        // Try exact match first (e.g. "hljs-keyword")
         colorMap[classAttr]?.let { return it }
-
-        // Try dot-joined compound key (e.g. "hljs-title.function_" for class="hljs-title function_")
-        val classes = classAttr.trim().split(Regex("\\s+"))
+        val classes = classAttr.trim().split(WHITESPACE_REGEX)
         if (classes.size > 1) {
             val compoundKey = classes.joinToString(".")
             colorMap[compoundKey]?.let { return it }
         }
-
-        // Fall back to the first recognized class
         return classes.firstNotNullOfOrNull { colorMap[it] }
     }
 
@@ -271,23 +263,17 @@ internal object HtmlToAnnotatedString {
         classes: List<String>,
         colorMap: Map<String, SpanStyle>,
     ): SpanStyle? {
-        // Fast-path: exact match (e.g. "hljs-keyword" - the large majority of tokens).
         colorMap[classAttr]?.let { return it }
-        // Compound key (e.g. "hljs-title.function_" for class="hljs-title function_").
         if (classes.size > 1) {
             val compoundKey = classes.joinToString(".")
             colorMap[compoundKey]?.let { return it }
         }
-        // Fall back to the first recognized class.
         return classes.firstNotNullOfOrNull { colorMap[it] }
     }
 }
 
 /**
  * Internal result type for [HtmlToAnnotatedString.convertTimed].
- *
- * Carries the converted [AnnotatedString] alongside per-stage [Duration] values so
- * [HighlightEngine] can wire them into [HighlightTimings] without a second parse pass.
  */
 internal data class TimedConvertResult(
     val annotated: AnnotatedString,
@@ -297,9 +283,6 @@ internal data class TimedConvertResult(
 
 /**
  * Internal result type for [HtmlToAnnotatedString.convertBothThemesTimed].
- *
- * Carries both light and dark [AnnotatedString] values alongside shared per-stage
- * [Duration] values (the parse and tree walk are performed once for both themes).
  */
 internal data class TimedConvertBothResult(
     val light: AnnotatedString,

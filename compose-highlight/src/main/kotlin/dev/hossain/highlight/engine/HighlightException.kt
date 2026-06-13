@@ -47,7 +47,7 @@ sealed class HighlightException(
     ) : HighlightException("Theme CSS not found: $path")
 
     /**
-     * Thrown when jsoup fails to parse the HTML returned by Highlight.js.
+     * Thrown when the HTML parser fails to parse the HTML returned by Highlight.js.
      *
      * @param cause The underlying throwable from the HTML parse failure.
      */
