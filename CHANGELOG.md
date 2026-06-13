@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+
+- **Static WebView warm-up method** - Added `HighlightEngine.warmUp(context)` companion function to allow pre-warming
+  the background WebView and JS engine. This eliminates the cold-start WebView latency (150-800ms) on the first
+  highlight rendering. It is safe to call from any thread (e.g., inside `Application.onCreate`).
+
 ## [0.28.0] - 2026-06-06
 
 ### Changed

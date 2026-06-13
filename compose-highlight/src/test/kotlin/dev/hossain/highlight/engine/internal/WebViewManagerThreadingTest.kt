@@ -165,4 +165,55 @@ class WebViewManagerThreadingTest {
             awaiterScope.cancel()
             manager.destroy()
         }
+
+    @Test
+    fun `warmUp creates prewarmed WebView and initialize consumes it`() =
+        runTest {
+            // Call warmUp (will post/run on main thread)
+            WebViewManager.warmUp(context)
+            ShadowLooper.idleMainLooper()
+
+            // Initialize a WebViewManager - it should consume the pre-warmed WebView
+            val manager = WebViewManager(context)
+            manager.initialize()
+            ShadowLooper.idleMainLooper()
+
+            val webView = manager.webViewForTest()
+            assertThat(webView).isNotNull()
+
+            val shadowWebView = Shadows.shadowOf(webView)
+            assertThat(shadowWebView.lastLoadedUrl).isEqualTo("https://appassets.androidplatform.net/assets/compose-highlight/bridge.html")
+
+            // Destroy and reinitialize without warmUp should yield a different WebView instance
+            val firstWv = webView
+            manager.destroy()
+            ShadowLooper.idleMainLooper()
+
+            manager.initialize()
+            ShadowLooper.idleMainLooper()
+            val secondWv = manager.webViewForTest()
+            assertThat(secondWv).isNotSameInstanceAs(firstWv)
+
+            manager.destroy()
+        }
+
+    @Test
+    fun `warmUp called from background thread posts to main thread and succeeds`() =
+        runTest {
+            val job =
+                launch(Dispatchers.Default) {
+                    WebViewManager.warmUp(context)
+                }
+            job.join()
+            ShadowLooper.idleMainLooper()
+
+            val manager = WebViewManager(context)
+            manager.initialize()
+            ShadowLooper.idleMainLooper()
+
+            val webView = manager.webViewForTest()
+            assertThat(webView).isNotNull()
+
+            manager.destroy()
+        }
 }

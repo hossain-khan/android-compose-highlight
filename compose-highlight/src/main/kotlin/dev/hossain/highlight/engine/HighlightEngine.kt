@@ -772,6 +772,24 @@ class HighlightEngine(
             }
         }
     }
+
+    companion object {
+        /**
+         * Pre-warms the hidden WebView and starts loading the bridge page.
+         *
+         * Call this method early in your application lifecycle (e.g., in [android.app.Application.onCreate]
+         * or your main Activity's `onCreate`) to eliminate the cold-start WebView latency (which
+         * can take 150-800ms) when the first code highlighting is rendered.
+         *
+         * Safe to call from any thread - it automatically posts to the Main thread if needed.
+         *
+         * @param context Any [Context]; normalized to `applicationContext` internally.
+         */
+        @JvmStatic
+        fun warmUp(context: Context) {
+            WebViewManager.warmUp(context)
+        }
+    }
 }
 
 /**

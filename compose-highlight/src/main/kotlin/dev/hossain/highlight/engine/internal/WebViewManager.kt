@@ -146,6 +146,28 @@ internal class WebViewManager(
         withContext(Dispatchers.Main) {
             if (webView != null) return@withContext
 
+            // Check if there is a pre-warmed WebView to consume.
+            // Under Dispatchers.Main, so we have exclusive serialized access to these variables.
+            val preWarmed = preWarmedWebView
+            val preWarmedDef = preWarmedDeferred
+            if (preWarmed != null && preWarmedDef != null) {
+                webView = preWarmed
+                readyDeferred = preWarmedDef
+                preWarmedWebView = null
+                preWarmedDeferred = null
+
+                if (readyDeferred.isCompleted) {
+                    _isInitialized.value = true
+                } else {
+                    readyDeferred.invokeOnCompletion { throwable ->
+                        if (throwable == null && !readyDeferred.isCancelled) {
+                            _isInitialized.value = true
+                        }
+                    }
+                }
+                return@withContext
+            }
+
             // Reset the deferred so re-initialization after destroy works correctly.
             // Capture as a local so the WebViewClient closure always completes *this* deferred.
             if (readyDeferred.isCompleted) {
@@ -215,5 +237,72 @@ internal class WebViewManager(
         readyDeferred = CompletableDeferred()
         // WebView.destroy() must be called on the thread that created it (Main).
         Handler(Looper.getMainLooper()).post { wv.destroy() }
+    }
+
+    companion object {
+        @Volatile
+        private var preWarmedWebView: WebView? = null
+
+        @Volatile
+        private var preWarmedDeferred: CompletableDeferred<WebView>? = null
+
+        /**
+         * Pre-warms the WebView and starts loading the bridge page.
+         * Safe to call from any thread - redirects to Main thread.
+         */
+        fun warmUp(context: Context) {
+            val mainLooper = Looper.getMainLooper()
+            if (Looper.myLooper() == mainLooper) {
+                warmUpInternal(context)
+            } else {
+                Handler(mainLooper).post {
+                    warmUpInternal(context)
+                }
+            }
+        }
+
+        private fun warmUpInternal(context: Context) {
+            if (preWarmedWebView != null) return
+
+            val appContext = context.applicationContext
+            val deferred = CompletableDeferred<WebView>()
+            preWarmedDeferred = deferred
+
+            val assetLoader =
+                WebViewAssetLoader
+                    .Builder()
+                    .setDomain("appassets.androidplatform.net")
+                    .addPathHandler("/assets/", WebViewAssetLoader.AssetsPathHandler(appContext))
+                    .build()
+
+            val view =
+                try {
+                    WebView(appContext).apply {
+                        settings.javaScriptEnabled = true
+                        webViewClient =
+                            object : WebViewClient() {
+                                override fun shouldInterceptRequest(
+                                    view: WebView,
+                                    request: WebResourceRequest,
+                                ): WebResourceResponse? = assetLoader.shouldInterceptRequest(request.url)
+
+                                override fun onPageFinished(
+                                    view: WebView,
+                                    url: String,
+                                ) {
+                                    if (!deferred.isCompleted) {
+                                        deferred.complete(view)
+                                    }
+                                }
+                            }
+                        loadUrl("https://appassets.androidplatform.net/assets/compose-highlight/bridge.html")
+                    }
+                } catch (e: Exception) {
+                    deferred.completeExceptionally(HighlightException.WebViewInitFailed(e))
+                    null
+                }
+
+            preWarmedWebView = view
+        }
     }
 }
