@@ -6,6 +6,13 @@ import androidx.compose.ui.text.SpanStyle
 /**
  * A lightweight, custom HTML tokenizer and parser for highlight.js HTML output.
  *
+ * **Legacy tree node:** This sealed interface and its implementations ([CustomElement],
+ * [CustomTextNode]) are used only by [parseHtml] to build an intermediate tree. The library's
+ * production hot path no longer uses these - it uses the SAX-style [parseAndBuild] and
+ * [parseAndBuildBoth] functions instead, which parse HTML and build [AnnotatedString] in a
+ * single pass without allocating tree nodes. These types are retained for unit tests that
+ * validate the parser's tree structure in isolation.
+ *
  * ## Rationale: Why we do not use Jsoup
  *
  * 1. **Kotlin Multiplatform (KMP) Readiness**: Jsoup is a JVM-only library. Moving to a pure
@@ -24,6 +31,8 @@ internal sealed interface CustomNode
 /**
  * Represents an HTML element node (e.g. `<span>`).
  *
+ * **Legacy:** Not used on the library's hot path. See [CustomNode] for details.
+ *
  * @property tagName The lowercase name of the HTML tag.
  * @property className The value of the class attribute.
  * @property childNodes The child nodes nested within this element.
@@ -37,6 +46,8 @@ internal class CustomElement(
 /**
  * Represents a text node containing raw or entity-decoded text.
  *
+ * **Legacy:** Not used on the library's hot path. See [CustomNode] for details.
+ *
  * @property wholeText The text content of the node.
  */
 internal class CustomTextNode(
@@ -48,6 +59,12 @@ private val WHITESPACE_CHARS = charArrayOf(' ', '\t', '\r', '\n')
 
 /**
  * Parses a simple HTML fragment into a lightweight tree of [CustomNode]s.
+ *
+ * **Legacy:** This tree-building function is no longer used on the library's production hot path.
+ * [HtmlToAnnotatedString] uses the more efficient SAX-style [parseAndBuild] and
+ * [parseAndBuildBoth] functions instead, which parse HTML and build [AnnotatedString] in a single
+ * pass without allocating intermediate tree nodes. This function is retained for unit tests that
+ * validate the parser's tree output in isolation.
  *
  * Supports nested elements with class attributes, HTML comments, and the six most common named
  * entities (`&amp;`, `&lt;`, `&gt;`, `&quot;`, `&apos;`, `&nbsp;`) plus numeric character
