@@ -50,6 +50,11 @@ languages = {
         "language": "csharp",
         "url": "https://raw.githubusercontent.com/dotnet/efcore/main/src/EFCore/Diagnostics/EventDefinition.cs",
         "sourceUrl": "https://github.com/dotnet/efcore/blob/main/src/EFCore/Diagnostics/EventDefinition.cs"
+    },
+    "real-sql": {
+        "language": "sql",
+        "url": "https://raw.githubusercontent.com/mevdschee/php-crud-api/refs/heads/main/tests/fixtures/blog_mysql.sql",
+        "sourceUrl": "https://github.com/mevdschee/php-crud-api/blob/main/tests/fixtures/blog_mysql.sql"
     }
 }
 

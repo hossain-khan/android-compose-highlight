@@ -1,0 +1,202 @@
+<span class="hljs-comment">-- Adminer 4.2.4 MySQL dump</span>
+
+<span class="hljs-keyword">SET</span> NAMES utf8;
+<span class="hljs-keyword">SET</span> time_zone <span class="hljs-operator">=</span> <span class="hljs-string">&#x27;+00:00&#x27;</span>;
+<span class="hljs-keyword">SET</span> foreign_key_checks <span class="hljs-operator">=</span> <span class="hljs-number">0</span>;
+<span class="hljs-keyword">SET</span> sql_mode <span class="hljs-operator">=</span> <span class="hljs-string">&#x27;NO_AUTO_VALUE_ON_ZERO&#x27;</span>;
+
+<span class="hljs-keyword">DROP</span> <span class="hljs-keyword">TABLE</span> IF <span class="hljs-keyword">EXISTS</span> `categories`;
+<span class="hljs-keyword">CREATE TABLE</span> `categories` (
+  `id` <span class="hljs-type">int</span>(<span class="hljs-number">11</span>) <span class="hljs-keyword">NOT NULL</span> AUTO_INCREMENT COMMENT <span class="hljs-string">&#x27;The identifier of the category.&#x27;</span>,
+  `name` <span class="hljs-type">varchar</span>(<span class="hljs-number">255</span>) <span class="hljs-keyword">NOT NULL</span> COMMENT <span class="hljs-string">&#x27;The name of the category.&#x27;</span>,
+  `icon` <span class="hljs-type">blob</span> COMMENT <span class="hljs-string">&#x27;A small image representing the category.&#x27;</span>,
+  <span class="hljs-keyword">PRIMARY KEY</span> (`id`)
+) ENGINE<span class="hljs-operator">=</span>InnoDB <span class="hljs-keyword">DEFAULT</span> CHARSET<span class="hljs-operator">=</span>utf8mb4 <span class="hljs-keyword">COLLATE</span><span class="hljs-operator">=</span>utf8mb4_general_ci COMMENT<span class="hljs-operator">=</span><span class="hljs-string">&#x27;The post categories of the blog system.&#x27;</span>;
+
+<span class="hljs-keyword">INSERT INTO</span> `categories` (`name`, `icon`) <span class="hljs-keyword">VALUES</span>
+(<span class="hljs-string">&#x27;announcement&#x27;</span>,	<span class="hljs-keyword">NULL</span>),
+(<span class="hljs-string">&#x27;article&#x27;</span>,	<span class="hljs-keyword">NULL</span>),
+(<span class="hljs-string">&#x27;comment&#x27;</span>,	<span class="hljs-keyword">NULL</span>);
+
+<span class="hljs-keyword">DROP</span> <span class="hljs-keyword">TABLE</span> IF <span class="hljs-keyword">EXISTS</span> `users`;
+<span class="hljs-keyword">CREATE TABLE</span> `users` (
+  `id` <span class="hljs-type">int</span>(<span class="hljs-number">11</span>) <span class="hljs-keyword">NOT NULL</span> AUTO_INCREMENT,
+  `username` <span class="hljs-type">varchar</span>(<span class="hljs-number">255</span>) <span class="hljs-keyword">NOT NULL</span>,
+  `password` <span class="hljs-type">varchar</span>(<span class="hljs-number">255</span>) <span class="hljs-keyword">NOT NULL</span>,
+  `api_key` <span class="hljs-type">varchar</span>(<span class="hljs-number">255</span>) <span class="hljs-keyword">NULL</span>,
+  `location` point,
+  <span class="hljs-keyword">PRIMARY KEY</span> (`id`)
+) ENGINE<span class="hljs-operator">=</span>InnoDB <span class="hljs-keyword">DEFAULT</span> CHARSET<span class="hljs-operator">=</span>utf8mb4 <span class="hljs-keyword">COLLATE</span><span class="hljs-operator">=</span>utf8mb4_general_ci;
+
+<span class="hljs-keyword">INSERT INTO</span> `users` (`username`, `password`, `api_key`, `location`) <span class="hljs-keyword">VALUES</span>
+(<span class="hljs-string">&#x27;user1&#x27;</span>,	<span class="hljs-string">&#x27;pass1&#x27;</span>, <span class="hljs-string">&#x27;123456789abc&#x27;</span>, <span class="hljs-keyword">NULL</span>),
+(<span class="hljs-string">&#x27;user2&#x27;</span>,	<span class="hljs-string">&#x27;$2y$10$cg7/nswxVZ0cmVIsMB/pVOh1OfcHScBJGq7Xu4KF9dFEQgRZ8HWe.&#x27;</span>, <span class="hljs-keyword">NULL</span>, <span class="hljs-keyword">NULL</span>);
+
+<span class="hljs-keyword">DROP</span> <span class="hljs-keyword">TABLE</span> IF <span class="hljs-keyword">EXISTS</span> `abc_posts`;
+<span class="hljs-keyword">CREATE TABLE</span> `abc_posts` (
+  `abc_id` <span class="hljs-type">int</span>(<span class="hljs-number">11</span>) <span class="hljs-keyword">NOT NULL</span> AUTO_INCREMENT,
+  `abc_user_id` <span class="hljs-type">int</span>(<span class="hljs-number">11</span>) <span class="hljs-keyword">NOT NULL</span>,
+  `abc_category_id` <span class="hljs-type">int</span>(<span class="hljs-number">11</span>) <span class="hljs-keyword">NOT NULL</span>,
+  `abc_content` <span class="hljs-type">varchar</span>(<span class="hljs-number">255</span>) <span class="hljs-keyword">NOT NULL</span>,
+  <span class="hljs-keyword">PRIMARY KEY</span> (`abc_id`),
+  KEY `abc_category_id` (`abc_category_id`),
+  KEY `abc_user_id` (`abc_user_id`),
+  <span class="hljs-keyword">CONSTRAINT</span> `abc_posts_abc_category_id_fkey` <span class="hljs-keyword">FOREIGN KEY</span> (`abc_category_id`) <span class="hljs-keyword">REFERENCES</span> `categories` (`id`),
+  <span class="hljs-keyword">CONSTRAINT</span> `abc_posts_abc_user_id_fkey` <span class="hljs-keyword">FOREIGN KEY</span> (`abc_user_id`) <span class="hljs-keyword">REFERENCES</span> `users` (`id`)
+) ENGINE<span class="hljs-operator">=</span>InnoDB <span class="hljs-keyword">DEFAULT</span> CHARSET<span class="hljs-operator">=</span>utf8mb4 <span class="hljs-keyword">COLLATE</span><span class="hljs-operator">=</span>utf8mb4_general_ci;
+
+<span class="hljs-keyword">INSERT INTO</span> `abc_posts` (`abc_user_id`, `abc_category_id`, `abc_content`) <span class="hljs-keyword">VALUES</span>
+(<span class="hljs-number">1</span>,	<span class="hljs-number">1</span>,	<span class="hljs-string">&#x27;blog started&#x27;</span>),
+(<span class="hljs-number">1</span>,	<span class="hljs-number">2</span>,	<span class="hljs-string">&#x27;It works!&#x27;</span>);
+
+<span class="hljs-keyword">DROP</span> <span class="hljs-keyword">TABLE</span> IF <span class="hljs-keyword">EXISTS</span> `comments`;
+<span class="hljs-keyword">CREATE TABLE</span> `comments` (
+  `id` <span class="hljs-type">bigint</span>(<span class="hljs-number">20</span>) <span class="hljs-keyword">NOT NULL</span> AUTO_INCREMENT,
+  `post_id` <span class="hljs-type">int</span>(<span class="hljs-number">11</span>) <span class="hljs-keyword">NOT NULL</span>,
+  `message` <span class="hljs-type">varchar</span>(<span class="hljs-number">255</span>) <span class="hljs-keyword">NOT NULL</span>,
+  `category_id` <span class="hljs-type">int</span>(<span class="hljs-number">11</span>) <span class="hljs-keyword">NOT NULL</span>,
+  <span class="hljs-keyword">PRIMARY KEY</span> (`id`),
+  KEY `post_id` (`post_id`),
+  <span class="hljs-keyword">CONSTRAINT</span> `comments_post_id_fkey` <span class="hljs-keyword">FOREIGN KEY</span> (`post_id`) <span class="hljs-keyword">REFERENCES</span> `abc_posts` (`abc_id`),
+  <span class="hljs-keyword">CONSTRAINT</span> `comments_category_id_fkey` <span class="hljs-keyword">FOREIGN KEY</span> (`category_id`) <span class="hljs-keyword">REFERENCES</span> `categories` (`id`)
+) ENGINE<span class="hljs-operator">=</span>InnoDB <span class="hljs-keyword">DEFAULT</span> CHARSET<span class="hljs-operator">=</span>utf8mb4 <span class="hljs-keyword">COLLATE</span><span class="hljs-operator">=</span>utf8mb4_general_ci;
+
+<span class="hljs-keyword">INSERT INTO</span> `comments` (`post_id`, `message`, `category_id`) <span class="hljs-keyword">VALUES</span>
+(<span class="hljs-number">1</span>,	<span class="hljs-string">&#x27;great&#x27;</span>, <span class="hljs-number">3</span>),
+(<span class="hljs-number">1</span>,	<span class="hljs-string">&#x27;fantastic&#x27;</span>, <span class="hljs-number">3</span>),
+(<span class="hljs-number">2</span>,	<span class="hljs-string">&#x27;thank you&#x27;</span>, <span class="hljs-number">3</span>),
+(<span class="hljs-number">2</span>,	<span class="hljs-string">&#x27;awesome&#x27;</span>, <span class="hljs-number">3</span>);
+
+<span class="hljs-keyword">DROP</span> <span class="hljs-keyword">TABLE</span> IF <span class="hljs-keyword">EXISTS</span> `tags`;
+<span class="hljs-keyword">CREATE TABLE</span> `tags` (
+  `id` <span class="hljs-type">int</span>(<span class="hljs-number">11</span>) <span class="hljs-keyword">NOT NULL</span> AUTO_INCREMENT,
+  `name` <span class="hljs-type">varchar</span>(<span class="hljs-number">255</span>) <span class="hljs-keyword">NOT NULL</span>,
+  `is_important` bit(<span class="hljs-number">1</span>) <span class="hljs-keyword">NOT NULL</span>,
+  <span class="hljs-keyword">PRIMARY KEY</span> (`id`)
+) ENGINE<span class="hljs-operator">=</span>InnoDB <span class="hljs-keyword">DEFAULT</span> CHARSET<span class="hljs-operator">=</span>utf8mb4 <span class="hljs-keyword">COLLATE</span><span class="hljs-operator">=</span>utf8mb4_general_ci;
+
+<span class="hljs-keyword">INSERT INTO</span> `tags` (`name`, `is_important`) <span class="hljs-keyword">VALUES</span>
+(<span class="hljs-string">&#x27;funny&#x27;</span>, <span class="hljs-number">0</span>),
+(<span class="hljs-string">&#x27;important&#x27;</span>, <span class="hljs-number">1</span>);
+
+<span class="hljs-keyword">DROP</span> <span class="hljs-keyword">TABLE</span> IF <span class="hljs-keyword">EXISTS</span> `post_tags`;
+<span class="hljs-keyword">CREATE TABLE</span> `post_tags` (
+  `id` <span class="hljs-type">int</span>(<span class="hljs-number">11</span>) <span class="hljs-keyword">NOT NULL</span> AUTO_INCREMENT,
+  `post_id` <span class="hljs-type">int</span>(<span class="hljs-number">11</span>) <span class="hljs-keyword">NOT NULL</span>,
+  `tag_id` <span class="hljs-type">int</span>(<span class="hljs-number">11</span>) <span class="hljs-keyword">NOT NULL</span>,
+  <span class="hljs-keyword">PRIMARY KEY</span> (`id`),
+  <span class="hljs-keyword">UNIQUE</span> KEY `post_tags_post_id_tag_id_key` (`post_id`, `tag_id`),
+  KEY `post_id` (`post_id`),
+  KEY `tag_id` (`tag_id`),
+  <span class="hljs-keyword">CONSTRAINT</span> `post_tags_post_id_fkey` <span class="hljs-keyword">FOREIGN KEY</span> (`post_id`) <span class="hljs-keyword">REFERENCES</span> `abc_posts` (`abc_id`),
+  <span class="hljs-keyword">CONSTRAINT</span> `post_tags_tag_id_fkey` <span class="hljs-keyword">FOREIGN KEY</span> (`tag_id`) <span class="hljs-keyword">REFERENCES</span> `tags` (`id`)
+) ENGINE<span class="hljs-operator">=</span>InnoDB <span class="hljs-keyword">DEFAULT</span> CHARSET<span class="hljs-operator">=</span>utf8mb4 <span class="hljs-keyword">COLLATE</span><span class="hljs-operator">=</span>utf8mb4_general_ci;
+
+<span class="hljs-keyword">INSERT INTO</span> `post_tags` (`post_id`, `tag_id`) <span class="hljs-keyword">VALUES</span>
+(<span class="hljs-number">1</span>,	<span class="hljs-number">1</span>),
+(<span class="hljs-number">1</span>,	<span class="hljs-number">2</span>),
+(<span class="hljs-number">2</span>,	<span class="hljs-number">1</span>),
+(<span class="hljs-number">2</span>,	<span class="hljs-number">2</span>);
+
+<span class="hljs-keyword">DROP</span> <span class="hljs-keyword">TABLE</span> IF <span class="hljs-keyword">EXISTS</span> `countries`;
+<span class="hljs-keyword">CREATE TABLE</span> `countries` (
+  `id` <span class="hljs-type">int</span>(<span class="hljs-number">11</span>) <span class="hljs-keyword">NOT NULL</span> AUTO_INCREMENT,
+  `name` <span class="hljs-type">varchar</span>(<span class="hljs-number">255</span>) <span class="hljs-keyword">NOT NULL</span>,
+  `shape` geometry <span class="hljs-keyword">NOT NULL</span>,
+  <span class="hljs-keyword">PRIMARY KEY</span> (`id`)
+) ENGINE<span class="hljs-operator">=</span>InnoDB <span class="hljs-keyword">DEFAULT</span> CHARSET<span class="hljs-operator">=</span>utf8mb4 <span class="hljs-keyword">COLLATE</span><span class="hljs-operator">=</span>utf8mb4_general_ci;
+
+<span class="hljs-keyword">INSERT INTO</span> `countries` (`name`, `shape`) <span class="hljs-keyword">VALUES</span>
+(<span class="hljs-string">&#x27;Left&#x27;</span>,	ST_GeomFromText(<span class="hljs-string">&#x27;POLYGON ((30 10, 40 40, 20 40, 10 20, 30 10))&#x27;</span>, <span class="hljs-number">4326</span>)),
+(<span class="hljs-string">&#x27;Right&#x27;</span>,	ST_GeomFromText(<span class="hljs-string">&#x27;POLYGON ((70 10, 80 40, 60 40, 50 20, 70 10))&#x27;</span>, <span class="hljs-number">4326</span>)),
+(<span class="hljs-string">&#x27;Point&#x27;</span>, ST_GeomFromText(<span class="hljs-string">&#x27;POINT (30 10)&#x27;</span>, <span class="hljs-number">4326</span>)),
+(<span class="hljs-string">&#x27;Line&#x27;</span>, ST_GeomFromText(<span class="hljs-string">&#x27;LINESTRING (30 10, 10 30, 40 40)&#x27;</span>, <span class="hljs-number">4326</span>)),
+(<span class="hljs-string">&#x27;Poly1&#x27;</span>, ST_GeomFromText(<span class="hljs-string">&#x27;POLYGON ((30 10, 40 40, 20 40, 10 20, 30 10))&#x27;</span>, <span class="hljs-number">4326</span>)),
+(<span class="hljs-string">&#x27;Poly2&#x27;</span>, ST_GeomFromText(<span class="hljs-string">&#x27;POLYGON ((35 10, 45 45, 15 40, 10 20, 35 10),(20 30, 35 35, 30 20, 20 30))&#x27;</span>, <span class="hljs-number">4326</span>)),
+(<span class="hljs-string">&#x27;Mpoint&#x27;</span>, ST_GeomFromText(<span class="hljs-string">&#x27;MULTIPOINT (10 40, 40 30, 20 20, 30 10)&#x27;</span>, <span class="hljs-number">4326</span>)),
+(<span class="hljs-string">&#x27;Mline&#x27;</span>, ST_GeomFromText(<span class="hljs-string">&#x27;MULTILINESTRING ((10 10, 20 20, 10 40),(40 40, 30 30, 40 20, 30 10))&#x27;</span>, <span class="hljs-number">4326</span>)),
+(<span class="hljs-string">&#x27;Mpoly1&#x27;</span>, ST_GeomFromText(<span class="hljs-string">&#x27;MULTIPOLYGON (((30 20, 45 40, 10 40, 30 20)),((15 5, 40 10, 10 20, 5 10, 15 5)))&#x27;</span>, <span class="hljs-number">4326</span>)),
+(<span class="hljs-string">&#x27;Mpoly2&#x27;</span>, ST_GeomFromText(<span class="hljs-string">&#x27;MULTIPOLYGON (((40 40, 20 45, 45 30, 40 40)),((20 35, 10 30, 10 10, 30 5, 45 20, 20 35),(30 20, 20 15, 20 25, 30 20)))&#x27;</span>, <span class="hljs-number">4326</span>)),
+(<span class="hljs-string">&#x27;Gcoll&#x27;</span>, ST_GeomFromText(<span class="hljs-string">&#x27;GEOMETRYCOLLECTION(POINT(4 6),LINESTRING(4 6,7 10))&#x27;</span>, <span class="hljs-number">4326</span>));
+
+<span class="hljs-keyword">DROP</span> <span class="hljs-keyword">TABLE</span> IF <span class="hljs-keyword">EXISTS</span> `events`;
+<span class="hljs-keyword">CREATE TABLE</span> `events` (
+  `id` <span class="hljs-type">int</span>(<span class="hljs-number">11</span>) <span class="hljs-keyword">NOT NULL</span> AUTO_INCREMENT,
+  `name` <span class="hljs-type">varchar</span>(<span class="hljs-number">255</span>) <span class="hljs-keyword">NOT NULL</span>,
+  `datetime` datetime,
+  `visitors` <span class="hljs-type">bigint</span>(<span class="hljs-number">20</span>),
+  <span class="hljs-keyword">PRIMARY KEY</span> (`id`)
+) ENGINE<span class="hljs-operator">=</span>InnoDB <span class="hljs-keyword">DEFAULT</span> CHARSET<span class="hljs-operator">=</span>utf8mb4 <span class="hljs-keyword">COLLATE</span><span class="hljs-operator">=</span>utf8mb4_general_ci;
+
+<span class="hljs-keyword">INSERT INTO</span> `events` (`name`, `datetime`, `visitors`) <span class="hljs-keyword">VALUES</span>
+(<span class="hljs-string">&#x27;Launch&#x27;</span>, <span class="hljs-string">&#x27;2016-01-01 13:01:01&#x27;</span>, <span class="hljs-number">0</span>);
+
+<span class="hljs-keyword">DROP</span> <span class="hljs-keyword">VIEW</span> IF <span class="hljs-keyword">EXISTS</span> `tag_usage`;
+<span class="hljs-keyword">CREATE</span> <span class="hljs-keyword">VIEW</span> `tag_usage` <span class="hljs-keyword">AS</span> <span class="hljs-keyword">select</span> `tags`.`id` <span class="hljs-keyword">as</span> `id`, `name`, <span class="hljs-built_in">count</span>(`name`) <span class="hljs-keyword">AS</span> `count` <span class="hljs-keyword">from</span> `tags`, `post_tags` <span class="hljs-keyword">where</span> `tags`.`id` <span class="hljs-operator">=</span> `post_tags`.`tag_id` <span class="hljs-keyword">group</span> <span class="hljs-keyword">by</span> `tags`.`id`, `name` <span class="hljs-keyword">order</span> <span class="hljs-keyword">by</span> `count` <span class="hljs-keyword">desc</span>, `name`;
+
+<span class="hljs-keyword">DROP</span> <span class="hljs-keyword">TABLE</span> IF <span class="hljs-keyword">EXISTS</span> `products`;
+<span class="hljs-keyword">CREATE TABLE</span> `products` (
+  `id` <span class="hljs-type">int</span>(<span class="hljs-number">11</span>) <span class="hljs-keyword">NOT NULL</span> AUTO_INCREMENT,
+  `name` <span class="hljs-type">varchar</span>(<span class="hljs-number">255</span>) <span class="hljs-keyword">NOT NULL</span>,
+  `price` <span class="hljs-type">decimal</span>(<span class="hljs-number">10</span>,<span class="hljs-number">2</span>) <span class="hljs-keyword">NOT NULL</span>,
+  `properties` longtext <span class="hljs-keyword">NOT NULL</span>,
+  `created_at` datetime <span class="hljs-keyword">NOT NULL</span>,
+  `deleted_at` datetime,
+  <span class="hljs-keyword">PRIMARY KEY</span> (`id`)
+) ENGINE<span class="hljs-operator">=</span>InnoDB <span class="hljs-keyword">DEFAULT</span> CHARSET<span class="hljs-operator">=</span>utf8mb4 <span class="hljs-keyword">COLLATE</span><span class="hljs-operator">=</span>utf8mb4_general_ci;
+
+<span class="hljs-keyword">INSERT INTO</span> `products` (`name`, `price`, `properties`, `created_at`) <span class="hljs-keyword">VALUES</span>
+(<span class="hljs-string">&#x27;Calculator&#x27;</span>, <span class="hljs-string">&#x27;23.01&#x27;</span>, <span class="hljs-string">&#x27;{&quot;depth&quot;:false,&quot;model&quot;:&quot;TRX-120&quot;,&quot;width&quot;:100,&quot;height&quot;:null}&#x27;</span>, <span class="hljs-string">&#x27;1970-01-01 01:01:01&#x27;</span>);
+
+<span class="hljs-keyword">DROP</span> <span class="hljs-keyword">TABLE</span> IF <span class="hljs-keyword">EXISTS</span> `barcodes2`;
+<span class="hljs-keyword">DROP</span> <span class="hljs-keyword">TABLE</span> IF <span class="hljs-keyword">EXISTS</span> `barcodes`;
+<span class="hljs-keyword">CREATE TABLE</span> `barcodes` (
+  `id` <span class="hljs-type">int</span>(<span class="hljs-number">11</span>) <span class="hljs-keyword">NOT NULL</span> AUTO_INCREMENT,
+  `product_id` <span class="hljs-type">int</span>(<span class="hljs-number">11</span>) <span class="hljs-keyword">NOT NULL</span>,
+  `hex` <span class="hljs-type">varchar</span>(<span class="hljs-number">255</span>) <span class="hljs-keyword">CHARACTER SET</span> utf8mb4 <span class="hljs-keyword">COLLATE</span> utf8mb4_bin <span class="hljs-keyword">NOT NULL</span>,
+  `bin` <span class="hljs-type">blob</span> <span class="hljs-keyword">NOT NULL</span>,
+  `ip_address` <span class="hljs-type">varchar</span>(<span class="hljs-number">15</span>),
+  <span class="hljs-keyword">PRIMARY KEY</span> (`id`),
+  <span class="hljs-keyword">CONSTRAINT</span> `barcodes_product_id_fkey` <span class="hljs-keyword">FOREIGN KEY</span> (`product_id`) <span class="hljs-keyword">REFERENCES</span> `products` (`id`)
+) ENGINE<span class="hljs-operator">=</span>InnoDB <span class="hljs-keyword">DEFAULT</span> CHARSET<span class="hljs-operator">=</span>utf8mb4 <span class="hljs-keyword">COLLATE</span><span class="hljs-operator">=</span>utf8mb4_general_ci;
+
+<span class="hljs-keyword">INSERT INTO</span> `barcodes` (`product_id`, `hex`, `bin`, `ip_address`) <span class="hljs-keyword">VALUES</span>
+(<span class="hljs-number">1</span>, <span class="hljs-string">&#x27;00ff01&#x27;</span>, UNHEX(<span class="hljs-string">&#x27;00ff01&#x27;</span>), <span class="hljs-string">&#x27;127.0.0.1&#x27;</span>);
+
+<span class="hljs-keyword">DROP</span> <span class="hljs-keyword">TABLE</span> IF <span class="hljs-keyword">EXISTS</span> `kunsthåndværk`;
+<span class="hljs-keyword">CREATE TABLE</span> `kunsthåndværk` (
+  `id` <span class="hljs-type">varchar</span>(<span class="hljs-number">36</span>) <span class="hljs-keyword">NOT NULL</span>,
+  `Umlauts ä_ö_ü<span class="hljs-operator">-</span>COUNT` <span class="hljs-type">int</span>(<span class="hljs-number">11</span>) <span class="hljs-keyword">NOT NULL</span>,
+  `user_id` <span class="hljs-type">int</span>(<span class="hljs-number">11</span>) <span class="hljs-keyword">NOT NULL</span>,
+  `invisible` <span class="hljs-type">varchar</span>(<span class="hljs-number">36</span>),
+  `invisible_id` <span class="hljs-type">varchar</span>(<span class="hljs-number">36</span>),
+  <span class="hljs-keyword">PRIMARY KEY</span> (`id`),
+  <span class="hljs-keyword">CONSTRAINT</span> `kunsthåndværk_Umlauts ä_ö_ü<span class="hljs-operator">-</span>COUNT_fkey` <span class="hljs-keyword">UNIQUE</span> (`Umlauts ä_ö_ü<span class="hljs-operator">-</span>COUNT`),
+  <span class="hljs-keyword">CONSTRAINT</span> `kunsthåndværk_user_id_fkey` <span class="hljs-keyword">FOREIGN KEY</span> (`user_id`) <span class="hljs-keyword">REFERENCES</span> `users` (`id`),
+  <span class="hljs-keyword">CONSTRAINT</span> `kunsthåndværk_invisible_id_fkey` <span class="hljs-keyword">FOREIGN KEY</span> (`invisible_id`) <span class="hljs-keyword">REFERENCES</span> `invisibles` (`id`)
+) ENGINE<span class="hljs-operator">=</span>InnoDB <span class="hljs-keyword">DEFAULT</span> CHARSET<span class="hljs-operator">=</span>utf8mb4 <span class="hljs-keyword">COLLATE</span><span class="hljs-operator">=</span>utf8mb4_general_ci;
+
+<span class="hljs-keyword">INSERT INTO</span> `kunsthåndværk` (`id`, `Umlauts ä_ö_ü<span class="hljs-operator">-</span>COUNT`, `user_id`, `invisible`, `invisible_id`) <span class="hljs-keyword">VALUES</span>
+(<span class="hljs-string">&#x27;e42c77c6-06a4-4502-816c-d112c7142e6d&#x27;</span>, <span class="hljs-number">1</span>, <span class="hljs-number">1</span>, <span class="hljs-keyword">NULL</span>, <span class="hljs-string">&#x27;e42c77c6-06a4-4502-816c-d112c7142e6d&#x27;</span>),
+(<span class="hljs-string">&#x27;e31ecfe6-591f-4660-9fbd-1a232083037f&#x27;</span>, <span class="hljs-number">2</span>, <span class="hljs-number">2</span>, <span class="hljs-keyword">NULL</span>, <span class="hljs-string">&#x27;e42c77c6-06a4-4502-816c-d112c7142e6d&#x27;</span>);
+
+<span class="hljs-keyword">DROP</span> <span class="hljs-keyword">TABLE</span> IF <span class="hljs-keyword">EXISTS</span> `invisibles`;
+<span class="hljs-keyword">CREATE TABLE</span> `invisibles` (
+  `id` <span class="hljs-type">varchar</span>(<span class="hljs-number">36</span>) <span class="hljs-keyword">NOT NULL</span>,
+  <span class="hljs-keyword">PRIMARY KEY</span> (`id`)
+) ENGINE<span class="hljs-operator">=</span>InnoDB <span class="hljs-keyword">DEFAULT</span> CHARSET<span class="hljs-operator">=</span>utf8mb4 <span class="hljs-keyword">COLLATE</span><span class="hljs-operator">=</span>utf8mb4_general_ci;
+
+<span class="hljs-keyword">INSERT INTO</span> `invisibles` (`id`) <span class="hljs-keyword">VALUES</span>
+(<span class="hljs-string">&#x27;e42c77c6-06a4-4502-816c-d112c7142e6d&#x27;</span>);
+
+<span class="hljs-keyword">DROP</span> <span class="hljs-keyword">TABLE</span> IF <span class="hljs-keyword">EXISTS</span> `nopk`;
+<span class="hljs-keyword">CREATE TABLE</span> `nopk` (
+  `id` <span class="hljs-type">varchar</span>(<span class="hljs-number">36</span>) <span class="hljs-keyword">NOT NULL</span>
+) ENGINE<span class="hljs-operator">=</span>InnoDB <span class="hljs-keyword">DEFAULT</span> CHARSET<span class="hljs-operator">=</span>utf8mb4 <span class="hljs-keyword">COLLATE</span><span class="hljs-operator">=</span>utf8mb4_general_ci;
+
+<span class="hljs-keyword">INSERT INTO</span> `nopk` (`id`) <span class="hljs-keyword">VALUES</span>
+(<span class="hljs-string">&#x27;e42c77c6-06a4-4502-816c-d112c7142e6d&#x27;</span>);
+
+<span class="hljs-keyword">SET</span> foreign_key_checks <span class="hljs-operator">=</span> <span class="hljs-number">1</span>;
+
+<span class="hljs-comment">-- 2016-11-05 13:11:47</span>

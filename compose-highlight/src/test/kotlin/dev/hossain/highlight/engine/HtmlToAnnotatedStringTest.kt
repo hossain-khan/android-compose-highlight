@@ -345,7 +345,7 @@ class HtmlToAnnotatedStringTest {
 
     @Test
     fun `convert matches original source code exactly for real world snippets`() {
-        val realSnippets = listOf("real-kotlin", "real-c", "real-rust", "real-go", "real-csharp")
+        val realSnippets = listOf("real-kotlin", "real-c", "real-rust", "real-go", "real-csharp", "real-sql")
         for (name in realSnippets) {
             val snippet = TestSnippets.load(name)
             val result = HtmlToAnnotatedString.convert(snippet.highlightedHtml, colorMap)
