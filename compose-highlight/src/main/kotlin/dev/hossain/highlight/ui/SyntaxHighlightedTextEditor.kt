@@ -7,6 +7,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
@@ -218,85 +219,100 @@ fun SyntaxHighlightedTextEditor(
             resolveEditorCursorBrush(cursorBrush, textColor)
         }
 
-    val handleValueChange: (TextFieldValue) -> Unit = { newValue ->
-        if (autoIndentEnabled) {
-            val oldText = value.text
-            val newText = newValue.text
+    // Wrap frequently changing state in stable State objects so the lambdas below can be
+    // remembered once and still see the latest values when invoked.
+    val currentValue = rememberUpdatedState(value)
+    val currentOnValueChange = rememberUpdatedState(onValueChange)
+    val currentAutoIndentEnabled = rememberUpdatedState(autoIndentEnabled)
+    val currentTabKeyInterceptionEnabled = rememberUpdatedState(tabKeyInterceptionEnabled)
+    val currentIndentation = rememberUpdatedState(indentation)
 
-            // Detect single character insertion where the new char is newline '\n'
-            if (newText.length == oldText.length + 1 &&
-                newValue.selection.start == value.selection.start + 1 &&
-                newText[value.selection.start] == '\n'
-            ) {
-                val cursorPosition = value.selection.start
-                if (cursorPosition > 0) {
-                    val indent = extractLeadingWhitespace(oldText, cursorPosition)
-                    if (indent.isNotEmpty()) {
-                        val autoIndentedText =
-                            newText.substring(0, newValue.selection.start) +
-                                indent +
-                                newText.substring(newValue.selection.start)
-                        val autoIndentedSelection = TextRange(newValue.selection.start + indent.length)
-                        onValueChange(newValue.copy(text = autoIndentedText, selection = autoIndentedSelection))
+    val handleValueChange: (TextFieldValue) -> Unit =
+        remember {
+            { newValue ->
+                if (currentAutoIndentEnabled.value) {
+                    val oldText = currentValue.value.text
+                    val newText = newValue.text
+
+                    // Detect single character insertion where the new char is newline '\n'
+                    if (newText.length == oldText.length + 1 &&
+                        newValue.selection.start == currentValue.value.selection.start + 1 &&
+                        newText[currentValue.value.selection.start] == '\n'
+                    ) {
+                        val cursorPosition = currentValue.value.selection.start
+                        if (cursorPosition > 0) {
+                            val indent = extractLeadingWhitespace(oldText, cursorPosition)
+                            if (indent.isNotEmpty()) {
+                                val autoIndentedText =
+                                    newText.substring(0, newValue.selection.start) +
+                                        indent +
+                                        newText.substring(newValue.selection.start)
+                                val autoIndentedSelection = TextRange(newValue.selection.start + indent.length)
+                                currentOnValueChange.value(
+                                    newValue.copy(text = autoIndentedText, selection = autoIndentedSelection),
+                                )
+                            } else {
+                                currentOnValueChange.value(newValue)
+                            }
+                        } else {
+                            currentOnValueChange.value(newValue)
+                        }
                     } else {
-                        onValueChange(newValue)
+                        currentOnValueChange.value(newValue)
                     }
                 } else {
-                    onValueChange(newValue)
+                    currentOnValueChange.value(newValue)
                 }
-            } else {
-                onValueChange(newValue)
             }
-        } else {
-            onValueChange(newValue)
         }
-    }
 
     val previewKeyModifier =
-        if (tabKeyInterceptionEnabled || autoIndentEnabled) {
-            Modifier.onPreviewKeyEvent { keyEvent ->
-                if (keyEvent.type != KeyEventType.KeyDown) return@onPreviewKeyEvent false
+        remember(tabKeyInterceptionEnabled, autoIndentEnabled) {
+            if (tabKeyInterceptionEnabled || autoIndentEnabled) {
+                Modifier.onPreviewKeyEvent { keyEvent ->
+                    if (keyEvent.type != KeyEventType.KeyDown) return@onPreviewKeyEvent false
 
-                when (keyEvent.key) {
-                    Key.Tab -> {
-                        if (tabKeyInterceptionEnabled) {
-                            val text = value.text
-                            val selection = value.selection
-                            val newText = text.replaceRange(selection.min, selection.max, indentation)
-                            val newSelection = TextRange(selection.min + indentation.length)
-                            onValueChange(value.copy(text = newText, selection = newSelection))
-                            true
-                        } else {
+                    when (keyEvent.key) {
+                        Key.Tab -> {
+                            if (currentTabKeyInterceptionEnabled.value) {
+                                val text = currentValue.value.text
+                                val selection = currentValue.value.selection
+                                val newText = text.replaceRange(selection.min, selection.max, currentIndentation.value)
+                                val newSelection = TextRange(selection.min + currentIndentation.value.length)
+                                currentOnValueChange.value(currentValue.value.copy(text = newText, selection = newSelection))
+                                true
+                            } else {
+                                false
+                            }
+                        }
+
+                        Key.Enter -> {
+                            if (currentAutoIndentEnabled.value && currentValue.value.composition == null) {
+                                val text = currentValue.value.text
+                                val selection = currentValue.value.selection
+                                val cursorPosition = selection.min
+
+                                val indent = extractLeadingWhitespace(text, cursorPosition)
+
+                                val insertion = "\n" + indent
+                                val newText = text.replaceRange(selection.min, selection.max, insertion)
+                                val newSelection = TextRange(selection.min + insertion.length)
+
+                                currentOnValueChange.value(currentValue.value.copy(text = newText, selection = newSelection))
+                                true
+                            } else {
+                                false
+                            }
+                        }
+
+                        else -> {
                             false
                         }
-                    }
-
-                    Key.Enter -> {
-                        if (autoIndentEnabled && value.composition == null) {
-                            val text = value.text
-                            val selection = value.selection
-                            val cursorPosition = selection.min
-
-                            val indent = extractLeadingWhitespace(text, cursorPosition)
-
-                            val insertion = "\n" + indent
-                            val newText = text.replaceRange(selection.min, selection.max, insertion)
-                            val newSelection = TextRange(selection.min + insertion.length)
-
-                            onValueChange(value.copy(text = newText, selection = newSelection))
-                            true
-                        } else {
-                            false
-                        }
-                    }
-
-                    else -> {
-                        false
                     }
                 }
+            } else {
+                Modifier
             }
-        } else {
-            Modifier
         }
 
     val focusNavigationModifier =
