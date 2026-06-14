@@ -19,7 +19,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@v6.0.3
 
       - name: Set up JDK 17
         uses: actions/setup-java@v5.2.0
@@ -28,7 +28,7 @@ jobs:
           distribution: 'temurin'
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v6.1.0
+        uses: gradle/actions/setup-gradle@v6.2.0
         with:
           cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
 
@@ -60,36 +60,9 @@ jobs:
         if: github.event_name == 'release'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           APK_FILE="artifact/highlight-v${{ steps.version.outputs.VERSION }}.apk"
-          APK_NAME="highlight-v${{ steps.version.outputs.VERSION }}.apk"
 
-          echo "Fetching release ID for tag: ${{ github.ref_name }}"
-          RELEASE_ID=$(curl -s \
-            -H "Authorization: Bearer $GITHUB_TOKEN" \
-            "https://api.github.com/repos/${{ github.repository }}/releases/tags/${{ github.ref_name }}" \
-            | jq -r .id)
-
-          if [ "$RELEASE_ID" = "null" ] || [ -z "$RELEASE_ID" ]; then
-            echo "Could not find release for tag ${{ github.ref_name }}"
-            exit 1
-          fi
-          echo "Found release ID: $RELEASE_ID"
-
-          echo "Uploading $APK_NAME to release..."
-          UPLOAD_RESPONSE=$(curl -s -w "%{http_code}" -o upload_response.json \
-            -X POST \
-            -H "Authorization: Bearer $GITHUB_TOKEN" \
-            -H "Content-Type: application/octet-stream" \
-            --data-binary @"$APK_FILE" \
-            "https://uploads.github.com/repos/${{ github.repository }}/releases/$RELEASE_ID/assets?name=$APK_NAME")
-
-          HTTP_CODE="${UPLOAD_RESPONSE: -3}"
-          if [ "$HTTP_CODE" = "201" ]; then
-            DOWNLOAD_URL=$(jq -r .browser_download_url upload_response.json)
-            echo "Successfully attached APK to release: $DOWNLOAD_URL"
-          else
-            echo "Failed to upload APK (HTTP $HTTP_CODE)"
-            cat upload_response.json
-            exit 1
-          fi
+          gh release upload "${{ github.ref_name }}" "$APK_FILE" --clobber
+          echo "Successfully attached $(basename "$APK_FILE") to release ${{ github.ref_name }}"
