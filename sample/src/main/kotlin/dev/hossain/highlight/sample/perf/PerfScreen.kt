@@ -382,8 +382,6 @@ private fun PerfMetricCard(metrics: HighlightMetrics?) {
                 PipelineRow(label = "JS bridge", duration = metrics.timings.jsBridge)
                 PipelineRow(label = "JSON unescape", duration = metrics.timings.jsonUnescape)
                 PipelineRow(label = "HTML parse", duration = metrics.timings.htmlParse)
-                @Suppress("DEPRECATION")
-                PipelineRow(label = "Tree walk", duration = metrics.timings.treeWalk)
                 if (metrics.timings.themeParse > Duration.ZERO) {
                     PipelineRow(
                         label = "Theme parse (first use)",

@@ -44,8 +44,7 @@ internal object HtmlToAnnotatedString {
      * Uses a SAX-style single-pass approach: the HTML is parsed and the [AnnotatedString]
      * is built simultaneously, eliminating the intermediate [CustomNode] tree. The
      * `htmlParseDuration` field in the returned [TimedConvertResult] represents the combined
-     * parse+build time; `treeWalkDuration` is [Duration.ZERO] since there is no separate
-     * tree walk.
+     * parse+build time.
      *
      * @param html HTML fragment output from highlight.js (not a full document)
      * @param colorMap Map of hljs class names to [SpanStyle], from [ThemeParser]
@@ -55,7 +54,7 @@ internal object HtmlToAnnotatedString {
         html: String,
         colorMap: Map<String, SpanStyle>,
     ): TimedConvertResult {
-        if (html.isBlank()) return TimedConvertResult(AnnotatedString(""), Duration.ZERO, Duration.ZERO)
+        if (html.isBlank()) return TimedConvertResult(AnnotatedString(""), Duration.ZERO)
 
         // Apply the .hljs base text color across the entire string so that plain-text tokens
         // (identifiers, whitespace, etc.) inherit the theme color rather than LocalContentColor.
@@ -71,8 +70,8 @@ internal object HtmlToAnnotatedString {
                 }
             }
 
-        // Report the combined parse+build time as htmlParseDuration; there is no separate tree walk.
-        return TimedConvertResult(result, parseBuildDuration, Duration.ZERO)
+        // Report the combined parse+build time as htmlParseDuration.
+        return TimedConvertResult(result, parseBuildDuration)
     }
 
     /**
@@ -105,7 +104,7 @@ internal object HtmlToAnnotatedString {
      *
      * Uses a SAX-style single-pass approach: the HTML is parsed once and both builders
      * are populated simultaneously. The `htmlParseDuration` field represents the combined
-     * parse+build time; `treeWalkDuration` is [Duration.ZERO].
+     * parse+build time.
      *
      * @param html HTML fragment output from highlight.js (not a full document)
      * @param lightColorMap Color map for the light theme, from [ThemeParser]
@@ -122,7 +121,6 @@ internal object HtmlToAnnotatedString {
                 light = AnnotatedString(""),
                 dark = AnnotatedString(""),
                 htmlParseDuration = Duration.ZERO,
-                treeWalkDuration = Duration.ZERO,
             )
         }
 
@@ -149,7 +147,6 @@ internal object HtmlToAnnotatedString {
             light = lightBuilder.toAnnotatedString(),
             dark = darkBuilder.toAnnotatedString(),
             htmlParseDuration = parseBuildDuration,
-            treeWalkDuration = Duration.ZERO,
         )
     }
 }
@@ -160,7 +157,6 @@ internal object HtmlToAnnotatedString {
 internal data class TimedConvertResult(
     val annotated: AnnotatedString,
     val htmlParseDuration: Duration,
-    val treeWalkDuration: Duration,
 )
 
 /**
@@ -170,5 +166,4 @@ internal data class TimedConvertBothResult(
     val light: AnnotatedString,
     val dark: AnnotatedString,
     val htmlParseDuration: Duration,
-    val treeWalkDuration: Duration,
 )

@@ -10,16 +10,14 @@ import kotlin.time.Duration
  * Verifies that all timing fields are stored correctly, Duration.ZERO
  * is valid for all fields, and duration unit conversions work as expected.
  */
-@Suppress("DEPRECATION")
 class HighlightTimingsTest {
     private val sampleTimings =
         HighlightTimings(
             jsBridge = Duration.parse("45ms"),
             jsonUnescape = Duration.parse("1ms"),
             htmlParse = Duration.parse("3ms"),
-            treeWalk = Duration.parse("2ms"),
             themeParse = Duration.parse("10ms"),
-            total = Duration.parse("61ms"),
+            total = Duration.parse("59ms"),
         )
 
     // ----- Construction -----
@@ -29,9 +27,8 @@ class HighlightTimingsTest {
         assertThat(sampleTimings.jsBridge).isEqualTo(Duration.parse("45ms"))
         assertThat(sampleTimings.jsonUnescape).isEqualTo(Duration.parse("1ms"))
         assertThat(sampleTimings.htmlParse).isEqualTo(Duration.parse("3ms"))
-        assertThat(sampleTimings.treeWalk).isEqualTo(Duration.parse("2ms"))
         assertThat(sampleTimings.themeParse).isEqualTo(Duration.parse("10ms"))
-        assertThat(sampleTimings.total).isEqualTo(Duration.parse("61ms"))
+        assertThat(sampleTimings.total).isEqualTo(Duration.parse("59ms"))
     }
 
     @Test
@@ -41,7 +38,6 @@ class HighlightTimingsTest {
                 jsBridge = Duration.ZERO,
                 jsonUnescape = Duration.ZERO,
                 htmlParse = Duration.ZERO,
-                treeWalk = Duration.ZERO,
                 themeParse = Duration.ZERO,
                 total = Duration.ZERO,
             )
@@ -55,7 +51,7 @@ class HighlightTimingsTest {
     @Test
     fun `inWholeMilliseconds converts duration correctly`() {
         assertThat(sampleTimings.jsBridge.inWholeMilliseconds).isEqualTo(45L)
-        assertThat(sampleTimings.total.inWholeMilliseconds).isEqualTo(61L)
+        assertThat(sampleTimings.total.inWholeMilliseconds).isEqualTo(59L)
     }
 
     @Test
