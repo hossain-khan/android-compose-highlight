@@ -15,7 +15,7 @@ import org.junit.Test
  * - Basic hex color parsing (`#rrggbb`, 3-digit `#rgb`, 4-digit `#rgba`, 8-digit `#rrggbbaa`)
  * - `rgb()` and `rgba()` color values including decimal alpha (e.g. `rgba(149,165,166,.8)`)
  * - CSS named colors (e.g. `color: red`)
- * - `font-weight: bold` / `700` and `font-style: italic`
+ * - `font-weight: bold` / `700` / `bolder` / `lighter` and `font-style: italic` / `oblique`
  * - Comma-separated selector lists (e.g. `.hljs-keyword, .hljs-type`)
  * - Compound dot-joined selectors (e.g. `.hljs-title.function_`)
  * - Descendant selectors with two `.hljs-*` tokens skipped (e.g. `.hljs-meta .hljs-keyword`)
@@ -242,6 +242,27 @@ class ThemeParserTest {
         val css = ".hljs-comment { font-weight: normal; color: #888 }"
         val result = ThemeParser.parse(css)
         assertThat(result[HljsSelectors.COMMENT]?.fontWeight).isEqualTo(FontWeight.Normal)
+    }
+
+    @Test
+    fun `parse treats font-weight bolder keyword as bold`() {
+        val css = ".hljs-strong { font-weight: bolder }"
+        val result = ThemeParser.parse(css)
+        assertThat(result[HljsSelectors.STRONG]?.fontWeight).isEqualTo(FontWeight.Bold)
+    }
+
+    @Test
+    fun `parse treats font-weight lighter keyword as normal`() {
+        val css = ".hljs-comment { font-weight: lighter; color: #888 }"
+        val result = ThemeParser.parse(css)
+        assertThat(result[HljsSelectors.COMMENT]?.fontWeight).isEqualTo(FontWeight.Normal)
+    }
+
+    @Test
+    fun `parse treats font-style oblique as italic`() {
+        val css = ".hljs-emphasis { font-style: oblique }"
+        val result = ThemeParser.parse(css)
+        assertThat(result[HljsSelectors.EMPHASIS]?.fontStyle).isEqualTo(FontStyle.Italic)
     }
 
     @Test
@@ -486,6 +507,28 @@ class ThemeParserTest {
         val css =
             ".hljs-title{color:#78bb65}" +
                 ".hljs-title{font-weight:700}"
+        val result = ThemeParser.parse(css)
+        assertThat(result[HljsSelectors.TITLE]?.color).isEqualTo(Color(0xFF78BB65))
+        assertThat(result[HljsSelectors.TITLE]?.fontWeight).isEqualTo(FontWeight.Bold)
+    }
+
+    @Test
+    fun `parse handles important relative font weight and oblique together`() {
+        val css =
+            ".hljs-title{" +
+                "color:#78bb65 !important;" +
+                "font-weight:bolder !important;" +
+                "font-style:oblique !important" +
+                "}"
+        val result = ThemeParser.parse(css)
+        assertThat(result[HljsSelectors.TITLE]?.color).isEqualTo(Color(0xFF78BB65))
+        assertThat(result[HljsSelectors.TITLE]?.fontWeight).isEqualTo(FontWeight.Bold)
+        assertThat(result[HljsSelectors.TITLE]?.fontStyle).isEqualTo(FontStyle.Italic)
+    }
+
+    @Test
+    fun `parse handles case-insensitive important keyword`() {
+        val css = ".hljs-title { color: #78bb65 !IMPORTANT; font-weight: bold !Important }"
         val result = ThemeParser.parse(css)
         assertThat(result[HljsSelectors.TITLE]?.color).isEqualTo(Color(0xFF78BB65))
         assertThat(result[HljsSelectors.TITLE]?.fontWeight).isEqualTo(FontWeight.Bold)
