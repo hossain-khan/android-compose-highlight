@@ -252,7 +252,11 @@ class HighlightEngineTest {
     @Test
     fun highlightResultSpanCountIsZeroForPlainTextWithBaseColorTheme() =
         runBlocking {
-            val theme = HighlightTheme.fromMap(mapOf(HljsSelectors.BASE to SpanStyle(color = Color.Red)))
+            val theme =
+                HighlightTheme.fromColorMap(
+                    name = "base-only",
+                    colorMap = mapOf(HljsSelectors.BASE to SpanStyle(color = Color.Red)),
+                )
             val result = engine.highlight("hello world", "plaintext", theme)
             assertThat(result.isSuccess).isTrue()
             assertThat(result.getOrThrow().spanCount).isEqualTo(0)
@@ -265,7 +269,12 @@ class HighlightEngineTest {
     @Test
     fun highlightResultSpanCountIsZeroForPlainTextWithNoBaseColorTheme() =
         runBlocking {
-            val theme = HighlightTheme.fromMap(mapOf(HljsSelectors.KEYWORD to SpanStyle(color = Color.Blue)))
+            val theme =
+                HighlightTheme.fromColorMap(
+                    name = "keyword-only",
+                    colorMap =
+                        mapOf(HljsSelectors.KEYWORD to SpanStyle(color = Color.Blue)),
+                )
             val result = engine.highlight("hello world", "plaintext", theme)
             assertThat(result.isSuccess).isTrue()
             assertThat(result.getOrThrow().spanCount).isEqualTo(0)
@@ -276,11 +285,13 @@ class HighlightEngineTest {
     fun highlightResultSpanCountIsPositiveForHighlightedTokens() =
         runBlocking {
             val theme =
-                HighlightTheme.fromMap(
-                    mapOf(
-                        HljsSelectors.BASE to SpanStyle(color = Color.Black),
-                        HljsSelectors.KEYWORD to SpanStyle(color = Color.Red),
-                    ),
+                HighlightTheme.fromColorMap(
+                    name = "base-and-keyword",
+                    colorMap =
+                        mapOf(
+                            HljsSelectors.BASE to SpanStyle(color = Color.Black),
+                            HljsSelectors.KEYWORD to SpanStyle(color = Color.Red),
+                        ),
                 )
             val result = engine.highlight("def foo(): pass", "python", theme)
             assertThat(result.isSuccess).isTrue()
