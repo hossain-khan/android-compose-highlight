@@ -26,6 +26,13 @@ All notable changes to this project will be documented in this file.
   declarations with `!important` are now parsed correctly, `bolder`/`lighter` map to
   bold/normal weight, and `font-style: oblique` is treated as italic. Fixes #326.
 
+### Infrastructure
+
+- **Cleaned up build configuration** - Moved hardcoded dependencies to the version catalog,
+  removed the unused `android.test` plugin, cleaned up unnecessary repositories, removed
+  redundant unit test coverage flags from release builds, resolved Gradle auto-provisioning
+  warnings by configuring the Foojay resolver in `buildSrc`, and silenced JDK native-access warnings. Fixes #332.
+
 ## [0.30.2] - 2026-06-13
 
 ### Removed
