@@ -2,7 +2,7 @@ plugins {
     id("org.gradle.toolchains.foojay-resolver-convention")
 }
 
-// Inherit pluginManagement / dependencyResolutionManagement from the root settings.
-// buildSrc shares plugin and repository config with the main build by default,
-// but Gradle 9 emits a warning if settings.gradle.kts is missing.
+// settings.gradle.kts for buildSrc is required in Gradle 9 to avoid warnings.
+// Note: buildSrc is treated as an isolated included build and does not inherit
+// pluginManagement or dependencyResolutionManagement from the root project settings.
 rootProject.name = "buildSrc"
