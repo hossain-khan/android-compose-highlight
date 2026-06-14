@@ -7,6 +7,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.tooling.preview.Preview
 import dev.hossain.highlight.engine.HighlightEngine
 import dev.hossain.highlight.engine.HighlightTheme
@@ -164,20 +165,30 @@ fun HighlightThemeProvider(
     darkHighlightTheme: HighlightTheme = rememberTomorrowNightTheme(),
     content: @Composable () -> Unit,
 ) {
-    val context = LocalContext.current
-    // One shared engine for the entire subtree - one WebView, not one per code block.
-    val engine = remember { HighlightEngine(context.applicationContext) }
-    DisposableEffect(engine) {
-        onDispose { engine.destroy() }
-    }
     val activeTheme = if (darkTheme) darkHighlightTheme else lightHighlightTheme
-    CompositionLocalProvider(
-        LocalHighlightTheme provides activeTheme,
-        LocalLightHighlightTheme provides lightHighlightTheme,
-        LocalDarkHighlightTheme provides darkHighlightTheme,
-        LocalHighlightEngine provides engine,
-    ) {
-        content()
+    if (LocalInspectionMode.current) {
+        CompositionLocalProvider(
+            LocalHighlightTheme provides activeTheme,
+            LocalLightHighlightTheme provides lightHighlightTheme,
+            LocalDarkHighlightTheme provides darkHighlightTheme,
+        ) {
+            content()
+        }
+    } else {
+        val context = LocalContext.current
+        // One shared engine for the entire subtree - one WebView, not one per code block.
+        val engine = remember { HighlightEngine(context.applicationContext) }
+        DisposableEffect(engine) {
+            onDispose { engine.destroy() }
+        }
+        CompositionLocalProvider(
+            LocalHighlightTheme provides activeTheme,
+            LocalLightHighlightTheme provides lightHighlightTheme,
+            LocalDarkHighlightTheme provides darkHighlightTheme,
+            LocalHighlightEngine provides engine,
+        ) {
+            content()
+        }
     }
 }
 

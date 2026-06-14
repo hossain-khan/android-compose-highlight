@@ -89,28 +89,28 @@ fun rememberHighlightedCode(
     onHighlightComplete: ((HighlightResult) -> Unit)? = null,
     onError: ((HighlightException) -> Unit)? = null,
 ): State<AnnotatedString?> {
+    if (LocalInspectionMode.current) {
+        return remember(code) { mutableStateOf(AnnotatedString(code)) }
+    }
+
     val engine = rememberHighlightEngine()
     val state = remember(code, language, theme) { mutableStateOf<AnnotatedString?>(null) }
     val latestCallback = rememberUpdatedState(onHighlightComplete)
     val latestErrorCallback = rememberUpdatedState(onError)
 
-    // In Android Studio Preview, WebView-based highlighting is not available.
-    // Skip the LaunchedEffect so the engine is never called; callers will render a fallback.
-    if (!LocalInspectionMode.current) {
-        LaunchedEffect(code, language, theme) {
-            state.value = null
-            engine
-                .highlight(code, language, theme)
-                .onSuccess { result ->
-                    state.value = result.annotated
-                    latestCallback.value?.invoke(result)
-                }.onFailure { error ->
-                    // Invoke onError with the typed HighlightException.
-                    // All failures from HighlightEngine are HighlightException subtypes.
-                    (error as? HighlightException)?.let { latestErrorCallback.value?.invoke(it) }
-                    // Leave state.value = null so the caller renders plain fallback.
-                }
-        }
+    LaunchedEffect(code, language, theme) {
+        state.value = null
+        engine
+            .highlight(code, language, theme)
+            .onSuccess { result ->
+                state.value = result.annotated
+                latestCallback.value?.invoke(result)
+            }.onFailure { error ->
+                // Invoke onError with the typed HighlightException.
+                // All failures from HighlightEngine are HighlightException subtypes.
+                (error as? HighlightException)?.let { latestErrorCallback.value?.invoke(it) }
+                // Leave state.value = null so the caller renders plain fallback.
+            }
     }
 
     return state
@@ -179,26 +179,26 @@ fun rememberHighlightedCodeBothThemes(
     onHighlightComplete: ((ThemedHighlightResult) -> Unit)? = null,
     onError: ((HighlightException) -> Unit)? = null,
 ): State<ThemedHighlightResult?> {
+    if (LocalInspectionMode.current) {
+        return remember { mutableStateOf(null) }
+    }
+
     val engine = rememberHighlightEngine()
     val state = remember(code, language, lightTheme, darkTheme) { mutableStateOf<ThemedHighlightResult?>(null) }
     val latestCallback = rememberUpdatedState(onHighlightComplete)
     val latestErrorCallback = rememberUpdatedState(onError)
 
-    // In Android Studio Preview, WebView-based highlighting is not available.
-    // Skip the LaunchedEffect so the engine is never called; callers will render a fallback.
-    if (!LocalInspectionMode.current) {
-        LaunchedEffect(code, language, lightTheme, darkTheme) {
-            state.value = null
-            engine
-                .highlightBothThemes(code, language, lightTheme, darkTheme)
-                .onSuccess { result ->
-                    state.value = result
-                    latestCallback.value?.invoke(result)
-                }.onFailure { error ->
-                    (error as? HighlightException)?.let { latestErrorCallback.value?.invoke(it) }
-                    // Leave state.value = null so the caller renders plain fallback.
-                }
-        }
+    LaunchedEffect(code, language, lightTheme, darkTheme) {
+        state.value = null
+        engine
+            .highlightBothThemes(code, language, lightTheme, darkTheme)
+            .onSuccess { result ->
+                state.value = result
+                latestCallback.value?.invoke(result)
+            }.onFailure { error ->
+                (error as? HighlightException)?.let { latestErrorCallback.value?.invoke(it) }
+                // Leave state.value = null so the caller renders plain fallback.
+            }
     }
 
     return state
