@@ -59,7 +59,7 @@ jobs:
       - name: Attach APK to GitHub Release
         if: github.event_name == 'release'
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           APK_FILE="artifact/highlight-v${{ steps.version.outputs.VERSION }}.apk"
 

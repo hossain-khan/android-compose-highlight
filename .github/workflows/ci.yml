@@ -120,7 +120,7 @@ jobs:
         with:
           path: |
             ~/.android/avd
-            ${{ env.ANDROID_HOME }}/system-images
+            ~/Android/Sdk/system-images
           key: managed-device-pixel2api30-aosp-atd-${{ runner.os }}
 
       - name: Check Kotlin formatting
