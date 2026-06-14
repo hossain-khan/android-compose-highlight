@@ -33,6 +33,9 @@ All notable changes to this project will be documented in this file.
   `onPreviewKeyEvent` callbacks are now built once with `rememberUpdatedState`, preventing
   unnecessary recompositions on every keystroke while still reading the latest editor state.
   Fixes #329.
+- **Remembered `SyntaxHighlightedTextEditor` modifiers** - `focusNavigationModifier` and
+  `scrollModifier` are now remembered instead of being reconstructed on every recomposition,
+  reducing allocation churn in the editor.
 - **Fixed ThemeParser handling of `!important`, relative font weights, and oblique** -
   declarations with `!important` are now parsed correctly, `bolder`/`lighter` map to
   bold/normal weight, and `font-style: oblique` is treated as italic. Fixes #326.
