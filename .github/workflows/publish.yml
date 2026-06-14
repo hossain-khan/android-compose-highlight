@@ -13,6 +13,9 @@ on:
         type: boolean
         default: false
 
+permissions:
+  contents: read
+
 jobs:
   publish:
     name: ${{ inputs.dry_run && 'Dry Run — Validate Artifacts' || 'Publish to Maven Central' }}
@@ -39,7 +42,7 @@ jobs:
           echo "Version ${{ inputs.tag }} is not yet on Maven Central — proceeding."
 
       - name: Checkout tag
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@v6.0.3
         with:
           ref: refs/tags/${{ inputs.tag }}
 
@@ -50,7 +53,7 @@ jobs:
           distribution: 'temurin'
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v6.1.0
+        uses: gradle/actions/setup-gradle@v6.2.0
         with:
           cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
 

@@ -22,6 +22,13 @@ All notable changes to this project will be documented in this file.
   declarations with `!important` are now parsed correctly, `bolder`/`lighter` map to
   bold/normal weight, and `font-style: oblique` is treated as italic. Fixes #326.
 
+### Infrastructure
+
+- **Hardened CI/CD workflows** - Updated core GitHub Actions versions, fixed the managed-device
+  system image cache path to use `$ANDROID_HOME`, added Dokka and Android Lint validation to CI,
+  added explicit permissions to `publish.yml`, and replaced raw `curl`/`jq` release asset upload
+  with `gh release upload`. Fixes #331.
+
 ## [0.30.2] - 2026-06-13
 
 ### Removed

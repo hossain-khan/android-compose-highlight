@@ -20,7 +20,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@v6.0.3
         with:
           fetch-depth: 0
 
@@ -55,7 +55,7 @@ jobs:
                   "$file" == scripts/* || \
                   "$file" == *.gradle || \
                   "$file" == *.gradle.kts || \
-                  "$file" == ".github/workflows/ci.yml" ]]; then
+                  "$file" == .github/workflows/* ]]; then
               CODE_CHANGED=true
             fi
 
@@ -78,7 +78,7 @@ jobs:
 
       - name: Set up Python
         if: steps.changes.outputs.docs == 'true'
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v6.2.0
         with:
           python-version: 3.x
 
@@ -103,7 +103,7 @@ jobs:
 
       - name: Setup Gradle
         if: steps.changes.outputs.code == 'true'
-        uses: gradle/actions/setup-gradle@v6.1.0
+        uses: gradle/actions/setup-gradle@v6.2.0
         with:
           cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
 
@@ -120,12 +120,20 @@ jobs:
         with:
           path: |
             ~/.android/avd
-            ~/Android/Sdk/system-images
+            ${{ env.ANDROID_HOME }}/system-images
           key: managed-device-pixel2api30-aosp-atd-${{ runner.os }}
 
       - name: Check Kotlin formatting
         if: steps.changes.outputs.code == 'true'
         run: ./gradlew lintKotlin
+
+      - name: Generate Dokka API docs
+        if: steps.changes.outputs.code == 'true'
+        run: ./gradlew :compose-highlight:dokkaGeneratePublicationHtml
+
+      - name: Run Android Lint
+        if: steps.changes.outputs.code == 'true'
+        run: ./gradlew :compose-highlight:lint
 
       - name: Run unit tests
         if: steps.changes.outputs.code == 'true'
@@ -161,7 +169,7 @@ jobs:
 
       - name: Upload coverage reports to Codecov
         if: steps.changes.outputs.code == 'true'
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v7.0.0
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           slug: hossain-khan/android-compose-highlight
