@@ -91,8 +91,8 @@ import kotlinx.coroutines.withContext
 fun SampleScreen() {
     val context = LocalContext.current
     val appContext = context.applicationContext
-    val codeSamples by produceState(initialValue = emptyList<CodeSample>(), context) {
-        value = withContext(Dispatchers.IO) { loadCodeSamples(context) }
+    val codeSamples by produceState(initialValue = emptyList<CodeSample>(), appContext) {
+        value = withContext(Dispatchers.IO) { loadCodeSamples(appContext) }
     }
     val clipboard = LocalClipboard.current
     val scope = rememberCoroutineScope()
@@ -116,7 +116,7 @@ fun SampleScreen() {
 
     // All available theme pairs - GitHub uses fromAsset() to demonstrate custom themes.
     val themePairs =
-        remember(context) {
+        remember(appContext) {
             listOf(
                 ThemePair(
                     name = "GitHub",
