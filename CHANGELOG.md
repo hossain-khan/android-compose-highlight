@@ -36,6 +36,9 @@ All notable changes to this project will be documented in this file.
   removed the unused `android.test` plugin, cleaned up unnecessary repositories, removed
   redundant unit test coverage flags from release builds, resolved Gradle auto-provisioning
   warnings by configuring the Foojay resolver in `buildSrc`, and silenced JDK native-access warnings. Fixes #332.
+- **Narrowed consumer ProGuard keep rules to public API packages** - The library now keeps only
+  the top-level `ui` and `engine` public API surface, allowing downstream R8 to keep shrinking
+  and optimizing `*.internal*` implementation packages.
 
 ## [0.30.2] - 2026-06-13
 
