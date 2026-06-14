@@ -11,7 +11,7 @@ A Jetpack Compose library for beautiful syntax highlighting - powered by [Highli
 
 ```kotlin
 dependencies {
-    implementation("dev.hossain:compose-highlight:0.30.1")
+    implementation("dev.hossain:compose-highlight:0.30.2")
 }
 ```
 

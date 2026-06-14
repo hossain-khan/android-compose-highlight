@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.30.2] - 2026-06-13
+
 ### Removed
 
 - **Removed `treeWalk` timing property from `HighlightTimings`** - Since the SAX-style
