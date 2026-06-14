@@ -10,6 +10,7 @@ import kotlin.time.Duration
  * Verifies that all timing fields are stored correctly, Duration.ZERO
  * is valid for all fields, and duration unit conversions work as expected.
  */
+@Suppress("DEPRECATION")
 class HighlightTimingsTest {
     private val sampleTimings =
         HighlightTimings(
