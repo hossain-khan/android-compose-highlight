@@ -12,7 +12,7 @@ import org.junit.Test
  * JVM unit tests for [ThemeParser.parse] using inline CSS strings (no Android context required).
  *
  * These tests cover the core parsing logic and edge cases:
- * - Basic hex color parsing (`#rrggbb`, 3-digit `#rgb`, 4-digit `#rgba`, 8-digit `#aarrggbb`)
+ * - Basic hex color parsing (`#rrggbb`, 3-digit `#rgb`, 4-digit `#rgba`, 8-digit `#rrggbbaa`)
  * - `rgb()` and `rgba()` color values including decimal alpha (e.g. `rgba(149,165,166,.8)`)
  * - CSS named colors (e.g. `color: red`)
  * - `font-weight: bold` / `700` and `font-style: italic`
@@ -246,11 +246,13 @@ class ThemeParserTest {
 
     @Test
     fun `parse handles 8-digit hex color`() {
-        // 8-digit hex: first two digits are alpha (AARRGGBB), rest are RGB
-        val css = ".hljs-comment { color: #ff8e908c }"
+        // CSS 8-digit hex uses #RRGGBBAA order.
+        // #ff000080 = red 255, green 0, blue 0, alpha 128.
+        val css = ".hljs-comment { color: #ff000080 }"
         val result = ThemeParser.parse(css)
         val style = result[HljsSelectors.COMMENT]
         assertThat(style).isNotNull()
+        assertThat(style!!.color).isEqualTo(Color(255, 0, 0, 128))
     }
 
     @Test
