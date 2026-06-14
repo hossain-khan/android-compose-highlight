@@ -526,6 +526,14 @@ class ThemeParserTest {
         assertThat(result[HljsSelectors.TITLE]?.fontStyle).isEqualTo(FontStyle.Italic)
     }
 
+    @Test
+    fun `parse handles case-insensitive important keyword`() {
+        val css = ".hljs-title { color: #78bb65 !IMPORTANT; font-weight: bold !Important }"
+        val result = ThemeParser.parse(css)
+        assertThat(result[HljsSelectors.TITLE]?.color).isEqualTo(Color(0xFF78BB65))
+        assertThat(result[HljsSelectors.TITLE]?.fontWeight).isEqualTo(FontWeight.Bold)
+    }
+
     // ----- CSS4 rgb() space-separated syntax -----
 
     @Test

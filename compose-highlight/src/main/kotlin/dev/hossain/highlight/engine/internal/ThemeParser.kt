@@ -415,11 +415,13 @@ internal object ThemeParser {
 
         PROP_PATTERN.findAll(declarations).forEach { match ->
             val prop = match.groupValues[1].trim()
+            val rawValue = match.groupValues[2].trim()
             val value =
-                match.groupValues[2]
-                    .trim()
-                    .removeSuffix("!important")
-                    .trim()
+                if (rawValue.endsWith("!important", ignoreCase = true)) {
+                    rawValue.substring(0, rawValue.length - "!important".length).trim()
+                } else {
+                    rawValue
+                }
             when (prop) {
                 "color" -> {
                     color = parseColor(value)
