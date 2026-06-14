@@ -60,6 +60,7 @@ jobs:
         if: github.event_name == 'release'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           APK_FILE="artifact/highlight-v${{ steps.version.outputs.VERSION }}.apk"
 
