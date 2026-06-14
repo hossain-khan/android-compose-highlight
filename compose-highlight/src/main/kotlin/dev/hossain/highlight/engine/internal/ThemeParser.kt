@@ -415,7 +415,13 @@ internal object ThemeParser {
 
         PROP_PATTERN.findAll(declarations).forEach { match ->
             val prop = match.groupValues[1].trim()
-            val value = match.groupValues[2].trim()
+            val rawValue = match.groupValues[2].trim()
+            val value =
+                if (rawValue.endsWith("!important", ignoreCase = true)) {
+                    rawValue.substring(0, rawValue.length - "!important".length).trim()
+                } else {
+                    rawValue
+                }
             when (prop) {
                 "color" -> {
                     color = parseColor(value)
@@ -428,13 +434,18 @@ internal object ThemeParser {
                 "font-weight" -> {
                     val numericWeight = value.toIntOrNull()
                     when {
-                        value == "bold" || (numericWeight != null && numericWeight >= 600) -> fontWeight = FontWeight.Bold
-                        value == "normal" || (numericWeight != null && numericWeight < 600) -> fontWeight = FontWeight.Normal
+                        value == "bold" || value == "bolder" || (numericWeight != null && numericWeight >= 600) -> {
+                            fontWeight = FontWeight.Bold
+                        }
+
+                        value == "normal" || value == "lighter" || (numericWeight != null && numericWeight < 600) -> {
+                            fontWeight = FontWeight.Normal
+                        }
                     }
                 }
 
                 "font-style" -> {
-                    if (value == "italic") fontStyle = FontStyle.Italic
+                    if (value == "italic" || value == "oblique") fontStyle = FontStyle.Italic
                 }
             }
         }
