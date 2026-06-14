@@ -176,6 +176,8 @@ human-readable signal; the modifier is the enforcement. Dokka suppresses
 
 **GitHub workflow - prefer `gh` CLI for GitHub operations.** Use the [`gh`](https://cli.github.com/) GitHub CLI for reading issues, viewing PRs, checking release notes, inspecting Actions runs, and creating PRs. Do not try to fetch GitHub page content by hitting `https://github.com/...` URLs directly with generic web/HTTP fetch tools when `gh` can provide the data. Prefer commands like `gh issue view`, `gh pr view`, `gh release view`, `gh run view`, and `gh pr create`.
 
+**PR titles should describe the change directly.** Do not prefix PR titles with `[codex]`, agent names, or similar tooling labels. Use a normal descriptive title with the appropriate change type such as `fix: ...`, `remove: ...`, `add: ...`, `docs: ...`, or `chore: ...`.
+
 **Pull requests must be created in draft mode first.** When opening a PR, always create it as a draft unless the user explicitly asks for a ready-for-review PR. This applies to regular fix branches and release branches.
 
 **Before every commit - verify stability.** Run the following three tasks and ensure they all pass:
