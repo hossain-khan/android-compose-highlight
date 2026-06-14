@@ -28,6 +28,8 @@ All notable changes to this project will be documented in this file.
 
 ### Infrastructure
 
+- **Removed opencode GitHub Actions workflow** - Deleted `.github/workflows/opencode.yml` since
+  the project no longer uses the opencode comment-triggered automation.
 - **Hardened CI/CD workflows** - Updated core GitHub Actions versions, fixed the managed-device
   system image cache path to use `$ANDROID_HOME`, added Dokka and Android Lint validation to CI,
   added explicit permissions to `publish.yml`, and replaced raw `curl`/`jq` release asset upload
