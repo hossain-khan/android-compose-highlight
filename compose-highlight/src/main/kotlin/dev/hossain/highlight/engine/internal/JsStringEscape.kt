@@ -7,7 +7,7 @@ package dev.hossain.highlight.engine.internal
  * including cases like `\\n` (JSON for a literal backslash followed by 'n') that sequential
  * [String.replace] calls cannot handle correctly (the `\\` and `\n` replacements interfere).
  *
- * Supported escape sequences: `\"`, `\\`, `\/`, `\n`, `\r`, `\t`, `\uXXXX`.
+ * Supported escape sequences: `\"`, `\\`, `\/`, `\b`, `\f`, `\n`, `\r`, `\t`, `\uXXXX`.
  *
  * UTF-16 surrogate pairs (two consecutive `\uXXXX` sequences where the first is a high surrogate
  * U+D800-U+DBFF and the second is a low surrogate U+DC00-U+DFFF) are combined into a single
@@ -40,6 +40,16 @@ internal fun unescapeJsString(jsonString: String): String {
 
                 '/' -> {
                     sb.append('/')
+                    i += 2
+                }
+
+                'b' -> {
+                    sb.append('\b')
+                    i += 2
+                }
+
+                'f' -> {
+                    sb.append('\u000C')
                     i += 2
                 }
 

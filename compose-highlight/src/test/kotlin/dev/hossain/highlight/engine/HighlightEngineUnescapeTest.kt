@@ -62,6 +62,21 @@ class HighlightEngineUnescapeTest {
     }
 
     @Test
+    fun `backslash-b is unescaped to backspace`() {
+        assertThat(unescapeJsString("\"a\\bb\"")).isEqualTo("a\u0008b")
+    }
+
+    @Test
+    fun `backslash-f is unescaped to form feed`() {
+        assertThat(unescapeJsString("\"a\\fb\"")).isEqualTo("a\u000Cb")
+    }
+
+    @Test
+    fun `backspace and form feed in one string are both unescaped`() {
+        assertThat(unescapeJsString("\"\\b\\f\"")).isEqualTo("\u0008\u000C")
+    }
+
+    @Test
     fun `unicode escape u003C decodes to less-than`() {
         assertThat(unescapeJsString("\"\\u003C\"")).isEqualTo("<")
     }
