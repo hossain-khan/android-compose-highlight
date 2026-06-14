@@ -60,7 +60,7 @@ jobs:
           git diff --stat compose-highlight/src/test/snapshots/images/ || true
 
       - name: Open PR with regenerated goldens
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@v8
         with:
           commit-message: "test(screenshots): refresh Roborazzi goldens on Linux"
           title: "test(screenshots): refresh Roborazzi goldens on Linux"
