@@ -1,5 +1,8 @@
 package dev.hossain.highlight.ui
 
+import androidx.compose.foundation.ScrollState
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.compose.ui.input.key.KeyEvent
@@ -14,6 +17,7 @@ import androidx.compose.ui.test.performKeyPress
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.unit.dp
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
 import dev.hossain.highlight.engine.HighlightEngine
@@ -718,4 +722,31 @@ class SyntaxHighlightedTextEditorRobolectricTest {
     // The non-collapsed-selection assertion belongs in the instrumented test file (see
     // RememberSyntaxHighlightedEditorValueTest.preservesNonCollapsedSelectionAcrossHighlightCycle)
     // where the real WebView and real coroutine timing make the assertion deterministic.
+
+    @Test
+    fun `uses hoisted scroll states`() {
+        var hState: ScrollState? = null
+        var vState: ScrollState? = null
+        composeTestRule.setContent {
+            val horiz = rememberScrollState()
+            val vert = rememberScrollState()
+            hState = horiz
+            vState = vert
+            HighlightThemeProvider {
+                SyntaxHighlightedTextEditor(
+                    value = TextFieldValue("val x = 42 " + "a".repeat(1000) + "\n" + "b\n".repeat(100)),
+                    onValueChange = {},
+                    language = "kotlin",
+                    modifier =
+                        androidx.compose.ui.Modifier
+                            .size(100.dp),
+                    horizontalScrollState = horiz,
+                    verticalScrollState = vert,
+                )
+            }
+        }
+        composeTestRule.waitForIdle()
+        assertThat(hState?.maxValue).isGreaterThan(0)
+        assertThat(vState?.maxValue).isGreaterThan(0)
+    }
 }

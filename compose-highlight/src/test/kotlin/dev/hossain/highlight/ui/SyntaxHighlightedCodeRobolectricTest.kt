@@ -1,5 +1,8 @@
 package dev.hossain.highlight.ui
 
+import androidx.compose.foundation.ScrollState
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.test.assertIsDisplayed
@@ -8,6 +11,7 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.unit.dp
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
 import dev.hossain.highlight.engine.HighlightEngine
@@ -308,5 +312,26 @@ class SyntaxHighlightedCodeRobolectricTest {
         assertThat(errors[0]).isInstanceOf(HighlightException.JsExecutionFailed::class.java)
 
         engine.destroy()
+    }
+
+    @Test
+    fun `uses hoisted scroll state`() {
+        var scrollState: ScrollState? = null
+        composeTestRule.setContent {
+            val state = rememberScrollState()
+            scrollState = state
+            HighlightThemeProvider {
+                SyntaxHighlightedCode(
+                    code = "val x = 42 " + "a".repeat(1000),
+                    language = "kotlin",
+                    scrollState = state,
+                    modifier =
+                        androidx.compose.ui.Modifier
+                            .width(100.dp),
+                )
+            }
+        }
+        composeTestRule.waitForIdle()
+        assertThat(scrollState?.maxValue).isGreaterThan(0)
     }
 }

@@ -1,9 +1,12 @@
 package dev.hossain.highlight.ui
 
+import androidx.compose.foundation.ScrollState
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -164,6 +167,10 @@ import dev.hossain.highlight.engine.HighlightTheme
  *   instead of shifting focus to the next view. Defaults to true. Note that arrow keys (Up,
  *   Down, Left, Right) are also intercepted to prevent focus from escaping the editor when
  *   boundaries are reached.
+ * @param horizontalScrollState Hoisted scroll state for horizontal scrolling. When non-null,
+ *   horizontal scrolling is enabled and code lines will not wrap. Defaults to `null` (wrapping enabled).
+ * @param verticalScrollState Hoisted scroll state for vertical scrolling. When non-null,
+ *   vertical scrolling is enabled. Defaults to `null` (disabled).
  *
  * **Note on [shape]:** if you pass a custom [Shape] (e.g. `RoundedCornerShape(8.dp)`), wrap
  * it in `remember` at the call site so that a new instance is not created on every
@@ -188,6 +195,8 @@ fun SyntaxHighlightedTextEditor(
     indentation: String = SyntaxHighlightedTextEditorDefaults.DEFAULT_INDENTATION,
     autoIndentEnabled: Boolean = SyntaxHighlightedTextEditorDefaults.AUTO_INDENT_ENABLED,
     tabKeyInterceptionEnabled: Boolean = SyntaxHighlightedTextEditorDefaults.TAB_KEY_INTERCEPTION_ENABLED,
+    horizontalScrollState: ScrollState? = null,
+    verticalScrollState: ScrollState? = null,
 ) {
     val displayValue =
         rememberSyntaxHighlightedEditorValue(
@@ -323,6 +332,11 @@ fun SyntaxHighlightedTextEditor(
             right = FocusRequester.Cancel
         }
 
+    val scrollModifier =
+        Modifier
+            .then(if (verticalScrollState != null) Modifier.verticalScroll(verticalScrollState) else Modifier)
+            .then(if (horizontalScrollState != null) Modifier.horizontalScroll(horizontalScrollState) else Modifier)
+
     Surface(
         modifier = modifier.testTag("syntax-highlighted-text-editor"),
         shape = shape,
@@ -338,6 +352,7 @@ fun SyntaxHighlightedTextEditor(
             modifier =
                 previewKeyModifier
                     .then(focusNavigationModifier)
+                    .then(scrollModifier)
                     .padding(contentPadding),
         )
     }
