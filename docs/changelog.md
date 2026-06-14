@@ -6,6 +6,13 @@ For release artifacts and APK downloads, see the [GitHub Releases page](https://
 
 ## Recent highlights
 
+### 0.30.2 - Remove deprecated treeWalk timing
+
+- Removed the deprecated `treeWalk` timing property entirely from `HighlightTimings`
+- Cleaned up the timings usage in `HighlightEngine` and internally in `HtmlToAnnotatedString`
+- Updated the sample app performance breakdown screen and timing unit tests to remove the property
+- Syncing documentation across the guides to reflect the updated timing model
+
 ### 0.30.1 - Parser performance optimizations
 
 - Optimized HTML-to-AnnotatedString pipeline with SAX-style single-pass parsing, eliminating intermediate tree allocations
@@ -35,14 +42,6 @@ For release artifacts and APK downloads, see the [GitHub Releases page](https://
 - `LIB_VERSION_NAME` build config field keeps displayed version in sync with published artifact
 - `EngineInfoSection` search box outline now matches other info cards, language chips use vector icons
 - KDoc updated for `CopyButton` to describe vector icon behavior
-
-### 0.27.0 - Editor keyboard options and cursor brush
-
-- `SyntaxHighlightedTextEditor` now defaults to code-friendly `keyboardOptions` (autocorrect off, Ascii keyboard)
-- Editor `onHighlightComplete` callback now receives `HighlightResult` instead of `AnnotatedString`
-- New `keyboardOptions` and `cursorBrush` parameters for `SyntaxHighlightedTextEditor`
-- `SyntaxHighlightedTextEditorDefaults.CodeKeyboardOptions` constant added
-- `ThemeParser` no longer silently swallows non-IO exceptions
 
 ---
 
