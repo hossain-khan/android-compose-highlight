@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Fixed
+
+- **Fixed 8-digit CSS hex color parsing order** - `ThemeParser` now interprets `#RRGGBBAA`
+  as specified by CSS Color Module Level 4, instead of the Android-style `#AARRGGBB`
+  order. Fixes #321.
+
 ## [0.30.2] - 2026-06-13
 
 ### Removed
