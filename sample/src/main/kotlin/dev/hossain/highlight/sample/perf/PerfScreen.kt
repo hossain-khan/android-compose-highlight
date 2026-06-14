@@ -326,7 +326,7 @@ private fun SummaryRow(
  *
  * Top row shows total highlight time, line count, and char count.
  * Below the divider, a per-stage pipeline breakdown is shown using [HighlightTimings]:
- * JS bridge, HTML parse, tree walk, and theme parse (only when non-zero - first call only).
+ * JS bridge, HTML parse, and theme parse (only when non-zero - first call only).
  */
 @Composable
 private fun PerfMetricCard(metrics: HighlightMetrics?) {
