@@ -1,5 +1,7 @@
 package dev.hossain.highlight.engine
 
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.SpanStyle
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.google.common.truth.Truth.assertThat
@@ -245,6 +247,56 @@ class HighlightEngineTest {
             val result = engine.highlight("some code here", "not-a-real-language-xyz", lightTheme)
             assertThat(result.isSuccess).isTrue()
             assertThat(result.getOrThrow().spanCount).isAtLeast(0)
+        }
+
+    @Test
+    fun highlightResultSpanCountIsZeroForPlainTextWithBaseColorTheme() =
+        runBlocking {
+            val theme =
+                HighlightTheme.fromColorMap(
+                    name = "base-only",
+                    colorMap = mapOf(HljsSelectors.BASE to SpanStyle(color = Color.Red)),
+                )
+            val result = engine.highlight("hello world", "plaintext", theme)
+            assertThat(result.isSuccess).isTrue()
+            assertThat(result.getOrThrow().spanCount).isEqualTo(0)
+            // But the base style is still applied to the annotated text
+            val annotated = result.getOrThrow().annotated
+            assertThat(annotated.spanStyles).hasSize(1)
+            assertThat(annotated.spanStyles[0].item.color).isEqualTo(Color.Red)
+        }
+
+    @Test
+    fun highlightResultSpanCountIsZeroForPlainTextWithNoBaseColorTheme() =
+        runBlocking {
+            val theme =
+                HighlightTheme.fromColorMap(
+                    name = "keyword-only",
+                    colorMap =
+                        mapOf(HljsSelectors.KEYWORD to SpanStyle(color = Color.Blue)),
+                )
+            val result = engine.highlight("hello world", "plaintext", theme)
+            assertThat(result.isSuccess).isTrue()
+            assertThat(result.getOrThrow().spanCount).isEqualTo(0)
+            assertThat(result.getOrThrow().annotated.spanStyles).isEmpty()
+        }
+
+    @Test
+    fun highlightResultSpanCountIsPositiveForHighlightedTokens() =
+        runBlocking {
+            val theme =
+                HighlightTheme.fromColorMap(
+                    name = "base-and-keyword",
+                    colorMap =
+                        mapOf(
+                            HljsSelectors.BASE to SpanStyle(color = Color.Black),
+                            HljsSelectors.KEYWORD to SpanStyle(color = Color.Red),
+                        ),
+                )
+            val result = engine.highlight("def foo(): pass", "python", theme)
+            assertThat(result.isSuccess).isTrue()
+            // Should exclude the base style but include the keyword style
+            assertThat(result.getOrThrow().spanCount).isGreaterThan(0)
         }
 
     @Test

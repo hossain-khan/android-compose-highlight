@@ -3,6 +3,7 @@ package dev.hossain.highlight.engine
 import android.content.Context
 import android.webkit.WebView
 import androidx.annotation.VisibleForTesting
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import dev.hossain.highlight.engine.internal.HtmlToAnnotatedString
@@ -286,10 +287,13 @@ class HighlightEngine(
                 val (colorMap, themeParseD) = theme.timedColorMap()
                 val convertResult = HtmlToAnnotatedString.convertTimed(htmlResult.html, colorMap)
                 val totalDuration = totalStart.elapsedNow()
+                val hasBaseStyle =
+                    !htmlResult.html.isBlank() && colorMap[HljsSelectors.BASE]?.color?.let { it != Color.Unspecified } == true
+                val spanCount = convertResult.annotated.spanStyles.size - if (hasBaseStyle) 1 else 0
                 Result.success(
                     HighlightResult(
                         annotated = convertResult.annotated,
-                        spanCount = convertResult.annotated.spanStyles.size,
+                        spanCount = spanCount,
                         language = language,
                         durationMs = totalDuration.inWholeMilliseconds,
                         timings =
@@ -615,11 +619,14 @@ class HighlightEngine(
                     val (colorMap, themeParseD) = theme.timedColorMap()
                     val convertResult = HtmlToAnnotatedString.convertTimed(jsResult.html, colorMap)
                     val totalDuration = totalStart.elapsedNow()
+                    val hasBaseStyle =
+                        !jsResult.html.isBlank() && colorMap[HljsSelectors.BASE]?.color?.let { it != Color.Unspecified } == true
+                    val spanCount = convertResult.annotated.spanStyles.size - if (hasBaseStyle) 1 else 0
                     Result.success(
                         AutoHighlightResult(
                             annotated = convertResult.annotated,
                             detectedLanguage = jsResult.detectedLanguage,
-                            spanCount = convertResult.annotated.spanStyles.size,
+                            spanCount = spanCount,
                             durationMs = totalDuration.inWholeMilliseconds,
                             timings =
                                 HighlightTimings(

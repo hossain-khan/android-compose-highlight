@@ -9,6 +9,9 @@ All notable changes to this project will be documented in this file.
 - **Fixed 8-digit CSS hex color parsing order** - `ThemeParser` now interprets `#RRGGBBAA`
   as specified by CSS Color Module Level 4, instead of the Android-style `#AARRGGBB`
   order. Fixes #321.
+- **Fixed spanCount semantics in HighlightResult** - `spanCount` now excludes the base
+  theme `.hljs` span, so `spanCount == 0` correctly and reliably represents a silent
+  highlighting failure. Fixes #327.
 - **Fixed sample app asset and theme reloading on configuration change** - Moved sample data
   and theme loading into `SampleViewModel` to avoid re-reading assets and re-parsing custom
   CSS themes on every configuration change (e.g. rotation). Fixes #324.

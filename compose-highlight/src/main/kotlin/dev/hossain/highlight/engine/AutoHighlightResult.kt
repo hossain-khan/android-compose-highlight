@@ -29,8 +29,8 @@ import androidx.compose.ui.text.AnnotatedString
  * @property annotated The syntax-highlighted [AnnotatedString] ready for rendering.
  * @property detectedLanguage Highlight.js detected language identifier, or an empty string when
  *   auto-detection could not determine one.
- * @property spanCount Number of [AnnotatedString.spanStyles] entries. A value of `0` indicates
- *   that no tokens were found.
+ * @property spanCount Number of syntax-highlighted token spans. A value of `0` indicates
+ *   that no tokens were found. Excludes the base theme `.hljs` span if one was applied.
  * @property durationMs Pure highlight time in milliseconds. Equals
  *   `timings.total.inWholeMilliseconds`.
  * @property timings Per-layer timing breakdown for this highlight call. Always populated.
