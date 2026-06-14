@@ -18,6 +18,10 @@ All notable changes to this project will be documented in this file.
 - **Fixed live editor state reset on rotation in sample app** - `LiveEditorSection` now uses
   `rememberSaveable` with `TextFieldValue.Saver`, so typed content survives configuration
   changes and stays scoped to the selected language. Fixes #325.
+- **Stabilized `SyntaxHighlightedTextEditor` callbacks** - `onValueChange` and
+  `onPreviewKeyEvent` callbacks are now built once with `rememberUpdatedState`, preventing
+  unnecessary recompositions on every keystroke while still reading the latest editor state.
+  Fixes #329.
 - **Fixed ThemeParser handling of `!important`, relative font weights, and oblique** -
   declarations with `!important` are now parsed correctly, `bolder`/`lighter` map to
   bold/normal weight, and `font-style: oblique` is treated as italic. Fixes #326.
@@ -28,6 +32,10 @@ All notable changes to this project will be documented in this file.
   system image cache path to use `$ANDROID_HOME`, added Dokka and Android Lint validation to CI,
   added explicit permissions to `publish.yml`, and replaced raw `curl`/`jq` release asset upload
   with `gh release upload`. Fixes #331.
+- **Cleaned up build configuration** - Moved hardcoded dependencies to the version catalog,
+  removed the unused `android.test` plugin, cleaned up unnecessary repositories, removed
+  redundant unit test coverage flags from release builds, resolved Gradle auto-provisioning
+  warnings by configuring the Foojay resolver in `buildSrc`, and silenced JDK native-access warnings. Fixes #332.
 
 ## [0.30.2] - 2026-06-13
 
