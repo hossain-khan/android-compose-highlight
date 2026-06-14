@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+
+- **Added scroll support and scroll-state hoisting to code block and editor** - Callers can now
+  pass custom `ScrollState` instances to `SyntaxHighlightedCode` and `SyntaxHighlightedTextEditor`
+  to observe or programmatically control horizontal and vertical scroll positions. Fixes #330.
+
 ### Fixed
 
 - **Fixed 8-digit CSS hex color parsing order** - `ThemeParser` now interprets `#RRGGBBAA`

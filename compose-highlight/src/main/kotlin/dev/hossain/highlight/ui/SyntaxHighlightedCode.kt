@@ -5,6 +5,7 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -145,6 +146,7 @@ private val LineNumberGutterSpacing = 8.dp
  *   Use [CodeBlockStyle.textStyle] to override typography (font family, size, line height).
  *   See [SyntaxHighlightedCodeDefaults] for the default values.
  * @param showLineNumbers Whether to show a line-number gutter on the left.
+ * @param scrollState Hoisted scroll state for horizontal scrolling. Defaults to `rememberScrollState()`.
  * @param languageLabel Optional composable content for the language badge in the header.
  *   `null` hides the badge entirely. The default shows [language] in a dimmed style derived from
  *   the active theme. Renders inside a [Surface] whose [LocalContentColor] is the theme foreground
@@ -208,6 +210,7 @@ fun SyntaxHighlightedCode(
     theme: HighlightTheme = LocalHighlightTheme.current,
     style: CodeBlockStyle = CodeBlockStyle.Default,
     showLineNumbers: Boolean = false,
+    scrollState: ScrollState = rememberScrollState(),
     languageLabel: (@Composable () -> Unit)? =
         if (language.isNotBlank()) DefaultLanguageLabelSentinel else null,
     copyButton: (@Composable (onClick: () -> Unit) -> Unit)? = DefaultCopyButtonSentinel,
@@ -342,7 +345,6 @@ fun SyntaxHighlightedCode(
 
             // Code content with horizontal scroll. Scroll position resets to 0 when code
             // changes, but survives configuration changes via rememberScrollState (saveable).
-            val scrollState = rememberScrollState()
             LaunchedEffect(code) {
                 scrollState.scrollTo(0)
             }
