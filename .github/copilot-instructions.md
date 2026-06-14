@@ -174,6 +174,10 @@ human-readable signal; the modifier is the enforcement. Dokka suppresses
 
 **Git workflow - always create new commits.** Never use `git commit --amend`, `git push --force`, `git push --force-with-lease`, or similar rewriting operations. Always create a new commit for any changes. This keeps commit history clean, preserves attribution, and prevents accidental data loss. If changes are needed after pushing, create a new commit with a descriptive message (e.g., "fix: address code review feedback in X").
 
+**GitHub workflow - prefer `gh` CLI for GitHub operations.** Use the [`gh`](https://cli.github.com/) GitHub CLI for reading issues, viewing PRs, checking release notes, inspecting Actions runs, and creating PRs. Do not try to fetch GitHub page content by hitting `https://github.com/...` URLs directly with generic web/HTTP fetch tools when `gh` can provide the data. Prefer commands like `gh issue view`, `gh pr view`, `gh release view`, `gh run view`, and `gh pr create`.
+
+**Pull requests must be created in draft mode first.** When opening a PR, always create it as a draft unless the user explicitly asks for a ready-for-review PR. This applies to regular fix branches and release branches.
+
 **Before every commit - verify stability.** Run the following three tasks and ensure they all pass:
 ```bash
 ./gradlew formatKotlin                          # auto-fix formatting
@@ -206,7 +210,7 @@ git checkout -b release/<new-version>
 ./gradlew formatKotlin :compose-highlight:assembleDebug :sample:assembleDebug :compose-highlight:test
 git add -A && git commit -m "chore: prepare release <new-version>"
 git push -u origin release/<new-version>
-gh pr create --title "chore: prepare release <new-version>" --base main
+gh pr create --draft --title "chore: prepare release <new-version>" --base main
 ```
 
 Only create the git tag **after the release PR is merged** and `main` is pulled:
