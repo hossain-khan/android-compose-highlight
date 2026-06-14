@@ -20,6 +20,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.SolidColor
@@ -138,9 +139,7 @@ LIMIT 10;
 internal fun LiveEditorSection() {
     var selectedLanguage by rememberSaveable { mutableStateOf("kotlin") }
     var customCursorColor by rememberSaveable { mutableStateOf(false) }
-    var editorValue by remember(selectedLanguage) {
-        mutableStateOf(TextFieldValue(INITIAL_CODE_BY_LANGUAGE[selectedLanguage] ?: ""))
-    }
+    val editorStateHolder = rememberSaveableStateHolder()
 
     // Resolve the cursor brush in composition so MaterialTheme.colorScheme is in scope.
     // null falls back to the editor's theme-derived default (SolidColor of theme.defaultTextColor),
@@ -203,30 +202,36 @@ internal fun LiveEditorSection() {
         //   customizing one field.
         // - cursorBrush: null lets the editor derive a visible cursor from the current theme;
         //   the toggle above swaps in an explicit SolidColor.
-        SyntaxHighlightedTextEditor(
-            value = editorValue,
-            onValueChange = { editorValue = it },
-            language = selectedLanguage,
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .heightIn(min = 200.dp)
-                    .border(
-                        width = 1.dp,
-                        color = MaterialTheme.colorScheme.outline,
-                        shape = RoundedCornerShape(8.dp),
+        editorStateHolder.SaveableStateProvider(selectedLanguage) {
+            var editorValue by rememberSaveable(stateSaver = TextFieldValue.Saver) {
+                mutableStateOf(TextFieldValue(INITIAL_CODE_BY_LANGUAGE[selectedLanguage] ?: ""))
+            }
+
+            SyntaxHighlightedTextEditor(
+                value = editorValue,
+                onValueChange = { editorValue = it },
+                language = selectedLanguage,
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = 200.dp)
+                        .border(
+                            width = 1.dp,
+                            color = MaterialTheme.colorScheme.outline,
+                            shape = RoundedCornerShape(8.dp),
+                        ),
+                shape = RoundedCornerShape(8.dp),
+                contentPadding = PaddingValues(12.dp),
+                textStyle =
+                    TextStyle(
+                        fontFamily = FontFamily.Monospace,
+                        fontSize = 13.sp,
                     ),
-            shape = RoundedCornerShape(8.dp),
-            contentPadding = PaddingValues(12.dp),
-            textStyle =
-                TextStyle(
-                    fontFamily = FontFamily.Monospace,
-                    fontSize = 13.sp,
-                ),
-            keyboardOptions =
-                SyntaxHighlightedTextEditorDefaults.CodeKeyboardOptions
-                    .copy(imeAction = ImeAction.Done),
-            cursorBrush = cursorBrush,
-        )
+                keyboardOptions =
+                    SyntaxHighlightedTextEditorDefaults.CodeKeyboardOptions
+                        .copy(imeAction = ImeAction.Done),
+                cursorBrush = cursorBrush,
+            )
+        }
     }
 }

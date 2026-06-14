@@ -29,7 +29,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -41,6 +40,7 @@ import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.hossain.highlight.engine.HighlightTheme
 import dev.hossain.highlight.sample.info.InfoBanner
 import dev.hossain.highlight.sample.perf.PerfActivity
@@ -88,12 +88,10 @@ import kotlinx.coroutines.withContext
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SampleScreen() {
+internal fun SampleScreen(viewModel: SampleViewModel = viewModel()) {
     val context = LocalContext.current
-    val appContext = context.applicationContext
-    val codeSamples by produceState(initialValue = emptyList<CodeSample>(), context) {
-        value = withContext(Dispatchers.IO) { loadCodeSamples(context) }
-    }
+    val codeSamples = viewModel.codeSamples
+    val themePairs = viewModel.themePairs
     val clipboard = LocalClipboard.current
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -112,28 +110,6 @@ fun SampleScreen() {
                     snackbarHostState.showSnackbar("Successfully copied source code to clipboard")
                 }
             }
-        }
-
-    // All available theme pairs - GitHub uses fromAsset() to demonstrate custom themes.
-    val themePairs =
-        remember(context) {
-            listOf(
-                ThemePair(
-                    name = "GitHub",
-                    light = HighlightTheme.fromAsset(appContext, "themes/github.css", "github"),
-                    dark = HighlightTheme.fromAsset(appContext, "themes/github-dark.css", "github-dark"),
-                ),
-                ThemePair(
-                    name = "Tomorrow",
-                    light = HighlightTheme.tomorrow(),
-                    dark = HighlightTheme.tomorrowNight(),
-                ),
-                ThemePair(
-                    name = "Atom One",
-                    light = HighlightTheme.atomOneLight(),
-                    dark = HighlightTheme.atomOneDark(),
-                ),
-            )
         }
 
     var selectedThemeIndex by rememberSaveable { mutableIntStateOf(2) } // Atom One

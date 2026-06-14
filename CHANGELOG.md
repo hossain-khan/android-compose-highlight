@@ -12,6 +12,15 @@ All notable changes to this project will be documented in this file.
 - **Fixed spanCount semantics in HighlightResult** - `spanCount` now excludes the base
   theme `.hljs` span, so `spanCount == 0` correctly and reliably represents a silent
   highlighting failure. Fixes #327.
+- **Fixed sample app asset and theme reloading on configuration change** - Moved sample data
+  and theme loading into `SampleViewModel` to avoid re-reading assets and re-parsing custom
+  CSS themes on every configuration change (e.g. rotation). Fixes #324.
+- **Fixed live editor state reset on rotation in sample app** - `LiveEditorSection` now uses
+  `rememberSaveable` with `TextFieldValue.Saver`, so typed content survives configuration
+  changes and stays scoped to the selected language. Fixes #325.
+- **Fixed ThemeParser handling of `!important`, relative font weights, and oblique** -
+  declarations with `!important` are now parsed correctly, `bolder`/`lighter` map to
+  bold/normal weight, and `font-style: oblique` is treated as italic. Fixes #326.
 
 ## [0.30.2] - 2026-06-13
 
