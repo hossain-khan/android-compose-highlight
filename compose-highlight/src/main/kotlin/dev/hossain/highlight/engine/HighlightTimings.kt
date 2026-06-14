@@ -16,8 +16,7 @@ import kotlin.time.Duration
  * |---|---|
  * | [jsBridge] | `evaluateJavascript()` round-trip into WebView running highlight.js |
  * | [jsonUnescape] | `unescapeJsString()` pass over the returned JSON string |
- * | [htmlParse] | HTML parsing into a node tree |
- * | [treeWalk] | DOM node walk + `SpanStyle` lookup from theme color map |
+ * | [htmlParse] | HTML parsing into a node tree and building the AnnotatedString |
  * | [themeParse] | Theme CSS parsing - first-use only; [Duration.ZERO] on cache hits |
  * | [total] | End-to-end time for the full highlight call |
  *
@@ -29,12 +28,11 @@ import kotlin.time.Duration
  *     println("JS bridge:    ${t.jsBridge}")        // e.g. "45ms"
  *     println("JSON unescape:${t.jsonUnescape}")     // e.g. "1ms"
  *     println("HTML parse:   ${t.htmlParse}")        // e.g. "3ms"
- *     println("Tree walk:    ${t.treeWalk}")         // e.g. "2ms"
  *     println("Theme parse:  ${t.themeParse}")       // non-zero on first call only
  *     println("Total:        ${t.total}")            // full elapsed wall-clock time
  *     // Or get raw numbers:
  *     val jsBridgeMs = t.jsBridge.inWholeMilliseconds
- *     val treeWalkNs = t.treeWalk.inWholeNanoseconds
+ *     val htmlParseNs = t.htmlParse.inWholeNanoseconds
  * }
  * ```
  *
@@ -42,9 +40,8 @@ import kotlin.time.Duration
  *   the call to when the JS result callback fires. Excludes WebView warm-up and mutex-wait time.
  * @property jsonUnescape Time for `unescapeJsString` - the character-by-character pass that
  *   strips JSON encoding from the string returned by the JS engine.
- * @property htmlParse Time for parsing the highlight.js HTML output into a node tree.
- * @property treeWalk Time for the DOM tree walk and [androidx.compose.ui.text.SpanStyle]
- *   application loop that builds the [androidx.compose.ui.text.AnnotatedString].
+ * @property htmlParse Time for parsing the highlight.js HTML output and building the
+ *   [androidx.compose.ui.text.AnnotatedString] in a single SAX-style pass.
  * @property themeParse Time for theme CSS parsing on first use of a
  *   [HighlightTheme]. [Duration.ZERO] on all subsequent calls for the same theme instance
  *   because the color map is lazily computed and cached.
@@ -58,7 +55,6 @@ data class HighlightTimings(
     val jsBridge: Duration,
     val jsonUnescape: Duration,
     val htmlParse: Duration,
-    val treeWalk: Duration,
     val themeParse: Duration,
     val total: Duration,
 )

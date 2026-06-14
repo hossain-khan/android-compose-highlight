@@ -19,7 +19,6 @@ class HighlightResultTest {
             jsBridge = Duration.ZERO,
             jsonUnescape = Duration.ZERO,
             htmlParse = Duration.ZERO,
-            treeWalk = Duration.ZERO,
             themeParse = Duration.ZERO,
             total = Duration.ZERO,
         )
@@ -124,21 +123,20 @@ class HighlightResultTest {
                 jsBridge = Duration.parse("45ms"),
                 jsonUnescape = Duration.parse("1ms"),
                 htmlParse = Duration.parse("3ms"),
-                treeWalk = Duration.parse("2ms"),
                 themeParse = Duration.parse("10ms"),
-                total = Duration.parse("61ms"),
+                total = Duration.parse("59ms"),
             )
         val result =
             HighlightResult(
                 annotated = sampleAnnotated,
                 spanCount = 5,
                 language = "kotlin",
-                durationMs = 61L,
+                durationMs = 59L,
                 timings = timings,
             )
 
         assertThat(result.timings).isEqualTo(timings)
         assertThat(result.timings.jsBridge).isEqualTo(Duration.parse("45ms"))
-        assertThat(result.timings.total).isEqualTo(Duration.parse("61ms"))
+        assertThat(result.timings.total).isEqualTo(Duration.parse("59ms"))
     }
 }

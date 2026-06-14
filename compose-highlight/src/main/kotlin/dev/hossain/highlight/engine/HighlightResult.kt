@@ -30,7 +30,6 @@ import androidx.compose.ui.text.AnnotatedString
  *     log("JS bridge:    ${result.timings.jsBridge}")
  *     log("JSON unescape:${result.timings.jsonUnescape}")
  *     log("HTML parse:   ${result.timings.htmlParse}")
- *     log("Tree walk:    ${result.timings.treeWalk}")
  *     log("Theme parse:  ${result.timings.themeParse}")  // non-zero on first call only
  * }
  * ```

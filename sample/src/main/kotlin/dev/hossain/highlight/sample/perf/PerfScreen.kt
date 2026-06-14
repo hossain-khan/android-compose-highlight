@@ -326,7 +326,7 @@ private fun SummaryRow(
  *
  * Top row shows total highlight time, line count, and char count.
  * Below the divider, a per-stage pipeline breakdown is shown using [HighlightTimings]:
- * JS bridge, HTML parse, tree walk, and theme parse (only when non-zero - first call only).
+ * JS bridge, HTML parse, and theme parse (only when non-zero - first call only).
  */
 @Composable
 private fun PerfMetricCard(metrics: HighlightMetrics?) {
@@ -382,7 +382,6 @@ private fun PerfMetricCard(metrics: HighlightMetrics?) {
                 PipelineRow(label = "JS bridge", duration = metrics.timings.jsBridge)
                 PipelineRow(label = "JSON unescape", duration = metrics.timings.jsonUnescape)
                 PipelineRow(label = "HTML parse", duration = metrics.timings.htmlParse)
-                PipelineRow(label = "Tree walk", duration = metrics.timings.treeWalk)
                 if (metrics.timings.themeParse > Duration.ZERO) {
                     PipelineRow(
                         label = "Theme parse (first use)",

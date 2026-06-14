@@ -134,7 +134,6 @@ SyntaxHighlightedCode(
 | `jsBridge` | `Duration` | WebView JS evaluation |
 | `jsonUnescape` | `Duration` | JS string unescaping |
 | `htmlParse` | `Duration` | Custom HTML parsing |
-| `treeWalk` | `Duration` | Span tree walk |
 | `themeParse` | `Duration` | CSS to SpanStyle (first call only; `Duration.ZERO` on cache hits) |
 | `total` | `Duration` | Full elapsed wall-clock time |
 

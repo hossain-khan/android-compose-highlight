@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Removed
+
+- **Removed `treeWalk` timing property from `HighlightTimings`** - Since the SAX-style
+  single-pass parser optimization eliminates the separate tree walk phase, the `treeWalk`
+  metric has been removed entirely from the public timing breakdown model.
+
 ## [0.30.1] - 2026-06-13
 
 ### Performance

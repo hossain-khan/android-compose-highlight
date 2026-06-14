@@ -19,7 +19,6 @@ class AutoHighlightResultTest {
             jsBridge = Duration.ZERO,
             jsonUnescape = Duration.ZERO,
             htmlParse = Duration.ZERO,
-            treeWalk = Duration.ZERO,
             themeParse = Duration.ZERO,
             total = Duration.ZERO,
         )
