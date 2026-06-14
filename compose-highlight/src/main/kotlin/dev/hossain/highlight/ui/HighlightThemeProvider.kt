@@ -7,6 +7,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.tooling.preview.Preview
 import dev.hossain.highlight.engine.HighlightEngine
 import dev.hossain.highlight.engine.HighlightTheme
 import dev.hossain.highlight.ui.internal.LocalHighlightEngine
@@ -251,3 +252,17 @@ fun rememberAtomOneDarkTheme(): HighlightTheme = remember { HighlightTheme.atomO
  */
 @Composable
 fun rememberAtomOneLightTheme(): HighlightTheme = remember { HighlightTheme.atomOneLight() }
+
+@Preview(showBackground = true)
+@Composable
+private fun HighlightThemeProviderPreview() {
+    HighlightThemeProvider(
+        lightHighlightTheme = rememberTomorrowTheme(),
+        darkHighlightTheme = rememberTomorrowNightTheme(),
+    ) {
+        SyntaxHighlightedCode(
+            code = "val list = listOf(1, 2, 3)\nval sum = list.sum()",
+            language = "kotlin",
+        )
+    }
+}

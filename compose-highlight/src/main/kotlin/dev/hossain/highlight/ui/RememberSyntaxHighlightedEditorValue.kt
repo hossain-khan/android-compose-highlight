@@ -7,6 +7,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.input.TextFieldValue
 import dev.hossain.highlight.engine.HighlightException
@@ -82,6 +83,7 @@ private data class HighlightSnapshot(
  *   The result carries the highlighted [AnnotatedString], `spanCount`, `language`, `durationMs`,
  *   and per-layer [HighlightTimings] - matching the shape used by [rememberHighlightedCode] so
  *   callers can move between read-only and editable APIs without changing their callback shape.
+ *   Defaults to `null` (no callback).
  * @param onError Optional callback invoked with the [HighlightException] when a highlight cycle
  *   fails. The editor falls back to plain text on failure regardless of whether this callback
  *   is set - it is purely observational. Use it to log failures, show a snackbar, or record
@@ -105,6 +107,10 @@ fun rememberSyntaxHighlightedEditorValue(
     onHighlightComplete: ((HighlightResult) -> Unit)? = null,
     onError: ((HighlightException) -> Unit)? = null,
 ): TextFieldValue {
+    if (LocalInspectionMode.current) {
+        return value.copy(annotatedString = AnnotatedString(value.text))
+    }
+
     val engine = rememberHighlightEngine()
     var highlighted by remember { mutableStateOf<HighlightSnapshot?>(null) }
     // rememberUpdatedState ensures a changed debounceMs or callback is used by the running

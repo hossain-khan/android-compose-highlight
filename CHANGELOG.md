@@ -12,6 +12,10 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+- **Fixed `SyntaxHighlightedTextEditor` crash in `@Preview` mode** - Added `LocalInspectionMode`
+  check to `rememberSyntaxHighlightedEditorValue` to return a plain unstyled fallback, bypassing
+  native `WebView` engine creation. Also added `@Preview` examples for the main components and theme provider. Fixes #328.
+
 - **Fixed 8-digit CSS hex color parsing order** - `ThemeParser` now interprets `#RRGGBBAA`
   as specified by CSS Color Module Level 4, instead of the Android-style `#AARRGGBB`
   order. Fixes #321.

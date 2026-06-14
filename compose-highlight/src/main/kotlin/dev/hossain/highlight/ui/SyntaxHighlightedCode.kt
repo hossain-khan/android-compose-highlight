@@ -37,6 +37,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.hossain.highlight.engine.HighlightException
 import dev.hossain.highlight.engine.HighlightResult
@@ -458,4 +459,35 @@ private fun LineNumberedCode(
             Text(text = code, style = codeTextStyle)
         }
     }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun SyntaxHighlightedCodeDefaultPreview() {
+    SyntaxHighlightedCode(
+        code = "fun hello() = println(\"Hello!\")",
+        language = "kotlin",
+        theme = rememberTomorrowTheme(),
+    )
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun SyntaxHighlightedCodeLineNumbersPreview() {
+    SyntaxHighlightedCode(
+        code = "fun hello() = println(\"Hello!\")\nval x = 42\nprintln(x)",
+        language = "kotlin",
+        showLineNumbers = true,
+        theme = rememberTomorrowTheme(),
+    )
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun SyntaxHighlightedCodeHeaderPreview() {
+    SyntaxHighlightedCode(
+        code = "fun hello() = println(\"Hello!\")",
+        language = "kotlin",
+        theme = rememberTomorrowTheme(),
+    )
 }
