@@ -10,10 +10,10 @@
 ./gradlew formatKotlin
 
 # Lint markdown (markdownlint-cli) - validates CHANGELOG.md and other markdown files
-npx markdownlint CHANGELOG.md
+npx markdownlint-cli CHANGELOG.md
 
 # Auto-fix markdown formatting
-npx markdownlint --fix CHANGELOG.md
+npx markdownlint-cli --fix CHANGELOG.md
 
 # JVM unit tests (fast, no device needed)
 ./gradlew :compose-highlight:test
