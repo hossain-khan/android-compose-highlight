@@ -9,6 +9,9 @@ All notable changes to this project will be documented in this file.
 - **Fixed 8-digit CSS hex color parsing order** - `ThemeParser` now interprets `#RRGGBBAA`
   as specified by CSS Color Module Level 4, instead of the Android-style `#AARRGGBB`
   order. Fixes #321.
+- **Fixed live editor state reset on rotation in sample app** - `LiveEditorSection` now uses
+  `rememberSaveable` with `TextFieldValue.Saver`, so typed content survives configuration
+  changes and stays scoped to the selected language. Fixes #325.
 
 ## [0.30.2] - 2026-06-13
 
