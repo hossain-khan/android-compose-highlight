@@ -13,8 +13,8 @@ Complete these steps once before your first Maven Central release.
 1. Sign up at [central.sonatype.com](https://central.sonatype.com)
 2. Verify the `dev.hossain` namespace (Settings → Namespaces)
 3. Generate a user token: Account → Generate User Token
-   - Save the **token username** → `MAVEN_CENTRAL_USERNAME` secret
-   - Save the **token password** → `MAVEN_CENTRAL_PASSWORD` secret
+   - Save the **token username** → `OSSRH_USERNAME` secret
+   - Save the **token password** → `OSSRH_PASSWORD` secret
 
 ### 2. GPG signing key
 
@@ -49,8 +49,8 @@ Add the following secrets in **Settings → Secrets and variables → Actions**:
 | `SIGNING_KEY_ID` | Short key ID - last 8 hex chars of the fingerprint (e.g. `F17804D7`) |
 | `SIGNING_KEY` | ASCII-armored private key (full `-----BEGIN/END-----` block) |
 | `SIGNING_PASSWORD` | Passphrase used when generating the key |
-| `MAVEN_CENTRAL_USERNAME` | Central Portal token username |
-| `MAVEN_CENTRAL_PASSWORD` | Central Portal token password |
+| `OSSRH_USERNAME` | Central Portal token username |
+| `OSSRH_PASSWORD` | Central Portal token password |
 
 The workflow maps these to `ORG_GRADLE_PROJECT_*` environment variables that the vanniktech plugin reads automatically.
 
