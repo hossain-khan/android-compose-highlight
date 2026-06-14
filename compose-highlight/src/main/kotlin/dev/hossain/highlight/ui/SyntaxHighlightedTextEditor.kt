@@ -326,17 +326,21 @@ fun SyntaxHighlightedTextEditor(
         }
 
     val focusNavigationModifier =
-        Modifier.focusProperties {
-            up = FocusRequester.Cancel
-            down = FocusRequester.Cancel
-            left = FocusRequester.Cancel
-            right = FocusRequester.Cancel
+        remember {
+            Modifier.focusProperties {
+                up = FocusRequester.Cancel
+                down = FocusRequester.Cancel
+                left = FocusRequester.Cancel
+                right = FocusRequester.Cancel
+            }
         }
 
     val scrollModifier =
-        Modifier
-            .then(if (verticalScrollState != null) Modifier.verticalScroll(verticalScrollState) else Modifier)
-            .then(if (horizontalScrollState != null) Modifier.horizontalScroll(horizontalScrollState) else Modifier)
+        remember(verticalScrollState, horizontalScrollState) {
+            Modifier
+                .then(if (verticalScrollState != null) Modifier.verticalScroll(verticalScrollState) else Modifier)
+                .then(if (horizontalScrollState != null) Modifier.horizontalScroll(horizontalScrollState) else Modifier)
+        }
 
     Surface(
         modifier = modifier.testTag("syntax-highlighted-text-editor"),
