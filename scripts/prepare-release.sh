@@ -29,6 +29,17 @@
 
 set -euo pipefail
 
+# Helper function for portable in-place replacement using sed
+sedi() {
+  local pattern="$1"
+  local filepath="$2"
+  if [ "$(uname)" = "Darwin" ]; then
+    sed -i '' "$pattern" "$filepath"
+  else
+    sed -i "$pattern" "$filepath"
+  fi
+}
+
 if [ $# -ne 1 ]; then
   echo "Usage: $0 <new-version>"
   echo "Example: $0 0.18.0"
@@ -51,37 +62,37 @@ echo "Bumping $CURRENT_VERSION -> $NEW_VERSION (date: $DATE)"
 echo ""
 
 # 1. gradle.properties
-sed -i '' "s/VERSION_NAME=$CURRENT_VERSION/VERSION_NAME=$NEW_VERSION/" "$REPO_ROOT/gradle.properties"
+sedi "s/VERSION_NAME=$CURRENT_VERSION/VERSION_NAME=$NEW_VERSION/" "$REPO_ROOT/gradle.properties"
 echo "- gradle.properties updated"
 
 # 2. README.md
-sed -i '' "s/compose-highlight:$CURRENT_VERSION/compose-highlight:$NEW_VERSION/" "$REPO_ROOT/README.md"
+sedi "s/compose-highlight:$CURRENT_VERSION/compose-highlight:$NEW_VERSION/" "$REPO_ROOT/README.md"
 echo "- README.md updated"
 
 # 2b. docs/index.md
-sed -i '' "s/compose-highlight:$CURRENT_VERSION/compose-highlight:$NEW_VERSION/" "$REPO_ROOT/docs/index.md"
+sedi "s/compose-highlight:$CURRENT_VERSION/compose-highlight:$NEW_VERSION/" "$REPO_ROOT/docs/index.md"
 echo "- docs/index.md updated"
 
 # 2c. docs/getting-started.md
-sed -i '' "s/compose-highlight:$CURRENT_VERSION/compose-highlight:$NEW_VERSION/" "$REPO_ROOT/docs/getting-started.md"
+sedi "s/compose-highlight:$CURRENT_VERSION/compose-highlight:$NEW_VERSION/" "$REPO_ROOT/docs/getting-started.md"
 echo "- docs/getting-started.md updated"
 
 # 3. sample/build.gradle.kts - versionName
-sed -i '' "s/versionName = \"$CURRENT_VERSION\"/versionName = \"$NEW_VERSION\"/" "$REPO_ROOT/sample/build.gradle.kts"
+sedi "s/versionName = \"$CURRENT_VERSION\"/versionName = \"$NEW_VERSION\"/" "$REPO_ROOT/sample/build.gradle.kts"
 echo "- sample/build.gradle.kts versionName updated"
 
 # 4. sample/build.gradle.kts - versionCode (auto-increment)
 CURRENT_CODE=$(grep "versionCode = " "$REPO_ROOT/sample/build.gradle.kts" | grep -o '[0-9]*')
 NEW_CODE=$((CURRENT_CODE + 1))
-sed -i '' "s/versionCode = $CURRENT_CODE/versionCode = $NEW_CODE/" "$REPO_ROOT/sample/build.gradle.kts"
+sedi "s/versionCode = $CURRENT_CODE/versionCode = $NEW_CODE/" "$REPO_ROOT/sample/build.gradle.kts"
 echo "- sample/build.gradle.kts versionCode: $CURRENT_CODE -> $NEW_CODE"
 
 # 5. CHANGELOG.md - rename [Unreleased] to versioned entry
-sed -i '' "s/## \[Unreleased\]/## [Unreleased]\n\n## [$NEW_VERSION] - $DATE/" "$REPO_ROOT/CHANGELOG.md"
+sedi "s/## \[Unreleased\]/## [Unreleased]\n\n## [$NEW_VERSION] - $DATE/" "$REPO_ROOT/CHANGELOG.md"
 echo "- CHANGELOG.md [Unreleased] -> [$NEW_VERSION] - $DATE"
 
 # 6. pyproject.toml - version
-sed -i '' "s/version = \"$CURRENT_VERSION\"/version = \"$NEW_VERSION\"/" "$REPO_ROOT/pyproject.toml"
+sedi "s/version = \"$CURRENT_VERSION\"/version = \"$NEW_VERSION\"/" "$REPO_ROOT/pyproject.toml"
 echo "- pyproject.toml version updated"
 
 echo ""

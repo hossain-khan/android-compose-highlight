@@ -65,8 +65,9 @@ Use the release script to update all version references atomically:
 ./scripts/prepare-release.sh 0.18.0
 ```
 
-This updates `gradle.properties`, `README.md`, `sample/build.gradle.kts` (versionName + versionCode),
-and `CHANGELOG.md` (`[Unreleased]` -> `[0.18.0] - YYYY-MM-DD`) in one step.
+This updates `gradle.properties`, `README.md`, `docs/index.md`, `docs/getting-started.md`,
+`sample/build.gradle.kts` (versionName + versionCode), `pyproject.toml`, and `CHANGELOG.md`
+(`[Unreleased]` -> `[0.18.0] - YYYY-MM-DD`) in one step.
 
 Then verify everything builds and tests pass:
 ```bash
