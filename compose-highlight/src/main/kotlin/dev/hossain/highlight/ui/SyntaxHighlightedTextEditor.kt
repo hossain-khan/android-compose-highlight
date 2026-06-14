@@ -29,6 +29,7 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.hossain.highlight.engine.HighlightEngine
 import dev.hossain.highlight.engine.HighlightException
@@ -388,4 +389,16 @@ private fun extractLeadingWhitespace(
         indentEnd++
     }
     return text.substring(lineStart, indentEnd)
+}
+
+@OptIn(ExperimentalHighlightApi::class)
+@Preview(showBackground = true)
+@Composable
+private fun SyntaxHighlightedTextEditorPreview() {
+    SyntaxHighlightedTextEditor(
+        value = TextFieldValue("fun main() {\n    println(\"Hello world!\")\n}"),
+        onValueChange = {},
+        language = "kotlin",
+        theme = rememberTomorrowTheme(),
+    )
 }

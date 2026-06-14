@@ -12,6 +12,11 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+- **Fixed preview crashes in editor, read-only blocks, and theme provider** - Added
+  `LocalInspectionMode` early returns to `rememberSyntaxHighlightedEditorValue`,
+  `rememberHighlightedCode`, `rememberHighlightedCodeBothThemes`, and `HighlightThemeProvider`
+  to completely prevent native `WebView` initialization in Compose Previews. Fixes #328.
+
 - **Fixed 8-digit CSS hex color parsing order** - `ThemeParser` now interprets `#RRGGBBAA`
   as specified by CSS Color Module Level 4, instead of the Android-style `#AARRGGBB`
   order. Fixes #321.

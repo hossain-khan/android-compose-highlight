@@ -11,12 +11,14 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
 import dev.hossain.highlight.engine.HighlightEngine
 import dev.hossain.highlight.engine.HighlightException
 import dev.hossain.highlight.engine.HighlightTheme
+import dev.hossain.highlight.engine.ThemedHighlightResult
 import dev.hossain.highlight.ui.internal.LocalHighlightEngine
 import org.junit.Rule
 import org.junit.Test
@@ -333,5 +335,50 @@ class SyntaxHighlightedCodeRobolectricTest {
         }
         composeTestRule.waitForIdle()
         assertThat(scrollState?.maxValue).isGreaterThan(0)
+    }
+
+    @Test
+    fun `rememberHighlightedCode returns plain text and does not instantiate engine in inspection mode`() {
+        var highlighted: AnnotatedString? = null
+        composeTestRule.setContent {
+            CompositionLocalProvider(LocalInspectionMode provides true) {
+                HighlightThemeProvider {
+                    val state = rememberHighlightedCode(code = "val x = 42", language = "kotlin")
+                    highlighted = state.value
+                }
+            }
+        }
+        composeTestRule.waitForIdle()
+        assertThat(highlighted?.text).isEqualTo("val x = 42")
+    }
+
+    @Test
+    fun `rememberHighlightedCodeBothThemes returns null and does not instantiate engine in inspection mode`() {
+        var highlighted: ThemedHighlightResult? = null
+        composeTestRule.setContent {
+            CompositionLocalProvider(LocalInspectionMode provides true) {
+                HighlightThemeProvider {
+                    val state = rememberHighlightedCodeBothThemes(code = "val x = 42", language = "kotlin")
+                    highlighted = state.value
+                }
+            }
+        }
+        composeTestRule.waitForIdle()
+        assertThat(highlighted).isNull()
+    }
+
+    @Test
+    fun `HighlightThemeProvider does not instantiate engine in inspection mode`() {
+        var hasEngine = false
+        composeTestRule.setContent {
+            CompositionLocalProvider(LocalInspectionMode provides true) {
+                HighlightThemeProvider {
+                    val engine = LocalHighlightEngine.current
+                    hasEngine = engine != null
+                }
+            }
+        }
+        composeTestRule.waitForIdle()
+        assertThat(hasEngine).isFalse()
     }
 }
