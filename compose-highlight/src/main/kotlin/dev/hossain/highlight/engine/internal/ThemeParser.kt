@@ -516,10 +516,10 @@ internal object ThemeParser {
 
                 8 -> {
                     Color(
-                        red = cleaned.substring(2, 4).toInt(16),
-                        green = cleaned.substring(4, 6).toInt(16),
-                        blue = cleaned.substring(6, 8).toInt(16),
-                        alpha = cleaned.substring(0, 2).toInt(16),
+                        red = cleaned.substring(0, 2).toInt(16),
+                        green = cleaned.substring(2, 4).toInt(16),
+                        blue = cleaned.substring(4, 6).toInt(16),
+                        alpha = cleaned.substring(6, 8).toInt(16),
                     )
                 }
 
