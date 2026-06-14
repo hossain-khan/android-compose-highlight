@@ -18,6 +18,10 @@ All notable changes to this project will be documented in this file.
 - **Fixed live editor state reset on rotation in sample app** - `LiveEditorSection` now uses
   `rememberSaveable` with `TextFieldValue.Saver`, so typed content survives configuration
   changes and stays scoped to the selected language. Fixes #325.
+- **Stabilized `SyntaxHighlightedTextEditor` callbacks** - `onValueChange` and
+  `onPreviewKeyEvent` callbacks are now built once with `rememberUpdatedState`, preventing
+  unnecessary recompositions on every keystroke while still reading the latest editor state.
+  Fixes #329.
 - **Fixed ThemeParser handling of `!important`, relative font weights, and oblique** -
   declarations with `!important` are now parsed correctly, `bolder`/`lighter` map to
   bold/normal weight, and `font-style: oblique` is treated as italic. Fixes #326.
