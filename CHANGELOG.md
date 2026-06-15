@@ -99,11 +99,11 @@ All notable changes to this project will be documented in this file.
   - **Removes 4 R8/ProGuard `-keep` rules** from `consumer-rules.pro` (`org.jsoup.Jsoup`,
     `org.jsoup.parser.**`, `org.jsoup.nodes.**`, `org.jsoup.select.**`). One fewer transitive
     library for downstream R8/ProGuard pipelines to analyze; one fewer source of shrinker bugs.
-  - **Sample APK is 128.7 KB smaller (-5.49%)** post-R8 — measured by diffing the published
+  - **Sample APK is 128.7 KB smaller (-5.49%)** post-R8 - measured by diffing the published
     sample APKs for 0.29.0 vs 0.30.0 with `diffuse`. The dex shrunk by 268 KB uncompressed
     (-271 classes, -2,298 methods); other APK sections (resources, manifest, assets) are
-    byte-identical. The library AAR itself grows by ~7 KB (546 KB → 553 KB) because the
-    parser code now ships in the module — but the AAR never bundled Jsoup, so the net
+    byte-identical. The library AAR itself grows by ~7 KB (546 KB -> 553 KB) because the
+    parser code now ships in the module - but the AAR never bundled Jsoup, so the net
     consumer-side footprint is meaningfully lighter.
   - **Prepares the codebase for Kotlin Multiplatform (KMP)** - Jsoup is JVM-only; the new
     parser is pure Kotlin with no JVM-specific APIs.
