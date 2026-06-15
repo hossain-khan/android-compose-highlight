@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Compose Compiler Report Viewer</title>
+  <style>
+    :root {
+      --bg: #f8f9fa;
+      --card: #ffffff;
+      --text: #212529;
+      --muted: #6c757d;
+      --border: #dee2e6;
+      --green: #198754;
+      --green-bg: #d1e7dd;
+      --yellow: #ffc107;
+      --yellow-bg: #fff3cd;
+      --red: #dc3545;
+      --red-bg: #f8d7da;
+      --blue: #0d6efd;
+      --blue-bg: #cfe2ff;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 24px;
+      line-height: 1.5;
+    }
+    h1, h2, h3 { margin-top: 0; }
+    h1 { font-size: 1.75rem; }
+    h2 { font-size: 1.4rem; margin-top: 32px; border-bottom: 2px solid var(--border); padding-bottom: 8px; }
+    .container { max-width: 1200px; margin: 0 auto; }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 20px; }
+    .stat {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      text-align: center;
+    }
+    .stat .number { font-size: 2rem; font-weight: 700; }
+    .stat .label { color: var(--muted); font-size: 0.9rem; }
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+    .badge-green { background: var(--green-bg); color: var(--green); }
+    .badge-yellow { background: var(--yellow-bg); color: #856404; }
+    .badge-red { background: var(--red-bg); color: var(--red); }
+    .badge-blue { background: var(--blue-bg); color: var(--blue); }
+    .badge-gray { background: #e9ecef; color: var(--muted); }
+    table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+    th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--border); }
+    th { background: #f1f3f5; font-weight: 600; }
+    tr:hover { background: #f8f9fa; }
+    .composable-name { font-family: "SFMono-Regular", Consolas, monospace; font-size: 0.9rem; }
+    .param { font-family: "SFMono-Regular", Consolas, monospace; font-size: 0.85rem; }
+    .param-stable { color: var(--green); }
+    .param-unstable { color: var(--red); font-weight: 600; }
+    .param-runtime { color: #856404; }
+    details { margin-bottom: 8px; }
+    summary { cursor: pointer; font-weight: 600; padding: 8px 0; }
+    .help { background: #e7f1ff; border-left: 4px solid var(--blue); padding: 12px 16px; margin: 16px 0; border-radius: 0 8px 8px 0; }
+    .help h3 { margin-bottom: 8px; color: var(--blue); }
+    .help code { background: rgba(0,0,0,0.05); padding: 2px 4px; border-radius: 4px; }
+    .issue { background: var(--red-bg); border-left: 4px solid var(--red); padding: 12px 16px; margin: 12px 0; border-radius: 0 8px 8px 0; }
+    .ok { background: var(--green-bg); border-left: 4px solid var(--green); padding: 12px 16px; margin: 12px 0; border-radius: 0 8px 8px 0; }
+    input[type="file"] { margin-bottom: 12px; }
+    .file-inputs { display: flex; gap: 24px; flex-wrap: wrap; }
+    .file-inputs label { display: block; margin-bottom: 4px; font-weight: 600; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Compose Compiler Report Viewer</h1>
+    <p>
+      This page visualizes the Compose compiler stability reports
+      (<code>compose-highlight-composables.txt</code> and <code>compose-highlight-classes.txt</code>).
+      It shows which composables are skippable, which parameters are stable, and which classes are
+      safe to pass across composable boundaries.
+    </p>
+
+    <div class="card">
+      <h2>Load custom reports</h2>
+      <p>The current report data is embedded below. To view a different build's reports, drop the files here:</p>
+      <div class="file-inputs">
+        <div>
+          <label for="composablesFile">composables.txt / .csv</label>
+          <input type="file" id="composablesFile" accept=".txt,.csv">
+        </div>
+        <div>
+          <label for="classesFile">classes.txt</label>
+          <input type="file" id="classesFile" accept=".txt">
+        </div>
+      </div>
+      <button id="reloadEmbedded">Reload embedded report</button>
+    </div>
+
+    <div id="summary" class="grid"></div>
+
+    <div class="help">
+      <h3>How to read this report</h3>
+      <ul>
+        <li><strong>restartable</strong> — Compose can re-run this function with new inputs.</li>
+        <li><strong>skippable</strong> — Compose can skip recomposition if all <em>stable</em> inputs are equal to the previous frame. This is the key optimization.</li>
+        <li><strong>stable parameter</strong> — compared with <code>equals()</code>. Examples: <code>String</code>, <code>Boolean</code>, <code>HighlightTheme</code>, <code>CodeBlockStyle</code>.</li>
+        <li><strong>unstable parameter</strong> — compared with instance identity (<code>===</code>). A new instance every recomposition defeats skipping. Examples: <code>List</code>, <code>Map</code>, mutable classes.</li>
+        <li><strong>runtime stability</strong> — the compiler is uncertain; the type may or may not be stable depending on runtime contents.</li>
+      </ul>
+      <p>
+        With Kotlin 2.0.20+ strong skipping enabled (the default), unstable parameters do not
+        automatically make a composable non-skippable, but they still compare by identity. For
+        best performance, keep UI-state parameters stable.
+      </p>
+    </div>
+
+    <h2>Composables</h2>
+    <div id="composables"></div>
+
+    <h2>Classes</h2>
+    <div id="classes"></div>
+  </div>
+
+  <script>
+    // Embedded default report data (generated from the latest local build).
+    const embeddedComposables = `restartable skippable scheme("[0, [0]]") fun dev.hossain.highlight.ui.HighlightThemeProvider(
+  stable darkTheme: Boolean = @dynamic <expression>
+  stable lightHighlightTheme: HighlightTheme? = @dynamic <expression>
+  stable darkHighlightTheme: HighlightTheme? = @dynamic <expression>
+  stable content: Function2<Composer, Int, Unit>
+)
+fun dev.hossain.highlight.ui.rememberTomorrowTheme()
+fun dev.hossain.highlight.ui.rememberTomorrowNightTheme()
+fun dev.hossain.highlight.ui.rememberAtomOneDarkTheme()
+fun dev.hossain.highlight.ui.rememberAtomOneLightTheme()
+restartable skippable scheme("[androidx.compose.ui.UiComposable]") fun dev.hossain.highlight.ui.HighlightThemeProviderPreview()
+fun dev.hossain.highlight.ui.rememberHighlightEngine()
+fun dev.hossain.highlight.ui.rememberHighlightedCode(
+  stable code: String
+  stable language: String
+  stable theme: HighlightTheme? = @dynamic <expression>
+  stable onHighlightComplete: Function1<HighlightResult, Unit>? = @static null
+  stable onError: Function1<HighlightException, Unit>? = @static null
+): State<AnnotatedString?>
+fun dev.hossain.highlight.ui.rememberHighlightedCodeBothThemes(
+  stable code: String
+  stable language: String
+  stable lightTheme: HighlightTheme? = @dynamic <expression>
+  stable darkTheme: HighlightTheme? = @dynamic <expression>
+  stable onHighlightComplete: Function1<ThemedHighlightResult, Unit>? = @static null
+  stable onError: Function1<HighlightException, Unit>? = @static null
+): State<ThemedHighlightResult?>
+fun dev.hossain.highlight.ui.rememberSyntaxHighlightedEditorValue(
+  stable value: TextFieldValue
+  stable language: String
+  stable theme: HighlightTheme? = @dynamic <expression>
+  stable debounceMs: Long = @static 150L
+  stable onHighlightComplete: Function1<HighlightResult, Unit>? = @static null
+  stable onError: Function1<HighlightException, Unit>? = @static null
+): TextFieldValue
+restartable skippable scheme("[androidx.compose.ui.UiComposable, [_], [_], [androidx.compose.ui.UiComposable]]") fun dev.hossain.highlight.ui.SyntaxHighlightedCode(
+  stable code: String
+  stable language: String
+  stable modifier: Modifier? = @static <expression>
+  stable theme: HighlightTheme? = @dynamic <expression>
+  stable style: CodeBlockStyle? = @dynamic <expression>
+  stable showLineNumbers: Boolean = @static false
+  stable scrollState: ScrollState? = @dynamic <expression>
+  stable languageLabel: Function2<Composer, Int, Unit>? = @dynamic <expression>
+  stable copyButton: Function3<@[ParameterName(name = 'onClick')] Function0<Unit>, Composer, Int, Unit>? = @static <expression>
+  stable onCopyClick: Function1<String, Unit>? = @static null
+  stable onHighlightComplete: Function1<HighlightResult, Unit>? = @static null
+  stable onError: Function1<HighlightException, Unit>? = @static null
+  stable placeholder: Function3<@[ParameterName(name = 'code')] String, Composer, Int, Unit>? = @static null
+)
+restartable skippable scheme("[androidx.compose.ui.UiComposable, [androidx.compose.ui.UiComposable]]") fun dev.hossain.highlight.ui.LineNumberedPlaceholder(
+  stable code: String
+  stable lineNumTextStyle: TextStyle
+  stable style: CodeBlockStyle
+  stable placeholder: Function2<Composer, Int, Unit>
+  stable modifier: Modifier? = @static <expression>
+)
+restartable skippable scheme("[androidx.compose.ui.UiComposable]") fun dev.hossain.highlight.ui.LineNumberedCode(
+  stable code: String
+  stable highlighted: AnnotatedString?
+  stable codeTextStyle: TextStyle
+  stable lineNumTextStyle: TextStyle
+  stable style: CodeBlockStyle
+  stable modifier: Modifier? = @static <expression>
+)
+restartable skippable scheme("[androidx.compose.ui.UiComposable]") fun dev.hossain.highlight.ui.SyntaxHighlightedCodeDefaultPreview()
+restartable skippable scheme("[androidx.compose.ui.UiComposable]") fun dev.hossain.highlight.ui.SyntaxHighlightedCodeLineNumbersPreview()
+restartable skippable scheme("[androidx.compose.ui.UiComposable]") fun dev.hossain.highlight.ui.SyntaxHighlightedCodeHeaderPreview()
+restartable skippable scheme("[androidx.compose.ui.UiComposable]") fun dev.hossain.highlight.ui.SyntaxHighlightedCodeDefaults.CopyButton(
+  stable onClick: Function0<Unit>
+  stable modifier: Modifier? = @static <expression>
+  stable tint: Color = @dynamic <expression>
+  stable contentDescription: String? = @static "Copy code"
+  stable size: Dp = @dynamic <expression>
+  stable <this>: SyntaxHighlightedCodeDefaults
+)
+restartable skippable scheme("[androidx.compose.ui.UiComposable]") fun dev.hossain.highlight.ui.SyntaxHighlightedCodeDefaults.LanguageLabel(
+  stable language: String
+  stable modifier: Modifier? = @static <expression>
+  stable color: Color = @dynamic <expression>
+  stable fontSize: TextUnit = @static <expression>
+  unused stable <this>: SyntaxHighlightedCodeDefaults
+)
+restartable skippable scheme("[androidx.compose.ui.UiComposable]") fun dev.hossain.highlight.ui.SyntaxHighlightedTextEditor(
+  stable value: TextFieldValue
+  stable onValueChange: Function1<TextFieldValue, Unit>
+  stable language: String
+  stable modifier: Modifier? = @static <expression>
+  stable contentPadding: PaddingValues? = @static <expression>
+  stable shape: Shape? = @static <expression>
+  stable theme: HighlightTheme? = @dynamic <expression>
+  stable textStyle: TextStyle? = @dynamic <expression>
+  stable keyboardOptions: KeyboardOptions? = @dynamic <expression>
+  stable cursorBrush: Brush? = @static null
+  stable debounceMs: Long = @static 150L
+  stable onHighlightComplete: Function1<HighlightResult, Unit>? = @static null
+  stable onError: Function1<HighlightException, Unit>? = @static null
+  stable indentation: String? = @static "    "
+  stable autoIndentEnabled: Boolean = @static true
+  stable tabKeyInterceptionEnabled: Boolean = @static true
+  stable horizontalScrollState: ScrollState? = @static null
+  stable verticalScrollState: ScrollState? = @static null
+)
+restartable skippable scheme("[androidx.compose.ui.UiComposable]") fun dev.hossain.highlight.ui.SyntaxHighlightedTextEditorPreview()`;
+
+    const embeddedClasses = `stable class dev.hossain.highlight.engine.GeneratedThemes {
+  unstable val TOMORROW_IDENTITY: LongArray
+  runtime val TOMORROW: Map<String, SpanStyle>
+  unstable val TOMORROW_NIGHT_IDENTITY: LongArray
+  runtime val TOMORROW_NIGHT: Map<String, SpanStyle>
+  unstable val ATOM_ONE_DARK_IDENTITY: LongArray
+  runtime val ATOM_ONE_DARK: Map<String, SpanStyle>
+  unstable val ATOM_ONE_LIGHT_IDENTITY: LongArray
+  runtime val ATOM_ONE_LIGHT: Map<String, SpanStyle>
+  <runtime stability> = Stable
+}
+runtime class dev.hossain.highlight.engine.AutoHighlightResult {
+  stable val annotated: AnnotatedString
+  stable val detectedLanguage: String
+  stable val spanCount: Int
+  stable val durationMs: Long
+  runtime val timings: HighlightTimings
+  <runtime stability> = Runtime(HighlightTimings)
+}
+unstable class dev.hossain.highlight.engine.HighlightEngine {
+  runtime val manager: WebViewManager
+  runtime val mutex: Mutex
+  runtime var cachedLanguages: List<String>?
+  stable var cachedVersion: String?
+  <runtime stability> = Unstable
+}
+unstable class dev.hossain.highlight.engine.HighlightException.WebViewInitFailed {
+  <runtime stability> = Unstable
+}
+unstable class dev.hossain.highlight.engine.HighlightException.JsExecutionFailed {
+  <runtime stability> = Unstable
+}
+unstable class dev.hossain.highlight.engine.HighlightException.ThemeNotFound {
+  <runtime stability> = Unstable
+}
+unstable class dev.hossain.highlight.engine.HighlightException.HtmlParseFailed {
+  <runtime stability> = Unstable
+}
+unstable class dev.hossain.highlight.engine.HighlightException.Timeout {
+  <runtime stability> = Unstable
+}
+unstable class dev.hossain.highlight.engine.HighlightException {
+  <runtime stability> = Unstable
+}
+stable class dev.hossain.highlight.engine.HighlightLanguage {
+  runtime val extensionMap: Map<String, String>
+  <runtime stability> = Stable
+}
+runtime class dev.hossain.highlight.engine.HighlightLanguageInfo {
+  stable val name: String
+  runtime val aliases: List<String>
+  <runtime stability> = Uncertain(List)
+}
+runtime class dev.hossain.highlight.engine.HighlightResult {
+  stable val annotated: AnnotatedString
+  stable val spanCount: Int
+  stable val language: String
+  stable val durationMs: Long
+  runtime val timings: HighlightTimings
+  <runtime stability> = Runtime(HighlightTimings)
+}
+stable class dev.hossain.highlight.engine.HighlightTheme {
+  stable val name: String
+  stable val colorMapProvider: Function0<Map<String, SpanStyle>>
+  unstable val contentIdentity: LongArray
+  runtime val colorMapLazy: Lazy<Map<String, SpanStyle>>
+  unstable val colorMapInitialized: AtomicBoolean
+  runtime val backgroundColor$delegate: Lazy<Color>
+  runtime val defaultTextColor$delegate: Lazy<Color>
+}
+stable class dev.hossain.highlight.engine.HighlightTimings {
+  stable val jsBridge: Duration
+  stable val jsonUnescape: Duration
+  stable val htmlParse: Duration
+  stable val themeParse: Duration
+  stable val total: Duration
+  <runtime stability> = Stable
+}
+stable class dev.hossain.highlight.engine.HljsSelectors {
+  stable val BASE: String
+  stable val KEYWORD: String
+  stable val BUILT_IN: String
+  stable val TYPE: String
+  stable val LITERAL: String
+  stable val NUMBER: String
+  stable val OPERATOR: String
+  stable val PUNCTUATION: String
+  stable val PROPERTY: String
+  stable val REGEXP: String
+  stable val STRING: String
+  stable val CHAR: String
+  stable val CHAR_ESCAPE: String
+  stable val SUBST: String
+  stable val SYMBOL: String
+  stable val VARIABLE: String
+  stable val VARIABLE_LANGUAGE: String
+  stable val VARIABLE_CONSTANT: String
+  stable val TITLE: String
+  stable val PARAMS: String
+  stable val COMMENT: String
+  stable val DOCTAG: String
+  stable val TITLE_CLASS: String
+  stable val TITLE_CLASS_INHERITED: String
+  stable val TITLE_FUNCTION: String
+  stable val TITLE_FUNCTION_INVOKE: String
+  stable val META: String
+  stable val META_KEYWORD: String
+  stable val META_STRING: String
+  stable val META_PROMPT: String
+  stable val TAG: String
+  stable val NAME: String
+  stable val ATTR: String
+  stable val ATTRIBUTE: String
+  stable val SECTION: String
+  stable val SELECTOR_TAG: String
+  stable val SELECTOR_ID: String
+  stable val SELECTOR_CLASS: String
+  stable val SELECTOR_ATTR: String
+  stable val SELECTOR_PSEUDO: String
+  stable val BULLET: String
+  stable val CODE: String
+  stable val EMPHASIS: String
+  stable val STRONG: String
+  stable val FORMULA: String
+  stable val LINK: String
+  stable val QUOTE: String
+  stable val TEMPLATE_TAG: String
+  stable val TEMPLATE_VARIABLE: String
+  stable val ADDITION: String
+  stable val DELETION: String
+  stable val ATRULE: String
+  <runtime stability> = Stable
+}
+stable class dev.hossain.highlight.engine.HtmlHighlightResult {
+  stable val html: String
+  stable val durationMs: Long
+  stable val jsBridgeDuration: Duration
+  stable val jsonUnescapeDuration: Duration
+  <runtime stability> = Stable
+}
+runtime class dev.hossain.highlight.engine.ThemedHighlightResult {
+  stable val light: AnnotatedString
+  stable val dark: AnnotatedString
+  stable val durationMs: Long
+  runtime val timings: HighlightTimings
+  <runtime stability> = Runtime(HighlightTimings)
+}
+runtime class dev.hossain.highlight.engine.internal.CustomElement {
+  stable val tagName: String
+  stable val className: String
+  runtime val childNodes: List<CustomNode>
+  <runtime stability> = Uncertain(List)
+}
+stable class dev.hossain.highlight.engine.internal.CustomTextNode {
+  stable val wholeText: String
+  <runtime stability> = Stable
+}
+stable class dev.hossain.highlight.engine.internal.HtmlParserConstants {
+  unstable val WHITESPACE_REGEX: Regex
+  <runtime stability> = Stable
+}
+stable class dev.hossain.highlight.engine.internal.HtmlToAnnotatedString {
+  <runtime stability> = Stable
+}
+stable class dev.hossain.highlight.engine.internal.TimedConvertResult {
+  stable val annotated: AnnotatedString
+  stable val htmlParseDuration: Duration
+  <runtime stability> = Stable
+}
+stable class dev.hossain.highlight.engine.internal.TimedConvertBothResult {
+  stable val light: AnnotatedString
+  stable val dark: AnnotatedString
+  stable val htmlParseDuration: Duration
+  <runtime stability> = Stable
+}
+stable class dev.hossain.highlight.engine.internal.ThemeParser {
+  unstable val HLJS_SELECTOR_REGEX: Regex
+  unstable val PSEUDO_CLASS_REGEX: Regex
+  unstable val PROP_PATTERN: Regex
+  unstable val WHITESPACE_REGEX: Regex
+  runtime val namedColors: Map<String, Color>
+  <runtime stability> = Stable
+}
+unstable class dev.hossain.highlight.engine.internal.WebViewManager {
+  unstable val context: Context
+  unstable var webView: WebView?
+  runtime val _isInitialized: MutableStateFlow<Boolean>
+  runtime val isInitialized: StateFlow<Boolean>
+  runtime var readyDeferred: CompletableDeferred<WebView>
+  <runtime stability> = Unstable
+}
+stable class dev.hossain.highlight.ui.CodeBlockStyle {
+  stable val shape: Shape
+  stable val padding: PaddingValues
+  stable val headerPadding: PaddingValues
+  stable val lineNumberColor: Color
+  stable val lineNumberWidth: Dp
+  stable val copyButtonSize: Dp
+  stable val textStyle: TextStyle
+  stable val fallbackBackgroundColor: Color
+  stable val fallbackTextColor: Color
+}
+stable class dev.hossain.highlight.ui.SyntaxHighlightedCodeDefaults {
+  stable val codeTextStyle: TextStyle
+  stable val shape: Shape
+  stable val padding: PaddingValues
+  stable val headerPadding: PaddingValues
+  stable val lineNumberWidth: Dp
+  stable val copyButtonSize: Dp
+  stable val fallbackBackgroundColor: Color
+  stable val fallbackTextColor: Color
+  <runtime stability> = Stable
+}
+stable class dev.hossain.highlight.ui.SyntaxHighlightedTextEditorDefaults {
+  stable val DefaultTextStyle: TextStyle
+  stable val DEBOUNCE_MS: Long
+  stable val CodeKeyboardOptions: KeyboardOptions
+  stable val DEFAULT_INDENTATION: String
+  stable val AUTO_INDENT_ENABLED: Boolean
+  stable val TAB_KEY_INTERCEPTION_ENABLED: Boolean
+  <runtime stability> = Stable
+}`;
+
+    function parseComposables(text) {
+      const blocks = text.split(/\n\n+/).map(b => b.trim()).filter(Boolean);
+      return blocks.map(block => {
+        const lines = block.split('\n');
+        const first = lines[0];
+        const restartable = first.includes('restartable');
+        const skippable = first.includes('skippable');
+        const nameMatch = first.match(/fun\s+([^(]+)/);
+        const name = nameMatch ? nameMatch[1].trim() : first;
+        const params = lines.slice(1).map(line => {
+          const m = line.match(/^(\s*)(stable|unstable|runtime|unused stable)\s+(.+)$/);
+          if (!m) return null;
+          const stability = m[2];
+          const rest = m[3];
+          const paramMatch = rest.match(/^([a-zA-Z0-9_<>$]+):\s*(.+)$/);
+          return {
+            stability,
+            unused: stability.includes('unused'),
+            name: paramMatch ? paramMatch[1] : rest,
+            type: paramMatch ? paramMatch[2] : '',
+          };
+        }).filter(Boolean);
+        return { name, restartable, skippable, params, raw: block };
+      });
+    }
+
+    function parseClasses(text) {
+      const blocks = text.split(/\n\n+/).map(b => b.trim()).filter(Boolean);
+      return blocks.map(block => {
+        const lines = block.split('\n');
+        const first = lines[0];
+        const stability = first.match(/^(stable|unstable|runtime)\s+class/)?.[1] || 'unknown';
+        const name = first.match(/class\s+([^{]+)/)?.[1].trim() || first;
+        const runtimeStability = lines.find(l => l.includes('<runtime stability>')) || '';
+        const members = lines.slice(1, -1).map(line => {
+          const m = line.match(/^\s*(stable|unstable|runtime)\s+(val|var)\s+([a-zA-Z0-9_<>$]+):\s*(.+)$/);
+          if (!m) return null;
+          return { stability: m[1], kind: m[2], name: m[3], type: m[4] };
+        }).filter(Boolean);
+        return { name, stability, runtimeStability, members, raw: block };
+      });
+    }
+
+    function renderSummary(composables, classes) {
+      const layoutComposables = composables.filter(c => c.restartable);
+      const nonSkippable = layoutComposables.filter(c => !c.skippable);
+      const unstableParams = composables.flatMap(c => c.params.filter(p => p.stability === 'unstable').map(p => ({ composable: c.name, ...p })));
+      const publicClasses = classes.filter(c => !c.name.includes('.internal.'));
+      const unstablePublicClasses = publicClasses.filter(c => c.stability === 'unstable');
+
+      const summary = document.getElementById('summary');
+      summary.innerHTML = `
+        <div class="stat"><div class="number">${layoutComposables.length}</div><div class="label">Layout composables</div></div>
+        <div class="stat"><div class="number ${nonSkippable.length ? 'text-red' : 'text-green'}">${nonSkippable.length}</div><div class="label">Non-skippable</div></div>
+        <div class="stat"><div class="number ${unstableParams.length ? 'text-red' : 'text-green'}">${unstableParams.length}</div><div class="label">Unstable params</div></div>
+        <div class="stat"><div class="number">${publicClasses.length}</div><div class="label">Public classes</div></div>
+        <div class="stat"><div class="number ${unstablePublicClasses.length ? 'text-red' : 'text-green'}">${unstablePublicClasses.length}</div><div class="label">Unstable public classes</div></div>
+      `;
+
+      let alert = '';
+      if (nonSkippable.length) {
+        alert += `<div class="issue"><strong>Non-skippable layout composables found:</strong> ${nonSkippable.map(c => `<code>${c.name}</code>`).join(', ')}. These will recompose even when inputs haven't changed.</div>`;
+      }
+      if (unstableParams.length) {
+        alert += `<div class="issue"><strong>Unstable parameters found:</strong> callers may create new instances every recomposition, defeating skipping.</div>`;
+      }
+      if (!nonSkippable.length && !unstableParams.length) {
+        alert += `<div class="ok"><strong>All public layout composables are skippable with stable parameters.</strong> No action needed.</div>`;
+      }
+      summary.insertAdjacentHTML('afterend', alert);
+    }
+
+    function stabilityBadge(stability) {
+      if (stability === 'stable' || stability === 'unused stable') return '<span class="badge badge-green">stable</span>';
+      if (stability === 'unstable') return '<span class="badge badge-red">unstable</span>';
+      if (stability === 'runtime') return '<span class="badge badge-yellow">runtime</span>';
+      return `<span class="badge badge-gray">${stability}</span>`;
+    }
+
+    function classStabilityBadge(stability) {
+      if (stability === 'stable') return '<span class="badge badge-green">stable</span>';
+      if (stability === 'unstable') return '<span class="badge badge-red">unstable</span>';
+      if (stability === 'runtime') return '<span class="badge badge-yellow">runtime</span>';
+      return `<span class="badge badge-gray">${stability}</span>`;
+    }
+
+    function renderComposables(composables) {
+      const container = document.getElementById('composables');
+      const layout = composables.filter(c => c.restartable);
+      const nonLayout = composables.filter(c => !c.restartable);
+
+      container.innerHTML = `
+        <div class="card">
+          <h3>Layout-emitting composables (${layout.length})</h3>
+          <p>These are the composables that emit UI. You want every one to be <span class="badge badge-green">restartable skippable</span>.</p>
+          <table>
+            <thead><tr><th>Composable</th><th>Status</th><th>Parameters</th></tr></thead>
+            <tbody>
+              ${layout.map(c => `
+                <tr>
+                  <td class="composable-name">${c.name}</td>
+                  <td>
+                    ${c.restartable ? '<span class="badge badge-green">restartable</span>' : '<span class="badge badge-gray">-</span>'}
+                    ${c.skippable ? '<span class="badge badge-green">skippable</span>' : '<span class="badge badge-red">not skippable</span>'}
+                  </td>
+                  <td>
+                    ${c.params.length ? `<details><summary>${c.params.length} parameter(s)</summary><table>${c.params.map(p => `<tr><td class="param ${p.stability === 'unstable' ? 'param-unstable' : p.stability === 'runtime' ? 'param-runtime' : 'param-stable'}">${p.name}</td><td>${p.type}</td><td>${stabilityBadge(p.stability)}${p.unused ? ' <span class="badge badge-gray">unused</span>' : ''}</td></tr>`).join('')}</table></details>` : '<span class="badge badge-gray">no params</span>'}
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+
+        <div class="card">
+          <h3>Non-layout composables (${nonLayout.length})</h3>
+          <p>These return values (e.g. <code>remember*</code> helpers). They are not skippable by design because they return non-Unit values.</p>
+          <table>
+            <thead><tr><th>Composable</th><th>Returns</th></tr></thead>
+            <tbody>
+              ${nonLayout.map(c => `
+                <tr>
+                  <td class="composable-name">${c.name}</td>
+                  <td class="param">${c.params.length ? c.params.map(p => `${p.name}: ${p.type}`).join(', ') : '-'}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    function renderClasses(classes) {
+      const container = document.getElementById('classes');
+      const publicClasses = classes.filter(c => !c.name.includes('.internal.'));
+      const internalClasses = classes.filter(c => c.name.includes('.internal.'));
+
+      container.innerHTML = `
+        <div class="card">
+          <h3>Public classes (${publicClasses.length})</h3>
+          <p>These classes are part of the public API. A <span class="badge badge-green">stable</span> class is safe to pass to composables. <span class="badge badge-red">unstable</span> classes should not be passed as composable parameters.</p>
+          <table>
+            <thead><tr><th>Class</th><th>Stability</th><th>Runtime stability</th><th>Members</th></tr></thead>
+            <tbody>
+              ${publicClasses.map(c => `
+                <tr>
+                  <td class="composable-name">${c.name}</td>
+                  <td>${classStabilityBadge(c.stability)}</td>
+                  <td><code>${c.runtimeStability.replace('<runtime stability> = ', '')}</code></td>
+                  <td>
+                    ${c.members.length ? `<details><summary>${c.members.length} member(s)</summary><table>${c.members.map(m => `<tr><td>${m.name}</td><td>${m.type}</td><td>${stabilityBadge(m.stability)}</td></tr>`).join('')}</table></details>` : '-'}
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+
+        <div class="card">
+          <h3>Internal classes (${internalClasses.length})</h3>
+          <p>These are implementation details. Their stability only matters inside the library.</p>
+          <table>
+            <thead><tr><th>Class</th><th>Stability</th><th>Runtime stability</th></tr></thead>
+            <tbody>
+              ${internalClasses.map(c => `
+                <tr>
+                  <td class="composable-name">${c.name}</td>
+                  <td>${classStabilityBadge(c.stability)}</td>
+                  <td><code>${c.runtimeStability.replace('<runtime stability> = ', '')}</code></td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    function loadReports(composablesText, classesText) {
+      const composables = parseComposables(composablesText);
+      const classes = parseClasses(classesText);
+      renderSummary(composables, classes);
+      renderComposables(composables);
+      renderClasses(classes);
+    }
+
+    function readFile(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = e => resolve(e.target.result);
+        reader.onerror = reject;
+        reader.readAsText(file);
+      });
+    }
+
+    document.getElementById('reloadEmbedded').addEventListener('click', () => {
+      loadReports(embeddedComposables, embeddedClasses);
+    });
+
+    async function handleFileLoad() {
+      const compFile = document.getElementById('composablesFile').files[0];
+      const classFile = document.getElementById('classesFile').files[0];
+      if (!compFile || !classFile) return;
+      const [compText, classText] = await Promise.all([readFile(compFile), readFile(classFile)]);
+      loadReports(compText, classText);
+    }
+
+    document.getElementById('composablesFile').addEventListener('change', handleFileLoad);
+    document.getElementById('classesFile').addEventListener('change', handleFileLoad);
+
+    // Load embedded report on page load.
+    loadReports(embeddedComposables, embeddedClasses);
+  </script>
+</body>
+</html>
