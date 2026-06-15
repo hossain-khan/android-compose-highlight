@@ -120,7 +120,8 @@ jobs:
         with:
           path: |
             ~/.android/avd
-            ~/Android/Sdk/system-images
+            ${{ env.ANDROID_HOME }}/system-images
+            ${{ env.ANDROID_HOME }}/emulator
           key: managed-device-pixel2api30-aosp-atd-${{ runner.os }}
 
       - name: Check Kotlin formatting
