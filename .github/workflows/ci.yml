@@ -185,9 +185,9 @@ jobs:
         if: steps.changes.outputs.code == 'true'
         run: ./gradlew :sample:assembleDebug
 
-      - name: Assemble library (release)
+      - name: Assemble library (release) and generate Compose compiler reports
         if: steps.changes.outputs.code == 'true'
-        run: ./gradlew :compose-highlight:assembleRelease
+        run: ./gradlew :compose-highlight:assembleRelease -PcomposeReports=true
 
       - name: Assemble sample app (release)
         if: steps.changes.outputs.code == 'true'
@@ -196,6 +196,17 @@ jobs:
       - name: Smoke test Maven publication
         if: steps.changes.outputs.code == 'true'
         run: ./gradlew :compose-highlight:publishToMavenLocal
+
+      - name: Upload Compose compiler reports
+        if: steps.changes.outputs.code == 'true' || failure()
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: compose-compiler-reports
+          path: compose-highlight/build/compose_compiler/
+
+      - name: Verify Compose compiler skippability
+        if: steps.changes.outputs.code == 'true'
+        run: ./scripts/verify-compose-compiler-reports.sh
 
       - name: Upload test results
         if: steps.changes.outputs.code == 'true' || failure()

@@ -146,7 +146,12 @@ human-readable signal; the modifier is the enforcement. Dokka suppresses
 
 ## Key conventions
 
-**Public vs internal:** Only `ui/` and `engine/{HighlightEngine,HighlightTheme,HighlightException}.kt` are public API. All `engine/` helpers (`WebViewManager`, `ThemeParser`, `HtmlToAnnotatedString`, `unescapeJsString`) are `internal`. Note that `unescapeJsString` is a package-level `internal fun` (not a member of `HighlightEngine`) so it can be tested directly from JVM unit tests without a real `Context`.
+**Public vs internal:** Public API consists of the `ui/` package plus the public `engine/` declarations used by it:
+`HighlightEngine`, `HighlightTheme`, `HighlightException`, `HighlightResult`, `ThemedHighlightResult`,
+`AutoHighlightResult`, `HtmlHighlightResult`, `HighlightTimings`, `HighlightLanguage`, `HighlightLanguageInfo`,
+and `HljsSelectors`. All implementation helpers under `engine/internal/` (`WebViewManager`, `ThemeParser`,
+`HtmlToAnnotatedString`, `JsStringEscape`, `EngineErrorHandling`) and `ui/internal/` are `internal` and not
+part of the supported public surface.
 
 **`android.util.Log` is banned from the library.** Any `Log.*` call in code paths executed by JVM unit tests causes `RuntimeException: Method d in android.util.Log not mocked`. Remove all debug logging before committing.
 
