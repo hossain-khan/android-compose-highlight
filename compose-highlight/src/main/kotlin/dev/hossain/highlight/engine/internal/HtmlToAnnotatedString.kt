@@ -13,13 +13,8 @@ import kotlin.time.measureTimedValue
 /**
  * Converts Highlight.js HTML output into a Compose [AnnotatedString].
  *
- * Uses a lightweight, custom HTML tokenizer/parser. When called via [convertTimed] or
- * [convertBothThemesTimed], uses a SAX-style single-pass approach that parses the HTML and
- * builds the [AnnotatedString] simultaneously, eliminating the intermediate tree of
- * [CustomNode] objects.
- *
- * The tree-building [parseHtml] function is still available for unit testing the parser
- * in isolation.
+ * Uses a lightweight, custom HTML tokenizer/parser with a SAX-style single-pass approach: the
+ * HTML is parsed and the [AnnotatedString] is built simultaneously, with no intermediate tree.
  */
 internal object HtmlToAnnotatedString {
     /**
@@ -41,10 +36,8 @@ internal object HtmlToAnnotatedString {
     /**
      * Converts highlighted HTML to [AnnotatedString] with per-stage timing data.
      *
-     * Uses a SAX-style single-pass approach: the HTML is parsed and the [AnnotatedString]
-     * is built simultaneously, eliminating the intermediate [CustomNode] tree. The
-     * `htmlParseDuration` field in the returned [TimedConvertResult] represents the combined
-     * parse+build time.
+     * The `htmlParseDuration` field in the returned [TimedConvertResult] represents the
+     * combined parse+build time of the SAX-style single pass.
      *
      * @param html HTML fragment output from highlight.js (not a full document)
      * @param colorMap Map of hljs class names to [SpanStyle], from [ThemeParser]
