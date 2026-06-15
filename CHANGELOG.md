@@ -46,6 +46,8 @@ All notable changes to this project will be documented in this file.
 
 ### Infrastructure
 
+- **Upgraded compileSdk to 37 and androidxCore to 1.19.0** - Updated the project to compile against Android SDK 37 to
+  support upgrading the `androidx.core:core` and `core-ktx` libraries to version 1.19.0.
 - **Removed opencode GitHub Actions workflow** - Deleted `.github/workflows/opencode.yml` since
   the project no longer uses the opencode comment-triggered automation.
 - **Hardened CI/CD workflows** - Updated core GitHub Actions versions, fixed the managed-device
