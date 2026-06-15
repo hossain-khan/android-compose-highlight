@@ -50,6 +50,9 @@ All notable changes to this project will be documented in this file.
   `:compose-highlight:assembleRelease`, `:sample:assembleRelease`, and
   `:compose-highlight:publishToMavenLocal` on every code change, catching release-only
   R8/ProGuard, packaging, and publishing misconfigurations before release day.
+- **Added Compose compiler report verification to CI** - Release builds now generate Compose
+  compiler stability reports, upload them as CI artifacts, and verify that every public UI
+  composable is skippable with stable parameters.
 - **Upgraded compileSdk to 37 and androidxCore to 1.19.0** - Updated the project to compile against Android SDK 37 to
   support upgrading the `androidx.core:core` and `core-ktx` libraries to version 1.19.0.
 - **Removed opencode GitHub Actions workflow** - Deleted `.github/workflows/opencode.yml` since
