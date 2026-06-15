@@ -21,7 +21,7 @@ The `post-create.sh` script automatically:
 
 1. Downloads and installs Android SDK Command Line Tools if not present
 2. Accepts Android SDK licenses
-3. Installs Android SDK Platform 36 and Build Tools 36.0.0
+3. Installs Android SDK Platform 37 and Build Tools 36.0.0
 4. Updates SDK components
 5. Sets Gradle wrapper permissions
 6. Pre-downloads Gradle dependencies

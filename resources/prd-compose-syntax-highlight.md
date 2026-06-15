@@ -674,7 +674,7 @@ dependencies {
 }
 ```
 
-**compileSdk**: 36
+**compileSdk**: 37
 **minSdk**: 24
 **targetSdk**: 36
 **Kotlin**: 2.x
