@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Removed
+
+- **Removed dead legacy `parseHtml` + `CustomNode` tree types from `HtmlParser.kt`** -
+  The SAX-style `parseAndBuild`/`parseAndBuildBoth` rewrite in 0.30.1 made the legacy
+  tree-building parser path obsolete, but the dead code (sealed interface `CustomNode`,
+  classes `CustomElement` and `CustomTextNode`, function `parseHtml`, plus the
+  `WHITESPACE_CHARS` constant) was retained in case tests needed it. No test references
+  it, so the entire path is removed (-200 LOC). AAR `classes.jar` shrinks from 109 to 98
+  class entries. Recovers most of the Codecov badge drop introduced when the legacy path
+  was first sidelined: local JVM unit-test line coverage on `HtmlParserKt` rises from
+  71.3% to 87.5%, and on the `engine/internal` package from 78.5% to 86.0%.
+
 ## [0.31.0] - 2026-06-14
 
 ### Added

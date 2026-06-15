@@ -3,196 +3,28 @@ package dev.hossain.highlight.engine.internal
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 
-/**
- * A lightweight, custom HTML tokenizer and parser for highlight.js HTML output.
- *
- * **Legacy tree node:** This sealed interface and its implementations ([CustomElement],
- * [CustomTextNode]) are used only by [parseHtml] to build an intermediate tree. The library's
- * production hot path no longer uses these - it uses the SAX-style [parseAndBuild] and
- * [parseAndBuildBoth] functions instead, which parse HTML and build [AnnotatedString] in a
- * single pass without allocating tree nodes. These types are retained for unit tests that
- * validate the parser's tree structure in isolation.
- *
- * ## Rationale: Why we do not use Jsoup
- *
- * 1. **Kotlin Multiplatform (KMP) Readiness**: Jsoup is a JVM-only library. Moving to a pure
- *    Kotlin custom parser enables future support for Kotlin Multiplatform.
- * 2. **Binary Footprint**: Jsoup is a heavy dependency. By implementing a lightweight parser,
- *    we reduce the library's binary footprint.
- * 3. **R8/Proguard Optimization**: Removing Jsoup eliminates complex consumer-side Proguard
- *    rules and potential shrinking bugs.
- * 4. **Single-Purpose Efficiency**: Jsoup is designed for full DOM parsing, sanitization, and
- *    querying. highlight.js outputs a very narrow, safe subset of HTML (nested `span` elements
- *    with `class` attributes, comments, and text). A single-pass tokenizer scoped to that subset
- *    avoids the allocation and CPU cost of a full DOM parser.
- */
-internal sealed interface CustomNode
-
-/**
- * Represents an HTML element node (e.g. `<span>`).
- *
- * **Legacy:** Not used on the library's hot path. See [CustomNode] for details.
- *
- * @property tagName The lowercase name of the HTML tag.
- * @property className The value of the class attribute.
- * @property childNodes The child nodes nested within this element.
- */
-internal class CustomElement(
-    val tagName: String,
-    val className: String,
-    val childNodes: List<CustomNode>,
-) : CustomNode
-
-/**
- * Represents a text node containing raw or entity-decoded text.
- *
- * **Legacy:** Not used on the library's hot path. See [CustomNode] for details.
- *
- * @property wholeText The text content of the node.
- */
-internal class CustomTextNode(
-    val wholeText: String,
-) : CustomNode
-
-// Hoisted to module scope to avoid per-call allocation (Phase 3.4).
-private val WHITESPACE_CHARS = charArrayOf(' ', '\t', '\r', '\n')
-
-/**
- * Parses a simple HTML fragment into a lightweight tree of [CustomNode]s.
- *
- * **Legacy:** This tree-building function is no longer used on the library's production hot path.
- * [HtmlToAnnotatedString] uses the more efficient SAX-style [parseAndBuild] and
- * [parseAndBuildBoth] functions instead, which parse HTML and build [AnnotatedString] in a single
- * pass without allocating intermediate tree nodes. This function is retained for unit tests that
- * validate the parser's tree output in isolation.
- *
- * Supports nested elements with class attributes, HTML comments, and the six most common named
- * entities (`&amp;`, `&lt;`, `&gt;`, `&quot;`, `&apos;`, `&nbsp;`) plus numeric character
- * references (`&#NN;` and `&#xNN;`). Unknown named entities pass through as literal text.
- *
- * Recovery from malformed input favors leniency: unmatched closing tags bubble up to enclosing
- * scopes (HTML5-style implicit close), stray closers at the document root are silently skipped,
- * and a `<` with no matching `>` is treated as literal text.
- *
- * @param html HTML fragment (not a full document with `<html>`/`<body>` wrappers).
- * @return A list of parsed [CustomNode]s representing the root-level elements and text.
- */
-internal fun parseHtml(html: String): List<CustomNode> {
-    var index = 0
-    val length = html.length
-
-    fun peek(offset: Int = 0): Char? {
-        val i = index + offset
-        return if (i < length) html[i] else null
-    }
-
-    fun parseNodes(parentTag: String?): List<CustomNode> {
-        val nodes = mutableListOf<CustomNode>()
-        while (index < length) {
-            val c = peek() ?: break
-            if (c == '<') {
-                if (html.startsWith("<!--", index)) {
-                    val endComment = html.indexOf("-->", index + 4)
-                    if (endComment != -1) {
-                        index = endComment + 3
-                    } else {
-                        index = length
-                    }
-                    continue
-                }
-
-                if (peek(1) == '/') {
-                    val tagEnd = html.indexOf('>', index + 2)
-                    if (tagEnd == -1) {
-                        index = length
-                        break
-                    }
-                    // Compare closing tag name against parentTag in-place to avoid substring
-                    // allocation. Only allocate a String if the match fails and we need to
-                    // bubble up.
-                    if (parentTag != null && regionMatchesTrimmedLowercase(html, index + 2, tagEnd, parentTag)) {
-                        // Matching closer for our parent: consume it and return.
-                        index = tagEnd + 1
-                        break
-                    }
-                    if (parentTag == null) {
-                        // Stray closer at the document root - silently skip it.
-                        index = tagEnd + 1
-                        continue
-                    }
-                    // Mismatched closer for a nested element. Bubble up: leave the closer in place
-                    // (do NOT advance index) and break out so the enclosing parseNodes() call gets
-                    // a chance to match it. This mirrors the HTML5 implicit-close behavior Jsoup
-                    // produced for inputs like `<span><b>x</span>`: <b> closes when </span> appears.
-                    break
-                }
-
-                val tagEnd = findTagEnd(html, index + 1, length)
-                if (tagEnd == -1) {
-                    val text = html.substring(index)
-                    nodes.add(CustomTextNode(decodeEntities(text)))
-                    index = length
-                    break
-                }
-
-                // Parse tag content without allocating substrings for tagName/className
-                // when possible. The tag content is in html[index+1 .. tagEnd-1].
-                val contentStart = skipWhitespace(html, index + 1, tagEnd)
-                var contentEnd = tagEnd
-                // Check for self-closing
-                val isSelfClosing = contentEnd > contentStart && html[contentEnd - 1] == '/'
-                if (isSelfClosing) {
-                    contentEnd = skipWhitespaceReverse(html, contentStart, contentEnd - 1)
-                }
-
-                val firstSpace = indexOfWhitespace(html, contentStart, contentEnd)
-                val tagNameStart = contentStart
-                val tagNameEnd = if (firstSpace != -1) firstSpace else contentEnd
-
-                // Extract tagName - we need a String for CustomElement storage and recursive calls.
-                // Skip .lowercase() allocation if already lowercase (hljs always emits lowercase).
-                val tagName = lowercaseSubstring(html, tagNameStart, tagNameEnd)
-
-                var className = ""
-                if (firstSpace != -1) {
-                    className = extractClassAttrInPlace(html, firstSpace + 1, contentEnd)
-                }
-
-                index = tagEnd + 1
-
-                if (isSelfClosing) {
-                    nodes.add(CustomElement(tagName, className, emptyList()))
-                } else {
-                    val children = parseNodes(tagName)
-                    nodes.add(CustomElement(tagName, className, children))
-                }
-            } else {
-                val nextTag = html.indexOf('<', index)
-                val textEnd: Int
-                val sawAmpersand: Boolean
-                if (nextTag != -1) {
-                    textEnd = nextTag
-                    sawAmpersand = containsChar(html, index, nextTag, '&')
-                } else {
-                    textEnd = length
-                    sawAmpersand = containsChar(html, index, length, '&')
-                }
-                if (textEnd > index) {
-                    val text = html.substring(index, textEnd)
-                    nodes.add(CustomTextNode(if (sawAmpersand) decodeEntities(text) else text))
-                }
-                index = textEnd
-            }
-        }
-        return nodes
-    }
-
-    return parseNodes(null)
-}
+// A lightweight, custom HTML tokenizer and parser for highlight.js HTML output.
+//
+// The library's production hot path uses the SAX-style parseAndBuild and parseAndBuildBoth
+// functions, which parse HTML and emit spans directly into one or two AnnotatedString.Builder
+// instances in a single pass - no intermediate tree allocation.
+//
+// ## Rationale: Why we do not use Jsoup
+//
+// 1. Kotlin Multiplatform (KMP) Readiness: Jsoup is a JVM-only library. Moving to a pure Kotlin
+//    custom parser enables future support for Kotlin Multiplatform.
+// 2. Binary Footprint: Jsoup is a heavy dependency. By implementing a lightweight parser, we
+//    reduce the library's binary footprint.
+// 3. R8/Proguard Optimization: Removing Jsoup eliminates complex consumer-side Proguard rules
+//    and potential shrinking bugs.
+// 4. Single-Purpose Efficiency: Jsoup is designed for full DOM parsing, sanitization, and
+//    querying. highlight.js outputs a very narrow, safe subset of HTML (nested span elements
+//    with class attributes, comments, and text). A single-pass tokenizer scoped to that subset
+//    avoids the allocation and CPU cost of a full DOM parser.
 
 /**
  * SAX-style single-pass parse and build: parses the HTML and directly emits spans into a
- * single [AnnotatedString.Builder], eliminating the intermediate [CustomNode] tree.
+ * single [AnnotatedString.Builder] without allocating an intermediate tree.
  *
  * The caller is responsible for pushing/popping the base `.hljs` style outside this function.
  *
@@ -393,7 +225,7 @@ internal fun parseAndBuildBoth(
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Internal helper functions - shared between parseHtml and SAX-style builders
+// Internal helper functions used by the SAX-style builders
 // ─────────────────────────────────────────────────────────────────────────────
 
 /** Module-level constants shared by the SAX builders and HtmlToAnnotatedString. */
