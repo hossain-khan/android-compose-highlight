@@ -120,7 +120,8 @@ jobs:
         with:
           path: |
             ~/.android/avd
-            ~/Android/Sdk/system-images
+            ${{ env.ANDROID_HOME }}/system-images
+            ${{ env.ANDROID_HOME }}/emulator
           key: managed-device-pixel2api30-aosp-atd-${{ runner.os }}
 
       - name: Check Kotlin formatting
@@ -183,6 +184,18 @@ jobs:
       - name: Assemble sample app (debug)
         if: steps.changes.outputs.code == 'true'
         run: ./gradlew :sample:assembleDebug
+
+      - name: Assemble library (release)
+        if: steps.changes.outputs.code == 'true'
+        run: ./gradlew :compose-highlight:assembleRelease
+
+      - name: Assemble sample app (release)
+        if: steps.changes.outputs.code == 'true'
+        run: ./gradlew :sample:assembleRelease
+
+      - name: Smoke test Maven publication
+        if: steps.changes.outputs.code == 'true'
+        run: ./gradlew :compose-highlight:publishToMavenLocal
 
       - name: Upload test results
         if: steps.changes.outputs.code == 'true' || failure()
