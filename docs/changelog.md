@@ -6,13 +6,13 @@ For release artifacts and APK downloads, see the [GitHub Releases page](https://
 
 ## Recent highlights
 
-### 0.31.0 - Scroll state hoisting and CI hardening
+### 0.31.0 - Scroll hoisting, preview fixes, and CI hardening
 
-- Added scroll support and scroll-state hoisting to `SyntaxHighlightedCode` and `SyntaxHighlightedTextEditor`
-- Fixed preview crashes by preventing WebView initialization in Compose Previews across editor, read-only blocks, and theme provider
-- Fixed 8-digit CSS hex color parsing to follow CSS Color Module Level 4 (`#RRGGBBAA`)
-- Added release builds, Maven publication smoke test, and Compose compiler report verification to CI
-- Added `scripts/compose-compiler-report.html` to visualize Compose compiler stability reports
+- Added scroll-state hoisting to `SyntaxHighlightedCode` and `SyntaxHighlightedTextEditor` for programmatic scroll control
+- Fixed Compose Preview crashes by blocking WebView initialization in `@Preview` composables across the editor, read-only blocks, and theme provider
+- Fixed `HighlightResult.spanCount` semantics and CSS `#RRGGBBAA` color parsing order
+- Stabilized `SyntaxHighlightedTextEditor` callbacks, remembered focus/scroll modifiers, and added `modifier` parameters to the default copy button and language badge slot helpers
+- Hardened CI with release builds, Maven publication smoke test, Compose compiler report verification, and a new HTML report visualizer
 
 ### 0.30.2 - Remove deprecated treeWalk timing
 
