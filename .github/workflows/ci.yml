@@ -184,6 +184,18 @@ jobs:
         if: steps.changes.outputs.code == 'true'
         run: ./gradlew :sample:assembleDebug
 
+      - name: Assemble library (release)
+        if: steps.changes.outputs.code == 'true'
+        run: ./gradlew :compose-highlight:assembleRelease
+
+      - name: Assemble sample app (release)
+        if: steps.changes.outputs.code == 'true'
+        run: ./gradlew :sample:assembleRelease
+
+      - name: Smoke test Maven publication
+        if: steps.changes.outputs.code == 'true'
+        run: ./gradlew :compose-highlight:publishToMavenLocal
+
       - name: Upload test results
         if: steps.changes.outputs.code == 'true' || failure()
         uses: actions/upload-artifact@v7.0.1

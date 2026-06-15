@@ -46,6 +46,10 @@ All notable changes to this project will be documented in this file.
 
 ### Infrastructure
 
+- **Added release build and Maven publication smoke test to CI** - CI now runs
+  `:compose-highlight:assembleRelease`, `:sample:assembleRelease`, and
+  `:compose-highlight:publishToMavenLocal` on every code change, catching release-only
+  R8/ProGuard, packaging, and publishing misconfigurations before release day.
 - **Upgraded compileSdk to 37 and androidxCore to 1.19.0** - Updated the project to compile against Android SDK 37 to
   support upgrading the `androidx.core:core` and `core-ktx` libraries to version 1.19.0.
 - **Removed opencode GitHub Actions workflow** - Deleted `.github/workflows/opencode.yml` since
