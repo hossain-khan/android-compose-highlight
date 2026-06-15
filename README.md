@@ -1,6 +1,4 @@
-# Compose Highlight for Android
-
-![Compose Code Highlight Logo](docs/assets/images/logo-plain.png)
+# <img src="docs/assets/images/logo-plain.png" height="26" alt="Compose Code Highlight Logo"> Compose Highlight for Android
 
 [![CI](https://github.com/hossain-khan/android-compose-highlight/actions/workflows/ci.yml/badge.svg)](https://github.com/hossain-khan/android-compose-highlight/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/github/hossain-khan/android-compose-highlight/graph/badge.svg?token=MHCCHQVSLX)](https://codecov.io/github/hossain-khan/android-compose-highlight)
