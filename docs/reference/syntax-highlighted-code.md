@@ -24,6 +24,8 @@ Full API in Dokka:
 - `theme` - pass explicitly, or rely on `HighlightThemeProvider`.
 - `style` - controls code block visuals (`CodeBlockStyle`).
 - `showLineNumbers` - enables line-number gutter.
+- `scrollState` - hoisted horizontal scroll state. Pass one when you need to control or observe
+  horizontal position from outside the composable.
 - `languageLabel` and `copyButton` - slots for header customization, or `null` to hide.
 - `placeholder` - custom loading content while highlighting is in progress.
 - `onHighlightComplete` and `onError` - observability hooks for metrics and diagnostics.
@@ -169,6 +171,8 @@ Use these when you want custom rendering but still want the library's highlight 
 ### `rememberHighlightedCode`
 
 Returns highlighted text as `State<AnnotatedString?>`. Render a plain-text fallback while `null`.
+In preview / inspection mode, the helper returns plain text immediately so the composable can
+render without starting the WebView-backed engine.
 
 ```kotlin
 val highlighted by rememberHighlightedCode(code = snippet, language = "kotlin")

@@ -16,8 +16,10 @@ import dev.hossain.highlight.engine.ThemedHighlightResult
 /**
  * Pre-highlights [code] and remembers the resulting [AnnotatedString].
  *
- * Returns `null` while highlighting is in progress **or** if highlighting failed. Callers
- * should always render a plain-text fallback when the state is `null`.
+ * Returns `null` while highlighting is in progress **or** if highlighting failed.
+ *
+ * In preview / inspection mode, returns a plain-text `AnnotatedString(code)` immediately so
+ * `@Preview` composables can render without creating the WebView-backed engine.
  *
  * Re-runs automatically when [code], [language], or [theme] changes.
  *
@@ -80,6 +82,7 @@ import dev.hossain.highlight.engine.ThemedHighlightResult
  *   )
  *   ```
  * @return A [State] holding the highlighted [AnnotatedString], or `null` while loading / on error.
+ *   In inspection mode, the state is initialized to plain text immediately.
  */
 @Composable
 fun rememberHighlightedCode(

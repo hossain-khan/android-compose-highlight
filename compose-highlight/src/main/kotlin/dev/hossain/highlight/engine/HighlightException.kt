@@ -44,7 +44,7 @@ sealed class HighlightException(
      */
     class ThemeNotFound(
         path: String,
-    ) : HighlightException("Theme CSS not found: $path")
+    ) : HighlightException("Theme CSS has no parseable color rules: $path")
 
     /**
      * Thrown when the HTML parser fails to parse the HTML returned by Highlight.js.
