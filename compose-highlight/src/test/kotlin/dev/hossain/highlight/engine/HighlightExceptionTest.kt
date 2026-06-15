@@ -70,6 +70,12 @@ class HighlightExceptionTest {
     }
 
     @Test
+    fun `ThemeNotFound message explains the parse failure`() {
+        val ex = HighlightException.ThemeNotFound("compose-highlight/themes/missing.css")
+        assertThat(ex.message).startsWith("Theme CSS has no parseable color rules")
+    }
+
+    @Test
     fun `ThemeNotFound has null cause`() {
         val ex = HighlightException.ThemeNotFound("any/path.css")
         assertThat(ex.cause).isNull()
