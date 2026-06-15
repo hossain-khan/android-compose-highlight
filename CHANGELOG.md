@@ -53,6 +53,10 @@ All notable changes to this project will be documented in this file.
 - **Added Compose compiler report verification to CI** - Release builds now generate Compose
   compiler stability reports, upload them as CI artifacts, and verify that every public UI
   composable is skippable with stable parameters.
+- **Added Compose compiler report visualizer** - Added `scripts/compose-compiler-report.html`,
+  a self-contained HTML tool that visualizes `compose-highlight-composables.txt` and
+  `compose-highlight-classes.txt`. It color-codes skippability, parameter stability, and class
+  stability, and includes file inputs for inspecting future reports.
 - **Upgraded compileSdk to 37 and androidxCore to 1.19.0** - Updated the project to compile against Android SDK 37 to
   support upgrading the `androidx.core:core` and `core-ktx` libraries to version 1.19.0.
 - **Removed opencode GitHub Actions workflow** - Deleted `.github/workflows/opencode.yml` since
