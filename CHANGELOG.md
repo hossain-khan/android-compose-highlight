@@ -36,6 +36,10 @@ All notable changes to this project will be documented in this file.
 - **Remembered `SyntaxHighlightedTextEditor` modifiers** - `focusNavigationModifier` and
   `scrollModifier` are now remembered instead of being reconstructed on every recomposition,
   reducing allocation churn in the editor.
+- **Added `modifier` parameters to default slot helpers** - `SyntaxHighlightedCodeDefaults.CopyButton`
+  and `SyntaxHighlightedCodeDefaults.LanguageLabel` now accept a `modifier` parameter, allowing
+  callers to add padding, test tags, or other customisation to the default copy button and
+  language badge slots.
 - **Fixed ThemeParser handling of `!important`, relative font weights, and oblique** -
   declarations with `!important` are now parsed correctly, `bolder`/`lighter` map to
   bold/normal weight, and `font-style: oblique` is treated as italic. Fixes #326.

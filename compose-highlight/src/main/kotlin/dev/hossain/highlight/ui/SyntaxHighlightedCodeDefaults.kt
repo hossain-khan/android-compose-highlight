@@ -127,6 +127,8 @@ object SyntaxHighlightedCodeDefaults {
      *
      * @param onClick Action invoked when the button is clicked. Wire this to the `onClick`
      *   parameter received from the `copyButton` slot.
+     * @param modifier Modifier applied to the root [IconButton]. Use this for padding, test tags,
+     *   or other positioning/customisation.
      * @param tint Icon color. Defaults to [LocalContentColor] at 70 % opacity, which resolves
      *   correctly when inside a [SyntaxHighlightedCode] block.
      * @param contentDescription Accessibility label for TalkBack and other assistive services.
@@ -136,6 +138,7 @@ object SyntaxHighlightedCodeDefaults {
     @Composable
     fun CopyButton(
         onClick: () -> Unit,
+        modifier: Modifier = Modifier,
         tint: Color = LocalContentColor.current.copy(alpha = 0.7f),
         contentDescription: String = "Copy code",
         size: Dp = copyButtonSize,
@@ -143,7 +146,7 @@ object SyntaxHighlightedCodeDefaults {
         IconButton(
             onClick = onClick,
             modifier =
-                Modifier
+                modifier
                     .size(size)
                     .semantics { this.contentDescription = contentDescription },
         ) {
@@ -180,6 +183,8 @@ object SyntaxHighlightedCodeDefaults {
      * ```
      *
      * @param language Text to display (typically the Highlight.js language identifier).
+     * @param modifier Modifier applied to the root [Text]. Use this for padding, test tags,
+     *   or other positioning/customisation.
      * @param color Label color. Defaults to [LocalContentColor] at 60 % opacity, which resolves
      *   correctly when inside a [SyntaxHighlightedCode] block.
      * @param fontSize Label font size. Defaults to 12 sp.
@@ -187,12 +192,14 @@ object SyntaxHighlightedCodeDefaults {
     @Composable
     fun LanguageLabel(
         language: String,
+        modifier: Modifier = Modifier,
         color: Color = LocalContentColor.current.copy(alpha = 0.6f),
         fontSize: TextUnit = 12.sp,
     ) {
         if (language.isNotBlank()) {
             Text(
                 text = language,
+                modifier = modifier,
                 style =
                     TextStyle(
                         fontFamily = FontFamily.Monospace,
