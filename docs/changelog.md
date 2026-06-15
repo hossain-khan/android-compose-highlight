@@ -6,6 +6,14 @@ For release artifacts and APK downloads, see the [GitHub Releases page](https://
 
 ## Recent highlights
 
+### 0.31.0 - Scroll state hoisting and CI hardening
+
+- Added scroll support and scroll-state hoisting to `SyntaxHighlightedCode` and `SyntaxHighlightedTextEditor`
+- Fixed preview crashes by preventing WebView initialization in Compose Previews across editor, read-only blocks, and theme provider
+- Fixed 8-digit CSS hex color parsing to follow CSS Color Module Level 4 (`#RRGGBBAA`)
+- Added release builds, Maven publication smoke test, and Compose compiler report verification to CI
+- Added `scripts/compose-compiler-report.html` to visualize Compose compiler stability reports
+
 ### 0.30.2 - Remove deprecated treeWalk timing
 
 - Removed the deprecated `treeWalk` timing property entirely from `HighlightTimings`
@@ -34,14 +42,6 @@ For release artifacts and APK downloads, see the [GitHub Releases page](https://
 - Tab key hardware interception to insert custom indentation instead of shifting focus
 - Auto-indentation to automatically copy the previous line's leading whitespace on hardware/virtual keyboards
 - Intercepted arrow keys to prevent focus from escaping the editor boundaries
-
-### 0.28.0 - Vector copy icon and sample app polish
-
-- Default copy icon replaced with vector drawable (`copy_code_block.xml`) with proportional scaling
-- Info banner added to sample app Languages tab with library version and "Open Docs" button
-- `LIB_VERSION_NAME` build config field keeps displayed version in sync with published artifact
-- `EngineInfoSection` search box outline now matches other info cards, language chips use vector icons
-- KDoc updated for `CopyButton` to describe vector icon behavior
 
 ---
 

@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.31.0] - 2026-06-14
+
 ### Added
 
 - **Added scroll support and scroll-state hoisting to code block and editor** - Callers can now
