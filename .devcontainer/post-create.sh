@@ -10,7 +10,7 @@ export ANDROID_SDK_ROOT="${ANDROID_HOME}"
 export PATH="${PATH}:${ANDROID_HOME}/cmdline-tools/latest/bin:${ANDROID_HOME}/platform-tools"
 
 # Android SDK versions - update ANDROID_PLATFORM_VERSION to match compileSdk in compose-highlight/build.gradle.kts
-ANDROID_PLATFORM_VERSION="36"
+ANDROID_PLATFORM_VERSION="37"
 ANDROID_BUILD_TOOLS_VERSION="36.0.0"
 # Command Line Tools version 11076708 (released 2024-01) - check https://developer.android.com/studio#command-tools
 CMDLINE_TOOLS_VERSION="11076708"

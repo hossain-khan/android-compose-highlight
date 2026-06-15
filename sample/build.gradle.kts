@@ -6,7 +6,7 @@ plugins {
 
 android {
     namespace = "dev.hossain.highlight.sample"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "dev.hossain.highlight.sample"
