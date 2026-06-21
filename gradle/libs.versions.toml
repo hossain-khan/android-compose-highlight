@@ -2,7 +2,7 @@
 agp = "9.2.1"
 androidxActivity = "1.13.0"
 androidxBenchmark = "1.4.1"
-androidxComposeBom = "2026.05.01"
+androidxComposeBom = "2026.06.00"
 androidxCore = "1.19.0"
 androidxLifecycle = "2.10.0"
 androidxTest = "1.7.0"
