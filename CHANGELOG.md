@@ -16,6 +16,12 @@ All notable changes to this project will be documented in this file.
   was first sidelined: local JVM unit-test line coverage on `HtmlParserKt` rises from
   71.3% to 87.5%, and on the `engine/internal` package from 78.5% to 86.0%.
 
+### Infrastructure
+
+- **Upgraded Zensical to 0.0.46** - Updated the documentation site generator to the latest version to
+  benefit from improved link validation fixes (such as reversal of problematic behaviors from 0.0.44, CRLF line
+  ending handling, and nested link reference fixes), and updated the frozen Dokka theme assets to match the output.
+
 ## [0.31.0] - 2026-06-14
 
 ### Added
