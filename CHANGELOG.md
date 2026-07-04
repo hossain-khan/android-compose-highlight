@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.32.0] - 2026-07-04
+
 ### Changed
 
 - **Updated the sample app's custom theme demo to Tokyo Night** - Since GitHub and GitHub Dark are

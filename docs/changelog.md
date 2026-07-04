@@ -6,6 +6,13 @@ For release artifacts and APK downloads, see the [GitHub Releases page](https://
 
 ## Recent highlights
 
+### 0.32.0 - New precompiled themes, spec compliance, and API cleanups
+
+- Added four new built-in themes (GitHub, GitHub Dark, Dracula, and Alucard) with precompiled color maps for fast loading without Context
+- Aligned Dracula and Alucard built-in themes to be fully spec-compliant with correct color and selector mappings
+- Renamed `rememberTomorrowTheme()` to `rememberTomorrowLightTheme()` for naming consistency across light/dark suffix theme helpers
+- Removed dead legacy parser code from `HtmlParser.kt` to shrink AAR size and improve code coverage metrics
+
 ### 0.31.0 - Scroll hoisting, preview fixes, and CI hardening
 
 - Added scroll-state hoisting to `SyntaxHighlightedCode` and `SyntaxHighlightedTextEditor`
@@ -49,15 +56,6 @@ For release artifacts and APK downloads, see the [GitHub Releases page](https://
   opt-in JVM microbenchmark (`HtmlParserBenchmark`)
 - Prepared the codebase for Kotlin Multiplatform (KMP)
 
-### 0.29.0 - Tab and auto-indent support in text editor
-
-- Added `indentation`, `autoIndentEnabled`, and `tabKeyInterceptionEnabled`
-  parameters to `SyntaxHighlightedTextEditor`
-- Added Tab key hardware interception to insert custom indentation instead of
-  shifting focus
-- Added auto-indentation to copy the previous line's leading whitespace on
-  hardware and virtual keyboards
-- Intercepted arrow keys to prevent focus from escaping the editor boundaries
 
 ---
 

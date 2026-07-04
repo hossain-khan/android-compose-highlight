@@ -6,7 +6,7 @@ In your module's `build.gradle.kts`:
 
 ```kotlin
 dependencies {
-    implementation("dev.hossain:compose-highlight:0.31.0")
+    implementation("dev.hossain:compose-highlight:0.32.0")
 }
 ```
 
