@@ -63,6 +63,10 @@ abstract class GenerateThemesTask : DefaultTask() {
             "TOMORROW_NIGHT" to "tomorrow-night.css",
             "ATOM_ONE_DARK" to "atom-one-dark.css",
             "ATOM_ONE_LIGHT" to "atom-one-light.css",
+            "GITHUB" to "github.css",
+            "GITHUB_DARK" to "github-dark.css",
+            "DRACULA" to "dracula.css",
+            "ALUCARD" to "alucard.css",
         )
     }
 }

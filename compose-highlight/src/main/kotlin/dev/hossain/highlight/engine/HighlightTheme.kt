@@ -251,6 +251,70 @@ class HighlightTheme private constructor(
             )
 
         /**
+         * Built-in GitHub Light theme.
+         *
+         * Uses a precompiled color map generated at build time from the bundled
+         * `github.css` - the runtime CSS parser is never invoked. No [Context] is
+         * required.
+         *
+         * @return A [HighlightTheme] backed by the bundled `github.css`.
+         */
+        fun github(): HighlightTheme =
+            HighlightTheme(
+                name = "github",
+                colorMapProvider = { GeneratedThemes.GITHUB },
+                contentIdentity = GeneratedThemes.GITHUB_IDENTITY,
+            )
+
+        /**
+         * Built-in GitHub Dark theme.
+         *
+         * Uses a precompiled color map generated at build time from the bundled
+         * `github-dark.css` - the runtime CSS parser is never invoked. No [Context] is
+         * required.
+         *
+         * @return A [HighlightTheme] backed by the bundled `github-dark.css`.
+         */
+        fun githubDark(): HighlightTheme =
+            HighlightTheme(
+                name = "github-dark",
+                colorMapProvider = { GeneratedThemes.GITHUB_DARK },
+                contentIdentity = GeneratedThemes.GITHUB_DARK_IDENTITY,
+            )
+
+        /**
+         * Built-in Dracula dark theme.
+         *
+         * Uses a precompiled color map generated at build time from the bundled
+         * `dracula.css` - the runtime CSS parser is never invoked. No [Context] is
+         * required.
+         *
+         * @return A [HighlightTheme] backed by the bundled `dracula.css`.
+         */
+        fun dracula(): HighlightTheme =
+            HighlightTheme(
+                name = "dracula",
+                colorMapProvider = { GeneratedThemes.DRACULA },
+                contentIdentity = GeneratedThemes.DRACULA_IDENTITY,
+            )
+
+        /**
+         * Built-in Alucard light theme.
+         *
+         * Uses a precompiled color map generated at build time from the bundled
+         * `alucard.css` - the runtime CSS parser is never invoked. No [Context] is
+         * required.
+         *
+         * @return A [HighlightTheme] backed by the bundled `alucard.css`.
+         */
+        fun alucard(): HighlightTheme =
+            HighlightTheme(
+                name = "alucard",
+                colorMapProvider = { GeneratedThemes.ALUCARD },
+                contentIdentity = GeneratedThemes.ALUCARD_IDENTITY,
+            )
+
+        /**
          * Custom theme loaded from a Highlight.js CSS file in the app's `assets/` folder.
          *
          * This is the recommended way for app developers to ship additional themes. Download any
