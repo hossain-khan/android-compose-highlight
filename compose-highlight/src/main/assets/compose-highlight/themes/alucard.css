@@ -1,7 +1,7 @@
 /* Alucard Theme
  *
  * Complementary light theme for Dracula Theme
- * Based on the official Dracula specification: https://draculatheme.com/spec
+ * Modified to strictly adapt to the official Dracula specification: https://draculatheme.com/spec
  */
 
 .hljs {
@@ -11,33 +11,38 @@
   background: #fffbeb;
 }
 
-.hljs-built_in,
-.hljs-selector-tag,
-.hljs-section,
-.hljs-link {
-  color: #036a96;
-}
-
-.hljs-keyword {
-  color: #a3144d;
-}
-
+/* Foreground / Default Text */
 .hljs,
 .hljs-subst {
   color: #1f1f1f;
 }
 
-.hljs-title,
-.hljs-attr,
-.hljs-meta-keyword {
+/* Comments (Italic) */
+.hljs-comment {
+  color: #6c664b;
   font-style: italic;
-  color: #14710a;
 }
 
+/* Quotations or blockquotes (no italic comment style) */
+.hljs-quote {
+  color: #6c664b;
+}
+
+/* Red: Errors, warnings, deletions */
+.hljs-deletion,
+.hljs-doctag {
+  color: #cb3a2a;
+}
+
+/* Orange: Numbers, constants, booleans */
+.hljs-number,
+.hljs-literal {
+  color: #a34d14;
+}
+
+/* Yellow: Strings, escape sequences, attribute values */
 .hljs-string,
 .hljs-meta,
-.hljs-name,
-.hljs-type,
 .hljs-symbol,
 .hljs-bullet,
 .hljs-addition,
@@ -47,30 +52,44 @@
   color: #846e15;
 }
 
-.hljs-comment,
-.hljs-quote {
-  color: #6c664b;
+/* Green: Functions, methods */
+.hljs-title,
+.hljs-title.function_ {
+  color: #14710a;
 }
 
-.hljs-deletion {
-  color: #cb3a2a;
+/* Cyan: Classes, types, tag names, attribute names, built-ins */
+.hljs-built_in,
+.hljs-selector-tag,
+.hljs-section,
+.hljs-link,
+.hljs-type,
+.hljs-title.class_,
+.hljs-name,
+.hljs-attr {
+  color: #036a96;
 }
 
+/* Pink: Keywords, storage modifiers */
+.hljs-keyword {
+  color: #a3144d;
+}
+
+/* Purple: Instance reserved words (this, self, super) */
+.hljs-variable.language_ {
+  color: #644ac9;
+  font-style: italic;
+}
+
+/* Style Modifiers */
 .hljs-keyword,
 .hljs-selector-tag,
-.hljs-literal,
 .hljs-title,
 .hljs-section,
-.hljs-doctag,
 .hljs-type,
 .hljs-name,
 .hljs-strong {
   font-weight: bold;
-}
-
-.hljs-literal,
-.hljs-number {
-  color: #644ac9;
 }
 
 .hljs-emphasis {

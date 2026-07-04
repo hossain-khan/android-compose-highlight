@@ -10,6 +10,11 @@ All notable changes to this project will be documented in this file.
   now bundled built-in themes, the sample app no longer loads GitHub CSS assets as its custom
   `fromAsset()` example. The sample theme picker and theme-creation section now use
   `tokyo-night-light` and `tokyo-night-dark` instead.
+- **Updated Dracula and Alucard built-in themes to be fully spec-compliant** - Modified the CSS sources
+  (`dracula.css` and `alucard.css`) to align with the official Dracula theme specification
+  ([draculatheme.com/spec](https://draculatheme.com/spec)). Updates include correct semantic mappings
+  for numbers/booleans (Orange), class/type names (Cyan), tag/attribute names (Cyan), italicized
+  comments, and red deletions.
 
 ### Added
 
