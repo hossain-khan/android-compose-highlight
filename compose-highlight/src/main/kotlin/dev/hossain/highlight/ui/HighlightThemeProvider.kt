@@ -264,6 +264,78 @@ fun rememberAtomOneDarkTheme(): HighlightTheme = remember { HighlightTheme.atomO
 @Composable
 fun rememberAtomOneLightTheme(): HighlightTheme = remember { HighlightTheme.atomOneLight() }
 
+/**
+ * Creates and remembers the built-in GitHub light [HighlightTheme].
+ *
+ * Backed by a precompiled color map generated at build time, so no CSS parsing happens at
+ * runtime and no [android.content.Context] is needed.
+ *
+ * ```kotlin
+ * HighlightThemeProvider(
+ *     lightHighlightTheme = rememberGitHubTheme(),
+ *     darkHighlightTheme  = rememberGitHubDarkTheme(),
+ * ) { ... }
+ * ```
+ *
+ * @return A stable [HighlightTheme] instance remembered across recompositions.
+ */
+@Composable
+fun rememberGitHubTheme(): HighlightTheme = remember { HighlightTheme.github() }
+
+/**
+ * Creates and remembers the built-in GitHub Dark [HighlightTheme].
+ *
+ * Backed by a precompiled color map generated at build time, so no CSS parsing happens at
+ * runtime and no [android.content.Context] is needed.
+ *
+ * ```kotlin
+ * HighlightThemeProvider(
+ *     lightHighlightTheme = rememberGitHubTheme(),
+ *     darkHighlightTheme  = rememberGitHubDarkTheme(),
+ * ) { ... }
+ * ```
+ *
+ * @return A stable [HighlightTheme] instance remembered across recompositions.
+ */
+@Composable
+fun rememberGitHubDarkTheme(): HighlightTheme = remember { HighlightTheme.githubDark() }
+
+/**
+ * Creates and remembers the built-in Dracula Classic dark [HighlightTheme].
+ *
+ * Backed by a precompiled color map generated at build time, so no CSS parsing happens at
+ * runtime and no [android.content.Context] is needed.
+ *
+ * ```kotlin
+ * HighlightThemeProvider(
+ *     lightHighlightTheme = rememberAlucardTheme(),
+ *     darkHighlightTheme  = rememberDraculaTheme(),
+ * ) { ... }
+ * ```
+ *
+ * @return A stable [HighlightTheme] instance remembered across recompositions.
+ */
+@Composable
+fun rememberDraculaTheme(): HighlightTheme = remember { HighlightTheme.dracula() }
+
+/**
+ * Creates and remembers the built-in Alucard Classic light [HighlightTheme].
+ *
+ * Backed by a precompiled color map generated at build time, so no CSS parsing happens at
+ * runtime and no [android.content.Context] is needed.
+ *
+ * ```kotlin
+ * HighlightThemeProvider(
+ *     lightHighlightTheme = rememberAlucardTheme(),
+ *     darkHighlightTheme  = rememberDraculaTheme(),
+ * ) { ... }
+ * ```
+ *
+ * @return A stable [HighlightTheme] instance remembered across recompositions.
+ */
+@Composable
+fun rememberAlucardTheme(): HighlightTheme = remember { HighlightTheme.alucard() }
+
 @Preview(showBackground = true)
 @Composable
 private fun HighlightThemeProviderPreview() {

@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+
+- **Added four more built-in bundled themes** - Added `github` and `alucard` for light mode,
+  plus `github-dark` and `dracula` for dark mode. These themes are now precompiled at build
+  time like the existing built-ins, exposed via `HighlightTheme.*()` factories and
+  `remember*Theme()` Compose helpers, and covered by parser parity tests.
+
 ### Removed
 
 - **Removed dead legacy `parseHtml` + `CustomNode` tree types from `HtmlParser.kt`** -

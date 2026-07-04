@@ -1,7 +1,7 @@
 # buildSrc
 
 Build-time logic for the `compose-highlight` library. Currently houses the theme precompilation
-pipeline that turns the four bundled hljs CSS files into a Kotlin source map at build time, so
+pipeline that turns the bundled hljs CSS files into a Kotlin source map at build time, so
 the runtime parser is never invoked for built-in themes.
 
 > **Important:** read [`compose-highlight/MODULE.md`](../compose-highlight/MODULE.md#themes) for
@@ -11,7 +11,7 @@ the runtime parser is never invoked for built-in themes.
 ## Why this exists
 
 The runtime `ThemeParser` lives in `compose-highlight/src/main/kotlin/.../engine/ThemeParser.kt`
-and parses CSS into `Map<String, SpanStyle>`. For the four bundled themes shipped with the
+and parses CSS into `Map<String, SpanStyle>`. For the bundled themes shipped with the
 library, that work was happening on the device on first theme access:
 
 1. Open asset stream
@@ -22,7 +22,7 @@ library, that work was happening on the device on first theme access:
 
 That cost is small per theme but completely unnecessary for content the library already controls
 at build time. This module shifts that work into the Gradle build so the runtime cost for the
-four built-ins drops to "read a static field."
+built-ins drops to "read a static field."
 
 ## What it produces
 
@@ -44,7 +44,7 @@ internal object GeneratedThemes {
         "hljs-comment" to SpanStyle(color = Color(0xFF8E908C)),
         // ~40 more entries per theme
     )
-    // x4 themes
+    // x8 themes
 }
 ```
 
@@ -69,7 +69,7 @@ GeneratedThemes.class   classes.jar inside the published AAR
 ```
 
 The CSS files still ship in the AAR (about 4 KB total) so the runtime `fromAsset(...)` path
-keeps working if anyone references those asset paths directly. None of the four built-in factory
+keeps working if anyone references those asset paths directly. None of the built-in factory
 methods reads them at runtime.
 
 ## Module layout
@@ -95,7 +95,7 @@ A duplicate of the runtime parser's logic. It cannot share code with the runtime
   parser produces an intermediate (`ParsedStyle`) that the emitter renders as Kotlin source.
 
 The duplication is intentional and load-bearing. Both parsers must produce semantically identical
-output for the four bundled themes. The parity test
+output for the bundled themes. The parity test
 (`compose-highlight/.../GeneratedThemesParityTest.kt`) is the only thing keeping them in sync.
 
 ### `ThemeSourceEmitter`
@@ -217,7 +217,7 @@ ship via `fromAsset`.
 keeping the buildSrc parser and the runtime parser in sync. It runs as part of
 `testDebugUnitTest` and asserts:
 
-1. **Color map equality.** For each of the four bundled themes, `ThemeParser.parseAsset(...)` at
+1. **Color map equality.** For each of the bundled themes, `ThemeParser.parseAsset(...)` at
    test time produces a `Map<String, SpanStyle>` byte-identical to the precompiled
    `GeneratedThemes.*` constant.
 2. **Identity hash equality.** Each built-in factory's `HighlightTheme` equals

@@ -11,10 +11,10 @@ import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 
 /**
- * Gradle task that reads the four bundled hljs theme CSS files and generates a Kotlin
+ * Gradle task that reads the bundled hljs theme CSS files and generates a Kotlin
  * source file containing precompiled `Map<String, SpanStyle>` constants.
  *
- * Inputs: the four CSS files (declared with [PathSensitivity.RELATIVE] so up-to-date
+ * Inputs: the CSS files (declared with [PathSensitivity.RELATIVE] so up-to-date
  * checks survive moves of the project root).
  *
  * Output: a single `GeneratedThemes.kt` under [outputDir].
@@ -63,6 +63,10 @@ abstract class GenerateThemesTask : DefaultTask() {
             "TOMORROW_NIGHT" to "tomorrow-night.css",
             "ATOM_ONE_DARK" to "atom-one-dark.css",
             "ATOM_ONE_LIGHT" to "atom-one-light.css",
+            "GITHUB" to "github.css",
+            "GITHUB_DARK" to "github-dark.css",
+            "DRACULA" to "dracula.css",
+            "ALUCARD" to "alucard.css",
         )
     }
 }

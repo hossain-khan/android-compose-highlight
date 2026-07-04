@@ -1,0 +1,102 @@
+/*!
+  Theme: Alucard Classic
+  Description: Light theme based on the official Dracula syntax highlighting specification.
+  Source: https://draculatheme.com/spec
+*/
+
+.hljs {
+  color: #1f1f1f;
+  background: #fffbeb;
+}
+
+.hljs-comment,
+.hljs-code,
+.hljs-formula,
+.hljs-quote {
+  color: #6c664b;
+  font-style: italic;
+}
+
+.hljs-keyword,
+.hljs-doctag,
+.hljs-meta .hljs-keyword,
+.hljs-template-tag,
+.hljs-template-variable,
+.hljs-type,
+.hljs-variable.language_ {
+  color: #a3144d;
+}
+
+.hljs-title,
+.hljs-title.class_,
+.hljs-title.class_.inherited__,
+.hljs-title.function_,
+.hljs-function .hljs-title,
+.hljs-section {
+  color: #14710a;
+}
+
+.hljs-class .hljs-title,
+.hljs-built_in,
+.hljs-name,
+.hljs-selector-tag,
+.hljs-selector-pseudo,
+.hljs-regexp {
+  color: #036a96;
+}
+
+.hljs-attr,
+.hljs-attribute,
+.hljs-property,
+.hljs-tag {
+  color: #036a96;
+}
+
+.hljs-string,
+.hljs-meta .hljs-string,
+.hljs-addition {
+  color: #846e15;
+}
+
+.hljs-number,
+.hljs-literal,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-selector-attr,
+.hljs-selector-class,
+.hljs-selector-id,
+.hljs-variable.constant_ {
+  color: #a34d14;
+}
+
+.hljs-variable,
+.hljs-params,
+.hljs-subst,
+.hljs-punctuation,
+.hljs-operator {
+  color: #1f1f1f;
+}
+
+.hljs-meta,
+.hljs-link {
+  color: #644ac9;
+}
+
+.hljs-deletion {
+  color: #cb3a2a;
+}
+
+.hljs-emphasis {
+  color: #644ac9;
+  font-style: italic;
+}
+
+.hljs-strong {
+  color: #1f1f1f;
+  font-weight: bold;
+}
+
+.hljs-link {
+  text-decoration: underline;
+}
+

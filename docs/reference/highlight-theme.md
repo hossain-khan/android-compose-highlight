@@ -10,11 +10,15 @@ Full API in Dokka:
 - [`rememberTomorrowNightTheme`](https://hossain-khan.github.io/android-compose-highlight/api/compose-highlight/dev.hossain.highlight.ui/remember-tomorrow-night-theme.html)
 - [`rememberAtomOneDarkTheme`](https://hossain-khan.github.io/android-compose-highlight/api/compose-highlight/dev.hossain.highlight.ui/remember-atom-one-dark-theme.html)
 - [`rememberAtomOneLightTheme`](https://hossain-khan.github.io/android-compose-highlight/api/compose-highlight/dev.hossain.highlight.ui/remember-atom-one-light-theme.html)
+- [`rememberGitHubTheme`](https://hossain-khan.github.io/android-compose-highlight/api/compose-highlight/dev.hossain.highlight.ui/remember-git-hub-theme.html)
+- [`rememberGitHubDarkTheme`](https://hossain-khan.github.io/android-compose-highlight/api/compose-highlight/dev.hossain.highlight.ui/remember-git-hub-dark-theme.html)
+- [`rememberDraculaTheme`](https://hossain-khan.github.io/android-compose-highlight/api/compose-highlight/dev.hossain.highlight.ui/remember-dracula-theme.html)
+- [`rememberAlucardTheme`](https://hossain-khan.github.io/android-compose-highlight/api/compose-highlight/dev.hossain.highlight.ui/remember-alucard-theme.html)
 
 ## When to use each theme source
 
-- Built-in themes (`tomorrow`, `tomorrowNight`, `atomOneDark`, `atomOneLight`): fastest setup,
-  precompiled maps, no CSS parsing at runtime.
+- Built-in themes (`tomorrow`, `tomorrowNight`, `atomOneDark`, `atomOneLight`, `github`,
+  `githubDark`, `dracula`, `alucard`): fastest setup, precompiled maps, no CSS parsing at runtime.
 - `fromAsset(...)`: best for shipping a highlight.js CSS file with your app.
 - `fromCss(...)`: useful when CSS comes from network, config, or generated text.
 - `fromColorMap(...)`: best when you want full programmatic control, for example Material 3
@@ -35,6 +39,11 @@ HighlightThemeProvider(
     darkHighlightTheme  = rememberTomorrowNightTheme(),
 ) { ... }
 ```
+
+Other bundled pairs now available:
+
+- `rememberGitHubTheme()` + `rememberGitHubDarkTheme()`
+- `rememberAlucardTheme()` + `rememberDraculaTheme()`
 
 ## Custom theme from asset CSS
 

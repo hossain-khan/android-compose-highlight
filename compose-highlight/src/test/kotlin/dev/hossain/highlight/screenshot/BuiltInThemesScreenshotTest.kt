@@ -20,7 +20,7 @@ import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
 
 /**
- * Screenshot regression coverage for the four bundled built-in themes. Each test renders the
+ * Screenshot regression coverage for the bundled built-in themes. Each test renders the
  * same Kotlin code snippet so visual diffs across themes only reflect color-map differences.
  *
  * Goldens live under `src/test/snapshots/images/theme_*.png`.
@@ -53,6 +53,26 @@ class BuiltInThemesScreenshotTest {
     @Test
     fun theme_atom_one_light() {
         captureWithTheme(name = "theme_atom_one_light", theme = HighlightTheme.atomOneLight())
+    }
+
+    @Test
+    fun theme_github() {
+        captureWithTheme(name = "theme_github", theme = HighlightTheme.github())
+    }
+
+    @Test
+    fun theme_github_dark() {
+        captureWithTheme(name = "theme_github_dark", theme = HighlightTheme.githubDark())
+    }
+
+    @Test
+    fun theme_dracula() {
+        captureWithTheme(name = "theme_dracula", theme = HighlightTheme.dracula())
+    }
+
+    @Test
+    fun theme_alucard() {
+        captureWithTheme(name = "theme_alucard", theme = HighlightTheme.alucard())
     }
 
     private fun captureWithTheme(

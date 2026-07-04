@@ -11,7 +11,7 @@ import org.robolectric.annotation.Config
 /**
  * Parity safety net for build-time theme precompilation.
  *
- * The build emits `GeneratedThemes.kt` from the four bundled CSS files using a parser in
+ * The build emits `GeneratedThemes.kt` from the bundled CSS files using a parser in
  * `buildSrc/` that mirrors the runtime [ThemeParser]. This test verifies the two stay in
  * sync by:
  * - Loading each bundled CSS file with the runtime parser at test time.
@@ -51,6 +51,26 @@ class GeneratedThemesParityTest {
         assertParity("compose-highlight/themes/atom-one-light.css", GeneratedThemes.ATOM_ONE_LIGHT)
     }
 
+    @Test
+    fun `github precompiled map equals runtime parse`() {
+        assertParity("compose-highlight/themes/github.css", GeneratedThemes.GITHUB)
+    }
+
+    @Test
+    fun `githubDark precompiled map equals runtime parse`() {
+        assertParity("compose-highlight/themes/github-dark.css", GeneratedThemes.GITHUB_DARK)
+    }
+
+    @Test
+    fun `dracula precompiled map equals runtime parse`() {
+        assertParity("compose-highlight/themes/dracula.css", GeneratedThemes.DRACULA)
+    }
+
+    @Test
+    fun `alucard precompiled map equals runtime parse`() {
+        assertParity("compose-highlight/themes/alucard.css", GeneratedThemes.ALUCARD)
+    }
+
     // ----- Identity parity -----
     // HighlightTheme.equals compares (name, contentIdentity). The runtime fromAsset factory
     // computes contentIdentity via contentDigest256("asset", path); the buildSrc generator
@@ -83,12 +103,38 @@ class GeneratedThemesParityTest {
     }
 
     @Test
+    fun `github identity matches runtime fromAsset hash`() {
+        assertThat(HighlightTheme.github())
+            .isEqualTo(HighlightTheme.fromAsset(context, "compose-highlight/themes/github.css", "github"))
+    }
+
+    @Test
+    fun `githubDark identity matches runtime fromAsset hash`() {
+        assertThat(HighlightTheme.githubDark())
+            .isEqualTo(HighlightTheme.fromAsset(context, "compose-highlight/themes/github-dark.css", "github-dark"))
+    }
+
+    @Test
+    fun `dracula identity matches runtime fromAsset hash`() {
+        assertThat(HighlightTheme.dracula())
+            .isEqualTo(HighlightTheme.fromAsset(context, "compose-highlight/themes/dracula.css", "dracula"))
+    }
+
+    @Test
+    fun `alucard identity matches runtime fromAsset hash`() {
+        assertThat(HighlightTheme.alucard())
+            .isEqualTo(HighlightTheme.fromAsset(context, "compose-highlight/themes/alucard.css", "alucard"))
+    }
+
+    @Test
     fun `different built-in themes are not equal`() {
         // Sanity: every built-in carries a distinct identity digest, so the equality check above
         // is meaningful - it fails if the buildSrc digest collides with anything other than the
         // matching runtime-computed value.
         assertThat(HighlightTheme.tomorrow()).isNotEqualTo(HighlightTheme.tomorrowNight())
         assertThat(HighlightTheme.atomOneLight()).isNotEqualTo(HighlightTheme.atomOneDark())
+        assertThat(HighlightTheme.github()).isNotEqualTo(HighlightTheme.githubDark())
+        assertThat(HighlightTheme.alucard()).isNotEqualTo(HighlightTheme.dracula())
     }
 
     private fun assertParity(

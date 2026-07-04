@@ -46,6 +46,34 @@ class ThemeParserAssetTest {
     }
 
     @Test
+    fun `parseAsset loads github theme from bundled assets`() {
+        val result = ThemeParser.parseAsset(context, "compose-highlight/themes/github.css")
+        assertThat(result).isNotEmpty()
+        assertThat(result).containsKey(HljsSelectors.BASE)
+    }
+
+    @Test
+    fun `parseAsset loads github-dark theme from bundled assets`() {
+        val result = ThemeParser.parseAsset(context, "compose-highlight/themes/github-dark.css")
+        assertThat(result).isNotEmpty()
+        assertThat(result).containsKey(HljsSelectors.BASE)
+    }
+
+    @Test
+    fun `parseAsset loads dracula theme from bundled assets`() {
+        val result = ThemeParser.parseAsset(context, "compose-highlight/themes/dracula.css")
+        assertThat(result).isNotEmpty()
+        assertThat(result).containsKey(HljsSelectors.BASE)
+    }
+
+    @Test
+    fun `parseAsset loads alucard theme from bundled assets`() {
+        val result = ThemeParser.parseAsset(context, "compose-highlight/themes/alucard.css")
+        assertThat(result).isNotEmpty()
+        assertThat(result).containsKey(HljsSelectors.BASE)
+    }
+
+    @Test
     fun `parseAsset throws IOException for missing file`() {
         try {
             ThemeParser.parseAsset(context, "nonexistent.css")
@@ -133,6 +161,38 @@ class ThemeParserAssetTest {
         val hljsStyle = result[HljsSelectors.BASE]
         assertThat(hljsStyle).isNotNull()
         assertThat(hljsStyle!!.background).isEqualTo(Color(0xFFfafafa))
+    }
+
+    @Test
+    fun `parseAsset github theme background is correct light color`() {
+        val result = ThemeParser.parseAsset(context, "compose-highlight/themes/github.css")
+        val hljsStyle = result[HljsSelectors.BASE]
+        assertThat(hljsStyle).isNotNull()
+        assertThat(hljsStyle!!.background).isEqualTo(Color(0xFFffffff))
+    }
+
+    @Test
+    fun `parseAsset github-dark theme background is correct dark color`() {
+        val result = ThemeParser.parseAsset(context, "compose-highlight/themes/github-dark.css")
+        val hljsStyle = result[HljsSelectors.BASE]
+        assertThat(hljsStyle).isNotNull()
+        assertThat(hljsStyle!!.background).isEqualTo(Color(0xFF0d1117))
+    }
+
+    @Test
+    fun `parseAsset dracula theme background is correct dark color`() {
+        val result = ThemeParser.parseAsset(context, "compose-highlight/themes/dracula.css")
+        val hljsStyle = result[HljsSelectors.BASE]
+        assertThat(hljsStyle).isNotNull()
+        assertThat(hljsStyle!!.background).isEqualTo(Color(0xFF282a36))
+    }
+
+    @Test
+    fun `parseAsset alucard theme background is correct light color`() {
+        val result = ThemeParser.parseAsset(context, "compose-highlight/themes/alucard.css")
+        val hljsStyle = result[HljsSelectors.BASE]
+        assertThat(hljsStyle).isNotNull()
+        assertThat(hljsStyle!!.background).isEqualTo(Color(0xFFfffbeb))
     }
 
     // ----- 1c-light theme regression - named colors and 4-digit hex -----

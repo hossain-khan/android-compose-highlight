@@ -27,14 +27,32 @@ class HighlightThemeBuiltInTest {
     }
 
     @Test
-    fun allFourThemesHaveDistinctNames() {
+    fun githubAndGitHubDarkHaveDifferentBackgroundColors() {
+        val light = HighlightTheme.github()
+        val dark = HighlightTheme.githubDark()
+        assertThat(light.backgroundColor).isNotEqualTo(dark.backgroundColor)
+    }
+
+    @Test
+    fun alucardAndDraculaHaveDifferentBackgroundColors() {
+        val light = HighlightTheme.alucard()
+        val dark = HighlightTheme.dracula()
+        assertThat(light.backgroundColor).isNotEqualTo(dark.backgroundColor)
+    }
+
+    @Test
+    fun allBuiltInThemesHaveDistinctNames() {
         val names =
             listOf(
                 HighlightTheme.tomorrow().name,
                 HighlightTheme.tomorrowNight().name,
                 HighlightTheme.atomOneDark().name,
                 HighlightTheme.atomOneLight().name,
+                HighlightTheme.github().name,
+                HighlightTheme.githubDark().name,
+                HighlightTheme.dracula().name,
+                HighlightTheme.alucard().name,
             )
-        assertThat(names.toSet()).hasSize(4)
+        assertThat(names.toSet()).hasSize(8)
     }
 }
