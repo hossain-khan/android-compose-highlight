@@ -289,11 +289,18 @@ class HighlightTheme private constructor(
         /**
          * Built-in Dracula dark theme.
          *
+         * For years, the Dracula team heard the same question: *"Are you going to create a light color scheme?"*
+         * The answer always was: *"Nope. Dracula can't stand the light."* But accessibility requires light mode support,
+         * leading to the creation of the Alucard light theme.
+         *
+         * Dracula and [alucardLight] are designed to go together as a perfect dark/light pair.
+         *
          * Uses a precompiled color map generated at build time from the bundled
          * `dracula.css` - the runtime CSS parser is never invoked. No [Context] is
          * required.
          *
          * @return A [HighlightTheme] backed by the bundled `dracula.css`.
+         * @see alucardLight
          */
         fun draculaDark(): HighlightTheme =
             HighlightTheme(
@@ -305,11 +312,18 @@ class HighlightTheme private constructor(
         /**
          * Built-in Alucard light theme.
          *
+         * Alucard is the official light color scheme for the Dracula Theme ecosystem.
+         * The name **Alucard** is **Dracula** spelled backward 😅. Alucard is a half-human, half-vampire
+         * dhampir who uniquely bridges two worlds, mirroring the library's journey to embrace both light and dark modes.
+         *
+         * Alucard and [draculaDark] are designed to go together as a perfect light/dark pair.
+         *
          * Uses a precompiled color map generated at build time from the bundled
          * `alucard.css` - the runtime CSS parser is never invoked. No [Context] is
          * required.
          *
          * @return A [HighlightTheme] backed by the bundled `alucard.css`.
+         * @see draculaDark
          */
         fun alucardLight(): HighlightTheme =
             HighlightTheme(
