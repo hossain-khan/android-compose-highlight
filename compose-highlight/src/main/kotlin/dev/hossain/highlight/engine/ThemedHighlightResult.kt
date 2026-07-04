@@ -10,7 +10,7 @@ import androidx.compose.ui.text.AnnotatedString
  * val result by rememberHighlightedCodeBothThemes(
  *     code       = code,
  *     language   = "kotlin",
- *     lightTheme = rememberTomorrowTheme(),
+ *     lightTheme = rememberTomorrowLightTheme(),
  *     darkTheme  = rememberTomorrowNightTheme(),
  * )
  * val text = if (isDark) result?.dark else result?.light

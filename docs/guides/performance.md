@@ -17,11 +17,11 @@ Each extra standalone engine adds roughly **~37 ms** to average highlight time a
 import dev.hossain.highlight.ui.HighlightThemeProvider
 import dev.hossain.highlight.ui.SyntaxHighlightedCode
 import dev.hossain.highlight.ui.rememberTomorrowNightTheme
-import dev.hossain.highlight.ui.rememberTomorrowTheme
+import dev.hossain.highlight.ui.rememberTomorrowLightTheme
 
 // Wrap once, high up in your composition tree
 HighlightThemeProvider(
-    lightHighlightTheme = rememberTomorrowTheme(),
+    lightHighlightTheme = rememberTomorrowLightTheme(),
     darkHighlightTheme  = rememberTomorrowNightTheme(),
 ) {
     LazyColumn {
@@ -102,7 +102,7 @@ viewModelScope.launch {
 ```
 
 Inside Compose, use `rememberHighlightedCodeBothThemes(code, language)` - or pass
-`rememberTomorrowTheme()` / `rememberTomorrowNightTheme()` to `highlightBothThemes`
+`rememberTomorrowLightTheme()` / `rememberTomorrowNightTheme()` to `highlightBothThemes`
 when you already have an `engine` from `rememberHighlightEngine()`.
 
 ## Timing callbacks

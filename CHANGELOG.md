@@ -12,6 +12,11 @@ All notable changes to this project will be documented in this file.
   (`rememberGithubLightTheme`, `rememberGithubDarkTheme`, `rememberDraculaDarkTheme`, and `rememberAlucardLightTheme`).
   Fixes #381.
 
+### Changed (Breaking)
+
+- **Renamed `rememberTomorrowTheme()` to `rememberTomorrowLightTheme()`** - Renamed the helper function
+  to ensure naming consistency across all light/dark built-in theme helper composables. Fixes #384.
+
 ### Removed
 
 - **Removed dead legacy `parseHtml` + `CustomNode` tree types from `HtmlParser.kt`** -

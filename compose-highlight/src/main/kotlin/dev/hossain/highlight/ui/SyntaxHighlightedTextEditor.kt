@@ -91,7 +91,7 @@ import dev.hossain.highlight.engine.HighlightTheme
  *
  * ```kotlin
  * HighlightThemeProvider(
- *     lightHighlightTheme = rememberTomorrowTheme(),
+ *     lightHighlightTheme = rememberTomorrowLightTheme(),
  *     darkHighlightTheme  = rememberTomorrowNightTheme(),
  * ) {
  *     var editorValue by remember { mutableStateOf(TextFieldValue("fun hello() = println(\"Hello!\")")) }
@@ -114,7 +114,7 @@ import dev.hossain.highlight.engine.HighlightTheme
  *     value         = editorValue,
  *     onValueChange = { editorValue = it },
  *     language      = "sql",
- *     theme         = rememberTomorrowTheme(),
+ *     theme         = rememberTomorrowLightTheme(),
  * )
  * ```
  *
@@ -403,6 +403,6 @@ private fun SyntaxHighlightedTextEditorPreview() {
         value = TextFieldValue("fun main() {\n    println(\"Hello world!\")\n}"),
         onValueChange = {},
         language = "kotlin",
-        theme = rememberTomorrowTheme(),
+        theme = rememberTomorrowLightTheme(),
     )
 }

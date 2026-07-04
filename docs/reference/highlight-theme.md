@@ -6,7 +6,7 @@ pipeline.
 Full API in Dokka:
 
 - [`HighlightTheme`](https://hossain-khan.github.io/android-compose-highlight/api/compose-highlight/dev.hossain.highlight.engine/-highlight-theme/index.html)
-- [`rememberTomorrowTheme`](https://hossain-khan.github.io/android-compose-highlight/api/compose-highlight/dev.hossain.highlight.ui/remember-tomorrow-theme.html)
+- [`rememberTomorrowLightTheme`](https://hossain-khan.github.io/android-compose-highlight/api/compose-highlight/dev.hossain.highlight.ui/remember-tomorrow-light-theme.html)
 - [`rememberTomorrowNightTheme`](https://hossain-khan.github.io/android-compose-highlight/api/compose-highlight/dev.hossain.highlight.ui/remember-tomorrow-night-theme.html)
 - [`rememberAtomOneDarkTheme`](https://hossain-khan.github.io/android-compose-highlight/api/compose-highlight/dev.hossain.highlight.ui/remember-atom-one-dark-theme.html)
 - [`rememberAtomOneLightTheme`](https://hossain-khan.github.io/android-compose-highlight/api/compose-highlight/dev.hossain.highlight.ui/remember-atom-one-light-theme.html)
@@ -32,10 +32,10 @@ recompositions.
 ```kotlin
 import dev.hossain.highlight.ui.HighlightThemeProvider
 import dev.hossain.highlight.ui.rememberTomorrowNightTheme
-import dev.hossain.highlight.ui.rememberTomorrowTheme
+import dev.hossain.highlight.ui.rememberTomorrowLightTheme
 
 HighlightThemeProvider(
-    lightHighlightTheme = rememberTomorrowTheme(),
+    lightHighlightTheme = rememberTomorrowLightTheme(),
     darkHighlightTheme  = rememberTomorrowNightTheme(),
 ) { ... }
 ```

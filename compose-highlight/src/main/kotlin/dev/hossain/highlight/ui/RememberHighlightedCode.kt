@@ -52,7 +52,7 @@ import dev.hossain.highlight.engine.ThemedHighlightResult
  * every recomposition. Or use the built-in convenience functions which handle this internally:
  *
  * ```kotlin
- * val highlighted by rememberHighlightedCode(code, "kotlin", rememberTomorrowTheme())
+ * val highlighted by rememberHighlightedCode(code, "kotlin", rememberTomorrowLightTheme())
  * ```
  *
  * For light/dark toggling without re-highlighting, prefer [rememberHighlightedCodeBothThemes].
@@ -149,7 +149,7 @@ fun rememberHighlightedCode(
  *     val result by rememberHighlightedCodeBothThemes(
  *         code       = code,
  *         language   = "kotlin",
- *         lightTheme = rememberTomorrowTheme(),
+ *         lightTheme = rememberTomorrowLightTheme(),
  *         darkTheme  = rememberTomorrowNightTheme(),
  *     )
  *     val text = if (isDark) result?.dark else result?.light

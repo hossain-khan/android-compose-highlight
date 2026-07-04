@@ -80,12 +80,12 @@ class CodeViewModel(application: Application) : AndroidViewModel(application) {
 
 ```kotlin
 import dev.hossain.highlight.ui.rememberHighlightEngine
-import dev.hossain.highlight.ui.rememberTomorrowTheme
+import dev.hossain.highlight.ui.rememberTomorrowLightTheme
 
 @Composable
 fun MyCodeBlock(code: String) {
     val engine = rememberHighlightEngine()
-    val theme  = rememberTomorrowTheme()
+    val theme  = rememberTomorrowLightTheme()
     var highlighted by remember(code) { mutableStateOf<AnnotatedString?>(null) }
 
     LaunchedEffect(code) {
@@ -118,7 +118,7 @@ viewModelScope.launch {
 ```
 
 !!! note
-    Inside `@Composable` functions, prefer `rememberTomorrowTheme()` /
+    Inside `@Composable` functions, prefer `rememberTomorrowLightTheme()` /
     `rememberTomorrowNightTheme()` so the theme is remembered across recompositions.
     The `HighlightTheme.tomorrow()` and `HighlightTheme.tomorrowNight()` factories above
     are the non-composable equivalents - safe to call from a ViewModel or repository.

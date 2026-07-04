@@ -20,13 +20,13 @@ Place `HighlightThemeProvider` once near the root of your composition - inside `
 
 ```kotlin
 import dev.hossain.highlight.ui.HighlightThemeProvider
-import dev.hossain.highlight.ui.rememberTomorrowTheme
+import dev.hossain.highlight.ui.rememberTomorrowLightTheme
 import dev.hossain.highlight.ui.rememberTomorrowNightTheme
 
 setContent {
     MyAppTheme {
         HighlightThemeProvider(
-            lightHighlightTheme = rememberTomorrowTheme(),
+            lightHighlightTheme = rememberTomorrowLightTheme(),
             darkHighlightTheme  = rememberTomorrowNightTheme(),
         ) {
             MyAppContent()
