@@ -299,24 +299,13 @@ fun rememberGithubLightTheme(): HighlightTheme = remember { HighlightTheme.githu
 fun rememberGithubDarkTheme(): HighlightTheme = remember { HighlightTheme.githubDark() }
 
 /**
- * Creates and remembers the built-in Dracula [HighlightTheme].
+ * Creates and remembers the built-in Dracula (dark) [HighlightTheme].
  *
- * Backed by a precompiled color map generated at build time, so no CSS parsing happens at
- * runtime and no [android.content.Context] is needed.
+ * For years, the Dracula team heard the same question: *"Are you going to create a light color scheme?"*
+ * The answer always was: *"Nope. Dracula can't stand the light."* But accessibility requires light mode support,
+ * leading to the creation of the Alucard light theme.
  *
- * ```kotlin
- * HighlightThemeProvider(
- *     darkHighlightTheme = rememberDraculaDarkTheme(),
- * ) { ... }
- * ```
- *
- * @return A stable [HighlightTheme] instance remembered across recompositions.
- */
-@Composable
-fun rememberDraculaDarkTheme(): HighlightTheme = remember { HighlightTheme.draculaDark() }
-
-/**
- * Creates and remembers the built-in Alucard [HighlightTheme].
+ * Dracula and [rememberAlucardLightTheme] are designed to go together as a perfect dark/light pair.
  *
  * Backed by a precompiled color map generated at build time, so no CSS parsing happens at
  * runtime and no [android.content.Context] is needed.
@@ -324,10 +313,37 @@ fun rememberDraculaDarkTheme(): HighlightTheme = remember { HighlightTheme.dracu
  * ```kotlin
  * HighlightThemeProvider(
  *     lightHighlightTheme = rememberAlucardLightTheme(),
+ *     darkHighlightTheme  = rememberDraculaDarkTheme(),
  * ) { ... }
  * ```
  *
  * @return A stable [HighlightTheme] instance remembered across recompositions.
+ * @see rememberAlucardLightTheme
+ */
+@Composable
+fun rememberDraculaDarkTheme(): HighlightTheme = remember { HighlightTheme.draculaDark() }
+
+/**
+ * Creates and remembers the built-in Alucard (light) [HighlightTheme].
+ *
+ * Alucard is the official light color scheme for the Dracula Theme ecosystem.
+ * The name **Alucard** is **Dracula** spelled backward 😅. Alucard is a half-human, half-vampire
+ * dhampir who uniquely bridges two worlds, mirroring the library's journey to embrace both light and dark modes.
+ *
+ * Alucard and [rememberDraculaDarkTheme] are designed to go together as a perfect light/dark pair.
+ *
+ * Backed by a precompiled color map generated at build time, so no CSS parsing happens at
+ * runtime and no [android.content.Context] is needed.
+ *
+ * ```kotlin
+ * HighlightThemeProvider(
+ *     lightHighlightTheme = rememberAlucardLightTheme(),
+ *     darkHighlightTheme  = rememberDraculaDarkTheme(),
+ * ) { ... }
+ * ```
+ *
+ * @return A stable [HighlightTheme] instance remembered across recompositions.
+ * @see rememberDraculaDarkTheme
  */
 @Composable
 fun rememberAlucardLightTheme(): HighlightTheme = remember { HighlightTheme.alucardLight() }
