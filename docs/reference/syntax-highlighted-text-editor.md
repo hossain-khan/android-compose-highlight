@@ -86,7 +86,7 @@ import dev.hossain.highlight.ui.ExperimentalHighlightApi
 import dev.hossain.highlight.ui.HighlightThemeProvider
 import dev.hossain.highlight.ui.SyntaxHighlightedTextEditor
 import dev.hossain.highlight.ui.rememberTomorrowNightTheme
-import dev.hossain.highlight.ui.rememberTomorrowTheme
+import dev.hossain.highlight.ui.rememberTomorrowLightTheme
 
 @OptIn(ExperimentalHighlightApi::class)
 @Composable
@@ -94,7 +94,7 @@ fun EditorScreen() {
     var editorValue by remember { mutableStateOf(TextFieldValue("fun hello() = println(\"Hello!\")")) }
 
     HighlightThemeProvider(
-        lightHighlightTheme = rememberTomorrowTheme(),
+        lightHighlightTheme = rememberTomorrowLightTheme(),
         darkHighlightTheme  = rememberTomorrowNightTheme(),
     ) {
         SyntaxHighlightedTextEditor(
@@ -123,7 +123,7 @@ fun SqlEditor() {
         value         = editorValue,
         onValueChange = { editorValue = it },
         language      = "sql",
-        theme         = rememberTomorrowTheme(),
+        theme         = rememberTomorrowLightTheme(),
     )
 }
 ```

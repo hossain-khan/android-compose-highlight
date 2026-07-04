@@ -88,7 +88,7 @@ import kotlin.time.measureTimedValue
  * @Composable
  * fun MyCodeBlock(code: String) {
  *     val engine = rememberHighlightEngine()
- *     val theme = rememberTomorrowTheme()
+ *     val theme = rememberTomorrowLightTheme()
  *     var highlighted by remember(code) { mutableStateOf<AnnotatedString?>(null) }
  *     LaunchedEffect(code) {
  *         engine.highlight(code, "kotlin", theme).onSuccess { highlighted = it.annotated }

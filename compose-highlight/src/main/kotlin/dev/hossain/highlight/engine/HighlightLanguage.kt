@@ -17,7 +17,7 @@ import java.util.Locale
  * SyntaxHighlightedCode(
  *     code = snippet,
  *     language = language,
- *     theme = rememberTomorrowTheme(),
+ *     theme = rememberTomorrowLightTheme(),
  * )
  * ```
  */

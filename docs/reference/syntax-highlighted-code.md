@@ -38,10 +38,10 @@ Full API in Dokka:
 import dev.hossain.highlight.ui.HighlightThemeProvider
 import dev.hossain.highlight.ui.SyntaxHighlightedCode
 import dev.hossain.highlight.ui.rememberTomorrowNightTheme
-import dev.hossain.highlight.ui.rememberTomorrowTheme
+import dev.hossain.highlight.ui.rememberTomorrowLightTheme
 
 HighlightThemeProvider(
-    lightHighlightTheme = rememberTomorrowTheme(),
+    lightHighlightTheme = rememberTomorrowLightTheme(),
     darkHighlightTheme  = rememberTomorrowNightTheme(),
 ) {
     SyntaxHighlightedCode(
@@ -56,12 +56,12 @@ HighlightThemeProvider(
 
 ```kotlin
 import dev.hossain.highlight.ui.SyntaxHighlightedCode
-import dev.hossain.highlight.ui.rememberTomorrowTheme
+import dev.hossain.highlight.ui.rememberTomorrowLightTheme
 
 SyntaxHighlightedCode(
     code     = "SELECT * FROM users WHERE active = 1",
     language = "sql",
-    theme    = rememberTomorrowTheme(),
+    theme    = rememberTomorrowLightTheme(),
 )
 ```
 
@@ -155,11 +155,11 @@ reduces warm-up cost and memory overhead.
 ```kotlin
 import dev.hossain.highlight.ui.HighlightThemeProvider
 import dev.hossain.highlight.ui.rememberTomorrowNightTheme
-import dev.hossain.highlight.ui.rememberTomorrowTheme
+import dev.hossain.highlight.ui.rememberTomorrowLightTheme
 
 HighlightThemeProvider(
     darkTheme           = userPrefersDark,
-    lightHighlightTheme = rememberTomorrowTheme(),
+    lightHighlightTheme = rememberTomorrowLightTheme(),
     darkHighlightTheme  = rememberTomorrowNightTheme(),
 ) { ... }
 ```

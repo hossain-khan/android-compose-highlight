@@ -72,7 +72,7 @@ private val LineNumberGutterSpacing = 8.dp
  *
  * ```kotlin
  * HighlightThemeProvider(
- *     lightHighlightTheme = rememberTomorrowTheme(),
+ *     lightHighlightTheme = rememberTomorrowLightTheme(),
  *     darkHighlightTheme  = rememberAtomOneDarkTheme(),
  * ) {
  *     SyntaxHighlightedCode(
@@ -89,7 +89,7 @@ private val LineNumberGutterSpacing = 8.dp
  * SyntaxHighlightedCode(
  *     code     = "SELECT * FROM users WHERE active = 1",
  *     language = "sql",
- *     theme    = rememberTomorrowTheme(),
+ *     theme    = rememberTomorrowLightTheme(),
  * )
  * ```
  *
@@ -467,7 +467,7 @@ private fun SyntaxHighlightedCodeDefaultPreview() {
     SyntaxHighlightedCode(
         code = "fun hello() = println(\"Hello!\")",
         language = "kotlin",
-        theme = rememberTomorrowTheme(),
+        theme = rememberTomorrowLightTheme(),
     )
 }
 
@@ -478,7 +478,7 @@ private fun SyntaxHighlightedCodeLineNumbersPreview() {
         code = "fun hello() = println(\"Hello!\")\nval x = 42\nprintln(x)",
         language = "kotlin",
         showLineNumbers = true,
-        theme = rememberTomorrowTheme(),
+        theme = rememberTomorrowLightTheme(),
     )
 }
 
@@ -488,6 +488,6 @@ private fun SyntaxHighlightedCodeHeaderPreview() {
     SyntaxHighlightedCode(
         code = "fun hello() = println(\"Hello!\")",
         language = "kotlin",
-        theme = rememberTomorrowTheme(),
+        theme = rememberTomorrowLightTheme(),
     )
 }

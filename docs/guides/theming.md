@@ -6,7 +6,7 @@
 
 | Theme | Style | Helper |
 | --- | --- | --- |
-| Tomorrow | Light | `rememberTomorrowTheme()` |
+| Tomorrow | Light | `rememberTomorrowLightTheme()` |
 | Tomorrow Night | Dark | `rememberTomorrowNightTheme()` |
 | Atom One Dark | Dark | `rememberAtomOneDarkTheme()` |
 | Atom One Light | Light | `rememberAtomOneLightTheme()` |
@@ -29,10 +29,10 @@ Pass a light and dark theme to `HighlightThemeProvider`. It picks the right one 
 import dev.hossain.highlight.ui.HighlightThemeProvider
 import dev.hossain.highlight.ui.SyntaxHighlightedCode
 import dev.hossain.highlight.ui.rememberTomorrowNightTheme
-import dev.hossain.highlight.ui.rememberTomorrowTheme
+import dev.hossain.highlight.ui.rememberTomorrowLightTheme
 
 HighlightThemeProvider(
-    lightHighlightTheme = rememberTomorrowTheme(),
+    lightHighlightTheme = rememberTomorrowLightTheme(),
     darkHighlightTheme  = rememberTomorrowNightTheme(),
 ) {
     SyntaxHighlightedCode(code = snippet, language = "kotlin")
@@ -116,9 +116,9 @@ For one-off use - pass the theme directly:
 
 ```kotlin
 import dev.hossain.highlight.ui.SyntaxHighlightedCode
-import dev.hossain.highlight.ui.rememberTomorrowTheme
+import dev.hossain.highlight.ui.rememberTomorrowLightTheme
 
-val theme = rememberTomorrowTheme()
+val theme = rememberTomorrowLightTheme()
 SyntaxHighlightedCode(
     code     = snippet,
     language = "python",
@@ -135,10 +135,10 @@ For zero-latency theme switching, tokenize once and apply both color maps. Use `
 ```kotlin
 import dev.hossain.highlight.ui.rememberHighlightEngine
 import dev.hossain.highlight.ui.rememberTomorrowNightTheme
-import dev.hossain.highlight.ui.rememberTomorrowTheme
+import dev.hossain.highlight.ui.rememberTomorrowLightTheme
 
 val engine     = rememberHighlightEngine()
-val lightTheme = rememberTomorrowTheme()
+val lightTheme = rememberTomorrowLightTheme()
 val darkTheme  = rememberTomorrowNightTheme()
 val fallback   = remember(code) { AnnotatedString(code) }
 val themedPair by produceState(fallback to fallback, code, lightTheme, darkTheme) {

@@ -78,13 +78,13 @@ val LocalDarkHighlightTheme =
  *
  * ## Typical setup
  *
- * Prefer [rememberTomorrowTheme] and [rememberTomorrowNightTheme] as the default pattern so theme
+ * Prefer [rememberTomorrowLightTheme] and [rememberTomorrowNightTheme] as the default pattern so theme
  * instances stay stable across recompositions:
  *
  * ```kotlin
  * // At the top of your screen composable:
  * HighlightThemeProvider(
- *     lightHighlightTheme = rememberTomorrowTheme(),
+ *     lightHighlightTheme = rememberTomorrowLightTheme(),
  *     darkHighlightTheme  = rememberTomorrowNightTheme(),
  * ) {
  *     // All SyntaxHighlightedCode composables inside here share 1 WebView
@@ -122,7 +122,7 @@ val LocalDarkHighlightTheme =
  * ```kotlin
  * HighlightThemeProvider(
  *     darkTheme           = userPrefersDark,
- *     lightHighlightTheme = rememberTomorrowTheme(),
+ *     lightHighlightTheme = rememberTomorrowLightTheme(),
  *     darkHighlightTheme  = rememberTomorrowNightTheme(),
  * ) { ... }
  * ```
@@ -161,7 +161,7 @@ val LocalDarkHighlightTheme =
 @Composable
 fun HighlightThemeProvider(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    lightHighlightTheme: HighlightTheme = rememberTomorrowTheme(),
+    lightHighlightTheme: HighlightTheme = rememberTomorrowLightTheme(),
     darkHighlightTheme: HighlightTheme = rememberTomorrowNightTheme(),
     content: @Composable () -> Unit,
 ) {
@@ -200,7 +200,7 @@ fun HighlightThemeProvider(
  *
  * ```kotlin
  * HighlightThemeProvider(
- *     lightHighlightTheme = rememberTomorrowTheme(),
+ *     lightHighlightTheme = rememberTomorrowLightTheme(),
  *     darkHighlightTheme  = rememberAtomOneDarkTheme(),
  * ) { ... }
  * ```
@@ -208,7 +208,7 @@ fun HighlightThemeProvider(
  * @return A stable [HighlightTheme] instance remembered across recompositions.
  */
 @Composable
-fun rememberTomorrowTheme(): HighlightTheme = remember { HighlightTheme.tomorrow() }
+fun rememberTomorrowLightTheme(): HighlightTheme = remember { HighlightTheme.tomorrow() }
 
 /**
  * Creates and remembers the built-in Base16 Tomorrow Night (dark) [HighlightTheme].
@@ -220,7 +220,7 @@ fun rememberTomorrowTheme(): HighlightTheme = remember { HighlightTheme.tomorrow
  * val result by rememberHighlightedCodeBothThemes(
  *     code       = code,
  *     language   = "kotlin",
- *     lightTheme = rememberTomorrowTheme(),
+ *     lightTheme = rememberTomorrowLightTheme(),
  *     darkTheme  = rememberTomorrowNightTheme(),
  * )
  * ```
@@ -336,7 +336,7 @@ fun rememberAlucardLightTheme(): HighlightTheme = remember { HighlightTheme.aluc
 @Composable
 private fun HighlightThemeProviderPreview() {
     HighlightThemeProvider(
-        lightHighlightTheme = rememberTomorrowTheme(),
+        lightHighlightTheme = rememberTomorrowLightTheme(),
         darkHighlightTheme = rememberTomorrowNightTheme(),
     ) {
         SyntaxHighlightedCode(

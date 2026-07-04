@@ -24,7 +24,7 @@ dependencies {
 
 ```kotlin
 HighlightThemeProvider(
-    lightHighlightTheme = rememberTomorrowTheme(),
+    lightHighlightTheme = rememberTomorrowLightTheme(),
     darkHighlightTheme = rememberTomorrowNightTheme(),
 ) {
     SyntaxHighlightedCode(
