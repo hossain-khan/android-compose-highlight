@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Changed
+
+- **Updated the sample app's custom theme demo to Tokyo Night** - Since GitHub and GitHub Dark are
+  now bundled built-in themes, the sample app no longer loads GitHub CSS assets as its custom
+  `fromAsset()` example. The sample theme picker and theme-creation section now use
+  `tokyo-night-light` and `tokyo-night-dark` instead.
+
 ### Added
 
 - **Added four new built-in themes: GitHub, GitHub Dark, Dracula, and Alucard** - Emitted precompiled
