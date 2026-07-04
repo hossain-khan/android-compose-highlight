@@ -9,14 +9,14 @@ a side-by-side diff image.
 ## What is covered
 
 | Suite | File | Goldens |
-|---|---|---|
-| Built-in themes | `BuiltInThemesScreenshotTest.kt` | 4 |
+| --- | --- | --- |
+| Built-in themes | `BuiltInThemesScreenshotTest.kt` | 8 |
 | Layout variants | `LayoutVariantsScreenshotTest.kt` | 4 |
 | Language breadth | `LanguageBreadthScreenshotTest.kt` | 3 |
 | Error fallback + custom placeholder | `ErrorAndPlaceholderScreenshotTest.kt` | 2 |
 | Editor (`SyntaxHighlightedTextEditor`) | `SyntaxHighlightedTextEditorScreenshotTest.kt` | 4 |
 
-The suite is intentionally small. It covers the four built-in themes, the four most-used layout
+The suite is intentionally small. It covers the eight built-in themes, the four most-used layout
 knobs (line numbers, headerless, label-only header, default), three languages that exercise
 breadth of token classes (Kotlin, Python, JSON), the two non-happy-path render states (error
 fallback, custom placeholder), and the editor's editor-specific surface (default light/dark

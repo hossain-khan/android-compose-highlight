@@ -74,7 +74,7 @@ kotlin {
 // ────────────────────────────────────────────────────────────────────────────
 // Build-time precompilation of bundled hljs themes.
 //
-// The four built-in CSS themes (tomorrow, tomorrow-night, atom-one-dark, atom-one-light)
+// The eight built-in CSS themes (tomorrow, tomorrow-night, atom-one-dark, atom-one-light, github, github-dark, dracula, alucard)
 // are parsed by buildSrc's CssThemeParser and emitted as a Kotlin source file so the
 // runtime ThemeParser is never invoked for these themes. See buildSrc/.
 // ────────────────────────────────────────────────────────────────────────────

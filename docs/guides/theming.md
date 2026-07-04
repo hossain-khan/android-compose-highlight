@@ -1,17 +1,21 @@
 # Theming
 
-`compose-highlight` ships four Highlight.js themes out of the box. Those built-ins are precompiled into Kotlin constants at build time, so they do not parse CSS at runtime.
+`compose-highlight` ships eight Highlight.js themes out of the box. Those built-ins are precompiled into Kotlin constants at build time, so they do not parse CSS at runtime.
 
 ## Built-in themes
 
 | Theme | Style | Helper |
-|---|---|---|
+| --- | --- | --- |
 | Tomorrow | Light | `rememberTomorrowTheme()` |
 | Tomorrow Night | Dark | `rememberTomorrowNightTheme()` |
 | Atom One Dark | Dark | `rememberAtomOneDarkTheme()` |
 | Atom One Light | Light | `rememberAtomOneLightTheme()` |
+| GitHub | Light | `rememberGithubLightTheme()` |
+| GitHub Dark | Dark | `rememberGithubDarkTheme()` |
+| Dracula | Dark | `rememberDraculaDarkTheme()` |
+| Alucard | Light | `rememberAlucardLightTheme()` |
 
-Built-in themes (`tomorrow`, `tomorrowNight`, `atomOneDark`, `atomOneLight`) are fast-path themes:
+Built-in themes (`tomorrow`, `tomorrowNight`, `atomOneDark`, `atomOneLight`, `githubLight`, `githubDark`, `draculaDark`, `alucardLight`) are fast-path themes:
 
 - No `Context` required
 - No runtime CSS parsing

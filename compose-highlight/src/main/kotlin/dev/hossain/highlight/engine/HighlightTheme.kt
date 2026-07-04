@@ -20,17 +20,21 @@ import kotlin.time.measureTimedValue
  *
  * ## Built-in themes
  *
- * The four built-in themes are precompiled at build time - they do not parse CSS at
+ * The eight built-in themes are precompiled at build time - they do not parse CSS at
  * runtime and do not require a [Context]:
  *
  * ```kotlin
  * // Light themes
  * HighlightTheme.tomorrow()
  * HighlightTheme.atomOneLight()
+ * HighlightTheme.githubLight()
+ * HighlightTheme.alucardLight()
  *
  * // Dark themes
  * HighlightTheme.tomorrowNight()
  * HighlightTheme.atomOneDark()
+ * HighlightTheme.githubDark()
+ * HighlightTheme.draculaDark()
  * ```
  *
  * ## Custom theme from an asset file

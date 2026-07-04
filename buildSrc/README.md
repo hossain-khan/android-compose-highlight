@@ -1,7 +1,7 @@
 # buildSrc
 
 Build-time logic for the `compose-highlight` library. Currently houses the theme precompilation
-pipeline that turns the four bundled hljs CSS files into a Kotlin source map at build time, so
+pipeline that turns the eight bundled hljs CSS files into a Kotlin source map at build time, so
 the runtime parser is never invoked for built-in themes.
 
 > **Important:** read [`compose-highlight/MODULE.md`](../compose-highlight/MODULE.md#themes) for
@@ -11,7 +11,7 @@ the runtime parser is never invoked for built-in themes.
 ## Why this exists
 
 The runtime `ThemeParser` lives in `compose-highlight/src/main/kotlin/.../engine/ThemeParser.kt`
-and parses CSS into `Map<String, SpanStyle>`. For the four bundled themes shipped with the
+and parses CSS into `Map<String, SpanStyle>`. For the eight bundled themes shipped with the
 library, that work was happening on the device on first theme access:
 
 1. Open asset stream
@@ -22,7 +22,7 @@ library, that work was happening on the device on first theme access:
 
 That cost is small per theme but completely unnecessary for content the library already controls
 at build time. This module shifts that work into the Gradle build so the runtime cost for the
-four built-ins drops to "read a static field."
+eight built-ins drops to "read a static field."
 
 ## What it produces
 
@@ -44,7 +44,7 @@ internal object GeneratedThemes {
         "hljs-comment" to SpanStyle(color = Color(0xFF8E908C)),
         // ~40 more entries per theme
     )
-    // x4 themes
+    // x8 themes
 }
 ```
 
@@ -69,7 +69,7 @@ GeneratedThemes.class   classes.jar inside the published AAR
 ```
 
 The CSS files still ship in the AAR (about 4 KB total) so the runtime `fromAsset(...)` path
-keeps working if anyone references those asset paths directly. None of the four built-in factory
+keeps working if anyone references those asset paths directly. None of the eight built-in factory
 methods reads them at runtime.
 
 ## Module layout
@@ -188,11 +188,14 @@ Five places to update for `dracula`:
 1. Drop the CSS at
    `compose-highlight/src/main/assets/compose-highlight/themes/dracula.css`.
 2. Add to `THEME_INPUTS` in `GenerateThemesTask.kt`:
+
    ```kotlin
    "DRACULA" to "dracula.css",
    ```
+
 3. Add the factory in
    `compose-highlight/src/main/kotlin/.../engine/HighlightTheme.kt`:
+
    ```kotlin
    fun dracula(): HighlightTheme =
        HighlightTheme(
@@ -201,6 +204,7 @@ Five places to update for `dracula`:
            contentIdentity = GeneratedThemes.DRACULA_IDENTITY,
        )
    ```
+
 4. Add `rememberDraculaTheme()` in
    `compose-highlight/src/main/kotlin/.../ui/HighlightThemeComposables.kt`.
 5. Add a parity test entry in
@@ -228,7 +232,7 @@ keeping the buildSrc parser and the runtime parser in sync. It runs as part of
 When the parity test fails, the fix depends on which parser changed:
 
 | Symptom | Likely cause | Fix |
-|---|---|---|
+| --- | --- | --- |
 | You edited the runtime parser, parity test fails | Generated file is stale | `./gradlew :compose-highlight:generateThemes` |
 | You edited the buildSrc parser, parity test fails | buildSrc parser drifted from the runtime parser | Fix the divergence in buildSrc, do not edit the test |
 | You added a CSS rule the runtime parser handles differently than buildSrc | Behavior gap between the two parsers | Decide which behavior is correct, port to the other |
