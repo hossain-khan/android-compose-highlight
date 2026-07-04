@@ -141,7 +141,7 @@ internal fun ThemeCreationSection() {
             text =
                 "Save any highlight.js-compatible CSS file anywhere under your app's assets/ " +
                     "directory and load it at runtime with HighlightTheme.fromAsset(). " +
-                    "The code block below shows you exactly how to do it:",
+                    "This sample now uses Tokyo Night as that custom asset-loaded example:",
             style = MaterialTheme.typography.bodySmall,
             modifier = Modifier.padding(horizontal = 4.dp),
         )

@@ -68,13 +68,13 @@ import kotlinx.coroutines.withContext
  *
  * Uses [HighlightThemeProvider] to supply the active theme to all [SyntaxHighlightedCode]
  * composables in the tree. The top bar provides two controls:
- * - **Theme picker** (🎨): cycles between GitHub (custom asset-based), Tomorrow, and Atom One
- *   theme families, demonstrating both built-in and user-provided themes.
+ * - **Theme picker** (🎨): cycles between Tokyo Night (custom asset-based), GitHub, Dracula,
+ *   Tomorrow, and Atom One theme families, demonstrating both built-in and user-provided themes.
  * - **Light/Dark toggle**: switches between the light and dark variant of the selected theme.
  *
- * The GitHub themes are loaded from the sample app's own assets via [HighlightTheme.fromAsset],
- * showcasing that library users can bundle any Highlight.js CSS and use it as a theme - they are
- * not limited to the built-in options.
+ * The Tokyo Night themes are loaded from the sample app's own assets via
+ * [HighlightTheme.fromAsset], showcasing that library users can bundle any Highlight.js CSS and
+ * use it as a theme - they are not limited to the built-in options.
  *
  * Sections are organized into tabs:
  * - **Languages**: highlights SAMPLES across different languages (original demo).
@@ -112,7 +112,7 @@ internal fun SampleScreen(viewModel: SampleViewModel = viewModel()) {
             }
         }
 
-    var selectedThemeIndex by rememberSaveable { mutableIntStateOf(2) } // Atom One
+    var selectedThemeIndex by rememberSaveable { mutableIntStateOf(4) } // Atom One
     val activePair = themePairs[selectedThemeIndex.coerceIn(themePairs.indices)]
     val tabs = DemoTab.all
 

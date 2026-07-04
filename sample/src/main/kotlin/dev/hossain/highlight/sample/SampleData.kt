@@ -110,12 +110,12 @@ httpApiClient.get("/users")
 internal val FROM_ASSET_SNIPPET =
     """
 // Save any highlight.js CSS theme file in your app's assets:
-//   app/src/main/assets/themes/dracula.min.css
+//   app/src/main/assets/themes/tokyo-night-dark.min.css
 
 val theme = HighlightTheme.fromAsset(
     context   = context.applicationContext,
-    assetPath = "themes/dracula.min.css",
-    name      = "dracula",
+    assetPath = "themes/tokyo-night-dark.min.css",
+    name      = "tokyo-night-dark",
 )
 
 // Pass the theme directly to the composable

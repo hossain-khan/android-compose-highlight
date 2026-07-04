@@ -23,13 +23,23 @@ internal class SampleViewModel(
         loadCodeSamples(application)
     }
 
-    /** All available theme pairs - GitHub uses fromAsset() to demonstrate custom themes. */
+    /** All available theme pairs - Tokyo Night uses fromAsset() to demonstrate custom themes. */
     val themePairs: List<ThemePair> by lazy {
         listOf(
             ThemePair(
+                name = "Tokyo Night",
+                light = HighlightTheme.fromAsset(application, "themes/tokyo-night-light.min.css", "tokyo-night-light"),
+                dark = HighlightTheme.fromAsset(application, "themes/tokyo-night-dark.min.css", "tokyo-night-dark"),
+            ),
+            ThemePair(
                 name = "GitHub",
-                light = HighlightTheme.fromAsset(application, "themes/github.css", "github"),
-                dark = HighlightTheme.fromAsset(application, "themes/github-dark.css", "github-dark"),
+                light = HighlightTheme.githubLight(),
+                dark = HighlightTheme.githubDark(),
+            ),
+            ThemePair(
+                name = "Dracula",
+                light = HighlightTheme.alucardLight(),
+                dark = HighlightTheme.draculaDark(),
             ),
             ThemePair(
                 name = "Tomorrow",
