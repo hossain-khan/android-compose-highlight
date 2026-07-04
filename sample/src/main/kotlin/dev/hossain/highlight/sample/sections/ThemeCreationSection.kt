@@ -119,9 +119,10 @@ internal fun ThemeCreationSection() {
         SubSectionHeader("Built-in themes")
         Text(
             text =
-                "The library bundles 4 ready-to-use themes: atomOneDark, atomOneLight, " +
-                    "tomorrow, and tomorrowNight. No extra assets needed - just call the " +
-                    "corresponding factory function. Here is atomOneDark as an example:",
+                "The library bundles 8 ready-to-use themes: atomOneDark, atomOneLight, " +
+                    "tomorrow, tomorrowNight, githubLight, githubDark, draculaDark, and alucardLight. " +
+                    "No extra assets needed - just call the corresponding factory function. " +
+                    "Here is atomOneDark as an example:",
             style = MaterialTheme.typography.bodySmall,
             modifier = Modifier.padding(horizontal = 4.dp),
         )

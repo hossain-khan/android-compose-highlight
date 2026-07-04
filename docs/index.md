@@ -42,7 +42,7 @@ That's it. `HighlightThemeProvider` automatically picks Tomorrow (light) or Tomo
 
 - **Wide language coverage** - use any language supported by the bundled Highlight.js build
 - **Light + dark themes** - automatic system-mode switching, or manual override
-- **Built-in themes** - Tomorrow, Tomorrow Night, Atom One Dark, Atom One Light
+- **Built-in themes** - Tomorrow, Tomorrow Night, Atom One Dark, Atom One Light, GitHub Light, GitHub Dark, Dracula Dark, Alucard Light
 - **Custom themes** - load any Highlight.js CSS from `assets/`, raw CSS string, or a `Map<String, SpanStyle>`
 - **Slots** - replace the language badge and copy button with any composable
 - **Line numbers** - optional gutter with configurable width and color

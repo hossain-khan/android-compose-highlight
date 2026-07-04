@@ -20,17 +20,21 @@ import kotlin.time.measureTimedValue
  *
  * ## Built-in themes
  *
- * The four built-in themes are precompiled at build time - they do not parse CSS at
+ * The eight built-in themes are precompiled at build time - they do not parse CSS at
  * runtime and do not require a [Context]:
  *
  * ```kotlin
  * // Light themes
  * HighlightTheme.tomorrow()
  * HighlightTheme.atomOneLight()
+ * HighlightTheme.githubLight()
+ * HighlightTheme.alucardLight()
  *
  * // Dark themes
  * HighlightTheme.tomorrowNight()
  * HighlightTheme.atomOneDark()
+ * HighlightTheme.githubDark()
+ * HighlightTheme.draculaDark()
  * ```
  *
  * ## Custom theme from an asset file
@@ -248,6 +252,70 @@ class HighlightTheme private constructor(
                 name = "atom-one-light",
                 colorMapProvider = { GeneratedThemes.ATOM_ONE_LIGHT },
                 contentIdentity = GeneratedThemes.ATOM_ONE_LIGHT_IDENTITY,
+            )
+
+        /**
+         * Built-in GitHub Light theme.
+         *
+         * Uses a precompiled color map generated at build time from the bundled
+         * `github.css` - the runtime CSS parser is never invoked. No [Context] is
+         * required.
+         *
+         * @return A [HighlightTheme] backed by the bundled `github.css`.
+         */
+        fun githubLight(): HighlightTheme =
+            HighlightTheme(
+                name = "github",
+                colorMapProvider = { GeneratedThemes.GITHUB_LIGHT },
+                contentIdentity = GeneratedThemes.GITHUB_LIGHT_IDENTITY,
+            )
+
+        /**
+         * Built-in GitHub Dark theme.
+         *
+         * Uses a precompiled color map generated at build time from the bundled
+         * `github-dark.css` - the runtime CSS parser is never invoked. No [Context] is
+         * required.
+         *
+         * @return A [HighlightTheme] backed by the bundled `github-dark.css`.
+         */
+        fun githubDark(): HighlightTheme =
+            HighlightTheme(
+                name = "github-dark",
+                colorMapProvider = { GeneratedThemes.GITHUB_DARK },
+                contentIdentity = GeneratedThemes.GITHUB_DARK_IDENTITY,
+            )
+
+        /**
+         * Built-in Dracula dark theme.
+         *
+         * Uses a precompiled color map generated at build time from the bundled
+         * `dracula.css` - the runtime CSS parser is never invoked. No [Context] is
+         * required.
+         *
+         * @return A [HighlightTheme] backed by the bundled `dracula.css`.
+         */
+        fun draculaDark(): HighlightTheme =
+            HighlightTheme(
+                name = "dracula",
+                colorMapProvider = { GeneratedThemes.DRACULA_DARK },
+                contentIdentity = GeneratedThemes.DRACULA_DARK_IDENTITY,
+            )
+
+        /**
+         * Built-in Alucard light theme.
+         *
+         * Uses a precompiled color map generated at build time from the bundled
+         * `alucard.css` - the runtime CSS parser is never invoked. No [Context] is
+         * required.
+         *
+         * @return A [HighlightTheme] backed by the bundled `alucard.css`.
+         */
+        fun alucardLight(): HighlightTheme =
+            HighlightTheme(
+                name = "alucard",
+                colorMapProvider = { GeneratedThemes.ALUCARD_LIGHT },
+                contentIdentity = GeneratedThemes.ALUCARD_LIGHT_IDENTITY,
             )
 
         /**

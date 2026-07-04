@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+
+- **Added four new built-in themes: GitHub, GitHub Dark, Dracula, and Alucard** - Emitted precompiled
+  color maps for the four popular themes (GitHub, GitHub Dark, Dracula, and Alucard). Precompiled maps
+  bypass CSS runtime parsing, avoiding a context dependency. Added corresponding remember factories
+  (`rememberGithubLightTheme`, `rememberGithubDarkTheme`, `rememberDraculaDarkTheme`, and `rememberAlucardLightTheme`).
+  Fixes #381.
+
 ### Removed
 
 - **Removed dead legacy `parseHtml` + `CustomNode` tree types from `HtmlParser.kt`** -

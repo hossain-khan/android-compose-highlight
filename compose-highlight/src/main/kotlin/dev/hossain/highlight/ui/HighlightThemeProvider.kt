@@ -264,6 +264,74 @@ fun rememberAtomOneDarkTheme(): HighlightTheme = remember { HighlightTheme.atomO
 @Composable
 fun rememberAtomOneLightTheme(): HighlightTheme = remember { HighlightTheme.atomOneLight() }
 
+/**
+ * Creates and remembers the built-in GitHub Light [HighlightTheme].
+ *
+ * Backed by a precompiled color map generated at build time, so no CSS parsing happens at
+ * runtime and no [android.content.Context] is needed.
+ *
+ * ```kotlin
+ * HighlightThemeProvider(
+ *     lightHighlightTheme = rememberGithubLightTheme(),
+ * ) { ... }
+ * ```
+ *
+ * @return A stable [HighlightTheme] instance remembered across recompositions.
+ */
+@Composable
+fun rememberGithubLightTheme(): HighlightTheme = remember { HighlightTheme.githubLight() }
+
+/**
+ * Creates and remembers the built-in GitHub Dark [HighlightTheme].
+ *
+ * Backed by a precompiled color map generated at build time, so no CSS parsing happens at
+ * runtime and no [android.content.Context] is needed.
+ *
+ * ```kotlin
+ * HighlightThemeProvider(
+ *     darkHighlightTheme = rememberGithubDarkTheme(),
+ * ) { ... }
+ * ```
+ *
+ * @return A stable [HighlightTheme] instance remembered across recompositions.
+ */
+@Composable
+fun rememberGithubDarkTheme(): HighlightTheme = remember { HighlightTheme.githubDark() }
+
+/**
+ * Creates and remembers the built-in Dracula [HighlightTheme].
+ *
+ * Backed by a precompiled color map generated at build time, so no CSS parsing happens at
+ * runtime and no [android.content.Context] is needed.
+ *
+ * ```kotlin
+ * HighlightThemeProvider(
+ *     darkHighlightTheme = rememberDraculaDarkTheme(),
+ * ) { ... }
+ * ```
+ *
+ * @return A stable [HighlightTheme] instance remembered across recompositions.
+ */
+@Composable
+fun rememberDraculaDarkTheme(): HighlightTheme = remember { HighlightTheme.draculaDark() }
+
+/**
+ * Creates and remembers the built-in Alucard [HighlightTheme].
+ *
+ * Backed by a precompiled color map generated at build time, so no CSS parsing happens at
+ * runtime and no [android.content.Context] is needed.
+ *
+ * ```kotlin
+ * HighlightThemeProvider(
+ *     lightHighlightTheme = rememberAlucardLightTheme(),
+ * ) { ... }
+ * ```
+ *
+ * @return A stable [HighlightTheme] instance remembered across recompositions.
+ */
+@Composable
+fun rememberAlucardLightTheme(): HighlightTheme = remember { HighlightTheme.alucardLight() }
+
 @Preview(showBackground = true)
 @Composable
 private fun HighlightThemeProviderPreview() {

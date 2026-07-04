@@ -55,6 +55,26 @@ class BuiltInThemesScreenshotTest {
         captureWithTheme(name = "theme_atom_one_light", theme = HighlightTheme.atomOneLight())
     }
 
+    @Test
+    fun theme_github_light() {
+        captureWithTheme(name = "theme_github_light", theme = HighlightTheme.githubLight())
+    }
+
+    @Test
+    fun theme_github_dark() {
+        captureWithTheme(name = "theme_github_dark", theme = HighlightTheme.githubDark())
+    }
+
+    @Test
+    fun theme_dracula_dark() {
+        captureWithTheme(name = "theme_dracula_dark", theme = HighlightTheme.draculaDark())
+    }
+
+    @Test
+    fun theme_alucard_light() {
+        captureWithTheme(name = "theme_alucard_light", theme = HighlightTheme.alucardLight())
+    }
+
     private fun captureWithTheme(
         name: String,
         theme: HighlightTheme,

@@ -10,10 +10,14 @@ Full API in Dokka:
 - [`rememberTomorrowNightTheme`](https://hossain-khan.github.io/android-compose-highlight/api/compose-highlight/dev.hossain.highlight.ui/remember-tomorrow-night-theme.html)
 - [`rememberAtomOneDarkTheme`](https://hossain-khan.github.io/android-compose-highlight/api/compose-highlight/dev.hossain.highlight.ui/remember-atom-one-dark-theme.html)
 - [`rememberAtomOneLightTheme`](https://hossain-khan.github.io/android-compose-highlight/api/compose-highlight/dev.hossain.highlight.ui/remember-atom-one-light-theme.html)
+- [`rememberGithubLightTheme`](https://hossain-khan.github.io/android-compose-highlight/api/compose-highlight/dev.hossain.highlight.ui/remember-github-light-theme.html)
+- [`rememberGithubDarkTheme`](https://hossain-khan.github.io/android-compose-highlight/api/compose-highlight/dev.hossain.highlight.ui/remember-github-dark-theme.html)
+- [`rememberDraculaDarkTheme`](https://hossain-khan.github.io/android-compose-highlight/api/compose-highlight/dev.hossain.highlight.ui/remember-dracula-dark-theme.html)
+- [`rememberAlucardLightTheme`](https://hossain-khan.github.io/android-compose-highlight/api/compose-highlight/dev.hossain.highlight.ui/remember-alucard-light-theme.html)
 
 ## When to use each theme source
 
-- Built-in themes (`tomorrow`, `tomorrowNight`, `atomOneDark`, `atomOneLight`): fastest setup,
+- Built-in themes (`tomorrow`, `tomorrowNight`, `atomOneDark`, `atomOneLight`, `githubLight`, `githubDark`, `draculaDark`, `alucardLight`): fastest setup,
   precompiled maps, no CSS parsing at runtime.
 - `fromAsset(...)`: best for shipping a highlight.js CSS file with your app.
 - `fromCss(...)`: useful when CSS comes from network, config, or generated text.
@@ -35,6 +39,11 @@ HighlightThemeProvider(
     darkHighlightTheme  = rememberTomorrowNightTheme(),
 ) { ... }
 ```
+
+Other bundled pairs now available:
+
+- `rememberGithubLightTheme()` + `rememberGithubDarkTheme()`
+- `rememberAlucardLightTheme()` + `rememberDraculaDarkTheme()`
 
 ## Custom theme from asset CSS
 

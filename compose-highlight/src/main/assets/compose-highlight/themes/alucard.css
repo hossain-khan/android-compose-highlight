@@ -1,0 +1,78 @@
+/* Alucard Theme
+ *
+ * Complementary light theme for Dracula Theme
+ * Based on the official Dracula specification: https://draculatheme.com/spec
+ */
+
+.hljs {
+  display: block;
+  overflow-x: auto;
+  padding: 0.5em;
+  background: #fffbeb;
+}
+
+.hljs-built_in,
+.hljs-selector-tag,
+.hljs-section,
+.hljs-link {
+  color: #036a96;
+}
+
+.hljs-keyword {
+  color: #a3144d;
+}
+
+.hljs,
+.hljs-subst {
+  color: #1f1f1f;
+}
+
+.hljs-title,
+.hljs-attr,
+.hljs-meta-keyword {
+  font-style: italic;
+  color: #14710a;
+}
+
+.hljs-string,
+.hljs-meta,
+.hljs-name,
+.hljs-type,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-addition,
+.hljs-variable,
+.hljs-template-tag,
+.hljs-template-variable {
+  color: #846e15;
+}
+
+.hljs-comment,
+.hljs-quote {
+  color: #6c664b;
+}
+
+.hljs-deletion {
+  color: #cb3a2a;
+}
+
+.hljs-keyword,
+.hljs-selector-tag,
+.hljs-literal,
+.hljs-title,
+.hljs-section,
+.hljs-doctag,
+.hljs-type,
+.hljs-name,
+.hljs-strong {
+  font-weight: bold;
+}
+
+.hljs-literal,
+.hljs-number {
+  color: #644ac9;
+}
+
+.hljs-emphasis {
+  font-style: italic;
+}
