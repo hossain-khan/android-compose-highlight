@@ -133,6 +133,9 @@ class GeneratedThemesParityTest {
         // matching runtime-computed value.
         assertThat(HighlightTheme.tomorrow()).isNotEqualTo(HighlightTheme.tomorrowNight())
         assertThat(HighlightTheme.atomOneLight()).isNotEqualTo(HighlightTheme.atomOneDark())
+        assertThat(HighlightTheme.githubLight()).isNotEqualTo(HighlightTheme.githubDark())
+        assertThat(HighlightTheme.alucardLight()).isNotEqualTo(HighlightTheme.draculaDark())
+        assertThat(HighlightTheme.githubLight()).isNotEqualTo(HighlightTheme.tomorrow())
     }
 
     private fun assertParity(
