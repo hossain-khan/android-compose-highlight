@@ -18,10 +18,14 @@
 }
 
 /* Comments (Italic) */
-.hljs-comment,
-.hljs-quote {
+.hljs-comment {
   color: #6c664b;
   font-style: italic;
+}
+
+/* Quotations or blockquotes (no italic comment style) */
+.hljs-quote {
+  color: #6c664b;
 }
 
 /* Red: Errors, warnings, deletions */
@@ -71,10 +75,15 @@
   color: #a3144d;
 }
 
+/* Purple: Instance reserved words (this, self, super) */
+.hljs-variable.language_ {
+  color: #644ac9;
+  font-style: italic;
+}
+
 /* Style Modifiers */
 .hljs-keyword,
 .hljs-selector-tag,
-.hljs-literal,
 .hljs-title,
 .hljs-section,
 .hljs-type,
