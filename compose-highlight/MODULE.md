@@ -87,7 +87,7 @@ A parity test (`GeneratedThemesParityTest`) compares each precompiled map agains
 
 The codegen task (`buildSrc/.../GenerateThemesTask.kt`) does not auto-discover CSS files. It iterates a hardcoded `THEME_INPUTS` list, so dropping a CSS file into the assets folder ships it in the AAR but does not produce a precompiled constant or factory.
 
-To add a fifth built-in (replace `dracula` with the actual theme name):
+To add a new built-in theme (replace `dracula` with the actual theme name):
 
 1. Drop the CSS at `compose-highlight/src/main/assets/compose-highlight/themes/dracula.css`.
 2. Add an entry to `THEME_INPUTS` in `buildSrc/src/main/kotlin/dev/hossain/highlight/build/GenerateThemesTask.kt`:

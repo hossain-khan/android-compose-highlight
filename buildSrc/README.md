@@ -95,7 +95,7 @@ A duplicate of the runtime parser's logic. It cannot share code with the runtime
   parser produces an intermediate (`ParsedStyle`) that the emitter renders as Kotlin source.
 
 The duplication is intentional and load-bearing. Both parsers must produce semantically identical
-output for the four bundled themes. The parity test
+output for the eight bundled themes. The parity test
 (`compose-highlight/.../GeneratedThemesParityTest.kt`) is the only thing keeping them in sync.
 
 ### `ThemeSourceEmitter`
@@ -181,7 +181,7 @@ HighlightTheme.fromAsset(context, "compose-highlight/themes/dracula.css", "dracu
 
 It just does not get a precompiled constant or a factory method.
 
-### Adding a fifth built-in (manual, by design)
+### Adding a new built-in (manual, by design)
 
 Five places to update for `dracula`:
 
@@ -221,7 +221,7 @@ ship via `fromAsset`.
 keeping the buildSrc parser and the runtime parser in sync. It runs as part of
 `testDebugUnitTest` and asserts:
 
-1. **Color map equality.** For each of the four bundled themes, `ThemeParser.parseAsset(...)` at
+1. **Color map equality.** For each of the eight bundled themes, `ThemeParser.parseAsset(...)` at
    test time produces a `Map<String, SpanStyle>` byte-identical to the precompiled
    `GeneratedThemes.*` constant.
 2. **Identity hash equality.** Each built-in factory's `HighlightTheme` equals
