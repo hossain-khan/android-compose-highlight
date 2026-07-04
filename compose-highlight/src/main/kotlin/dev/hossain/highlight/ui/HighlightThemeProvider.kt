@@ -272,14 +272,14 @@ fun rememberAtomOneLightTheme(): HighlightTheme = remember { HighlightTheme.atom
  *
  * ```kotlin
  * HighlightThemeProvider(
- *     lightHighlightTheme = rememberGithubTheme(),
+ *     lightHighlightTheme = rememberGithubLightTheme(),
  * ) { ... }
  * ```
  *
  * @return A stable [HighlightTheme] instance remembered across recompositions.
  */
 @Composable
-fun rememberGithubTheme(): HighlightTheme = remember { HighlightTheme.github() }
+fun rememberGithubLightTheme(): HighlightTheme = remember { HighlightTheme.githubLight() }
 
 /**
  * Creates and remembers the built-in GitHub Dark [HighlightTheme].
@@ -306,14 +306,14 @@ fun rememberGithubDarkTheme(): HighlightTheme = remember { HighlightTheme.github
  *
  * ```kotlin
  * HighlightThemeProvider(
- *     darkHighlightTheme = rememberDraculaTheme(),
+ *     darkHighlightTheme = rememberDraculaDarkTheme(),
  * ) { ... }
  * ```
  *
  * @return A stable [HighlightTheme] instance remembered across recompositions.
  */
 @Composable
-fun rememberDraculaTheme(): HighlightTheme = remember { HighlightTheme.dracula() }
+fun rememberDraculaDarkTheme(): HighlightTheme = remember { HighlightTheme.draculaDark() }
 
 /**
  * Creates and remembers the built-in Alucard [HighlightTheme].
@@ -323,14 +323,14 @@ fun rememberDraculaTheme(): HighlightTheme = remember { HighlightTheme.dracula()
  *
  * ```kotlin
  * HighlightThemeProvider(
- *     lightHighlightTheme = rememberAlucardTheme(),
+ *     lightHighlightTheme = rememberAlucardLightTheme(),
  * ) { ... }
  * ```
  *
  * @return A stable [HighlightTheme] instance remembered across recompositions.
  */
 @Composable
-fun rememberAlucardTheme(): HighlightTheme = remember { HighlightTheme.alucard() }
+fun rememberAlucardLightTheme(): HighlightTheme = remember { HighlightTheme.alucardLight() }
 
 @Preview(showBackground = true)
 @Composable

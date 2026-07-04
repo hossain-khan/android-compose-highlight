@@ -259,11 +259,11 @@ class HighlightTheme private constructor(
          *
          * @return A [HighlightTheme] backed by the bundled `github.css`.
          */
-        fun github(): HighlightTheme =
+        fun githubLight(): HighlightTheme =
             HighlightTheme(
                 name = "github",
-                colorMapProvider = { GeneratedThemes.GITHUB },
-                contentIdentity = GeneratedThemes.GITHUB_IDENTITY,
+                colorMapProvider = { GeneratedThemes.GITHUB_LIGHT },
+                contentIdentity = GeneratedThemes.GITHUB_LIGHT_IDENTITY,
             )
 
         /**
@@ -291,11 +291,11 @@ class HighlightTheme private constructor(
          *
          * @return A [HighlightTheme] backed by the bundled `dracula.css`.
          */
-        fun dracula(): HighlightTheme =
+        fun draculaDark(): HighlightTheme =
             HighlightTheme(
                 name = "dracula",
-                colorMapProvider = { GeneratedThemes.DRACULA },
-                contentIdentity = GeneratedThemes.DRACULA_IDENTITY,
+                colorMapProvider = { GeneratedThemes.DRACULA_DARK },
+                contentIdentity = GeneratedThemes.DRACULA_DARK_IDENTITY,
             )
 
         /**
@@ -307,11 +307,11 @@ class HighlightTheme private constructor(
          *
          * @return A [HighlightTheme] backed by the bundled `alucard.css`.
          */
-        fun alucard(): HighlightTheme =
+        fun alucardLight(): HighlightTheme =
             HighlightTheme(
                 name = "alucard",
-                colorMapProvider = { GeneratedThemes.ALUCARD },
-                contentIdentity = GeneratedThemes.ALUCARD_IDENTITY,
+                colorMapProvider = { GeneratedThemes.ALUCARD_LIGHT },
+                contentIdentity = GeneratedThemes.ALUCARD_LIGHT_IDENTITY,
             )
 
         /**

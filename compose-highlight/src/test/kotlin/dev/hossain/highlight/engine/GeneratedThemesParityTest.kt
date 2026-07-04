@@ -52,8 +52,8 @@ class GeneratedThemesParityTest {
     }
 
     @Test
-    fun `github precompiled map equals runtime parse`() {
-        assertParity("compose-highlight/themes/github.css", GeneratedThemes.GITHUB)
+    fun `githubLight precompiled map equals runtime parse`() {
+        assertParity("compose-highlight/themes/github.css", GeneratedThemes.GITHUB_LIGHT)
     }
 
     @Test
@@ -62,13 +62,13 @@ class GeneratedThemesParityTest {
     }
 
     @Test
-    fun `dracula precompiled map equals runtime parse`() {
-        assertParity("compose-highlight/themes/dracula.css", GeneratedThemes.DRACULA)
+    fun `draculaDark precompiled map equals runtime parse`() {
+        assertParity("compose-highlight/themes/dracula.css", GeneratedThemes.DRACULA_DARK)
     }
 
     @Test
-    fun `alucard precompiled map equals runtime parse`() {
-        assertParity("compose-highlight/themes/alucard.css", GeneratedThemes.ALUCARD)
+    fun `alucardLight precompiled map equals runtime parse`() {
+        assertParity("compose-highlight/themes/alucard.css", GeneratedThemes.ALUCARD_LIGHT)
     }
 
     // ----- Identity parity -----
@@ -103,8 +103,8 @@ class GeneratedThemesParityTest {
     }
 
     @Test
-    fun `github identity matches runtime fromAsset hash`() {
-        assertThat(HighlightTheme.github())
+    fun `githubLight identity matches runtime fromAsset hash`() {
+        assertThat(HighlightTheme.githubLight())
             .isEqualTo(HighlightTheme.fromAsset(context, "compose-highlight/themes/github.css", "github"))
     }
 
@@ -115,14 +115,14 @@ class GeneratedThemesParityTest {
     }
 
     @Test
-    fun `dracula identity matches runtime fromAsset hash`() {
-        assertThat(HighlightTheme.dracula())
+    fun `draculaDark identity matches runtime fromAsset hash`() {
+        assertThat(HighlightTheme.draculaDark())
             .isEqualTo(HighlightTheme.fromAsset(context, "compose-highlight/themes/dracula.css", "dracula"))
     }
 
     @Test
-    fun `alucard identity matches runtime fromAsset hash`() {
-        assertThat(HighlightTheme.alucard())
+    fun `alucardLight identity matches runtime fromAsset hash`() {
+        assertThat(HighlightTheme.alucardLight())
             .isEqualTo(HighlightTheme.fromAsset(context, "compose-highlight/themes/alucard.css", "alucard"))
     }
 
