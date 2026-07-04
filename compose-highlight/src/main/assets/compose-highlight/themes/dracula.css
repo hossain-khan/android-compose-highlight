@@ -1,13 +1,6 @@
-/* Dracula Theme v1.2.5
+/* Dracula Theme
  *
- * https://github.com/dracula/highlightjs
- *
- * Copyright 2016-present, All rights reserved
- *
- * Code licensed under the MIT license
- *
- * @author Denis Ciccale <dciccale@gmail.com>
- * @author Zeno Rocha <hi@zenorocha.com>
+ * Modified to strictly adapt to the official Dracula specification: https://draculatheme.com/spec
  */
 
 .hljs {
@@ -17,33 +10,38 @@
   background: #282a36;
 }
 
-.hljs-built_in,
-.hljs-selector-tag,
-.hljs-section,
-.hljs-link {
-  color: #8be9fd;
-}
-
-.hljs-keyword {
-  color: #ff79c6;
-}
-
+/* Foreground / Default Text */
 .hljs,
 .hljs-subst {
   color: #f8f8f2;
 }
 
-.hljs-title,
-.hljs-attr,
-.hljs-meta-keyword {
+/* Comments (Italic) */
+.hljs-comment {
+  color: #6272a4;
   font-style: italic;
-  color: #50fa7b;
 }
 
+/* Quotations or blockquotes (no italic comment style) */
+.hljs-quote {
+  color: #6272a4;
+}
+
+/* Red: Errors, warnings, deletions */
+.hljs-deletion,
+.hljs-doctag {
+  color: #ff5555;
+}
+
+/* Orange: Numbers, constants, booleans */
+.hljs-number,
+.hljs-literal {
+  color: #ffb86c;
+}
+
+/* Yellow: Strings, escape sequences, attribute values */
 .hljs-string,
 .hljs-meta,
-.hljs-name,
-.hljs-type,
 .hljs-symbol,
 .hljs-bullet,
 .hljs-addition,
@@ -53,27 +51,44 @@
   color: #f1fa8c;
 }
 
-.hljs-comment,
-.hljs-quote,
-.hljs-deletion {
-  color: #6272a4;
+/* Green: Functions, methods */
+.hljs-title,
+.hljs-title.function_ {
+  color: #50fa7b;
 }
 
+/* Cyan: Classes, types, tag names, attribute names, built-ins */
+.hljs-built_in,
+.hljs-selector-tag,
+.hljs-section,
+.hljs-link,
+.hljs-type,
+.hljs-title.class_,
+.hljs-name,
+.hljs-attr {
+  color: #8be9fd;
+}
+
+/* Pink: Keywords, storage modifiers */
+.hljs-keyword {
+  color: #ff79c6;
+}
+
+/* Purple: Instance reserved words (this, self, super) */
+.hljs-variable.language_ {
+  color: #bd93f9;
+  font-style: italic;
+}
+
+/* Style Modifiers */
 .hljs-keyword,
 .hljs-selector-tag,
-.hljs-literal,
 .hljs-title,
 .hljs-section,
-.hljs-doctag,
 .hljs-type,
 .hljs-name,
 .hljs-strong {
   font-weight: bold;
-}
-
-.hljs-literal,
-.hljs-number {
-  color: #bd93f9;
 }
 
 .hljs-emphasis {
