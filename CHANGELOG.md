@@ -10,6 +10,12 @@ All notable changes to this project will be documented in this file.
   `HighlightTheme.alucardDark()`, `rememberDraculaLightTheme()`, and `rememberAlucardDarkTheme()` to
   improve the discoverability of these paired themes under both naming schemes.
 
+### Fixed
+
+- **Migrated instrumented Compose tests to the v2 `createComposeRule` API** - Updated the remaining
+  Android UI tests to use `androidx.compose.ui.test.junit4.v2.createComposeRule` to remove the
+  deprecation warnings tracked in #390.
+
 ## [0.32.0] - 2026-07-04
 
 ### Changed
