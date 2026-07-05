@@ -12,8 +12,15 @@
 | Atom One Light | Light | `rememberAtomOneLightTheme()` |
 | GitHub | Light | `rememberGithubLightTheme()` |
 | GitHub Dark | Dark | `rememberGithubDarkTheme()` |
-| Dracula | Dark | `rememberDraculaDarkTheme()` |
-| Alucard | Light | `rememberAlucardLightTheme()` |
+| Dracula | Dark | `rememberDraculaDarkTheme()` (or `rememberAlucardDarkTheme()`) |
+| Alucard | Light | `rememberAlucardLightTheme()` (or `rememberDraculaLightTheme()`) |
+
+!!! tip "Dracula and Alucard Aliases"
+    Dracula (Dark) and Alucard (Light) are designed as a pair (since *Alucard* is *Dracula* spelled backward 😅).
+    To make them easier to find, the library provides convenience aliases under both naming schemes:
+
+    * **Dracula Light**: `rememberDraculaLightTheme()` (alias for `rememberAlucardLightTheme()`) or `HighlightTheme.draculaLight()`
+    * **Alucard Dark**: `rememberAlucardDarkTheme()` (alias for `rememberDraculaDarkTheme()`) or `HighlightTheme.alucardDark()`
 
 Built-in themes (`tomorrow`, `tomorrowNight`, `atomOneDark`, `atomOneLight`, `githubLight`, `githubDark`, `draculaDark`, `alucardLight`) are fast-path themes:
 
