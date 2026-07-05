@@ -85,4 +85,28 @@ class HighlightThemeProviderRobolectricTest {
             }
         assertThat(thrown.exceptionOrNull()).isInstanceOf(IllegalStateException::class.java)
     }
+
+    @Test
+    fun `rememberDraculaLightTheme returns same theme as rememberAlucardLightTheme`() {
+        var draculaLightTheme: HighlightTheme? = null
+        var alucardLightTheme: HighlightTheme? = null
+        composeTestRule.setContent {
+            draculaLightTheme = rememberDraculaLightTheme()
+            alucardLightTheme = rememberAlucardLightTheme()
+        }
+        composeTestRule.waitForIdle()
+        assertThat(draculaLightTheme).isEqualTo(alucardLightTheme)
+    }
+
+    @Test
+    fun `rememberAlucardDarkTheme returns same theme as rememberDraculaDarkTheme`() {
+        var alucardDarkTheme: HighlightTheme? = null
+        var draculaDarkTheme: HighlightTheme? = null
+        composeTestRule.setContent {
+            alucardDarkTheme = rememberAlucardDarkTheme()
+            draculaDarkTheme = rememberDraculaDarkTheme()
+        }
+        composeTestRule.waitForIdle()
+        assertThat(alucardDarkTheme).isEqualTo(draculaDarkTheme)
+    }
 }

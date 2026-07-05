@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+
+- **Added Dracula and Alucard light/dark theme aliases** - Added `HighlightTheme.draculaLight()`,
+  `HighlightTheme.alucardDark()`, `rememberDraculaLightTheme()`, and `rememberAlucardDarkTheme()` to
+  improve the discoverability of these paired themes under both naming schemes.
+
 ## [0.32.0] - 2026-07-04
 
 ### Changed
