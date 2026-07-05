@@ -201,3 +201,28 @@ SyntaxHighlightedCode(
     },
 )
 ```
+
+## Fallback background and text colors
+
+When you use a custom `HighlightTheme` (via `fromAsset()` or `fromCss()`) whose CSS omits the
+base `.hljs { background: ...; color: ... }` rule, the block would otherwise render with a
+transparent background and invisible text. Override the two fallback parameters on `CodeBlockStyle`
+to control what is shown in that case:
+
+```kotlin
+import dev.hossain.highlight.ui.CodeBlockStyle
+import dev.hossain.highlight.ui.SyntaxHighlightedCode
+
+SyntaxHighlightedCode(
+    code     = snippet,
+    language = "kotlin",
+    style    = CodeBlockStyle(
+        fallbackBackgroundColor = Color(0xFF0D1117),
+        fallbackTextColor       = Color(0xFFC9D1D9),
+    ),
+)
+```
+
+!!! note
+    Built-in themes (Tomorrow, Atom One, GitHub, Dracula, Alucard) always include a full
+    `.hljs` rule, so these fallback colors have no visible effect when using them.
