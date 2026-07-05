@@ -333,6 +333,24 @@ class HighlightTheme private constructor(
             )
 
         /**
+         * Alias for [alucardLight]. Makes the Alucard light theme discoverable under
+         * the Dracula family name.
+         *
+         * @return A [HighlightTheme] backed by the bundled `alucard.css`.
+         * @see alucardLight
+         */
+        fun draculaLight(): HighlightTheme = alucardLight()
+
+        /**
+         * Alias for [draculaDark]. Makes the Dracula dark theme discoverable under
+         * the Alucard family name.
+         *
+         * @return A [HighlightTheme] backed by the bundled `dracula.css`.
+         * @see draculaDark
+         */
+        fun alucardDark(): HighlightTheme = draculaDark()
+
+        /**
          * Custom theme loaded from a Highlight.js CSS file in the app's `assets/` folder.
          *
          * This is the recommended way for app developers to ship additional themes. Download any

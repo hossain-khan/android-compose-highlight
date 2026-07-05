@@ -14,10 +14,12 @@ Full API in Dokka:
 - [`rememberGithubDarkTheme`](https://hossain-khan.github.io/android-compose-highlight/api/compose-highlight/dev.hossain.highlight.ui/remember-github-dark-theme.html)
 - [`rememberDraculaDarkTheme`](https://hossain-khan.github.io/android-compose-highlight/api/compose-highlight/dev.hossain.highlight.ui/remember-dracula-dark-theme.html)
 - [`rememberAlucardLightTheme`](https://hossain-khan.github.io/android-compose-highlight/api/compose-highlight/dev.hossain.highlight.ui/remember-alucard-light-theme.html)
+- [`rememberDraculaLightTheme`](https://hossain-khan.github.io/android-compose-highlight/api/compose-highlight/dev.hossain.highlight.ui/remember-dracula-light-theme.html) (alias)
+- [`rememberAlucardDarkTheme`](https://hossain-khan.github.io/android-compose-highlight/api/compose-highlight/dev.hossain.highlight.ui/remember-alucard-dark-theme.html) (alias)
 
 ## When to use each theme source
 
-- Built-in themes (`tomorrow`, `tomorrowNight`, `atomOneDark`, `atomOneLight`, `githubLight`, `githubDark`, `draculaDark`, `alucardLight`): fastest setup,
+- Built-in themes (`tomorrow`, `tomorrowNight`, `atomOneDark`, `atomOneLight`, `githubLight`, `githubDark`, `draculaDark`, `alucardLight`) and their aliases: fastest setup,
   precompiled maps, no CSS parsing at runtime.
 - `fromAsset(...)`: best for shipping a highlight.js CSS file with your app.
 - `fromCss(...)`: useful when CSS comes from network, config, or generated text.
@@ -43,7 +45,7 @@ HighlightThemeProvider(
 Other bundled pairs now available:
 
 - `rememberGithubLightTheme()` + `rememberGithubDarkTheme()`
-- `rememberAlucardLightTheme()` + `rememberDraculaDarkTheme()`
+- `rememberAlucardLightTheme()` + `rememberDraculaDarkTheme()` (or aliases `rememberDraculaLightTheme()` + `rememberAlucardDarkTheme()`)
 
 ## Custom theme from asset CSS
 

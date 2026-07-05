@@ -316,4 +316,16 @@ class HighlightThemeTest {
 
         assertThat(duration).isEqualTo(Duration.ZERO)
     }
+
+    // ----- draculaLight and alucardDark aliases -----
+
+    @Test
+    fun `draculaLight returns alucardLight theme`() {
+        assertThat(HighlightTheme.draculaLight()).isEqualTo(HighlightTheme.alucardLight())
+    }
+
+    @Test
+    fun `alucardDark returns draculaDark theme`() {
+        assertThat(HighlightTheme.alucardDark()).isEqualTo(HighlightTheme.draculaDark())
+    }
 }

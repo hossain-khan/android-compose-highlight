@@ -348,6 +348,26 @@ fun rememberDraculaDarkTheme(): HighlightTheme = remember { HighlightTheme.dracu
 @Composable
 fun rememberAlucardLightTheme(): HighlightTheme = remember { HighlightTheme.alucardLight() }
 
+/**
+ * Creates and remembers the built-in Alucard (light) theme as an alias under the Dracula naming scheme.
+ * Makes the light theme discoverable under the Dracula family name.
+ *
+ * @return A stable [HighlightTheme] instance remembered across recompositions.
+ * @see rememberAlucardLightTheme
+ */
+@Composable
+fun rememberDraculaLightTheme(): HighlightTheme = rememberAlucardLightTheme()
+
+/**
+ * Creates and remembers the built-in Dracula (dark) theme as an alias under the Alucard naming scheme.
+ * Makes the dark theme discoverable under the Alucard family name.
+ *
+ * @return A stable [HighlightTheme] instance remembered across recompositions.
+ * @see rememberDraculaDarkTheme
+ */
+@Composable
+fun rememberAlucardDarkTheme(): HighlightTheme = rememberDraculaDarkTheme()
+
 @Preview(showBackground = true)
 @Composable
 private fun HighlightThemeProviderPreview() {
