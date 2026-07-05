@@ -19,7 +19,7 @@ kotlinter = "5.6.0"
 leakcanary = "2.14"
 vanniktech-publish = "0.37.0"
 robolectric = "4.16.1"
-roborazzi = "1.64.0"
+roborazzi = "1.65.0"
 truth = "1.4.5"
 
 [libraries]
