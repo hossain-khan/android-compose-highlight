@@ -58,6 +58,11 @@ and render your own field - the editor is intentionally opinionated.
 
 ## Opting in
 
+Both `SyntaxHighlightedTextEditor` and `SyntaxHighlightedTextEditorDefaults` are annotated
+with `@ExperimentalHighlightApi`, so accessing either — including static members like
+`SyntaxHighlightedTextEditorDefaults.DefaultTextStyle` or `CodeKeyboardOptions` — requires the
+same opt-in.
+
 ```kotlin
 // Option 1 - opt in at the call site
 @OptIn(ExperimentalHighlightApi::class)
