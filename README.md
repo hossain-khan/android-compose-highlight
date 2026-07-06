@@ -37,7 +37,7 @@ HighlightThemeProvider(
 
 ## Demo
 
-> 📊 Performance: Cold start ~120ms & warm start ~8ms, see more details and comparison [here](https://github.com/hossain-khan/android-syntax-highlighter-compose#quick-comparison). Or, use the performance check UI in sample app 📱
+> 📊 Performance: Cold start ~120-180ms & warm start ~8-20ms, see more details and comparison [here](https://github.com/hossain-khan/android-syntax-highlighter-compose#quick-comparison). Or, use the performance check UI in sample app 📱
 
 <!-- markdownlint-disable MD013 MD033 -->
 | Sample App | All Themes |
