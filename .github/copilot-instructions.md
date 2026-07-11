@@ -295,4 +295,15 @@ cd docs && python3 -m http.server 8765
 
 **CI workflow** (`.github/workflows/docs.yml`): Generates Dokka API docs, builds Zensical site, deploys `site/` to GitHub Pages.
 
+**Custom Shiki syntax highlighting & cache busting:**
+- **Kotlin code blocks (`docs/javascripts/shiki-kotlin.js` & `docs/stylesheets/shiki-kotlin.css`):** Zensical uses
+  Pygments (`pymdownx.highlight`) server-side for most code blocks. For Kotlin blocks (`language-kotlin`), `shiki-kotlin.js`
+  runs client-side to re-highlight inner `<code>` elements with Shiki (`one-light` / `one-dark-pro` themes) while
+  preserving Zensical's outer `<pre>` wrapper, copy buttons, and instant navigation (`document$` subscription).
+- **Automated asset fingerprinting (`scripts/fingerprint-docs.py`):** Because custom CSS/JS assets can be cached
+  aggressively by browsers, `scripts/fingerprint-docs.py` runs after `zensical build` in CI (`.github/workflows/docs.yml`).
+  It appends the current short Git commit hash to `site/javascripts/shiki-kotlin.<hash>.js` and
+  `site/stylesheets/shiki-kotlin.<hash>.css` and rewrites all HTML `<link>` / `<script>` tags in `site/` to enforce
+  cache busting.
+
 **Updating Zensical CSS assets:** When Zensical is upgraded, copy the new hashed CSS files from `site/assets/stylesheets/modern/` into `compose-highlight/dokka-theme/zensical-assets/` and update the references in `compose-highlight/build.gradle.kts`. See `compose-highlight/dokka-theme/README.md` for the full refresh procedure.
