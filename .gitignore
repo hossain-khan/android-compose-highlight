@@ -49,6 +49,8 @@ resources/api/
 # Zensical docs build output
 site/
 .cache/
+.venv/
+*.egg-info/
 gradle/gradle-daemon-jvm.properties
 *.salive
 build_log.txt

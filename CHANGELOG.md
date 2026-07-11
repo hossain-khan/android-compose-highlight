@@ -19,6 +19,13 @@ All notable changes to this project will be documented in this file.
   Android UI tests to use `androidx.compose.ui.test.junit4.v2.createComposeRule` to remove the
   deprecation warnings tracked in #390.
 
+### Infrastructure
+
+- **Added post-build asset fingerprinting for custom docs assets** - Created `scripts/fingerprint-docs.py` and
+  integrated it into `.github/workflows/docs.yml`. The script appends the current short Git commit hash to
+  `site/javascripts/shiki-kotlin.js` and `site/stylesheets/shiki-kotlin.css` right after Zensical builds the site,
+  rewriting all HTML references to enforce reliable browser cache busting on every documentation update.
+
 ## [0.32.0] - 2026-07-04
 
 ### Changed
