@@ -12,6 +12,9 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+- **Fixed extra empty line at the bottom of Kotlin code blocks on the docs site** - Trimmed trailing newline
+  from Pygments `textContent` in `docs/javascripts/shiki-kotlin.js` before passing to `codeToHtml()`. Previously,
+  the trailing newline generated an empty line span with `1.45em` minimum height.
 - **Migrated instrumented Compose tests to the v2 `createComposeRule` API** - Updated the remaining
   Android UI tests to use `androidx.compose.ui.test.junit4.v2.createComposeRule` to remove the
   deprecation warnings tracked in #390.

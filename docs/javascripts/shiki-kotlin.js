@@ -19,7 +19,9 @@ async function highlightKotlinBlocks() {
     const block = pre.querySelector('code')
     if (!block) continue
 
-    const code = block.textContent
+    // Trim trailing newline (\n) from Pygments HTML to prevent Shiki from
+    // generating an extra empty line at the end of the code block.
+    const code = block.textContent.trimEnd()
 
     try {
       const html = await codeToHtml(code, {
