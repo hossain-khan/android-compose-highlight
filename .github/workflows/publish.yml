@@ -42,7 +42,7 @@ jobs:
           echo "Version ${{ inputs.tag }} is not yet on Maven Central — proceeding."
 
       - name: Checkout tag
-        uses: actions/checkout@v7.0.0
+        uses: actions/checkout@v7.0.1
         with:
           ref: refs/tags/${{ inputs.tag }}
 
