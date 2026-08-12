@@ -103,7 +103,7 @@ jobs:
 
       - name: Setup Gradle
         if: steps.changes.outputs.code == 'true'
-        uses: gradle/actions/setup-gradle@v6.2.0
+        uses: gradle/actions/setup-gradle@v6.3.0
         with:
           cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
 
