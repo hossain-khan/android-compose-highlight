@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.33.0] - 2026-08-18
+
 ### Added
 
 - **Added Dracula and Alucard light/dark theme aliases** - Added `HighlightTheme.draculaLight()`,
