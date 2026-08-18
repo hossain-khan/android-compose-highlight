@@ -21,6 +21,8 @@ All notable changes to this project will be documented in this file.
 
 ### Infrastructure
 
+- **Updated dependencies and Gradle wrapper** - Bumped AndroidX Compose BOM to `2026.08.00`, AndroidX WebKit to `1.17.0`,
+  Kotlinter to `5.7.0`, Roborazzi to `1.71.0`, and Gradle wrapper to `9.7.0`.
 - **Added post-build asset fingerprinting for custom docs assets** - Created `scripts/fingerprint-docs.py` and
   integrated it into `.github/workflows/docs.yml`. The script appends the current short Git commit hash to
   `site/javascripts/shiki-kotlin.js` and `site/stylesheets/shiki-kotlin.css` right after Zensical builds the site,
