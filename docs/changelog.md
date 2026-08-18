@@ -6,6 +6,14 @@ For release artifacts and APK downloads, see the [GitHub Releases page](https://
 
 ## Recent highlights
 
+### 0.33.0 - Dracula/Alucard theme aliases, docs asset fingerprinting, and dependency updates
+
+- Added Dracula and Alucard light/dark theme convenience aliases (`rememberDraculaLightTheme()`, `rememberAlucardDarkTheme()`, etc.)
+- Migrated instrumented Compose UI tests to the v2 `createComposeRule` API
+- Fixed trailing newline bug in documentation code blocks
+- Added post-build asset fingerprinting for custom docsite assets to ensure reliable browser cache-busting
+- Updated Compose BOM (`2026.08.00`), AndroidX WebKit (`1.17.0`), Kotlinter (`5.7.0`), Roborazzi (`1.71.0`), and Gradle wrapper (`9.7.0`)
+
 ### 0.32.0 - New precompiled themes, spec compliance, and API cleanups
 
 - Added four new built-in themes (GitHub, GitHub Dark, Dracula, and Alucard) with precompiled color maps for fast loading without Context
@@ -43,19 +51,6 @@ For release artifacts and APK downloads, see the [GitHub Releases page](https://
   across all fixtures
 - Saved Jsoup baseline and SAX optimized JSON reports under
   `resources/html-parser-benchmarks/` for regression tracking
-
-### 0.30.0 - Custom HTML parser replaces Jsoup
-
-- Replaced the JVM-only Jsoup dependency with a single-pass pure-Kotlin HTML
-  tokenizer scoped to the hljs HTML subset
-- Sample APK measured 128.7 KB smaller post-R8 (-5.49%); dex drops 271 classes and
-  2,298 methods. Four R8/ProGuard `-keep` rules were removed from downstream consumers
-- Dual-theme highlight path is 1.27×-1.97× faster on real-world
-  Kotlin/C/Rust/Go/C#/SQL fixtures
-- Added real-world language test coverage with extensive token-count assertions and an
-  opt-in JVM microbenchmark (`HtmlParserBenchmark`)
-- Prepared the codebase for Kotlin Multiplatform (KMP)
-
 
 ---
 
