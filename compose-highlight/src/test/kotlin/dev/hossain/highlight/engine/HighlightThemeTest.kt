@@ -328,4 +328,30 @@ class HighlightThemeTest {
     fun `alucardDark returns draculaDark theme`() {
         assertThat(HighlightTheme.alucardDark()).isEqualTo(HighlightTheme.draculaDark())
     }
+
+    // ----- built-in theme factory methods coverage -----
+
+    @Test
+    fun `built-in themes have non-empty colorMaps and valid names`() {
+        val builtInThemes =
+            listOf(
+                HighlightTheme.tomorrow(),
+                HighlightTheme.tomorrowNight(),
+                HighlightTheme.atomOneDark(),
+                HighlightTheme.atomOneLight(),
+                HighlightTheme.githubLight(),
+                HighlightTheme.githubDark(),
+                HighlightTheme.draculaDark(),
+                HighlightTheme.draculaLight(),
+                HighlightTheme.alucardLight(),
+                HighlightTheme.alucardDark(),
+            )
+
+        for (theme in builtInThemes) {
+            assertThat(theme.name).isNotEmpty()
+            assertThat(theme.colorMap).isNotEmpty()
+            assertThat(theme.backgroundColor).isNotNull()
+            assertThat(theme.defaultTextColor).isNotNull()
+        }
+    }
 }
