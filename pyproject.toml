@@ -9,12 +9,12 @@ version = "0.33.0"
 dependencies = [
     # https://github.com/zensical/zensical/releases
     # https://pypi.org/project/zensical/
-    "zensical==0.0.46",
+    "zensical==0.0.56",
 ]
 
 [project.optional-dependencies]
 dev = [
-    "zensical==0.0.46",
+    "zensical==0.0.56",
 ]
 
 [tool.setuptools]

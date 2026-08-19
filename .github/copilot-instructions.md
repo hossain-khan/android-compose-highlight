@@ -272,7 +272,7 @@ The `docs/reference/` pages are human-facing guides, while Dokka is the source o
 
 The documentation site at https://hossain-khan.github.io/android-compose-highlight/ is built with two tools:
 
-- **Zensical** (v0.0.46) - Static site generator for the main docs (Markdown in `docs/`). Configured via `zensical.toml`.
+- **Zensical** (v0.0.56) - Static site generator for the main docs (Markdown in `docs/`). Configured via `zensical.toml`.
 - **Dokka** - Generates the Kotlin API reference under `docs/api/`, rethemed to match the Zensical chrome via `compose-highlight/dokka-theme/`.
 
 **Local preview:**
