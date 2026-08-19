@@ -1,4 +1,5 @@
 import dev.hossain.highlight.build.GenerateThemesTask
+import org.gradle.testing.jacoco.plugins.JacocoTaskExtension
 import org.gradle.testing.jacoco.tasks.JacocoReport
 import org.gradle.testing.jacoco.tasks.JacocoCoverageVerification
 
@@ -38,6 +39,12 @@ android {
     testOptions {
         unitTests {
             isIncludeAndroidResources = true
+            all { testTask ->
+                testTask.extensions.configure<JacocoTaskExtension> {
+                    isIncludeNoLocationClasses = true
+                    excludes = listOf("jdk.internal.*")
+                }
+            }
         }
         managedDevices {
             localDevices {
