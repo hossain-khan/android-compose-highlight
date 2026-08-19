@@ -13,7 +13,7 @@ surrounding chrome is replaced.
 | File | Role |
 |---|---|
 | `zensical-overrides.css` | Loads Inter + JetBrains Mono fonts. Overrides Dokka's CSS variables for both light + dark schemes (Material indigo / slate). Hides Dokka's native top header + sidebar. Styles the injected nested nav (chevrons, type-icons, indent, density). Widens the primary sidebar to fit long Kotlin type names. Hides Dokka's stock footer. |
-| `zensical-assets/main.19d3147f.min.css` | Frozen copy of the MkDocs Material chrome stylesheet from Zensical 0.0.46. Provides every `.md-*` selector our injected DOM relies on. |
+| `zensical-assets/main.20815dad.min.css` | Frozen copy of the MkDocs Material chrome stylesheet from Zensical 0.0.56. Provides every `.md-*` selector our injected DOM relies on. |
 | `zensical-assets/palette.dfe2e883.min.css` | Frozen copy of MkDocs Material's palette stylesheet. Defines `[data-md-color-scheme="default"]` and `[data-md-color-scheme="slate"]` color variables. |
 | `dokka-zensical-chrome.js` | Runs at `DOMContentLoaded` on every page. Fetches `navigation.html`, builds Material `md-header` / `md-nav--primary` / `md-content` / `md-footer-meta` around Dokka's `#content`, wires the palette toggle (synced with `html.theme-dark` + localStorage), delegates the Material search icon to Dokka's inner `#pages-search` button. |
 
@@ -104,7 +104,7 @@ dokka {
     pluginsConfiguration.html {
         customStyleSheets.from(
             layout.projectDirectory.file("dokka-theme/zensical-overrides.css"),
-            layout.projectDirectory.file("dokka-theme/zensical-assets/main.19d3147f.min.css"),
+            layout.projectDirectory.file("dokka-theme/zensical-assets/main.20815dad.min.css"),
             layout.projectDirectory.file("dokka-theme/zensical-assets/palette.dfe2e883.min.css"),
         )
         customAssets.from(layout.projectDirectory.file("dokka-theme/dokka-zensical-chrome.js"))
@@ -258,7 +258,7 @@ When something looks off, follow this sequence:
 1. **Reproduce locally** (`./gradlew :compose-highlight:dokkaGenerate` then `cd docs && python3 -m http.server 8765`).
 2. **Inspect with DevTools.** Right-click the broken element → Inspect. Look at:
    - **Computed** tab: which CSS property has the wrong value?
-   - **Styles** tab: which rule(s) are applying that value? Material's bundle (`main.19d3147f.min.css`) vs ours (`zensical-overrides.css`)? Inline `style=""` from JS?
+   - **Styles** tab: which rule(s) are applying that value? Material's bundle (`main.20815dad.min.css`) vs ours (`zensical-overrides.css`)? Inline `style=""` from JS?
    - **Click "Show all" or check filter**: is our rule there but crossed out (overridden)?
 3. **Check the console** for JS errors. If `platform-content-handler.js` or another Dokka script throws, the page fell back to broken state mid-init. The error stack tells you which selector failed.
 4. **Identify the layer**:

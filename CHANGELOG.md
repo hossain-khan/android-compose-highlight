@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Infrastructure
+
+- **Upgraded Zensical to 0.0.56** - Updated the documentation site generator to the latest version, refreshed
+  frozen Dokka retheme assets (`main.20815dad.min.css`), and verified clean docs build.
+
 ## [0.33.0] - 2026-08-18
 
 ### Added
