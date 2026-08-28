@@ -39,6 +39,7 @@ nav = [
       "reference/index.md",
       "reference/syntax-highlighted-code.md",
       "reference/syntax-highlighted-text-editor.md",
+      "reference/streaming-syntax-highlighted-code.md",
       "reference/code-block-style.md",
       "reference/highlight-theme.md",
       "reference/highlight-engine.md",
