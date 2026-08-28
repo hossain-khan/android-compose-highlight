@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+
+- **Added `StreamingSyntaxHighlightedCode` and `rememberStreamingHighlightedCode` (`@ExperimentalHighlightApi`)** -
+  Introduced dedicated streaming-aware composables tailored for AI/LLM token streaming, real-time code generation,
+  and dynamic logs. Employs span-transfer snapshotting to display incoming tokens with zero latency while preserving
+  syntax highlight colors across updates, debouncing highlight engine calls without flickering or scroll resets (#433).
+
 ### Infrastructure
 
 - **Upgraded Zensical to 0.0.56** - Updated the documentation site generator to the latest version, refreshed

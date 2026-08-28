@@ -52,6 +52,7 @@ import dev.hossain.highlight.sample.sections.LanguageDiscoverabilitySection
 import dev.hossain.highlight.sample.sections.LiveEditorSection
 import dev.hossain.highlight.sample.sections.PlaceholderSection
 import dev.hossain.highlight.sample.sections.SectionHeader
+import dev.hossain.highlight.sample.sections.StreamingSection
 import dev.hossain.highlight.sample.sections.StylingSection
 import dev.hossain.highlight.sample.sections.ThemeCreationSection
 import dev.hossain.highlight.sample.sections.TogglesSection
@@ -290,6 +291,10 @@ internal fun SampleScreen(viewModel: SampleViewModel = viewModel()) {
 
                         DemoTab.LiveEditor -> {
                             item { LiveEditorSection() }
+                        }
+
+                        DemoTab.Streaming -> {
+                            item { StreamingSection() }
                         }
                     }
                 }
