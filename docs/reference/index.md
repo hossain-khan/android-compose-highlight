@@ -15,6 +15,7 @@ For exhaustive signatures, parameters, properties, and generated KDoc, use Dokka
 ### UI APIs
 
 - [`SyntaxHighlightedCode`](syntax-highlighted-code.md) - primary read-only code block composable
+- [`StreamingSyntaxHighlightedCode`](streaming-syntax-highlighted-code.md) - experimental streaming code block composable
 - [`SyntaxHighlightedTextEditor`](syntax-highlighted-text-editor.md) - experimental editable code field
 - [`CodeBlockStyle`](code-block-style.md) - visual styling for code block layout and density
 

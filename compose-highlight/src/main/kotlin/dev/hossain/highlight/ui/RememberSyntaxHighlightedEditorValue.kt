@@ -13,20 +13,9 @@ import androidx.compose.ui.text.input.TextFieldValue
 import dev.hossain.highlight.engine.HighlightException
 import dev.hossain.highlight.engine.HighlightResult
 import dev.hossain.highlight.engine.HighlightTheme
+import dev.hossain.highlight.ui.internal.HighlightSnapshot
 import dev.hossain.highlight.ui.internal.applySnapshotSpans
 import kotlinx.coroutines.delay
-
-/**
- * Holds the result of a syntax-highlight call together with the [language] and [theme] that
- * produced it. Stored as local state so the composable can detect in-composition whether the
- * cached result is still valid for the current language/theme, eliminating the need for a
- * separate `LaunchedEffect` that resets state asynchronously.
- */
-private data class HighlightSnapshot(
-    val annotated: AnnotatedString,
-    val language: String,
-    val theme: HighlightTheme,
-)
 
 /**
  * Runs the debounce + syntax-highlight pipeline for a live code editor and returns the
