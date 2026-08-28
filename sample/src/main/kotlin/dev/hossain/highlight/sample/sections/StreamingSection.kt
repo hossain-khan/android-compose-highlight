@@ -153,6 +153,7 @@ internal fun StreamingSection() {
 
     var streamedCode by remember { mutableStateOf("") }
     var isStreaming by remember { mutableStateOf(false) }
+    var isPaused by remember { mutableStateOf(false) }
     var highlightCount by remember { mutableIntStateOf(0) }
     var lastHighlightDurationMs by remember { mutableStateOf<Long?>(null) }
 
@@ -163,6 +164,7 @@ internal fun StreamingSection() {
         streamingJob?.cancel()
         streamedCode = ""
         isStreaming = true
+        isPaused = false
         highlightCount = 0
         lastHighlightDurationMs = null
 
@@ -171,12 +173,16 @@ internal fun StreamingSection() {
                 // Tokenize by small chunks (1-4 characters / partial words) to simulate LLM token streaming
                 var i = 0
                 while (i < fullText.length) {
+                    while (isPaused) {
+                        delay(50)
+                    }
                     val chunkSize = (1..4).random().coerceAtMost(fullText.length - i)
                     streamedCode += fullText.substring(i, i + chunkSize)
                     i += chunkSize
                     delay((15..35).random().toLong()) // 30-50 tokens/sec
                 }
                 isStreaming = false
+                isPaused = false
             }
     }
 
@@ -238,8 +244,8 @@ internal fun StreamingSection() {
 
         // Controls & Progress bar
         Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Button(
@@ -255,9 +261,22 @@ internal fun StreamingSection() {
             }
 
             OutlinedButton(
+                onClick = { isPaused = !isPaused },
+                enabled = isStreaming,
+            ) {
+                Icon(
+                    imageVector = ImageVector.vectorResource(R.drawable.timer_24dp),
+                    contentDescription = null,
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(if (isPaused) "Resume" else "Pause")
+            }
+
+            OutlinedButton(
                 onClick = {
                     streamingJob?.cancel()
                     isStreaming = false
+                    isPaused = false
                     streamedCode = currentSnippet.code
                 },
                 enabled = isStreaming,
