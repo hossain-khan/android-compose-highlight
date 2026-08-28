@@ -16,7 +16,7 @@ native Compose `AnnotatedString`. Supports 190+ languages with no custom lexers 
 
 ```kotlin
 dependencies {
-    implementation("dev.hossain:compose-highlight:0.33.0")
+    implementation("dev.hossain:compose-highlight:0.34.0")
 }
 ```
 

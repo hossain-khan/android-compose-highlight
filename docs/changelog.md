@@ -6,6 +6,14 @@ For release artifacts and APK downloads, see the [GitHub Releases page](https://
 
 ## Recent highlights
 
+### 0.34.0 - Streaming Syntax Highlighting for AI & LLMs
+
+- Added `StreamingSyntaxHighlightedCode` and `rememberStreamingHighlightedCode` (`@ExperimentalHighlightApi`) for real-time and LLM token streaming
+- Implemented span-transfer snapshot pipeline (`applySnapshotSpans`) for zero-flicker, 0 ms UI render latency during streaming
+- Added streaming-aware scroll handling to preserve user scroll offsets during token appends
+- Added "LLM/Streaming" interactive demo tab in the sample app simulating token streams across Kotlin, Python, and TypeScript
+- Upgraded documentation site generator Zensical to 0.0.56 with refreshed Dokka chrome assets
+
 ### 0.33.0 - Dracula/Alucard theme aliases, docs asset fingerprinting, and dependency updates
 
 - Added Dracula and Alucard light/dark theme convenience aliases (`rememberDraculaLightTheme()`, `rememberAlucardDarkTheme()`, etc.)
@@ -23,34 +31,18 @@ For release artifacts and APK downloads, see the [GitHub Releases page](https://
 
 ### 0.31.0 - Scroll hoisting, preview fixes, and CI hardening
 
-- Added scroll-state hoisting to `SyntaxHighlightedCode` and `SyntaxHighlightedTextEditor`
-  for programmatic scroll control
-- Fixed Compose Preview crashes by blocking WebView initialization in `@Preview`
-  composables across the editor, read-only blocks, and theme provider
+- Added scroll-state hoisting to `SyntaxHighlightedCode` and `SyntaxHighlightedTextEditor` for programmatic scroll control
+- Fixed Compose Preview crashes by blocking WebView initialization in `@Preview` composables across the editor, read-only blocks, and theme provider
 - Fixed `HighlightResult.spanCount` semantics and CSS `#RRGGBBAA` color parsing order
-- Stabilized `SyntaxHighlightedTextEditor` callbacks, remembered focus/scroll modifiers,
-  and added `modifier` parameters to the default copy button and language badge slot helpers
-- Hardened CI with release builds, Maven publication smoke test, and Compose compiler
-  report verification
+- Stabilized `SyntaxHighlightedTextEditor` callbacks, remembered focus/scroll modifiers, and added `modifier` parameters to the default copy button and language badge slot helpers
+- Hardened CI with release builds, Maven publication smoke test, and Compose compiler report verification
 
 ### 0.30.2 - Remove deprecated treeWalk timing
 
 - Removed the deprecated `treeWalk` timing property entirely from `HighlightTimings`
 - Cleaned up the timings usage in `HighlightEngine` and internally in `HtmlToAnnotatedString`
-- Updated the sample app performance breakdown screen and timing unit tests to
-  remove the property
+- Updated the sample app performance breakdown screen and timing unit tests to remove the property
 - Synced documentation across the guides to reflect the updated timing model
-
-### 0.30.1 - Parser performance optimizations
-
-- Optimized HTML-to-AnnotatedString pipeline with SAX-style single-pass parsing,
-  eliminating intermediate tree allocations
-- Added substring avoidance, in-place attribute extraction, lazy entity decoding, and
-  allocation-free numeric parsing
-- Benchmarks show 29-57% faster single-theme and 5-39% faster dual-theme conversions
-  across all fixtures
-- Saved Jsoup baseline and SAX optimized JSON reports under
-  `resources/html-parser-benchmarks/` for regression tracking
 
 ---
 
