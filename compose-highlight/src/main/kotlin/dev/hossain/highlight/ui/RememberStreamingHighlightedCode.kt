@@ -66,7 +66,8 @@ import kotlinx.coroutines.launch
  * @param onHighlightComplete Optional callback invoked with a [HighlightResult] when a highlight
  *   cycle completes successfully. Fires after the snapshot is updated.
  * @param onError Optional callback invoked with the [HighlightException] when highlighting fails.
- *   Falls back to plain text on failure - this callback is purely observational.
+ *   Previously highlighted spans are preserved on failure (no flash to plain text mid-stream) -
+ *   this callback is purely observational.
  * @return An [AnnotatedString] with syntax highlighting applied and previous spans preserved
  *   across stream updates.
  */
@@ -110,6 +111,13 @@ fun rememberStreamingHighlightedCode(
         // Reference to the currently scheduled debounce or throttle delay job.
         var pendingDebounceJob: Job? = null
 
+        // Monotonic id assigned to each highlight run. The engine's mutex serializes runs in
+        // launch order today, but this guard makes that ordering invariant explicit: a result
+        // (or failure) from a superseded run can never overwrite a newer run's snapshot or
+        // re-fire callbacks, even if run interleaving ever changes.
+        var lastAppliedRunId = 0L
+        var nextRunId = 0L
+
         /**
          * Dispatches a syntax highlight request to the underlying [HighlightEngine].
          *
@@ -124,16 +132,27 @@ fun rememberStreamingHighlightedCode(
             }
             if (textToHighlight == lastHighlightedText) return
 
+            val runId = ++nextRunId
             lastHighlightStartTime = System.currentTimeMillis()
             engine
                 .highlight(textToHighlight, language, theme)
                 .onSuccess { result ->
-                    highlighted = HighlightSnapshot(result.annotated, language, theme)
-                    lastHighlightedText = textToHighlight
-                    currentOnHighlightComplete?.invoke(result)
+                    if (runId > lastAppliedRunId) {
+                        lastAppliedRunId = runId
+                        highlighted = HighlightSnapshot(result.annotated, language, theme)
+                        lastHighlightedText = textToHighlight
+                        currentOnHighlightComplete?.invoke(result)
+                    }
                 }.onFailure { error ->
-                    highlighted = null
-                    (error as? HighlightException)?.let { currentOnError?.invoke(it) }
+                    if (runId > lastAppliedRunId) {
+                        // Keep the previous snapshot: a mid-stream failure (e.g. a transient
+                        // WebView timeout) must not flash already-highlighted lines back to
+                        // plain text. The next debounce/throttle cycle retries with newer
+                        // text; `lastHighlightedText` is intentionally left unchanged so
+                        // text that already has a valid snapshot is not needlessly re-run.
+                        lastAppliedRunId = runId
+                        (error as? HighlightException)?.let { currentOnError?.invoke(it) }
+                    }
                 }
         }
 
