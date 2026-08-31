@@ -127,4 +127,24 @@ class StreamingSyntaxHighlightedCodeRobolectricTest {
             .onNodeWithText("sql")
             .assertIsDisplayed()
     }
+
+    @Test
+    fun `renders with custom triggerOnNewline and minThrottleMs`() {
+        composeTestRule.setContent {
+            CompositionLocalProvider(LocalInspectionMode provides true) {
+                HighlightThemeProvider {
+                    StreamingSyntaxHighlightedCode(
+                        code = "fun stream() = true",
+                        language = "kotlin",
+                        triggerOnNewline = false,
+                        minThrottleMs = 250L,
+                    )
+                }
+            }
+        }
+        composeTestRule.waitForIdle()
+        composeTestRule
+            .onNodeWithText("fun stream() = true")
+            .assertIsDisplayed()
+    }
 }

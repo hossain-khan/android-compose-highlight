@@ -82,6 +82,11 @@ private val LineNumberGutterSpacing = 8.dp
  * @param showLineNumbers Whether to show a line-number gutter on the left.
  * @param debounceMs Delay in milliseconds to debounce highlight engine calls after token arrival.
  *   Defaults to [StreamingSyntaxHighlightedCodeDefaults.DEBOUNCE_MS] (200 ms).
+ * @param triggerOnNewline Whether to trigger a background highlight run when a new newline (`\n`)
+ *   is detected in the stream, progressively styling completed lines. Defaults to `true`.
+ * @param minThrottleMs Minimum interval in milliseconds between consecutive newline-triggered
+ *   highlight runs to avoid engine overload. Defaults to
+ *   [StreamingSyntaxHighlightedCodeDefaults.MIN_THROTTLE_MS] (150 ms).
  * @param scrollState Hoisted scroll state for horizontal scrolling.
  * @param languageLabel Optional composable for the language badge in the header. `null` hides it.
  * @param copyButton Optional composable for the copy button in the header. `null` hides it.
@@ -99,6 +104,8 @@ fun StreamingSyntaxHighlightedCode(
     style: CodeBlockStyle = CodeBlockStyle.Default,
     showLineNumbers: Boolean = false,
     debounceMs: Long = StreamingSyntaxHighlightedCodeDefaults.DEBOUNCE_MS,
+    triggerOnNewline: Boolean = true,
+    minThrottleMs: Long = StreamingSyntaxHighlightedCodeDefaults.MIN_THROTTLE_MS,
     scrollState: ScrollState = rememberScrollState(),
     languageLabel: (@Composable () -> Unit)? =
         if (language.isNotBlank()) DefaultLanguageLabelSentinel else null,
@@ -174,6 +181,8 @@ fun StreamingSyntaxHighlightedCode(
             language = language,
             theme = theme,
             debounceMs = debounceMs,
+            triggerOnNewline = triggerOnNewline,
+            minThrottleMs = minThrottleMs,
             onHighlightComplete = onHighlightComplete,
             onError = onError,
         )

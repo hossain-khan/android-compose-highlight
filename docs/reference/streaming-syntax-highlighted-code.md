@@ -50,8 +50,9 @@ Unlike `SyntaxHighlightedCode` (which uses fade-in animations and resets in-flig
 
 1. **Zero UI Latency:** The composable renders the current text immediately on every frame.
 2. **Span Preservation:** Syntax styling on unchanged prefixes (all previous lines) is carried forward seamlessly.
-3. **Engine Debouncing:** Background highlight calls are debounced (`debounceMs = 200L`), ensuring fast token streams do not overload the underlying JavaScript engine.
-4. **Streaming-Aware Scroll:** Horizontal scroll position is preserved when text is appended, preventing jarring scroll resets while the user is reading streaming output.
+3. **Newline-Aware Progressive Backfilling:** When `triggerOnNewline` is enabled (default `true`), completing a line (`\n`) triggers a background highlight run (throttled by `minThrottleMs = 150L`), progressively snapping finished lines to full syntax colors while subsequent tokens continue streaming.
+4. **Engine Debouncing:** Idle pauses are debounced (`debounceMs = 200L`), ensuring fast token streams do not overload the underlying JavaScript engine.
+5. **Streaming-Aware Scroll:** Horizontal scroll position is preserved when text is appended, preventing jarring scroll resets while the user is reading streaming output.
 
 ## Key parameters
 
@@ -60,7 +61,9 @@ Unlike `SyntaxHighlightedCode` (which uses fade-in animations and resets in-flig
 - `theme` - Active theme, defaults to `LocalHighlightTheme.current`.
 - `style` - Visual style configuration (`CodeBlockStyle`).
 - `showLineNumbers` - Whether to show the line number gutter on the left.
-- `debounceMs` - Delay in milliseconds to wait after the last token before triggering a highlight call. Defaults to `StreamingSyntaxHighlightedCodeDefaults.DEBOUNCE_MS` (200 ms).
+- `debounceMs` - Delay in milliseconds to wait after the last token before triggering an idle highlight call. Defaults to `StreamingSyntaxHighlightedCodeDefaults.DEBOUNCE_MS` (200 ms).
+- `triggerOnNewline` - Whether to trigger a background highlight run when a new newline (`\n`) is detected in the stream, progressively styling completed lines. Defaults to `true`.
+- `minThrottleMs` - Minimum interval in milliseconds between consecutive newline-triggered highlight runs. Defaults to `StreamingSyntaxHighlightedCodeDefaults.MIN_THROTTLE_MS` (150 ms).
 - `scrollState` - Hoisted horizontal `ScrollState`.
 - `languageLabel` - Optional composable slot for the language badge in the header (`null` to hide).
 - `copyButton` - Optional composable slot for the copy button in the header (`null` to hide).
