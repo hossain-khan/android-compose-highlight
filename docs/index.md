@@ -40,6 +40,7 @@ That's it. `HighlightThemeProvider` automatically picks Tomorrow (light) or Tomo
 
 ## Key features
 
+- **Streaming / LLM code** - zero-latency progressive rendering for AI chat token streams via `StreamingSyntaxHighlightedCode`
 - **Wide language coverage** - use any language supported by the bundled Highlight.js build
 - **Light + dark themes** - automatic system-mode switching, or manual override
 - **Built-in themes** - Tomorrow, Tomorrow Night, Atom One Dark, Atom One Light, GitHub Light, GitHub Dark, Dracula Dark, Alucard Light
