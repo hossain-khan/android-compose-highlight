@@ -95,11 +95,27 @@ fun rememberStreamingHighlightedCode(
     val currentOnHighlightComplete by rememberUpdatedState(onHighlightComplete)
     val currentOnError by rememberUpdatedState(onError)
 
+    // Keying LaunchedEffect on (language, theme, engine) rather than `code` gives us a
+    // persistent coroutine scope across streaming updates. If we keyed on `code`, every incoming
+    // token (15-40 Hz) would cancel and restart the effect, aborting in-flight highlight runs
+    // and resetting debounce timers before they could ever complete.
     LaunchedEffect(language, theme, engine) {
+        // Tracks the most recent text string that successfully finished highlighting.
+        // Used to detect when new lines ('\n') have been completed and to prevent redundant highlights.
         var lastHighlightedText = ""
+
+        // Timestamp (epoch ms) when the last highlight run was started. Used to enforce `minThrottleMs`.
         var lastHighlightStartTime = 0L
+
+        // Reference to the currently scheduled debounce or throttle delay job.
         var pendingDebounceJob: Job? = null
 
+        /**
+         * Dispatches a syntax highlight request to the underlying [HighlightEngine].
+         *
+         * Updates [highlighted] on success, unblocks [applySnapshotSpans] for downstream text,
+         * and routes callbacks ([currentOnHighlightComplete] / [currentOnError]).
+         */
         suspend fun executeHighlight(textToHighlight: String) {
             if (textToHighlight.isEmpty()) {
                 highlighted = null
@@ -121,6 +137,7 @@ fun rememberStreamingHighlightedCode(
                 }
         }
 
+        // Continuously observe incoming text updates from the stream without restarting the parent coroutine.
         snapshotFlow { currentCode }.collect { latestCode ->
             if (latestCode.isEmpty()) {
                 pendingDebounceJob?.cancel()
@@ -129,6 +146,7 @@ fun rememberStreamingHighlightedCode(
                 return@collect
             }
 
+            // 1. Check if the latest stream chunk completed one or more new lines ('\n').
             val newlinesInCurrent = latestCode.count { it == '\n' }
             val newlinesInLast = lastHighlightedText.count { it == '\n' }
             val hasNewNewline = newlinesInCurrent > newlinesInLast
@@ -136,10 +154,18 @@ fun rememberStreamingHighlightedCode(
             val timeSinceLast = now - lastHighlightStartTime
 
             if (currentTriggerOnNewline && hasNewNewline) {
+                // Cancel any pending idle debounce since a structural token boundary (newline) was completed.
                 pendingDebounceJob?.cancel()
+
+                // 2. Throttle newline-triggered executions to prevent overloading the WebView JS engine
+                // during rapid multi-line bursts (e.g. consecutive empty lines or multi-line chunks).
                 if (timeSinceLast >= currentMinThrottleMs) {
+                    // Min throttle interval has elapsed: launch highlight immediately in background.
+                    // Note: Launching a child coroutine ensures in-flight executions aren't cancelled
+                    // when subsequent intra-line tokens arrive.
                     launch { executeHighlight(latestCode) }
                 } else {
+                    // Newline arrived too soon: schedule execution after the remaining throttle window.
                     val remainingThrottle = (currentMinThrottleMs - timeSinceLast).coerceAtLeast(0L)
                     pendingDebounceJob =
                         launch {
@@ -148,6 +174,7 @@ fun rememberStreamingHighlightedCode(
                         }
                 }
             } else {
+                // 3. Intra-line token or triggerOnNewline disabled: debounce until the stream pauses or ends.
                 pendingDebounceJob?.cancel()
                 pendingDebounceJob =
                     launch {
