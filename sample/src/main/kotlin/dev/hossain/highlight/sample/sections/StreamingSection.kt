@@ -207,22 +207,14 @@ internal fun StreamingSection() {
                     containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
                 ),
         ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text(
-                    text = "Zero-Flicker Streaming Highlighting",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.primary,
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text =
-                        "StreamingSyntaxHighlightedCode renders incoming tokens immediately with 0 ms UI latency " +
-                            "while preserving existing syntax colors via span-transfer. With progressive line backfilling enabled, " +
-                            "completed lines snap into full syntax highlighting in the background as newlines (\\n) arrive, " +
-                            "while engine highlight jobs are throttled (150 ms) and idle pauses are debounced (200 ms).",
-                    style = MaterialTheme.typography.bodySmall,
-                )
-            }
+            Text(
+                text =
+                    "Renders streaming tokens with 0 ms UI latency via span-transfer. " +
+                        "Progressive backfill highlights completed lines on newlines (\\n, 150 ms throttle) " +
+                        "and debounces stream pauses (200 ms).",
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.padding(12.dp),
+            )
         }
 
         // Snippet picker and options chips
