@@ -154,6 +154,7 @@ internal fun StreamingSection() {
     var streamedCode by remember { mutableStateOf("") }
     var isStreaming by remember { mutableStateOf(false) }
     var isPaused by remember { mutableStateOf(false) }
+    var triggerOnNewline by remember { mutableStateOf(true) }
     var highlightCount by remember { mutableIntStateOf(0) }
     var lastHighlightDurationMs by remember { mutableStateOf<Long?>(null) }
 
@@ -216,17 +217,19 @@ internal fun StreamingSection() {
                 Text(
                     text =
                         "StreamingSyntaxHighlightedCode renders incoming tokens immediately with 0 ms UI latency " +
-                            "while preserving existing syntax colors via span-transfer (applySnapshotSpans). " +
-                            "Engine highlight jobs are debounced (200 ms) so rapid token streams do not overload the JS engine.",
+                            "while preserving existing syntax colors via span-transfer. With progressive line backfilling enabled, " +
+                            "completed lines snap into full syntax highlighting in the background as newlines (\\n) arrive, " +
+                            "while engine highlight jobs are throttled (150 ms) and idle pauses are debounced (200 ms).",
                     style = MaterialTheme.typography.bodySmall,
                 )
             }
         }
 
-        // Snippet picker chips
+        // Snippet picker and options chips
         Row(
             modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             STREAMING_SNIPPETS.forEachIndexed { index, snippet ->
                 FilterChip(
@@ -240,6 +243,20 @@ internal fun StreamingSection() {
                     label = { Text(snippet.title) },
                 )
             }
+
+            FilterChip(
+                selected = triggerOnNewline,
+                onClick = { triggerOnNewline = !triggerOnNewline },
+                label = { Text("Progressive Backfill (\\n)") },
+                leadingIcon = {
+                    if (triggerOnNewline) {
+                        Icon(
+                            imageVector = ImageVector.vectorResource(R.drawable.check_24dp),
+                            contentDescription = null,
+                        )
+                    }
+                },
+            )
         }
 
         // Controls & Progress bar
@@ -328,6 +345,7 @@ internal fun StreamingSection() {
             language = currentSnippet.language,
             showLineNumbers = true,
             debounceMs = StreamingSyntaxHighlightedCodeDefaults.DEBOUNCE_MS,
+            triggerOnNewline = triggerOnNewline,
             onHighlightComplete = { result: HighlightResult ->
                 highlightCount++
                 lastHighlightDurationMs = result.durationMs
