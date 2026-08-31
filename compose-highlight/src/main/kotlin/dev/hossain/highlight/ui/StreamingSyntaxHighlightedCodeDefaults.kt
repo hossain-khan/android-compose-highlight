@@ -24,4 +24,12 @@ object StreamingSyntaxHighlightedCodeDefaults {
      * excessive WebView calls during active token generation.
      */
     const val DEBOUNCE_MS: Long = 200L
+
+    /**
+     * Default minimum throttle interval in milliseconds between consecutive newline-triggered highlight runs.
+     *
+     * 150 ms prevents overloading the JavaScript engine when rapid or consecutive newlines (`\n\n`) arrive,
+     * while allowing completed lines to be progressively styled in the background as streaming continues.
+     */
+    const val MIN_THROTTLE_MS: Long = 150L
 }

@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+
+- **Added newline-aware debouncing and progressive line backfilling for streaming code** - Added `triggerOnNewline`
+  and `minThrottleMs` to `StreamingSyntaxHighlightedCode` and `rememberStreamingHighlightedCode`. When newlines
+  are emitted during streaming, completed lines are progressively styled in the background without waiting for the
+  idle debounce timer, while throttling engine executions to avoid JS overload (#440).
+
 ## [0.34.0] - 2026-08-28
 
 ### Added
