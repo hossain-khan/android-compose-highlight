@@ -13,6 +13,15 @@ All notable changes to this project will be documented in this file.
   are emitted during streaming, completed lines are progressively styled in the background without waiting for the
   idle debounce timer, while throttling engine executions to avoid JS overload (#440).
 
+### Fixed
+
+- **Fixed mid-stream highlight failures flashing the whole code block to plain text** - `rememberStreamingHighlightedCode`
+  previously reset its snapshot to `null` when a highlight run failed, discarding all preserved spans and flashing
+  already-colored lines back to unstyled text during active streaming. The last successful snapshot is now kept on
+  failure and the next debounce/throttle cycle retries with newer text. Also added an explicit run-ordering guard so a
+  result or error from a superseded highlight run can never overwrite a newer run's snapshot or re-fire callbacks,
+  making the engine's serialized-execution assumption an enforced invariant.
+
 ## [0.34.0] - 2026-08-28
 
 ### Added

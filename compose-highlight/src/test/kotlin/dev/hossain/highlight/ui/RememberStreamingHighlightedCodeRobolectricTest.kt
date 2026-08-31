@@ -246,6 +246,7 @@ class RememberStreamingHighlightedCodeRobolectricTest {
                 )
             }
         }
+
         composeTestRule.waitForIdle()
 
         val engine = capturedEngine ?: error("Engine was not captured")
@@ -259,5 +260,119 @@ class RememberStreamingHighlightedCodeRobolectricTest {
 
         assertThat(engine.webViewForTest()).isNull()
         assertThat(completedResults).isEmpty()
+    }
+
+    /**
+     * A mid-stream highlight failure (e.g. a transient WebView/JS error) must NOT discard the
+     * last successful snapshot. Previously highlighted spans stay applied to the unchanged
+     * prefix of the streaming text instead of flashing the whole block back to plain text.
+     *
+     * Drives two sequential highlight runs through Robolectric's ShadowWebView:
+     * run 1 succeeds (spans applied), run 2 fails (null JS result). Asserts the returned
+     * AnnotatedString still carries the run-1 spans after the failure.
+     */
+    @Test
+    fun midStreamHighlightFailurePreservesPreviouslyHighlightedSpans() {
+        val completedResults = mutableListOf<HighlightResult>()
+        val errors = mutableListOf<HighlightException>()
+        var code by mutableStateOf("val a = 1")
+        val theme = HighlightTheme.fromCss(".hljs-keyword { color: #ff0000; }", "test-theme")
+        var capturedEngine: HighlightEngine? = null
+        var capturedResult: AnnotatedString? = null
+
+        composeTestRule.setContent {
+            val context = LocalContext.current
+            val engine =
+                remember {
+                    HighlightEngine(context.applicationContext).also { capturedEngine = it }
+                }
+            CompositionLocalProvider(LocalHighlightEngine provides engine) {
+                capturedResult =
+                    rememberStreamingHighlightedCode(
+                        code = code,
+                        language = "kotlin",
+                        theme = theme,
+                        debounceMs = 5000L, // long debounce so idle timeout won't fire during test
+                        triggerOnNewline = true,
+                        minThrottleMs = 0L,
+                        onHighlightComplete = { completedResults.add(it) },
+                        onError = { errors.add(it) },
+                    )
+            }
+        }
+        composeTestRule.waitForIdle()
+
+        val engine = capturedEngine ?: error("Engine was not captured")
+        ShadowLooper.idleMainLooper()
+        composeTestRule.waitForIdle()
+
+        // First newline completes line 1 and triggers the first (successful) highlight run.
+        code = "val a = 1\nval b = 2"
+        composeTestRule.waitForIdle()
+
+        composeTestRule.waitUntil(timeoutMillis = 3000) {
+            ShadowLooper.idleMainLooper()
+            engine.webViewForTest() != null
+        }
+        val webView = engine.webViewForTest()
+        assertThat(webView).isNotNull()
+        val nonNullWebView = requireNotNull(webView)
+
+        val webViewClient = Shadows.shadowOf(nonNullWebView).getWebViewClient()
+        val lastUrl = Shadows.shadowOf(nonNullWebView).getLastLoadedUrl() ?: ""
+        webViewClient?.onPageFinished(nonNullWebView, lastUrl)
+        ShadowLooper.idleMainLooper()
+        composeTestRule.waitForIdle()
+
+        composeTestRule.waitUntil(timeoutMillis = 3000) {
+            ShadowLooper.idleMainLooper()
+            Shadows.shadowOf(nonNullWebView).getLastEvaluatedJavascriptCallback() != null
+        }
+        val firstCallback = Shadows.shadowOf(nonNullWebView).getLastEvaluatedJavascriptCallback()
+        assertThat(firstCallback).isNotNull()
+        val successPayload =
+            org.json
+                .JSONObject()
+                .apply {
+                    put("error", false)
+                    put("html", "<span class=\"hljs-keyword\">val</span> a = 1\n<span class=\"hljs-keyword\">val</span> b = 2")
+                    put("language", "kotlin")
+                }.toString()
+        requireNotNull(firstCallback).onReceiveValue(org.json.JSONObject.quote(successPayload))
+
+        composeTestRule.waitUntil(timeoutMillis = 3000) {
+            ShadowLooper.idleMainLooper()
+            completedResults.isNotEmpty()
+        }
+        assertThat(completedResults).hasSize(1)
+        assertThat(capturedResult?.text).isEqualTo("val a = 1\nval b = 2")
+        assertThat(capturedResult?.spanStyles).isNotEmpty()
+
+        // Second newline triggers a second highlight run; drive it to failure with a null JS result.
+        code = "val a = 1\nval b = 2\nval c = 3"
+        composeTestRule.waitForIdle()
+
+        composeTestRule.waitUntil(timeoutMillis = 3000) {
+            ShadowLooper.idleMainLooper()
+            val next = Shadows.shadowOf(nonNullWebView).getLastEvaluatedJavascriptCallback()
+            next != null && next !== firstCallback
+        }
+        val secondCallback = Shadows.shadowOf(nonNullWebView).getLastEvaluatedJavascriptCallback()
+        assertThat(secondCallback).isNotNull()
+        requireNotNull(secondCallback).onReceiveValue(null)
+
+        composeTestRule.waitUntil(timeoutMillis = 3000) {
+            ShadowLooper.idleMainLooper()
+            errors.isNotEmpty()
+        }
+        ShadowLooper.idleMainLooper()
+        composeTestRule.waitForIdle()
+
+        assertThat(errors).hasSize(1)
+        assertThat(errors.first()).isInstanceOf(HighlightException.JsExecutionFailed::class.java)
+        // The new token text renders immediately while spans from the successful first run
+        // remain applied to the unchanged prefix - no flash to fully plain text.
+        assertThat(capturedResult?.text).isEqualTo("val a = 1\nval b = 2\nval c = 3")
+        assertThat(capturedResult?.spanStyles).isNotEmpty()
     }
 }
