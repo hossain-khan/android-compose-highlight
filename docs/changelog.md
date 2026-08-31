@@ -6,6 +6,13 @@ For release artifacts and APK downloads, see the [GitHub Releases page](https://
 
 ## Recent highlights
 
+### 0.35.0 - Newline-aware streaming & progressive backfill
+
+- Added newline-aware debouncing and progressive line backfilling for `StreamingSyntaxHighlightedCode` and `rememberStreamingHighlightedCode`
+- Completed lines now snap into full syntax highlighting in the background as newlines (`\n`) arrive without waiting for idle pauses
+- Added `triggerOnNewline` and `minThrottleMs` (150 ms) to throttle background highlight jobs and protect the JS engine
+- Updated sample app with an interactive progressive backfill toggle and comprehensive TypeScript streaming demo
+
 ### 0.34.0 - Streaming Syntax Highlighting for AI & LLMs
 
 - Added `StreamingSyntaxHighlightedCode` and `rememberStreamingHighlightedCode` (`@ExperimentalHighlightApi`) for real-time and LLM token streaming
@@ -36,13 +43,6 @@ For release artifacts and APK downloads, see the [GitHub Releases page](https://
 - Fixed `HighlightResult.spanCount` semantics and CSS `#RRGGBBAA` color parsing order
 - Stabilized `SyntaxHighlightedTextEditor` callbacks, remembered focus/scroll modifiers, and added `modifier` parameters to the default copy button and language badge slot helpers
 - Hardened CI with release builds, Maven publication smoke test, and Compose compiler report verification
-
-### 0.30.2 - Remove deprecated treeWalk timing
-
-- Removed the deprecated `treeWalk` timing property entirely from `HighlightTimings`
-- Cleaned up the timings usage in `HighlightEngine` and internally in `HtmlToAnnotatedString`
-- Updated the sample app performance breakdown screen and timing unit tests to remove the property
-- Synced documentation across the guides to reflect the updated timing model
 
 ---
 
