@@ -43,113 +43,74 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-private data class StreamingSnippet(
-    val title: String,
-    val language: String,
-    val code: String,
-)
+private val TYPESCRIPT_STREAMING_SNIPPET =
+    """
+/**
+ * Simulated LLM streaming response: TypeScript Chat Agent & Telemetry pipeline.
+ * Demonstrates imports, types, generics, template literals, regex, and async iterators.
+ */
+import { EventEmitter } from "events";
+import type { ModelConfig, StreamChunk } from "@ai/core";
 
-private val STREAMING_SNIPPETS =
-    listOf(
-        StreamingSnippet(
-            title = "Kotlin Flow",
-            language = "kotlin",
-            code =
-                """
-// Simulated LLM Response: Kotlin StateFlow & Channel pipeline
-class NewsRepository(
-    private val api: NewsApiService,
-    private val dispatcher: CoroutineDispatcher = Dispatchers.IO,
-) {
-    private val _newsStream = MutableSharedFlow<List<Article>>(replay = 1)
-    val newsStream: SharedFlow<List<Article>> = _newsStream.asSharedFlow()
+// Configuration constants
+const DEFAULT_TIMEOUT_MS = 5_000;
+const MAX_RETRY_ATTEMPTS = 3;
+const API_BASE_URL = "https://api.gateway.internal/v1/chat";
+const TOKEN_PATTERN = /[\w]+|[^\s\w]/g;
 
-    fun fetchBreakingNews(): Flow<Result<List<Article>>> = flow {
-        emit(Result.Loading)
-        try {
-            val response = api.getHeadlines(country = "us")
-            _newsStream.emit(response.articles)
-            emit(Result.Success(response.articles))
-        } catch (e: IOException) {
-            emit(Result.Error(e))
-        }
-    }.flowOn(dispatcher)
-}
-                """.trimIndent(),
-        ),
-        StreamingSnippet(
-            title = "Python Agent",
-            language = "python",
-            code =
-                """
-# Simulated LLM Response: Python Async Agent
-import asyncio
-from typing import AsyncGenerator, List
-from pydantic import BaseModel
+export type ConnectionStatus = "idle" | "connecting" | "streaming" | "completed";
 
-class AgentMessage(BaseModel):
-    role: str
-    content: str
-
-class StreamingAgent:
-    def __init__(self, model_name: str = "gpt-4o"):
-        self.model_name = model_name
-        self.history: List[AgentMessage] = []
-
-    async def stream_tokens(self, prompt: str) -> AsyncGenerator[str, None]:
-        self.history.append(AgentMessage(role="user", content=prompt))
-        for token in prompt.split():
-            await asyncio.sleep(0.04)
-            yield f"{token} "
-                """.trimIndent(),
-        ),
-        StreamingSnippet(
-            title = "TypeScript Hook",
-            language = "typescript",
-            code =
-                """
-// Simulated LLM Response: React useStreamingCode hook
-import { useState, useEffect, useRef } from "react";
-
-interface StreamState {
-  text: string;
-  isDone: boolean;
-  tokensCount: number;
+export interface StreamEvent<T = string> {
+  readonly id: string;
+  readonly payload: T;
+  readonly timestamp: number;
+  readonly isFinal: boolean;
 }
 
-export function useStreamingText(source: string, delayMs: number = 30): StreamState {
-  const [text, setText] = useState("");
-  const [isDone, setIsDone] = useState(false);
-  const indexRef = useRef(0);
+/**
+ * Handles real-time token streaming with exponential backoff retry.
+ */
+export class StreamingAgent extends EventEmitter {
+  private status: ConnectionStatus = "idle";
+  private abortController: AbortController | null = null;
 
-  useEffect(() => {
-    setText("");
-    setIsDone(false);
-    indexRef.current = 0;
+  constructor(private readonly config: ModelConfig) {
+    super();
+  }
 
-    const timer = setInterval(() => {
-      if (indexRef.current < source.length) {
-        setText((prev) => prev + source.charAt(indexRef.current));
-        indexRef.current += 1;
-      } else {
-        setIsDone(true);
-        clearInterval(timer);
+  async *streamResponse(prompt: string): AsyncGenerator<StreamEvent, void, unknown> {
+    this.status = "streaming";
+    this.abortController = new AbortController();
+    let tokenIndex = 0;
+
+    try {
+      const endpoint = `${'$'}{API_BASE_URL}?model=${'$'}{this.config.modelName}&temp=${'$'}{this.config.temperature}`;
+      console.log(`[StreamAgent] Initiating connection to: ${'$'}{endpoint}`);
+
+      const tokens = prompt.match(TOKEN_PATTERN) ?? [];
+      for (const token of tokens) {
+        tokenIndex += 1;
+        yield {
+          id: `chunk_${'$'}{tokenIndex}`,
+          payload: token,
+          timestamp: Date.now(),
+          isFinal: tokenIndex === tokens.length,
+        };
       }
-    }, delayMs);
-
-    return () => clearInterval(timer);
-  }, [source, delayMs]);
-
-  return { text, isDone, tokensCount: text.split(/\s+/).length };
+    } catch (error: unknown) {
+      console.error("[StreamAgent] Stream failed:", error);
+      throw error;
+    } finally {
+      this.status = "completed";
+      this.emit("statusChange", this.status);
+    }
+  }
 }
-                """.trimIndent(),
-        ),
-    )
+    """.trimIndent()
 
 @Composable
 internal fun StreamingSection() {
-    var selectedSnippetIndex by remember { mutableIntStateOf(0) }
-    val currentSnippet = STREAMING_SNIPPETS[selectedSnippetIndex]
+    val currentSnippetCode = TYPESCRIPT_STREAMING_SNIPPET
 
     var streamedCode by remember { mutableStateOf("") }
     var isStreaming by remember { mutableStateOf(false) }
@@ -188,7 +149,7 @@ internal fun StreamingSection() {
     }
 
     DisposableEffect(Unit) {
-        startStreaming(currentSnippet.code)
+        startStreaming(currentSnippetCode)
         onDispose {
             streamingJob?.cancel()
         }
@@ -217,25 +178,12 @@ internal fun StreamingSection() {
             )
         }
 
-        // Snippet picker and options chips
+        // Options row
         Row(
-            modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+            modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            STREAMING_SNIPPETS.forEachIndexed { index, snippet ->
-                FilterChip(
-                    selected = selectedSnippetIndex == index,
-                    onClick = {
-                        if (selectedSnippetIndex != index) {
-                            selectedSnippetIndex = index
-                            startStreaming(snippet.code)
-                        }
-                    },
-                    label = { Text(snippet.title) },
-                )
-            }
-
             FilterChip(
                 selected = triggerOnNewline,
                 onClick = { triggerOnNewline = !triggerOnNewline },
@@ -258,7 +206,7 @@ internal fun StreamingSection() {
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Button(
-                onClick = { startStreaming(currentSnippet.code) },
+                onClick = { startStreaming(currentSnippetCode) },
                 enabled = !isStreaming,
             ) {
                 Icon(
@@ -286,7 +234,7 @@ internal fun StreamingSection() {
                     streamingJob?.cancel()
                     isStreaming = false
                     isPaused = false
-                    streamedCode = currentSnippet.code
+                    streamedCode = currentSnippetCode
                 },
                 enabled = isStreaming,
             ) {
@@ -301,8 +249,8 @@ internal fun StreamingSection() {
 
         if (isStreaming) {
             val progress =
-                if (currentSnippet.code.isNotEmpty()) {
-                    (streamedCode.length.toFloat() / currentSnippet.code.length).coerceIn(0f, 1f)
+                if (currentSnippetCode.isNotEmpty()) {
+                    (streamedCode.length.toFloat() / currentSnippetCode.length).coerceIn(0f, 1f)
                 } else {
                     0f
                 }
@@ -318,7 +266,7 @@ internal fun StreamingSection() {
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
             Text(
-                text = "Characters: ${streamedCode.length} / ${currentSnippet.code.length}",
+                text = "Characters: ${streamedCode.length} / ${currentSnippetCode.length}",
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -334,7 +282,7 @@ internal fun StreamingSection() {
         // The streaming code block
         StreamingSyntaxHighlightedCode(
             code = streamedCode.ifEmpty { " " },
-            language = currentSnippet.language,
+            language = "typescript",
             showLineNumbers = true,
             debounceMs = StreamingSyntaxHighlightedCodeDefaults.DEBOUNCE_MS,
             triggerOnNewline = triggerOnNewline,

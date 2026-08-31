@@ -8,11 +8,32 @@ package dev.hossain.highlight.ui
  * ## Usage
  *
  * ```kotlin
- * StreamingSyntaxHighlightedCode(
- *     code = streamingCode,
- *     language = "kotlin",
- *     debounceMs = StreamingSyntaxHighlightedCodeDefaults.DEBOUNCE_MS,
- * )
+ * @OptIn(ExperimentalHighlightApi::class)
+ * @Composable
+ * fun StreamingCodeView(
+ *     streamedCode: String,
+ *     language: String,
+ * ) {
+ *     HighlightThemeProvider(
+ *         lightHighlightTheme = rememberTomorrowLightTheme(),
+ *         darkHighlightTheme = rememberTomorrowNightTheme(),
+ *     ) {
+ *         StreamingSyntaxHighlightedCode(
+ *             code = streamedCode,
+ *             language = language,
+ *             showLineNumbers = true,
+ *             debounceMs = StreamingSyntaxHighlightedCodeDefaults.DEBOUNCE_MS,
+ *             triggerOnNewline = true,
+ *             minThrottleMs = StreamingSyntaxHighlightedCodeDefaults.MIN_THROTTLE_MS,
+ *             onHighlightComplete = { result ->
+ *                 // Handle highlight completion / metrics
+ *             },
+ *             onError = { exception ->
+ *                 // Handle engine errors
+ *             },
+ *         )
+ *     }
+ * }
  * ```
  */
 @ExperimentalHighlightApi
