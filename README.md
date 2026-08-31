@@ -22,15 +22,33 @@ dependencies {
 
 ## Quick Start
 
+Wrap your UI hierarchy in `HighlightThemeProvider`, then use any of the three built-in composables:
+
 ```kotlin
 HighlightThemeProvider(
     lightHighlightTheme = rememberTomorrowLightTheme(),
     darkHighlightTheme = rememberTomorrowNightTheme(),
 ) {
+    // 1. Static Code Block (for docs, snippets, guides)
     SyntaxHighlightedCode(
         code            = "data class Config(val enableHighlight: Boolean = true)",
         language        = "kotlin",
         showLineNumbers = true,
+    )
+
+    // 2. Real-time / LLM Streaming Code Block (zero-flicker progressive rendering)
+    StreamingSyntaxHighlightedCode(
+        code            = streamedText,
+        language        = "typescript",
+        showLineNumbers = true,
+    )
+
+    // 3. Interactive Code Editor (debounced inline syntax highlighting)
+    var editorValue by remember { mutableStateOf(TextFieldValue("val x = 42")) }
+    SyntaxHighlightedTextEditor(
+        value           = editorValue,
+        onValueChange   = { editorValue = it },
+        language        = "kotlin",
     )
 }
 ```
