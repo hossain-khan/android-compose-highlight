@@ -71,6 +71,15 @@ Unlike `SyntaxHighlightedCode` (which uses fade-in animations and resets in-flig
 - `onHighlightComplete` - Optional callback invoked with `HighlightResult` on successful highlight cycle.
 - `onError` - Optional callback invoked with `HighlightException` on failure.
 
+## Error handling
+
+`onError` is observational - rendering never breaks when the highlight engine fails:
+
+- **Spans are preserved:** a mid-stream failure (e.g. a transient WebView timeout) keeps the last successful snapshot,
+  so already-colored lines do not flash back to plain text.
+- **Automatic retry:** the next debounce or newline-triggered cycle retries highlighting with the latest text.
+- **Plain-text start:** if highlighting has never succeeded, incoming text still renders immediately as unstyled monospace text.
+
 ## Opting in
 
 `StreamingSyntaxHighlightedCode`, `rememberStreamingHighlightedCode`, and `StreamingSyntaxHighlightedCodeDefaults` are annotated with `@ExperimentalHighlightApi`:
