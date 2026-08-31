@@ -11,6 +11,7 @@ For release artifacts and APK downloads, see the [GitHub Releases page](https://
 - Added newline-aware debouncing and progressive line backfilling for `StreamingSyntaxHighlightedCode` and `rememberStreamingHighlightedCode`
 - Completed lines now snap into full syntax highlighting in the background as newlines (`\n`) arrive without waiting for idle pauses
 - Added `triggerOnNewline` and `minThrottleMs` (150 ms) to throttle background highlight jobs and protect the JS engine
+- Fixed mid-stream highlight failures flashing the code block to plain text by preserving previously highlighted spans
 - Updated sample app with an interactive progressive backfill toggle and comprehensive TypeScript streaming demo
 
 ### 0.34.0 - Streaming Syntax Highlighting for AI & LLMs
