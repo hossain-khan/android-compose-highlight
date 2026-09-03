@@ -31,6 +31,7 @@ on:
       - compose-highlight/src/main/assets/compose-highlight/bridge.html
       - compose-highlight/src/main/assets/compose-highlight/highlight.min.js
       - compose-highlight/src/main/kotlin/dev/hossain/highlight/engine/internal/WebViewManager.kt
+      - scripts/validate-bridge.sh
       - .github/workflows/bridge-validation.yml
   pull_request:
     branches: [ main ]
@@ -38,6 +39,7 @@ on:
       - compose-highlight/src/main/assets/compose-highlight/bridge.html
       - compose-highlight/src/main/assets/compose-highlight/highlight.min.js
       - compose-highlight/src/main/kotlin/dev/hossain/highlight/engine/internal/WebViewManager.kt
+      - scripts/validate-bridge.sh
       - .github/workflows/bridge-validation.yml
 
 permissions:
@@ -57,32 +59,5 @@ jobs:
         with:
           node-version: 24
 
-      - name: Validate bridge.html syntax
-        run: |
-          npx --yes htmlhint@1.9.2 \
-            --rules 'doctype-first:true,tag-pair:true,tagname-lowercase:true,attr-lowercase:true,attr-value-double-quotes:true,id-unique:true,src-not-empty:true,title-require:false' \
-            compose-highlight/src/main/assets/compose-highlight/bridge.html
-
-      - name: Validate bridge API contract
-        run: |
-          BRIDGE_FILE="compose-highlight/src/main/assets/compose-highlight/bridge.html"
-          WEBVIEW_FILE="compose-highlight/src/main/kotlin/dev/hossain/highlight/engine/internal/WebViewManager.kt"
-
-          # highlight.min.js must be loaded - without it, hljs is undefined and all highlighting breaks
-          grep -Eiq "<script[^>]*src=[\"']highlight\\.min\\.js[\"'][^>]*>" "$BRIDGE_FILE"
-
-          # All 5 JS functions called by HighlightEngine via evaluateJavascript() must exist
-          grep -Eq 'function[[:space:]]+highlightCode[[:space:]]*\(' "$BRIDGE_FILE"
-          grep -Eq 'function[[:space:]]+highlightAuto[[:space:]]*\(' "$BRIDGE_FILE"
-          grep -Eq 'function[[:space:]]+listLanguages[[:space:]]*\(' "$BRIDGE_FILE"
-          grep -Eq 'function[[:space:]]+getLanguage[[:space:]]*\(' "$BRIDGE_FILE"
-          grep -Eq 'function[[:space:]]+hljsVersion[[:space:]]*\(' "$BRIDGE_FILE"
-
-          # highlightCode() uses getElementById("code") to set content - the element must exist
-          grep -Eq "getElementById[[:space:]]*\([[:space:]]*['\"]code['\"][[:space:]]*\)|querySelector[[:space:]]*\([[:space:]]*['\"]#code['\"][[:space:]]*\)" "$BRIDGE_FILE"
-
-          # WebViewManager must load bridge.html from the correct appassets URL - wrong path = blank WebView
-          grep -q 'https://appassets.androidplatform.net/assets/compose-highlight/bridge.html' "$WEBVIEW_FILE"
-
-      - name: Bridge validation passed
-        run: echo "bridge.html contract and syntax checks passed"
+      - name: Validate bridge contract
+        run: ./scripts/validate-bridge.sh

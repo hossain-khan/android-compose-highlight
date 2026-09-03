@@ -10,6 +10,13 @@ All notable changes to this project will be documented in this file.
   bringing grammar improvements for Python, Rust, C/C++, Java, and Go, new language aliases for Kotlin (`ktm`, `ktx`),
   backreference fixes in the parser engine, and added 2 new themes (`equinox` and `vs-dark`) to the sample app (#446).
 
+### Infrastructure
+
+- **Streamlined Highlight.js upgrade tooling and automated release detection** - Added `scripts/upgrade-hljs.sh`
+  orchestrator, `scripts/bundle-hljs.mjs` for reproducible esbuild bundling, `scripts/refresh-sample-themes.sh`,
+  and `scripts/validate-bridge.sh` for local bridge contract checks. Added weekly GitHub Actions workflow
+  `.github/workflows/check-hljs-updates.yml` to automatically track upstream releases (#448).
+
 ## [0.35.0] - 2026-08-30
 
 ### Added
