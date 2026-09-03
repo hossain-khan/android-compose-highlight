@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Fixed
+
+- **Sample app editor and search fields obscured by soft keyboard** - Added `imePadding` to the root content
+  container in `SampleScreen` and refined window inset consumption so that the active scroll viewport shrinks
+  above the software keyboard, allowing `BringIntoView` to scroll focused editors and search fields into view.
+
 ### Changed
 
 - **Upgraded bundled highlight.js to 11.12.0** - Updated the bundled JavaScript engine from 11.11.1 to 11.12.0,
