@@ -17,6 +17,8 @@ All notable changes to this project will be documented in this file.
   backreference fixes in the parser engine, and added 2 new themes (`equinox` and `vs-dark`) to the sample app (#446).
 - **Sample app LLM/Streaming tab stream button control** - Removed automatic streaming on tab navigation,
   requiring users to explicitly tap the "Stream" button to start real-time token streaming.
+- **Standardized supported language references to 190+ languages** - Updated documentation, PRD specifications,
+  and test comments to consistently describe the bundled grammar capability as 190+ languages.
 
 ### Infrastructure
 
