@@ -73,8 +73,9 @@ ROOT_THEME_COUNT=$(find "$REPO_ROOT/sample/src/main/assets/themes" -maxdepth 1 -
 # Update HighlightEngine.kt KDoc example
 sedi "s/(e\.g\. \"$CURRENT_VERSION\")/(e.g. \"$NEW_VERSION\")/" "$REPO_ROOT/compose-highlight/src/main/kotlin/dev/hossain/highlight/engine/HighlightEngine.kt"
 
-# Update HighlightEngineRobolectricTest.kt
+# Update HighlightEngineRobolectricTest.kt and HighlightEngineTest.kt
 sedi "s/\"$CURRENT_VERSION\"/\"$NEW_VERSION\"/g" "$REPO_ROOT/compose-highlight/src/test/kotlin/dev/hossain/highlight/engine/HighlightEngineRobolectricTest.kt"
+sedi "s/e\.g\. \"$CURRENT_VERSION\"/e.g. \"$NEW_VERSION\"/g" "$REPO_ROOT/compose-highlight/src/androidTest/kotlin/dev/hossain/highlight/engine/HighlightEngineTest.kt"
 
 # Update sample themes README.md
 sedi "s/version \*\*$CURRENT_VERSION\*\*/version \*\*$NEW_VERSION\*\*/g" "$REPO_ROOT/sample/src/main/assets/themes/README.md"

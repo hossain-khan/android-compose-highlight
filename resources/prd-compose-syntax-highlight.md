@@ -130,7 +130,7 @@ Code ("def foo():") + lang ("python")
 
 | File | Description | Size |
 |------|-------------|------|
-| `highlight.min.js` | Highlight.js v11.11.1, full 192-language bundle | ~1.04 MB |
+| `highlight.min.js` | Highlight.js v11.12.0, full 190+ language bundle | ~1.08 MB |
 | `bridge.html` | HTML page with `highlightCode()`, `listLanguages()`, and `hljsVersion()` JS functions | ~600 bytes |
 | `themes/tomorrow.css` | Base16 Tomorrow (light theme) | ~3 KB |
 | `themes/tomorrow-night.css` | Base16 Tomorrow Night (dark theme) | ~3 KB |
@@ -170,7 +170,7 @@ function hljsVersion() {
 
 **Theme CSS files**: Use the standard Highlight.js Base16 theme format. The library's CSS parser works with any hljs theme CSS file — users can drop in custom themes.
 
-**Downloading highlight.min.js**: Download from https://highlightjs.org/ — select "all 192 languages" when building the bundle, or use the CDN full bundle.
+**Downloading highlight.min.js**: Download from https://highlightjs.org/ - select all languages (190+) when building the bundle, or use the CDN full bundle.
 
 ---
 
@@ -216,7 +216,7 @@ class HighlightEngine(context: Context) {
     // Cached after the first call — no extra WebView round-trip on subsequent calls.
     suspend fun supportedLanguages(): Result<List<String>>
 
-    // Returns the version string of the bundled Highlight.js (e.g. "11.11.1").
+    // Returns the version string of the bundled Highlight.js (e.g. "11.12.0").
     // Cached after the first call.
     suspend fun highlightJsVersion(): Result<String>
 
@@ -880,7 +880,7 @@ Build in this sequence — each step is independently testable:
 The library is complete when:
 
 - [ ] `SyntaxHighlightedCode(code = "...", language = "python")` renders colored code in a Compose app with a single line of code
-- [ ] All 192 Highlight.js languages produce highlighted output
+- [ ] All 190+ Highlight.js languages produce highlighted output
 - [ ] Light and dark themes switch instantly without re-highlighting
 - [ ] Code is natively selectable (long-press to select text)
 - [ ] Copy button works and copies raw (unstyled) code
