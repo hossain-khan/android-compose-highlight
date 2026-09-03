@@ -15,7 +15,7 @@ Add the dependency to your module's `build.gradle.kts`:
 
 ```kotlin
 dependencies {
-    implementation("dev.hossain:compose-highlight:0.35.0")
+    implementation("dev.hossain:compose-highlight:0.36.0")
 }
 ```
 

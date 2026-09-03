@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.36.0] - 2026-09-03
+
 ### Fixed
 
 - **Sample app editor and search fields obscured by soft keyboard** - Added `imePadding` to the root content

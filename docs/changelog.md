@@ -6,6 +6,14 @@ For release artifacts and APK downloads, see the [GitHub Releases page](https://
 
 ## Recent highlights
 
+### 0.36.0 - Highlight.js 11.12.0 & Sample UX Enhancements
+
+- Upgraded bundled Highlight.js engine from 11.11.1 to 11.12.0 with grammar fixes for Python, Rust, C/C++, Java, and Go
+- Added new Kotlin language aliases (`ktm`, `ktx`) and 2 new themes (`equinox` and `vs-dark`) to the sample app
+- Fixed soft keyboard obscuring editor and search fields in the sample app by applying `imePadding` and refining insets
+- Added manual "Stream" button control to the sample app LLM/Streaming demo tab
+- Streamlined Highlight.js upgrade tooling with automated weekly upstream release monitoring
+
 ### 0.35.0 - Newline-aware streaming & progressive backfill
 
 - Added newline-aware debouncing and progressive line backfilling for `StreamingSyntaxHighlightedCode` and `rememberStreamingHighlightedCode`
@@ -36,14 +44,6 @@ For release artifacts and APK downloads, see the [GitHub Releases page](https://
 - Aligned Dracula and Alucard built-in themes to be fully spec-compliant with correct color and selector mappings
 - Renamed `rememberTomorrowTheme()` to `rememberTomorrowLightTheme()` for naming consistency across light/dark suffix theme helpers
 - Removed dead legacy parser code from `HtmlParser.kt` to shrink AAR size and improve code coverage metrics
-
-### 0.31.0 - Scroll hoisting, preview fixes, and CI hardening
-
-- Added scroll-state hoisting to `SyntaxHighlightedCode` and `SyntaxHighlightedTextEditor` for programmatic scroll control
-- Fixed Compose Preview crashes by blocking WebView initialization in `@Preview` composables across the editor, read-only blocks, and theme provider
-- Fixed `HighlightResult.spanCount` semantics and CSS `#RRGGBBAA` color parsing order
-- Stabilized `SyntaxHighlightedTextEditor` callbacks, remembered focus/scroll modifiers, and added `modifier` parameters to the default copy button and language badge slot helpers
-- Hardened CI with release builds, Maven publication smoke test, and Compose compiler report verification
 
 ---
 
