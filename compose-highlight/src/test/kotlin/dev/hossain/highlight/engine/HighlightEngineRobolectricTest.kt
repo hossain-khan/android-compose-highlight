@@ -371,19 +371,19 @@ class HighlightEngineRobolectricTest {
     fun `highlightJsVersion returns version and caches value`() =
         runTest {
             val engine = createReadyEngine()
-            val rawResult = JSONObject.quote("11.11.1")
+            val rawResult = JSONObject.quote("11.12.0")
 
             val deferred1 = async { engine.highlightJsVersion() }
             respondToJs(engine, rawResult)
 
             val result1 = deferred1.await()
             assertThat(result1.isSuccess).isTrue()
-            assertThat(result1.getOrThrow()).isEqualTo("11.11.1")
+            assertThat(result1.getOrThrow()).isEqualTo("11.12.0")
 
             // Second call uses cached version
             val result2 = engine.highlightJsVersion()
             assertThat(result2.isSuccess).isTrue()
-            assertThat(result2.getOrThrow()).isEqualTo("11.11.1")
+            assertThat(result2.getOrThrow()).isEqualTo("11.12.0")
 
             engine.destroy()
         }

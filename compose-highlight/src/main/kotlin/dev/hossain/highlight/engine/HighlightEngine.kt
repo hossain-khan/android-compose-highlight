@@ -447,7 +447,7 @@ class HighlightEngine(
     }
 
     /**
-     * Returns the version string of the bundled Highlight.js library (e.g. `"11.11.1"`).
+     * Returns the version string of the bundled Highlight.js library (e.g. `"11.12.0"`).
      *
      * The result is fetched from the JS engine on the first call and cached - subsequent calls
      * return the cached value immediately without a WebView round-trip.

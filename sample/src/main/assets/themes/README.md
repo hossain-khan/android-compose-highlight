@@ -1,17 +1,17 @@
 # Highlight.js Themes
 
-This directory contains **256 minified CSS theme files** for
-[highlight.js](https://highlightjs.org/) version **11.11.1**, used by the
+This directory contains **258 minified CSS theme files** for
+[highlight.js](https://highlightjs.org/) version **11.12.0**, used by the
 `android-compose-highlight` sample app to power the **All Themes** demo tab.
 
 ## Source
 
 All themes were downloaded from the
-[cdnjs CDN](https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/)
+[cdnjs CDN](https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.12.0/styles/)
 using the cdnjs API:
 
 ```
-https://api.cdnjs.com/libraries/highlight.js/11.11.1?fields=files
+https://api.cdnjs.com/libraries/highlight.js/11.12.0?fields=files
 ```
 
 Only the **minified** variants (`*.min.css`) are included - one file per theme.
@@ -22,7 +22,7 @@ The full list of available themes is also browsable at the
 
 ```
 themes/
-├── a11y-dark.min.css          # 80 root-level themes
+├── a11y-dark.min.css          # 82 root-level themes
 ├── atom-one-dark.min.css
 ├── github.min.css
 ├── ...
@@ -56,7 +56,7 @@ val base16 = context.assets.list("themes/base16")
               ?.map    { "base16/${it.removeSuffix(".min.css")}" }
               ?: emptyList()
 
-val allThemes = (root + base16).sorted()   // 256 themes
+val allThemes = (root + base16).sorted()   // 258 themes
 
 // Load a specific theme by name
 val theme = HighlightTheme.fromAsset(
