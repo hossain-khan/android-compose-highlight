@@ -1,13 +1,13 @@
 # Re-downloading highlight.js Themes
 
-The sample app bundles **256 minified CSS theme files** for highlight.js 11.11.1
+The sample app bundles **258 minified CSS theme files** for highlight.js 11.12.0
 under `sample/src/main/assets/themes/`. Use the script below to refresh them
 when upgrading to a newer highlight.js version.
 
 ## Script
 
 ```bash
-VERSION="11.11.1"   # update to the new version
+VERSION="11.12.0"   # update to the new version
 DEST="sample/src/main/assets/themes"
 mkdir -p "$DEST/base16"
 
