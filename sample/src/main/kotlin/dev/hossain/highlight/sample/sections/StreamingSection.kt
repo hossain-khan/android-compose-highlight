@@ -149,7 +149,6 @@ internal fun StreamingSection() {
     }
 
     DisposableEffect(Unit) {
-        startStreaming(currentSnippetCode)
         onDispose {
             streamingJob?.cancel()
         }
@@ -214,7 +213,7 @@ internal fun StreamingSection() {
                     contentDescription = null,
                 )
                 Spacer(modifier = Modifier.width(4.dp))
-                Text(if (isStreaming) "Streaming..." else "Re-stream")
+                Text(if (isStreaming) "Streaming..." else "Stream")
             }
 
             OutlinedButton(

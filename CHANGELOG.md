@@ -15,6 +15,8 @@ All notable changes to this project will be documented in this file.
 - **Upgraded bundled highlight.js to 11.12.0** - Updated the bundled JavaScript engine from 11.11.1 to 11.12.0,
   bringing grammar improvements for Python, Rust, C/C++, Java, and Go, new language aliases for Kotlin (`ktm`, `ktx`),
   backreference fixes in the parser engine, and added 2 new themes (`equinox` and `vs-dark`) to the sample app (#446).
+- **Sample app LLM/Streaming tab stream button control** - Removed automatic streaming on tab navigation,
+  requiring users to explicitly tap the "Stream" button to start real-time token streaming.
 
 ### Infrastructure
 
