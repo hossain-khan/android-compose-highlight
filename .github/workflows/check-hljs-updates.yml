@@ -1,0 +1,89 @@
+name: Check Highlight.js Updates
+
+on:
+  schedule:
+    # Run every Monday at 03:00 UTC
+    - cron: '0 3 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  check-updates:
+    name: Check Upstream Highlight.js
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7.0.1
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7.0.0
+        with:
+          node-version: 24
+
+      - name: Check for new highlight.js release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          BUNDLE_PATH="compose-highlight/src/main/assets/compose-highlight/highlight.min.js"
+
+          CURRENT_VERSION=$(node -e "
+            const vm = require('vm');
+            const fs = require('fs');
+            const sandbox = {};
+            vm.runInNewContext(fs.readFileSync('$BUNDLE_PATH', 'utf8'), sandbox);
+            console.log(sandbox.hljs.versionString);
+          ")
+
+          LATEST_VERSION=$(npm view highlight.js version)
+
+          echo "Currently bundled: $CURRENT_VERSION"
+          echo "Latest on npm:    $LATEST_VERSION"
+
+          if [ "$CURRENT_VERSION" = "$LATEST_VERSION" ]; then
+            echo "Highlight.js is up to date ($CURRENT_VERSION)."
+            exit 0
+          fi
+
+          echo "Newer Highlight.js release detected: $LATEST_VERSION (current: $CURRENT_VERSION)"
+
+          # Check if an open issue already tracks this version
+          SEARCH_QUERY="chore: Upgrade bundled highlight.js to $LATEST_VERSION"
+          EXISTING_ISSUE=$(gh issue list --repo "${{ github.repository }}" --state open --search "$SEARCH_QUERY" --json number -q '.[0].number')
+
+          if [ -n "$EXISTING_ISSUE" ]; then
+            echo "An open tracking issue already exists: #$EXISTING_ISSUE"
+            exit 0
+          fi
+
+          echo "Creating tracking issue for $LATEST_VERSION..."
+          ISSUE_BODY=$(cat <<EOF
+          ## New Highlight.js Release Detected
+
+          A new release of **highlight.js** (**${LATEST_VERSION}**) has been published to npm (currently bundled: **${CURRENT_VERSION}**).
+
+          ### How to Upgrade
+
+          1. Run the upgrade orchestrator script:
+             \`\`\`bash
+             ./scripts/upgrade-hljs.sh ${LATEST_VERSION}
+             \`\`\`
+          2. Verify stability:
+             \`\`\`bash
+             ./gradlew :compose-highlight:assembleDebug :sample:assembleDebug :compose-highlight:test
+             \`\`\`
+          3. If Roborazzi screenshots shifted, re-record:
+             \`\`\`bash
+             ./gradlew :compose-highlight:recordRoborazziDebug
+             \`\`\`
+          4. Add an entry to \`CHANGELOG.md\` under \`[Unreleased]\`, commit, and create a draft PR.
+          EOF
+          )
+
+          gh issue create \
+            --repo "${{ github.repository }}" \
+            --title "chore: Upgrade bundled highlight.js to $LATEST_VERSION" \
+            --body "$ISSUE_BODY"
