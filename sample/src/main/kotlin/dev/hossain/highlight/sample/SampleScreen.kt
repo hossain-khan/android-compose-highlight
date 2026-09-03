@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -196,7 +197,8 @@ internal fun SampleScreen(viewModel: SampleViewModel = viewModel()) {
                     Modifier
                         .fillMaxSize()
                         .padding(top = innerPadding.calculateTopPadding())
-                        .consumeWindowInsets(innerPadding),
+                        .consumeWindowInsets(PaddingValues(top = innerPadding.calculateTopPadding()))
+                        .imePadding(),
             ) {
                 val selectedTabIndex = activeTabIndex.coerceIn(tabs.indices)
                 PrimaryScrollableTabRow(selectedTabIndex = selectedTabIndex) {

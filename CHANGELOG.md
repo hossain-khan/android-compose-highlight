@@ -4,11 +4,19 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Fixed
+
+- **Sample app editor and search fields obscured by soft keyboard** - Added `imePadding` to the root content
+  container in `SampleScreen` and refined window inset consumption so that the active scroll viewport shrinks
+  above the software keyboard, allowing `BringIntoView` to scroll focused editors and search fields into view.
+
 ### Changed
 
 - **Upgraded bundled highlight.js to 11.12.0** - Updated the bundled JavaScript engine from 11.11.1 to 11.12.0,
   bringing grammar improvements for Python, Rust, C/C++, Java, and Go, new language aliases for Kotlin (`ktm`, `ktx`),
   backreference fixes in the parser engine, and added 2 new themes (`equinox` and `vs-dark`) to the sample app (#446).
+- **Sample app LLM/Streaming tab stream button control** - Removed automatic streaming on tab navigation,
+  requiring users to explicitly tap the "Stream" button to start real-time token streaming.
 - **Standardized supported language references to 190+ languages** - Updated documentation, PRD specifications,
   and test comments to consistently describe the bundled grammar capability as 190+ languages.
 
