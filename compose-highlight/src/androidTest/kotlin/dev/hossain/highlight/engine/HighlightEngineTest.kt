@@ -395,7 +395,7 @@ class HighlightEngineTest {
     fun highlightJsVersionMatchesVersionFormat() =
         runBlocking {
             val version = engine.highlightJsVersion().getOrThrow()
-            // Format: digits and dots, e.g. "11.11.1"
+            // Format: digits and dots, e.g. "11.12.0"
             assertThat(version).matches("\\d+\\.\\d+.*")
         }
 
