@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Infrastructure
+
+- **Refined JaCoCo code coverage exclusions** - Excluded generated theme mappings (`GeneratedThemes*`),
+  Android manifests, and Compose synthetic artifacts from code coverage reports in `:compose-highlight`.
+
 ## [0.36.0] - 2026-09-03
 
 ### Fixed
