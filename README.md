@@ -63,6 +63,14 @@ HighlightThemeProvider(
 | <video src="https://github.com/user-attachments/assets/5dc18969-396a-45de-849b-0f8e3e9ffd26"> | <video src="https://github.com/user-attachments/assets/ed155002-be9b-4ba4-898b-35597cced0da"> |
 <!-- markdownlint-enable MD013 MD033 -->
 
+### Production App Demo
+
+See it in action in the <img alt="google-play" src="https://github.com/user-attachments/assets/18725aa7-ea0b-4d6d-962a-e0358703041c" height="14"> [CodeMateX](https://play.google.com/store/apps/details?id=dev.hossain.codematex&pcampaignid=web_share) app's code block settings.
+
+<img width="2560" height="1600" alt="Demo Settings Screen for Compose Highlight Code Block Settings" src="https://github.com/user-attachments/assets/d9aac6fd-9e64-4b67-8958-7f87b897c1a3" />
+
+
+
 ## Links
 
 - 📚 **Docs:** [github.io/android-compose-highlight/](https://hossain-khan.github.io/android-compose-highlight/)
