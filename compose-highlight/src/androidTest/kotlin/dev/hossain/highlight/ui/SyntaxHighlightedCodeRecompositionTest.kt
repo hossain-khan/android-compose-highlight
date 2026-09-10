@@ -3,6 +3,7 @@ package dev.hossain.highlight.ui
 import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -147,13 +148,11 @@ class SyntaxHighlightedCodeRecompositionTest {
         composeTestRule.onNodeWithTag("code_block_b").assertStable()
     }
 
-    @androidx.compose.runtime.Composable
+    @Composable
     private fun CounterLabel(count: Int) {
-        androidx.compose.material3.Text(
+        Text(
             text = "Counter: $count",
-            modifier =
-                androidx.compose.ui.Modifier
-                    .testTag("counter_text"),
+            modifier = Modifier.testTag("counter_text"),
         )
     }
 }
