@@ -47,11 +47,13 @@ class SyntaxHighlightedCodeRecompositionTest {
                         onClick = { counter++ },
                         modifier = Modifier.testTag("increment_button"),
                     ) {
-                        Text(
-                            text = "Counter: $counter",
-                            modifier = Modifier.testTag("counter_text"),
-                        )
+                        Text("Increment")
                     }
+
+                    Text(
+                        text = "Counter: $counter",
+                        modifier = Modifier.testTag("counter_text"),
+                    )
 
                     SyntaxHighlightedCode(
                         code = "val message = \"Hello, World!\"",

@@ -48,11 +48,13 @@ class StreamingSyntaxHighlightedCodeRecompositionTest {
                         onClick = { counter++ },
                         modifier = Modifier.testTag("increment_button"),
                     ) {
-                        Text(
-                            text = "Counter: $counter",
-                            modifier = Modifier.testTag("counter_text"),
-                        )
+                        Text("Increment")
                     }
+
+                    Text(
+                        text = "Counter: $counter",
+                        modifier = Modifier.testTag("counter_text"),
+                    )
 
                     StreamingSyntaxHighlightedCode(
                         code = "fun stream() = 42",
