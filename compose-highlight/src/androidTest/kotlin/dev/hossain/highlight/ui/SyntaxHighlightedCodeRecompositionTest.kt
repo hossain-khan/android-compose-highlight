@@ -50,10 +50,7 @@ class SyntaxHighlightedCodeRecompositionTest {
                         Text("Increment")
                     }
 
-                    Text(
-                        text = "Counter: $counter",
-                        modifier = Modifier.testTag("counter_text"),
-                    )
+                    CounterLabel(count = counter)
 
                     SyntaxHighlightedCode(
                         code = "val message = \"Hello, World!\"",
@@ -148,5 +145,15 @@ class SyntaxHighlightedCodeRecompositionTest {
 
         // Block B's inputs were unchanged - must remain completely stable
         composeTestRule.onNodeWithTag("code_block_b").assertStable()
+    }
+
+    @androidx.compose.runtime.Composable
+    private fun CounterLabel(count: Int) {
+        androidx.compose.material3.Text(
+            text = "Counter: $count",
+            modifier =
+                androidx.compose.ui.Modifier
+                    .testTag("counter_text"),
+        )
     }
 }

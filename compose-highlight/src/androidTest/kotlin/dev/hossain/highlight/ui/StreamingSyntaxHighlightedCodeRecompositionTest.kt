@@ -51,10 +51,7 @@ class StreamingSyntaxHighlightedCodeRecompositionTest {
                         Text("Increment")
                     }
 
-                    Text(
-                        text = "Counter: $counter",
-                        modifier = Modifier.testTag("counter_text"),
-                    )
+                    CounterLabel(count = counter)
 
                     StreamingSyntaxHighlightedCode(
                         code = "fun stream() = 42",
@@ -107,5 +104,15 @@ class StreamingSyntaxHighlightedCodeRecompositionTest {
 
         // Must recompose exactly once for the new code string
         composeTestRule.onNodeWithTag("streaming-syntax-highlighted-code").assertRecompositions(exactly = 1)
+    }
+
+    @androidx.compose.runtime.Composable
+    private fun CounterLabel(count: Int) {
+        androidx.compose.material3.Text(
+            text = "Counter: $count",
+            modifier =
+                androidx.compose.ui.Modifier
+                    .testTag("counter_text"),
+        )
     }
 }
