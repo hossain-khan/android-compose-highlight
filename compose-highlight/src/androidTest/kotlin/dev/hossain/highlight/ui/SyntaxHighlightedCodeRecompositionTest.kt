@@ -46,12 +46,12 @@ class SyntaxHighlightedCodeRecompositionTest {
                 Column {
                     Button(
                         onClick = { counter++ },
-                        modifier = Modifier.testTag("increment_button"),
+                        modifier = Modifier.testTag("code_increment_button"),
                     ) {
                         Text("Increment")
                     }
 
-                    CounterLabel(count = counter)
+                    CodeCounterLabel(count = counter)
 
                     SyntaxHighlightedCode(
                         code = "val message = \"Hello, World!\"",
@@ -66,11 +66,11 @@ class SyntaxHighlightedCodeRecompositionTest {
         composeTestRule.resetRecompositionCounts()
 
         // Trigger a recomposition in the parent via counter state change
-        composeTestRule.onNodeWithTag("increment_button").performClick()
+        composeTestRule.onNodeWithTag("code_increment_button").performClick()
         composeTestRule.waitForIdle()
 
-        // The counter text inside the button should have recomposed
-        composeTestRule.onNodeWithTag("counter_text").assertRecompositions(exactly = 1)
+        // The counter text should have recomposed
+        composeTestRule.onNodeWithTag("code_counter_text").assertRecompositions(exactly = 1)
 
         // SyntaxHighlightedCode parameters did not change - must skip recomposition entirely
         composeTestRule.onNodeWithTag("syntax-highlighted-code").assertStable()
@@ -149,10 +149,10 @@ class SyntaxHighlightedCodeRecompositionTest {
     }
 
     @Composable
-    private fun CounterLabel(count: Int) {
+    private fun CodeCounterLabel(count: Int) {
         Text(
             text = "Counter: $count",
-            modifier = Modifier.testTag("counter_text"),
+            modifier = Modifier.testTag("code_counter_text"),
         )
     }
 }

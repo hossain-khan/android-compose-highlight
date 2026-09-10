@@ -47,12 +47,12 @@ class StreamingSyntaxHighlightedCodeRecompositionTest {
                 Column {
                     Button(
                         onClick = { counter++ },
-                        modifier = Modifier.testTag("increment_button"),
+                        modifier = Modifier.testTag("streaming_increment_button"),
                     ) {
                         Text("Increment")
                     }
 
-                    CounterLabel(count = counter)
+                    StreamingCounterLabel(count = counter)
 
                     StreamingSyntaxHighlightedCode(
                         code = "fun stream() = 42",
@@ -67,11 +67,11 @@ class StreamingSyntaxHighlightedCodeRecompositionTest {
         composeTestRule.resetRecompositionCounts()
 
         // Trigger a recomposition in parent via counter
-        composeTestRule.onNodeWithTag("increment_button").performClick()
+        composeTestRule.onNodeWithTag("streaming_increment_button").performClick()
         composeTestRule.waitForIdle()
 
         // Counter text recomposes once
-        composeTestRule.onNodeWithTag("counter_text").assertRecompositions(exactly = 1)
+        composeTestRule.onNodeWithTag("streaming_counter_text").assertRecompositions(exactly = 1)
 
         // Streaming block parameters did not change - must skip recomposition entirely
         composeTestRule.onNodeWithTag("streaming-syntax-highlighted-code").assertStable()
@@ -108,10 +108,10 @@ class StreamingSyntaxHighlightedCodeRecompositionTest {
     }
 
     @Composable
-    private fun CounterLabel(count: Int) {
+    private fun StreamingCounterLabel(count: Int) {
         Text(
             text = "Counter: $count",
-            modifier = Modifier.testTag("counter_text"),
+            modifier = Modifier.testTag("streaming_counter_text"),
         )
     }
 }

@@ -46,12 +46,12 @@ class SyntaxHighlightedTextEditorRecompositionTest {
                 Column {
                     Button(
                         onClick = { counter++ },
-                        modifier = Modifier.testTag("increment_button"),
+                        modifier = Modifier.testTag("editor_increment_button"),
                     ) {
                         Text("Increment")
                     }
 
-                    CounterLabel(count = counter)
+                    EditorCounterLabel(count = counter)
 
                     SyntaxHighlightedTextEditor(
                         value = editorValue,
@@ -67,11 +67,11 @@ class SyntaxHighlightedTextEditorRecompositionTest {
         composeTestRule.resetRecompositionCounts()
 
         // Trigger a recomposition in parent via counter
-        composeTestRule.onNodeWithTag("increment_button").performClick()
+        composeTestRule.onNodeWithTag("editor_increment_button").performClick()
         composeTestRule.waitForIdle()
 
         // Counter text recomposes once
-        composeTestRule.onNodeWithTag("counter_text").assertRecompositions(exactly = 1)
+        composeTestRule.onNodeWithTag("editor_counter_text").assertRecompositions(exactly = 1)
 
         // Editor inputs did not change - must skip recomposition entirely
         composeTestRule.onNodeWithTag("syntax-highlighted-text-editor").assertStable()
@@ -106,10 +106,10 @@ class SyntaxHighlightedTextEditorRecompositionTest {
     }
 
     @Composable
-    private fun CounterLabel(count: Int) {
+    private fun EditorCounterLabel(count: Int) {
         Text(
             text = "Counter: $count",
-            modifier = Modifier.testTag("counter_text"),
+            modifier = Modifier.testTag("editor_counter_text"),
         )
     }
 }
