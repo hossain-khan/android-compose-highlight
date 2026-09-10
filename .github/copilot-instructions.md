@@ -47,6 +47,10 @@ npx markdownlint-cli --fix CHANGELOG.md
 ./gradlew :compose-highlight:connectedAndroidTest \
   -P android.testInstrumentationRunnerArguments.class=dev.hossain.highlight.benchmark.HighlightEngineBenchmark
 
+# Run recomposition stability tests on a connected device (powered by Dejavu)
+./gradlew :compose-highlight:connectedAndroidTest \
+  -P android.testInstrumentationRunnerArguments.class=dev.hossain.highlight.ui.SyntaxHighlightedCodeRecompositionTest
+
 # Generate Dokka API docs → docs/api/
 ./gradlew :compose-highlight:dokkaGeneratePublicationHtml
 ```

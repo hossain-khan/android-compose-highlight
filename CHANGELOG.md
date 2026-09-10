@@ -6,6 +6,10 @@ All notable changes to this project will be documented in this file.
 
 ### Infrastructure
 
+- **Adopted Dejavu for automated recomposition testing** - Integrated `me.mmckenna.dejavu` (0.5.0) as an internal
+  test dependency and added recomposition test suites to verify that `SyntaxHighlightedCode`,
+  `StreamingSyntaxHighlightedCode`, and `SyntaxHighlightedTextEditor` properly honor Compose compiler skipping
+  contracts and stay stable during parent and sibling recompositions (#461).
 - **Refined JaCoCo code coverage exclusions** - Excluded generated theme mappings (`GeneratedThemes*`),
   Android manifests, and Compose synthetic artifacts from code coverage reports in `:compose-highlight`.
 

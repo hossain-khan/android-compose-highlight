@@ -171,6 +171,10 @@ if (providers.gradleProperty("runBenchmark").orNull == "true") {
     }
 }
 
+composeCompiler {
+    includeSourceInformation = true
+}
+
 if (providers.gradleProperty("composeReports").orNull == "true") {
     composeCompiler {
         reportsDestination = layout.buildDirectory.dir("compose_compiler")
@@ -216,6 +220,7 @@ dependencies {
     androidTestImplementation(libs.androidx.test.espresso.core) // force upgrade from 3.5.0 → 3.7.0
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     androidTestImplementation(libs.androidx.benchmark.junit4)
+    androidTestImplementation(libs.dejavu)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
 }
 
