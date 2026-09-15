@@ -12,6 +12,8 @@ All notable changes to this project will be documented in this file.
   contracts and stay stable during parent and sibling recompositions (#461).
 - **Refined JaCoCo code coverage exclusions** - Excluded generated theme mappings (`GeneratedThemes*`),
   Android manifests, and Compose synthetic artifacts from code coverage reports in `:compose-highlight`.
+- **Upgraded Zensical to 0.0.62** - Updated the documentation site generator to the latest version, refreshed
+  frozen Dokka retheme assets (`main.ce62732f.min.css` and `palette.812a03bb.min.css`), and verified clean docs build.
 
 ## [0.36.0] - 2026-09-03
 
