@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+
+- **Horizontal scrolling demo toggle in sample app editor** - Added a toggle in `LiveEditorSection` to showcase
+  `SyntaxHighlightedTextEditor`'s `horizontalScrollState` parameter, allowing users to toggle between soft line
+  wrapping and horizontal scrolling.
+
 ### Infrastructure
 
 - **Adopted Dejavu for automated recomposition testing** - Integrated `me.mmckenna.dejavu` (0.5.0) as an internal

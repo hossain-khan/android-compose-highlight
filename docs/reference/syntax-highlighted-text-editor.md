@@ -28,8 +28,10 @@ Full API in Dokka:
 - `theme` - explicit theme or value from `HighlightThemeProvider`.
 - `debounceMs` - typing pause before highlight call.
 - `contentPadding` and `shape` - layout and clipping of editor surface.
-- `horizontalScrollState` and `verticalScrollState` - hoisted scroll states for external control
-  or observation of editor scroll position.
+- `horizontalScrollState` and `verticalScrollState` - hoisted scroll states for horizontal and
+  vertical scrolling. Defaults to `null`. When `horizontalScrollState` is `null`, code lines
+  soft-wrap to fit the container width. Passing a `rememberScrollState()` disables soft-wrapping
+  and enables horizontal panning across long code lines.
 - `keyboardOptions` - keyboard / IME behavior. Defaults to
   `SyntaxHighlightedTextEditorDefaults.CodeKeyboardOptions` (autocorrect off,
   autocapitalization off, Ascii keyboard) - the right defaults for source code.
@@ -159,6 +161,28 @@ fun LargerEditor() {
         onValueChange = { editorValue = it },
         language      = "kotlin",
         textStyle     = editorStyle,
+    )
+}
+```
+
+### Disable line wrapping (enable horizontal scrolling)
+
+By default, the editor soft-wraps lines when they exceed the horizontal bounds of the screen.
+To disable line wrapping and allow horizontal panning across long code lines, pass a hoisted
+`ScrollState` via `horizontalScrollState`:
+
+```kotlin
+@OptIn(ExperimentalHighlightApi::class)
+@Composable
+fun HorizontallyScrollableEditor() {
+    var editorValue by remember { mutableStateOf(TextFieldValue("")) }
+    val horizontalScrollState = rememberScrollState()
+
+    SyntaxHighlightedTextEditor(
+        value                 = editorValue,
+        onValueChange         = { editorValue = it },
+        language              = "kotlin",
+        horizontalScrollState = horizontalScrollState,
     )
 }
 ```

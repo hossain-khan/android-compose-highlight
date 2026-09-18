@@ -3,6 +3,7 @@
 package dev.hossain.highlight.sample.sections
 
 import androidx.compose.foundation.border
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -10,6 +11,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
@@ -49,7 +51,7 @@ fun greet(name: String): String {
     return "Hello, ${'$'}name!"
 }
 
-data class User(val id: Int, val name: String)
+data class User(val id: Int, val name: String, val email: String = "alice@example.com", val isActive: Boolean = true)
 
 fun main() {
     val user = User(1, "Alice")
@@ -139,6 +141,7 @@ LIMIT 10;
 internal fun LiveEditorSection() {
     var selectedLanguage by rememberSaveable { mutableStateOf("kotlin") }
     var customCursorColor by rememberSaveable { mutableStateOf(false) }
+    var horizontalScrollEnabled by rememberSaveable { mutableStateOf(false) }
     val editorStateHolder = rememberSaveableStateHolder()
 
     // Resolve the cursor brush in composition so MaterialTheme.colorScheme is in scope.
@@ -184,15 +187,23 @@ internal fun LiveEditorSection() {
             }
         }
 
-        // Customization toggle - flips cursorBrush between the editor's theme-aware default
-        // (null) and an explicit primary-color SolidColor so users can see the difference.
+        // Customization toggles:
+        // - cursorBrush: flips between the editor's theme-aware default (null) and an explicit
+        //   primary-color SolidColor.
+        // - horizontalScrollState: toggles horizontal scrolling (no line wrapping) vs soft wrapping.
         Row(
+            modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             FilterChip(
                 selected = customCursorColor,
                 onClick = { customCursorColor = !customCursorColor },
                 label = { Text("Custom cursor color") },
+            )
+            FilterChip(
+                selected = horizontalScrollEnabled,
+                onClick = { horizontalScrollEnabled = !horizontalScrollEnabled },
+                label = { Text("Horizontal scroll (no-wrap)") },
             )
         }
 
@@ -202,10 +213,12 @@ internal fun LiveEditorSection() {
         //   customizing one field.
         // - cursorBrush: null lets the editor derive a visible cursor from the current theme;
         //   the toggle above swaps in an explicit SolidColor.
+        // - horizontalScrollState: when non-null, enables horizontal scrolling and disables line wrapping.
         editorStateHolder.SaveableStateProvider(selectedLanguage) {
             var editorValue by rememberSaveable(stateSaver = TextFieldValue.Saver) {
                 mutableStateOf(TextFieldValue(INITIAL_CODE_BY_LANGUAGE[selectedLanguage] ?: ""))
             }
+            val horizontalScrollState = rememberScrollState()
 
             SyntaxHighlightedTextEditor(
                 value = editorValue,
@@ -231,6 +244,7 @@ internal fun LiveEditorSection() {
                     SyntaxHighlightedTextEditorDefaults.CodeKeyboardOptions
                         .copy(imeAction = ImeAction.Done),
                 cursorBrush = cursorBrush,
+                horizontalScrollState = if (horizontalScrollEnabled) horizontalScrollState else null,
             )
         }
     }
