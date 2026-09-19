@@ -38,6 +38,7 @@ jobs:
           DOCS_CHANGED=false
           while IFS= read -r file; do
             if [[ "$file" == compose-highlight/src/* || \
+                  "$file" == compose-highlight/api/* || \
                   "$file" == sample/src/* || \
                   "$file" == buildSrc/* || \
                   "$file" == gradle/* || \
@@ -128,6 +129,10 @@ jobs:
         if: steps.changes.outputs.code == 'true'
         run: ./gradlew lintKotlin
 
+      - name: Check binary API compatibility
+        if: steps.changes.outputs.code == 'true'
+        run: ./gradlew apiCheck
+
       - name: Generate Dokka API docs
         if: steps.changes.outputs.code == 'true'
         run: ./gradlew :compose-highlight:dokkaGeneratePublicationHtml
@@ -187,7 +192,7 @@ jobs:
 
       - name: Assemble library (release) and generate Compose compiler reports
         if: steps.changes.outputs.code == 'true'
-        run: ./gradlew :compose-highlight:assembleRelease -PcomposeReports=true
+        run: ./gradlew :compose-highlight:assembleRelease -PcomposeReports=true --rerun-tasks
 
       - name: Assemble sample app (release)
         if: steps.changes.outputs.code == 'true'

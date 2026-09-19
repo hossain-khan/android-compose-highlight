@@ -1,0 +1,417 @@
+public final class dev/hossain/highlight/engine/AutoHighlightResult {
+	public static final field $stable I
+	public fun <init> (Landroidx/compose/ui/text/AnnotatedString;Ljava/lang/String;IJLdev/hossain/highlight/engine/HighlightTimings;)V
+	public final fun component1 ()Landroidx/compose/ui/text/AnnotatedString;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()I
+	public final fun component4 ()J
+	public final fun component5 ()Ldev/hossain/highlight/engine/HighlightTimings;
+	public final fun copy (Landroidx/compose/ui/text/AnnotatedString;Ljava/lang/String;IJLdev/hossain/highlight/engine/HighlightTimings;)Ldev/hossain/highlight/engine/AutoHighlightResult;
+	public static synthetic fun copy$default (Ldev/hossain/highlight/engine/AutoHighlightResult;Landroidx/compose/ui/text/AnnotatedString;Ljava/lang/String;IJLdev/hossain/highlight/engine/HighlightTimings;ILjava/lang/Object;)Ldev/hossain/highlight/engine/AutoHighlightResult;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAnnotated ()Landroidx/compose/ui/text/AnnotatedString;
+	public final fun getDetectedLanguage ()Ljava/lang/String;
+	public final fun getDurationMs ()J
+	public final fun getSpanCount ()I
+	public final fun getTimings ()Ldev/hossain/highlight/engine/HighlightTimings;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/hossain/highlight/engine/HighlightEngine : java/io/Closeable {
+	public static final field $stable I
+	public fun <init> (Landroid/content/Context;)V
+	public fun close ()V
+	public final fun destroy ()V
+	public final fun getLanguage-gIAlu-s (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun highlight-BWLJW6A (Ljava/lang/String;Ljava/lang/String;Ldev/hossain/highlight/engine/HighlightTheme;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun highlightAuto-0E7RQCE (Ljava/lang/String;Ldev/hossain/highlight/engine/HighlightTheme;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun highlightBothThemes-yxL6bBk (Ljava/lang/String;Ljava/lang/String;Ldev/hossain/highlight/engine/HighlightTheme;Ldev/hossain/highlight/engine/HighlightTheme;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun highlightJsVersion-IoAF18A (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun highlightToHtml-0E7RQCE (Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun initialize-IoAF18A (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun isInitialized ()Lkotlinx/coroutines/flow/StateFlow;
+	public final fun supportedLanguages-IoAF18A (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public abstract class dev/hossain/highlight/engine/HighlightException : java/lang/Exception {
+	public static final field $stable I
+	public static final field Companion Ldev/hossain/highlight/engine/HighlightException$Companion;
+	public static final field TIMEOUT_SECONDS J
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Throwable;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+}
+
+public final class dev/hossain/highlight/engine/HighlightException$Companion {
+}
+
+public final class dev/hossain/highlight/engine/HighlightException$HtmlParseFailed : dev/hossain/highlight/engine/HighlightException {
+	public static final field $stable I
+	public fun <init> (Ljava/lang/Throwable;)V
+}
+
+public final class dev/hossain/highlight/engine/HighlightException$JsExecutionFailed : dev/hossain/highlight/engine/HighlightException {
+	public static final field $stable I
+	public fun <init> (Ljava/lang/Throwable;)V
+}
+
+public final class dev/hossain/highlight/engine/HighlightException$ThemeNotFound : dev/hossain/highlight/engine/HighlightException {
+	public static final field $stable I
+	public fun <init> (Ljava/lang/String;)V
+}
+
+public final class dev/hossain/highlight/engine/HighlightException$Timeout : dev/hossain/highlight/engine/HighlightException {
+	public static final field $stable I
+	public fun <init> ()V
+}
+
+public final class dev/hossain/highlight/engine/HighlightException$WebViewInitFailed : dev/hossain/highlight/engine/HighlightException {
+	public static final field $stable I
+	public fun <init> (Ljava/lang/Throwable;)V
+}
+
+public final class dev/hossain/highlight/engine/HighlightLanguage {
+	public static final field $stable I
+	public static final field INSTANCE Ldev/hossain/highlight/engine/HighlightLanguage;
+	public final fun canonicalName (Ljava/lang/String;)Ljava/lang/String;
+	public final fun fromExtension (Ljava/lang/String;)Ljava/lang/String;
+	public final fun getALL ()Ljava/util/List;
+	public final fun getAll ()Ljava/util/List;
+	public final fun getPRIMARY ()Ljava/util/List;
+	public final fun getPrimary ()Ljava/util/List;
+	public final fun isSupported (Ljava/lang/String;)Z
+}
+
+public final class dev/hossain/highlight/engine/HighlightLanguageInfo {
+	public static final field $stable I
+	public fun <init> (Ljava/lang/String;Ljava/util/List;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/util/List;
+	public final fun copy (Ljava/lang/String;Ljava/util/List;)Ldev/hossain/highlight/engine/HighlightLanguageInfo;
+	public static synthetic fun copy$default (Ldev/hossain/highlight/engine/HighlightLanguageInfo;Ljava/lang/String;Ljava/util/List;ILjava/lang/Object;)Ldev/hossain/highlight/engine/HighlightLanguageInfo;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAliases ()Ljava/util/List;
+	public final fun getName ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/hossain/highlight/engine/HighlightResult {
+	public static final field $stable I
+	public fun <init> (Landroidx/compose/ui/text/AnnotatedString;ILjava/lang/String;JLdev/hossain/highlight/engine/HighlightTimings;)V
+	public final fun component1 ()Landroidx/compose/ui/text/AnnotatedString;
+	public final fun component2 ()I
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()J
+	public final fun component5 ()Ldev/hossain/highlight/engine/HighlightTimings;
+	public final fun copy (Landroidx/compose/ui/text/AnnotatedString;ILjava/lang/String;JLdev/hossain/highlight/engine/HighlightTimings;)Ldev/hossain/highlight/engine/HighlightResult;
+	public static synthetic fun copy$default (Ldev/hossain/highlight/engine/HighlightResult;Landroidx/compose/ui/text/AnnotatedString;ILjava/lang/String;JLdev/hossain/highlight/engine/HighlightTimings;ILjava/lang/Object;)Ldev/hossain/highlight/engine/HighlightResult;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAnnotated ()Landroidx/compose/ui/text/AnnotatedString;
+	public final fun getDurationMs ()J
+	public final fun getLanguage ()Ljava/lang/String;
+	public final fun getSpanCount ()I
+	public final fun getTimings ()Ldev/hossain/highlight/engine/HighlightTimings;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/hossain/highlight/engine/HighlightTheme {
+	public static final field $stable I
+	public static final field Companion Ldev/hossain/highlight/engine/HighlightTheme$Companion;
+	public synthetic fun <init> (Ljava/lang/String;Lkotlin/jvm/functions/Function0;[JLkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getBackgroundColor-0d7_KjU ()J
+	public final fun getColorMap ()Ljava/util/Map;
+	public final fun getDefaultTextColor-0d7_KjU ()J
+	public final fun getName ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/hossain/highlight/engine/HighlightTheme$Companion {
+	public final fun alucardDark ()Ldev/hossain/highlight/engine/HighlightTheme;
+	public final fun alucardLight ()Ldev/hossain/highlight/engine/HighlightTheme;
+	public final fun atomOneDark ()Ldev/hossain/highlight/engine/HighlightTheme;
+	public final fun atomOneLight ()Ldev/hossain/highlight/engine/HighlightTheme;
+	public final fun draculaDark ()Ldev/hossain/highlight/engine/HighlightTheme;
+	public final fun draculaLight ()Ldev/hossain/highlight/engine/HighlightTheme;
+	public final fun findBundledById (Ljava/lang/String;)Ldev/hossain/highlight/engine/HighlightThemeDescriptor;
+	public final fun fromAsset (Landroid/content/Context;Ljava/lang/String;Ljava/lang/String;)Ldev/hossain/highlight/engine/HighlightTheme;
+	public final fun fromColorMap-Ij2XjQ8 (Ljava/lang/String;Ljava/util/Map;Landroidx/compose/ui/graphics/Color;Landroidx/compose/ui/graphics/Color;)Ldev/hossain/highlight/engine/HighlightTheme;
+	public static synthetic fun fromColorMap-Ij2XjQ8$default (Ldev/hossain/highlight/engine/HighlightTheme$Companion;Ljava/lang/String;Ljava/util/Map;Landroidx/compose/ui/graphics/Color;Landroidx/compose/ui/graphics/Color;ILjava/lang/Object;)Ldev/hossain/highlight/engine/HighlightTheme;
+	public final fun fromCss (Ljava/lang/String;Ljava/lang/String;)Ldev/hossain/highlight/engine/HighlightTheme;
+	public final fun getBundled ()Ljava/util/List;
+	public final fun getBundledDark ()Ljava/util/List;
+	public final fun getBundledLight ()Ljava/util/List;
+	public final fun githubDark ()Ldev/hossain/highlight/engine/HighlightTheme;
+	public final fun githubLight ()Ldev/hossain/highlight/engine/HighlightTheme;
+	public final fun tomorrow ()Ldev/hossain/highlight/engine/HighlightTheme;
+	public final fun tomorrowNight ()Ldev/hossain/highlight/engine/HighlightTheme;
+}
+
+public final class dev/hossain/highlight/engine/HighlightThemeDescriptor {
+	public static final field $stable I
+	public final fun create ()Ldev/hossain/highlight/engine/HighlightTheme;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getDisplayName ()Ljava/lang/String;
+	public final fun getId ()Ljava/lang/String;
+	public final fun getTheme ()Ldev/hossain/highlight/engine/HighlightTheme;
+	public fun hashCode ()I
+	public final fun isDark ()Z
+	public final fun isLight ()Z
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/hossain/highlight/engine/HighlightTimings {
+	public static final field $stable I
+	public synthetic fun <init> (JJJJJLkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1-UwyO8pc ()J
+	public final fun component2-UwyO8pc ()J
+	public final fun component3-UwyO8pc ()J
+	public final fun component4-UwyO8pc ()J
+	public final fun component5-UwyO8pc ()J
+	public final fun copy-ppdbICw (JJJJJ)Ldev/hossain/highlight/engine/HighlightTimings;
+	public static synthetic fun copy-ppdbICw$default (Ldev/hossain/highlight/engine/HighlightTimings;JJJJJILjava/lang/Object;)Ldev/hossain/highlight/engine/HighlightTimings;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getHtmlParse-UwyO8pc ()J
+	public final fun getJsBridge-UwyO8pc ()J
+	public final fun getJsonUnescape-UwyO8pc ()J
+	public final fun getThemeParse-UwyO8pc ()J
+	public final fun getTotal-UwyO8pc ()J
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/hossain/highlight/engine/HljsSelectors {
+	public static final field $stable I
+	public static final field ADDITION Ljava/lang/String;
+	public static final field ATRULE Ljava/lang/String;
+	public static final field ATTR Ljava/lang/String;
+	public static final field ATTRIBUTE Ljava/lang/String;
+	public static final field BASE Ljava/lang/String;
+	public static final field BUILT_IN Ljava/lang/String;
+	public static final field BULLET Ljava/lang/String;
+	public static final field CHAR Ljava/lang/String;
+	public static final field CHAR_ESCAPE Ljava/lang/String;
+	public static final field CODE Ljava/lang/String;
+	public static final field COMMENT Ljava/lang/String;
+	public static final field DELETION Ljava/lang/String;
+	public static final field DOCTAG Ljava/lang/String;
+	public static final field EMPHASIS Ljava/lang/String;
+	public static final field FORMULA Ljava/lang/String;
+	public static final field INSTANCE Ldev/hossain/highlight/engine/HljsSelectors;
+	public static final field KEYWORD Ljava/lang/String;
+	public static final field LINK Ljava/lang/String;
+	public static final field LITERAL Ljava/lang/String;
+	public static final field META Ljava/lang/String;
+	public static final field META_KEYWORD Ljava/lang/String;
+	public static final field META_PROMPT Ljava/lang/String;
+	public static final field META_STRING Ljava/lang/String;
+	public static final field NAME Ljava/lang/String;
+	public static final field NUMBER Ljava/lang/String;
+	public static final field OPERATOR Ljava/lang/String;
+	public static final field PARAMS Ljava/lang/String;
+	public static final field PROPERTY Ljava/lang/String;
+	public static final field PUNCTUATION Ljava/lang/String;
+	public static final field QUOTE Ljava/lang/String;
+	public static final field REGEXP Ljava/lang/String;
+	public static final field SECTION Ljava/lang/String;
+	public static final field SELECTOR_ATTR Ljava/lang/String;
+	public static final field SELECTOR_CLASS Ljava/lang/String;
+	public static final field SELECTOR_ID Ljava/lang/String;
+	public static final field SELECTOR_PSEUDO Ljava/lang/String;
+	public static final field SELECTOR_TAG Ljava/lang/String;
+	public static final field STRING Ljava/lang/String;
+	public static final field STRONG Ljava/lang/String;
+	public static final field SUBST Ljava/lang/String;
+	public static final field SYMBOL Ljava/lang/String;
+	public static final field TAG Ljava/lang/String;
+	public static final field TEMPLATE_TAG Ljava/lang/String;
+	public static final field TEMPLATE_VARIABLE Ljava/lang/String;
+	public static final field TITLE Ljava/lang/String;
+	public static final field TITLE_CLASS Ljava/lang/String;
+	public static final field TITLE_CLASS_INHERITED Ljava/lang/String;
+	public static final field TITLE_FUNCTION Ljava/lang/String;
+	public static final field TITLE_FUNCTION_INVOKE Ljava/lang/String;
+	public static final field TYPE Ljava/lang/String;
+	public static final field VARIABLE Ljava/lang/String;
+	public static final field VARIABLE_CONSTANT Ljava/lang/String;
+	public static final field VARIABLE_LANGUAGE Ljava/lang/String;
+}
+
+public final class dev/hossain/highlight/engine/HtmlHighlightResult {
+	public static final field $stable I
+	public synthetic fun <init> (Ljava/lang/String;JJJILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ljava/lang/String;JJJLkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()J
+	public final fun component3-UwyO8pc ()J
+	public final fun component4-UwyO8pc ()J
+	public final fun copy-VTINZ0E (Ljava/lang/String;JJJ)Ldev/hossain/highlight/engine/HtmlHighlightResult;
+	public static synthetic fun copy-VTINZ0E$default (Ldev/hossain/highlight/engine/HtmlHighlightResult;Ljava/lang/String;JJJILjava/lang/Object;)Ldev/hossain/highlight/engine/HtmlHighlightResult;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getDurationMs ()J
+	public final fun getHtml ()Ljava/lang/String;
+	public final fun getJsBridgeDuration-UwyO8pc ()J
+	public final fun getJsonUnescapeDuration-UwyO8pc ()J
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/hossain/highlight/engine/ThemedHighlightResult {
+	public static final field $stable I
+	public fun <init> (Landroidx/compose/ui/text/AnnotatedString;Landroidx/compose/ui/text/AnnotatedString;JLdev/hossain/highlight/engine/HighlightTimings;)V
+	public final fun component1 ()Landroidx/compose/ui/text/AnnotatedString;
+	public final fun component2 ()Landroidx/compose/ui/text/AnnotatedString;
+	public final fun component3 ()J
+	public final fun component4 ()Ldev/hossain/highlight/engine/HighlightTimings;
+	public final fun copy (Landroidx/compose/ui/text/AnnotatedString;Landroidx/compose/ui/text/AnnotatedString;JLdev/hossain/highlight/engine/HighlightTimings;)Ldev/hossain/highlight/engine/ThemedHighlightResult;
+	public static synthetic fun copy$default (Ldev/hossain/highlight/engine/ThemedHighlightResult;Landroidx/compose/ui/text/AnnotatedString;Landroidx/compose/ui/text/AnnotatedString;JLdev/hossain/highlight/engine/HighlightTimings;ILjava/lang/Object;)Ldev/hossain/highlight/engine/ThemedHighlightResult;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getDark ()Landroidx/compose/ui/text/AnnotatedString;
+	public final fun getDurationMs ()J
+	public final fun getLight ()Landroidx/compose/ui/text/AnnotatedString;
+	public final fun getTimings ()Ldev/hossain/highlight/engine/HighlightTimings;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/hossain/highlight/ui/CodeBlockStyle {
+	public static final field $stable I
+	public static final field Companion Ldev/hossain/highlight/ui/CodeBlockStyle$Companion;
+	public fun <init> ()V
+	public synthetic fun <init> (Landroidx/compose/ui/graphics/Shape;Landroidx/compose/foundation/layout/PaddingValues;Landroidx/compose/foundation/layout/PaddingValues;JFFLandroidx/compose/ui/text/TextStyle;JJILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Landroidx/compose/ui/graphics/Shape;Landroidx/compose/foundation/layout/PaddingValues;Landroidx/compose/foundation/layout/PaddingValues;JFFLandroidx/compose/ui/text/TextStyle;JJLkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Landroidx/compose/ui/graphics/Shape;
+	public final fun component2 ()Landroidx/compose/foundation/layout/PaddingValues;
+	public final fun component3 ()Landroidx/compose/foundation/layout/PaddingValues;
+	public final fun component4-0d7_KjU ()J
+	public final fun component5-D9Ej5fM ()F
+	public final fun component6-D9Ej5fM ()F
+	public final fun component7 ()Landroidx/compose/ui/text/TextStyle;
+	public final fun component8-0d7_KjU ()J
+	public final fun component9-0d7_KjU ()J
+	public final fun copy-tK2LwIg (Landroidx/compose/ui/graphics/Shape;Landroidx/compose/foundation/layout/PaddingValues;Landroidx/compose/foundation/layout/PaddingValues;JFFLandroidx/compose/ui/text/TextStyle;JJ)Ldev/hossain/highlight/ui/CodeBlockStyle;
+	public static synthetic fun copy-tK2LwIg$default (Ldev/hossain/highlight/ui/CodeBlockStyle;Landroidx/compose/ui/graphics/Shape;Landroidx/compose/foundation/layout/PaddingValues;Landroidx/compose/foundation/layout/PaddingValues;JFFLandroidx/compose/ui/text/TextStyle;JJILjava/lang/Object;)Ldev/hossain/highlight/ui/CodeBlockStyle;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getCopyButtonSize-D9Ej5fM ()F
+	public final fun getFallbackBackgroundColor-0d7_KjU ()J
+	public final fun getFallbackTextColor-0d7_KjU ()J
+	public final fun getHeaderPadding ()Landroidx/compose/foundation/layout/PaddingValues;
+	public final fun getLineNumberColor-0d7_KjU ()J
+	public final fun getLineNumberWidth-D9Ej5fM ()F
+	public final fun getPadding ()Landroidx/compose/foundation/layout/PaddingValues;
+	public final fun getShape ()Landroidx/compose/ui/graphics/Shape;
+	public final fun getTextStyle ()Landroidx/compose/ui/text/TextStyle;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/hossain/highlight/ui/CodeBlockStyle$Companion {
+	public final fun getCompact ()Ldev/hossain/highlight/ui/CodeBlockStyle;
+	public final fun getDefault ()Ldev/hossain/highlight/ui/CodeBlockStyle;
+}
+
+public final class dev/hossain/highlight/ui/ComposableSingletons$HighlightThemeProviderKt {
+	public static final field INSTANCE Ldev/hossain/highlight/ui/ComposableSingletons$HighlightThemeProviderKt;
+	public fun <init> ()V
+	public final fun getLambda$-1993505960$compose_highlight ()Lkotlin/jvm/functions/Function2;
+}
+
+public final class dev/hossain/highlight/ui/ComposableSingletons$StreamingSyntaxHighlightedCodeKt {
+	public static final field INSTANCE Ldev/hossain/highlight/ui/ComposableSingletons$StreamingSyntaxHighlightedCodeKt;
+	public fun <init> ()V
+	public final fun getLambda$-246793220$compose_highlight ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$320840085$compose_highlight ()Lkotlin/jvm/functions/Function3;
+}
+
+public final class dev/hossain/highlight/ui/ComposableSingletons$SyntaxHighlightedCodeKt {
+	public static final field INSTANCE Ldev/hossain/highlight/ui/ComposableSingletons$SyntaxHighlightedCodeKt;
+	public fun <init> ()V
+	public final fun getLambda$-809605254$compose_highlight ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$153657793$compose_highlight ()Lkotlin/jvm/functions/Function3;
+}
+
+public abstract interface annotation class dev/hossain/highlight/ui/ExperimentalHighlightApi : java/lang/annotation/Annotation {
+}
+
+public final class dev/hossain/highlight/ui/HighlightThemeProviderKt {
+	public static final fun HighlightThemeProvider (ZLdev/hossain/highlight/engine/HighlightTheme;Ldev/hossain/highlight/engine/HighlightTheme;Lkotlin/jvm/functions/Function2;Landroidx/compose/runtime/Composer;II)V
+	public static final fun getLocalDarkHighlightTheme ()Landroidx/compose/runtime/ProvidableCompositionLocal;
+	public static final fun getLocalHighlightTheme ()Landroidx/compose/runtime/ProvidableCompositionLocal;
+	public static final fun getLocalLightHighlightTheme ()Landroidx/compose/runtime/ProvidableCompositionLocal;
+	public static final fun rememberAlucardDarkTheme (Landroidx/compose/runtime/Composer;I)Ldev/hossain/highlight/engine/HighlightTheme;
+	public static final fun rememberAlucardLightTheme (Landroidx/compose/runtime/Composer;I)Ldev/hossain/highlight/engine/HighlightTheme;
+	public static final fun rememberAtomOneDarkTheme (Landroidx/compose/runtime/Composer;I)Ldev/hossain/highlight/engine/HighlightTheme;
+	public static final fun rememberAtomOneLightTheme (Landroidx/compose/runtime/Composer;I)Ldev/hossain/highlight/engine/HighlightTheme;
+	public static final fun rememberDraculaDarkTheme (Landroidx/compose/runtime/Composer;I)Ldev/hossain/highlight/engine/HighlightTheme;
+	public static final fun rememberDraculaLightTheme (Landroidx/compose/runtime/Composer;I)Ldev/hossain/highlight/engine/HighlightTheme;
+	public static final fun rememberGithubDarkTheme (Landroidx/compose/runtime/Composer;I)Ldev/hossain/highlight/engine/HighlightTheme;
+	public static final fun rememberGithubLightTheme (Landroidx/compose/runtime/Composer;I)Ldev/hossain/highlight/engine/HighlightTheme;
+	public static final fun rememberTomorrowLightTheme (Landroidx/compose/runtime/Composer;I)Ldev/hossain/highlight/engine/HighlightTheme;
+	public static final fun rememberTomorrowNightTheme (Landroidx/compose/runtime/Composer;I)Ldev/hossain/highlight/engine/HighlightTheme;
+}
+
+public final class dev/hossain/highlight/ui/RememberHighlightEngineKt {
+	public static final fun rememberHighlightEngine (Landroidx/compose/runtime/Composer;I)Ldev/hossain/highlight/engine/HighlightEngine;
+}
+
+public final class dev/hossain/highlight/ui/RememberHighlightedCodeKt {
+	public static final fun rememberHighlightedCode (Ljava/lang/String;Ljava/lang/String;Ldev/hossain/highlight/engine/HighlightTheme;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Landroidx/compose/runtime/Composer;II)Landroidx/compose/runtime/State;
+	public static final fun rememberHighlightedCodeBothThemes (Ljava/lang/String;Ljava/lang/String;Ldev/hossain/highlight/engine/HighlightTheme;Ldev/hossain/highlight/engine/HighlightTheme;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Landroidx/compose/runtime/Composer;II)Landroidx/compose/runtime/State;
+}
+
+public final class dev/hossain/highlight/ui/RememberStreamingHighlightedCodeKt {
+	public static final fun rememberStreamingHighlightedCode (Ljava/lang/String;Ljava/lang/String;Ldev/hossain/highlight/engine/HighlightTheme;JZJLkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Landroidx/compose/runtime/Composer;II)Landroidx/compose/ui/text/AnnotatedString;
+}
+
+public final class dev/hossain/highlight/ui/RememberSyntaxHighlightedEditorValueKt {
+	public static final fun rememberSyntaxHighlightedEditorValue (Landroidx/compose/ui/text/input/TextFieldValue;Ljava/lang/String;Ldev/hossain/highlight/engine/HighlightTheme;JLkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Landroidx/compose/runtime/Composer;II)Landroidx/compose/ui/text/input/TextFieldValue;
+}
+
+public final class dev/hossain/highlight/ui/StreamingSyntaxHighlightedCodeDefaults {
+	public static final field $stable I
+	public static final field DEBOUNCE_MS J
+	public static final field INSTANCE Ldev/hossain/highlight/ui/StreamingSyntaxHighlightedCodeDefaults;
+	public static final field MIN_THROTTLE_MS J
+}
+
+public final class dev/hossain/highlight/ui/StreamingSyntaxHighlightedCodeKt {
+	public static final fun StreamingSyntaxHighlightedCode (Ljava/lang/String;Ljava/lang/String;Landroidx/compose/ui/Modifier;Ldev/hossain/highlight/engine/HighlightTheme;Ldev/hossain/highlight/ui/CodeBlockStyle;ZJZJLandroidx/compose/foundation/ScrollState;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Landroidx/compose/runtime/Composer;III)V
+}
+
+public final class dev/hossain/highlight/ui/SyntaxHighlightedCodeDefaults {
+	public static final field $stable I
+	public static final field INSTANCE Ldev/hossain/highlight/ui/SyntaxHighlightedCodeDefaults;
+	public final fun CopyButton-u4SGt0E (Lkotlin/jvm/functions/Function0;Landroidx/compose/ui/Modifier;JLjava/lang/String;FLandroidx/compose/runtime/Composer;II)V
+	public final fun LanguageLabel-mhOCef0 (Ljava/lang/String;Landroidx/compose/ui/Modifier;JJLandroidx/compose/runtime/Composer;II)V
+	public final fun getCodeTextStyle ()Landroidx/compose/ui/text/TextStyle;
+	public final fun getCopyButtonSize-D9Ej5fM ()F
+	public final fun getFallbackBackgroundColor-0d7_KjU ()J
+	public final fun getFallbackTextColor-0d7_KjU ()J
+	public final fun getHeaderPadding ()Landroidx/compose/foundation/layout/PaddingValues;
+	public final fun getLineNumberWidth-D9Ej5fM ()F
+	public final fun getPadding ()Landroidx/compose/foundation/layout/PaddingValues;
+	public final fun getShape ()Landroidx/compose/ui/graphics/Shape;
+}
+
+public final class dev/hossain/highlight/ui/SyntaxHighlightedCodeKt {
+	public static final fun SyntaxHighlightedCode (Ljava/lang/String;Ljava/lang/String;Landroidx/compose/ui/Modifier;Ldev/hossain/highlight/engine/HighlightTheme;Ldev/hossain/highlight/ui/CodeBlockStyle;ZLandroidx/compose/foundation/ScrollState;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function3;Landroidx/compose/runtime/Composer;III)V
+}
+
+public final class dev/hossain/highlight/ui/SyntaxHighlightedTextEditorDefaults {
+	public static final field $stable I
+	public static final field AUTO_INDENT_ENABLED Z
+	public static final field DEBOUNCE_MS J
+	public static final field DEFAULT_INDENTATION Ljava/lang/String;
+	public static final field INSTANCE Ldev/hossain/highlight/ui/SyntaxHighlightedTextEditorDefaults;
+	public static final field TAB_KEY_INTERCEPTION_ENABLED Z
+	public final fun getCodeKeyboardOptions ()Landroidx/compose/foundation/text/KeyboardOptions;
+	public final fun getDefaultTextStyle ()Landroidx/compose/ui/text/TextStyle;
+}
+
+public final class dev/hossain/highlight/ui/SyntaxHighlightedTextEditorKt {
+	public static final fun SyntaxHighlightedTextEditor (Landroidx/compose/ui/text/input/TextFieldValue;Lkotlin/jvm/functions/Function1;Ljava/lang/String;Landroidx/compose/ui/Modifier;Landroidx/compose/foundation/layout/PaddingValues;Landroidx/compose/ui/graphics/Shape;Ldev/hossain/highlight/engine/HighlightTheme;Landroidx/compose/ui/text/TextStyle;Landroidx/compose/foundation/text/KeyboardOptions;Landroidx/compose/ui/graphics/Brush;JLkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Ljava/lang/String;ZZLandroidx/compose/foundation/ScrollState;Landroidx/compose/foundation/ScrollState;Landroidx/compose/runtime/Composer;III)V
+}
+
