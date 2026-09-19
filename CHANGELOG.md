@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+
+- **Binary Compatibility Validator (BCV) for public API tracking** - Added JetBrains' official Binary
+  Compatibility Validator with `android-bcv-bridge` to track and enforce public ABI compatibility across
+  releases via `./gradlew apiCheck` and `./gradlew apiDump`, establishing the baseline in `compose-highlight.api` (#479).
+
 ## [0.37.0] - 2026-09-19
 
 ### Added

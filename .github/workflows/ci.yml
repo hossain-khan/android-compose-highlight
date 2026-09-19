@@ -38,6 +38,7 @@ jobs:
           DOCS_CHANGED=false
           while IFS= read -r file; do
             if [[ "$file" == compose-highlight/src/* || \
+                  "$file" == compose-highlight/api/* || \
                   "$file" == sample/src/* || \
                   "$file" == buildSrc/* || \
                   "$file" == gradle/* || \
@@ -127,6 +128,10 @@ jobs:
       - name: Check Kotlin formatting
         if: steps.changes.outputs.code == 'true'
         run: ./gradlew lintKotlin
+
+      - name: Check binary API compatibility
+        if: steps.changes.outputs.code == 'true'
+        run: ./gradlew apiCheck
 
       - name: Generate Dokka API docs
         if: steps.changes.outputs.code == 'true'

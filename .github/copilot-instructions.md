@@ -15,6 +15,12 @@ npx markdownlint-cli CHANGELOG.md
 # Auto-fix markdown formatting
 npx markdownlint-cli --fix CHANGELOG.md
 
+# Check binary API compatibility (validates against compose-highlight/api/compose-highlight.api)
+./gradlew apiCheck
+
+# Dump/update public API baseline
+./gradlew apiDump
+
 # JVM unit tests (fast, no device needed)
 ./gradlew :compose-highlight:test
 

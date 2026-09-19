@@ -10,6 +10,7 @@ plugins {
     alias(libs.plugins.dokka)
     alias(libs.plugins.maven.publish)
     alias(libs.plugins.roborazzi)
+    alias(libs.plugins.android.bcv.bridge)
     jacoco
 }
 
