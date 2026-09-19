@@ -12,19 +12,24 @@ SyntaxHighlightedCode(code = snippet, language = "typescript")
 SyntaxHighlightedCode(code = snippet, language = "sql")
 ```
 
-For a full list of supported language identifiers, call `engine.supportedLanguages()` at runtime. For the extension-to-language mapping, see the [HighlightLanguage reference](../reference/highlight-language).
+For the complete list of supported language identifiers, use `HighlightLanguage.all` (available synchronously) or call `engine.supportedLanguages()` at runtime. For the extension-to-language mapping and alias normalization, see the [HighlightLanguage reference](../reference/highlight-language).
 
 ---
 
-## Option 2 - Resolve from a file extension
+## Option 2 - Resolve from a file extension or alias
 
-`HighlightLanguage.fromExtension()` maps a file extension to its Highlight.js identifier:
+`HighlightLanguage.canonicalName()` normalizes language names and short aliases (e.g. `kt` -> `kotlin`, `js` -> `javascript`, `sh` -> `bash`), while `HighlightLanguage.fromExtension()` maps file extensions:
 
 ```kotlin
 import dev.hossain.highlight.engine.HighlightLanguage
 
-val language = HighlightLanguage.fromExtension("kt")  // "kotlin"
-val unknown  = HighlightLanguage.fromExtension("xyz") // null
+// Normalize aliases or check support synchronously
+val language = HighlightLanguage.canonicalName("kt") // "kotlin"
+val supported = HighlightLanguage.isSupported("html") // true
+
+// Map a file extension
+val fromExt = HighlightLanguage.fromExtension("kt")  // "kotlin"
+val unknown = HighlightLanguage.fromExtension("xyz") // null
 ```
 
 Typical usage when displaying a file:

@@ -116,10 +116,89 @@ internal fun LanguageDiscoverabilitySection(modifier: Modifier = Modifier) {
         }
     }
 
+    var catalogInput by remember { mutableStateOf("kt") }
+    val catalogIsSupported = remember(catalogInput) { HighlightLanguage.isSupported(catalogInput) }
+    val catalogCanonicalName = remember(catalogInput) { HighlightLanguage.canonicalName(catalogInput) }
+
     Column(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
+        SubSectionHeader("HighlightLanguage (Static Catalog & Normalization)")
+        Text(
+            text =
+                "Synchronous compile-time language catalog (${HighlightLanguage.all.size} languages) " +
+                    "with instant alias normalization and support checking without WebView bridge latency.",
+            style = TextStyle(fontSize = 13.sp),
+        )
+
+        Text(
+            text = "Curated Primary Languages (HighlightLanguage.primary):",
+            style = MaterialTheme.typography.labelMedium,
+        )
+
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            HighlightLanguage.primary.take(10).forEach { lang ->
+                FilterChip(
+                    selected = catalogInput == lang,
+                    onClick = { catalogInput = lang },
+                    label = { Text(lang) },
+                )
+            }
+        }
+
+        OutlinedTextField(
+            value = catalogInput,
+            onValueChange = { catalogInput = it },
+            label = { Text("Test language or alias (e.g. kt, js, html, py, sh)") },
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth(),
+        )
+
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(6.dp),
+            color =
+                if (catalogIsSupported) {
+                    MaterialTheme.colorScheme.primaryContainer
+                } else {
+                    MaterialTheme.colorScheme.errorContainer
+                },
+        ) {
+            Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
+                Text(
+                    text = "isSupported(\"$catalogInput\") = $catalogIsSupported",
+                    style =
+                        TextStyle(
+                            fontSize = 12.sp,
+                            fontFamily = FontFamily.Monospace,
+                            color =
+                                if (catalogIsSupported) {
+                                    MaterialTheme.colorScheme.onPrimaryContainer
+                                } else {
+                                    MaterialTheme.colorScheme.onErrorContainer
+                                },
+                        ),
+                )
+                Text(
+                    text = "canonicalName(\"$catalogInput\") = ${catalogCanonicalName?.let { "\"$it\"" } ?: "null"}",
+                    style =
+                        TextStyle(
+                            fontSize = 12.sp,
+                            fontFamily = FontFamily.Monospace,
+                            color =
+                                if (catalogIsSupported) {
+                                    MaterialTheme.colorScheme.onPrimaryContainer
+                                } else {
+                                    MaterialTheme.colorScheme.onErrorContainer
+                                },
+                        ),
+                )
+            }
+        }
+
+        HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+
         SubSectionHeader("HighlightLanguage.fromExtension()")
         Text(
             text =

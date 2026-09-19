@@ -385,6 +385,9 @@ class HighlightEngine(
      *
      * Automatically initializes the WebView if not yet ready.
      *
+     * For synchronous, compile-time access to the language catalog without coroutines or
+     * WebView initialization, see [HighlightLanguage.all].
+     *
      * ```kotlin
      * val languages = engine.supportedLanguages()
      * languages.onSuccess { list ->
@@ -429,6 +432,7 @@ class HighlightEngine(
                                         val languages =
                                             (0 until jsonArray.length())
                                                 .map { jsonArray.getString(it) }
+                                                .let { if ("html" !in it) it + "html" else it }
                                                 .sorted()
                                         cachedLanguages = languages
                                         continuation.resume(Result.success(languages))

@@ -1,17 +1,33 @@
 package dev.hossain.highlight.engine
 
+import dev.hossain.highlight.engine.internal.GeneratedLanguages
 import java.util.Locale
 
 /**
- * Maps file extensions to Highlight.js language identifiers.
+ * Language catalog and helpers for Highlight.js language identifiers.
  *
- * This is a convenience helper for discoverability only. The `language` parameter used by
- * [dev.hossain.highlight.ui.SyntaxHighlightedCode] and [HighlightEngine.highlight] remains a plain
+ * Provides synchronous access to all 190+ supported languages ([all]), a curated subset
+ * of popular languages for quick-access pickers and chips ([primary]), support validation
+ * ([isSupported]), alias normalization ([canonicalName]), and file extension mapping
+ * ([fromExtension]).
+ *
+ * This is a convenience helper for discoverability and UI tooling. The `language` parameter used
+ * by [dev.hossain.highlight.ui.SyntaxHighlightedCode] and [HighlightEngine.highlight] remains a plain
  * [String], so callers can still pass any Highlight.js language name directly.
  *
  * ## Usage
  *
  * ```kotlin
+ * // Synchronous check if a language or alias is supported
+ * val supported = HighlightLanguage.isSupported("kt") // true
+ *
+ * // Resolve an alias to its canonical Highlight.js grammar name
+ * val canonical = HighlightLanguage.canonicalName("kt") // "kotlin"
+ *
+ * // Populate a language picker or filter chips
+ * val pickers = HighlightLanguage.primary // ["kotlin", "java", "python", ...]
+ *
+ * // Map a file extension to a language identifier
  * val language = HighlightLanguage.fromExtension("kt") ?: "plaintext"
  *
  * SyntaxHighlightedCode(
@@ -22,6 +38,108 @@ import java.util.Locale
  * ```
  */
 public object HighlightLanguage {
+    /**
+     * Complete list of all supported language identifiers in alphabetical order.
+     *
+     * Contains all 190+ languages supported by the bundled Highlight.js distribution,
+     * including `"html"` as a first-class language.
+     */
+    public val all: List<String> = GeneratedLanguages.ALL
+
+    /**
+     * Uppercase alias for [all] to match common constant naming conventions.
+     */
+    public val ALL: List<String> get() = all
+
+    /**
+     * Curated primary languages for quick-access pickers, filter chips, and editors.
+     */
+    public val primary: List<String> =
+        listOf(
+            "kotlin",
+            "java",
+            "python",
+            "typescript",
+            "javascript",
+            "rust",
+            "go",
+            "swift",
+            "c",
+            "cpp",
+            "csharp",
+            "sql",
+            "json",
+            "yaml",
+            "html",
+            "css",
+            "markdown",
+            "bash",
+            "xml",
+            "dockerfile",
+        )
+
+    /**
+     * Uppercase alias for [primary] to match common constant naming conventions.
+     */
+    public val PRIMARY: List<String> get() = primary
+
+    private val canonicalSet: Set<String> by lazy { GeneratedLanguages.ALL.toSet() }
+
+    /**
+     * Checks whether the specified language identifier, alias, or file extension is supported.
+     *
+     * Returns `true` if [language] matches any canonical language in [all], any
+     * registered Highlight.js alias (such as `"kt"`, `"py"`, `"js"`, `"ts"`, `"sh"`, `"html"`),
+     * or any recognized file extension, case-insensitively.
+     *
+     * Example:
+     * ```kotlin
+     * HighlightLanguage.isSupported("kotlin")    // true
+     * HighlightLanguage.isSupported("kt")        // true
+     * HighlightLanguage.isSupported("HTML")      // true
+     * HighlightLanguage.isSupported("unknown")   // false
+     * ```
+     *
+     * @param language Language identifier, alias, or file extension to check.
+     * @return `true` if supported, `false` otherwise.
+     */
+    public fun isSupported(language: String): Boolean = canonicalName(language) != null
+
+    /**
+     * Resolves a language identifier, alias, or file extension to its canonical
+     * Highlight.js grammar name.
+     *
+     * Resolution order:
+     * 1. If [nameOrAlias] matches a registered Highlight.js alias (such as `"kt"` -> `"kotlin"`,
+     *    `"py"` -> `"python"`, `"js"` -> `"javascript"`, `"ts"` -> `"typescript"`,
+     *    `"sh"` -> `"bash"`, `"html"` -> `"html"`), returns the mapped canonical identifier.
+     * 2. If [nameOrAlias] matches a canonical language in [all] (case-insensitively), returns
+     *    the canonical lowercase identifier.
+     * 3. If [nameOrAlias] matches a known file extension in [fromExtension], returns that identifier.
+     *
+     * Returns `null` if the identifier or alias is not recognized.
+     *
+     * Example:
+     * ```kotlin
+     * HighlightLanguage.canonicalName("kt")         // "kotlin"
+     * HighlightLanguage.canonicalName("KOTLIN")     // "kotlin"
+     * HighlightLanguage.canonicalName("html")       // "html"
+     * HighlightLanguage.canonicalName("sh")         // "bash"
+     * HighlightLanguage.canonicalName("unknown")    // null
+     * ```
+     *
+     * @param nameOrAlias Language identifier, alias, or file extension to resolve.
+     * @return Canonical Highlight.js language identifier, or `null` if unrecognized.
+     */
+    public fun canonicalName(nameOrAlias: String): String? {
+        val clean = nameOrAlias.trim().lowercase(Locale.ROOT)
+        if (clean.isEmpty()) return null
+
+        GeneratedLanguages.ALIASES[clean]?.let { return it }
+        if (canonicalSet.contains(clean)) return clean
+        return extensionMap[clean]
+    }
+
     private val extensionMap: Map<String, String> =
         mapOf(
             "kt" to "kotlin",
