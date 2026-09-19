@@ -6,6 +6,7 @@ pipeline.
 Full API in Dokka:
 
 - [`HighlightTheme`](https://hossain-khan.github.io/android-compose-highlight/api/compose-highlight/dev.hossain.highlight.engine/-highlight-theme/index.html)
+- [`HighlightThemeDescriptor`](https://hossain-khan.github.io/android-compose-highlight/api/compose-highlight/dev.hossain.highlight.engine/-highlight-theme-descriptor/index.html)
 - [`rememberTomorrowLightTheme`](https://hossain-khan.github.io/android-compose-highlight/api/compose-highlight/dev.hossain.highlight.ui/remember-tomorrow-light-theme.html)
 - [`rememberTomorrowNightTheme`](https://hossain-khan.github.io/android-compose-highlight/api/compose-highlight/dev.hossain.highlight.ui/remember-tomorrow-night-theme.html)
 - [`rememberAtomOneDarkTheme`](https://hossain-khan.github.io/android-compose-highlight/api/compose-highlight/dev.hossain.highlight.ui/remember-atom-one-dark-theme.html)
@@ -46,6 +47,51 @@ Other bundled pairs now available:
 
 - `rememberGithubLightTheme()` + `rememberGithubDarkTheme()`
 - `rememberAlucardLightTheme()` + `rememberDraculaDarkTheme()` (or aliases `rememberDraculaLightTheme()` + `rememberAlucardDarkTheme()`)
+
+## Theme discovery and persistence
+
+When building user-customizable theme pickers (e.g. `LazyRow`, `DropdownMenu`) or storing user theme preferences
+in `DataStore` or `SharedPreferences`, use the discovery APIs on `HighlightTheme.Companion`:
+
+- `HighlightTheme.bundled`: List of all 8 bundled theme descriptors in canonical order.
+- `HighlightTheme.bundledLight`: Precomputed list filtered to light themes (`isLight == true`).
+- `HighlightTheme.bundledDark`: Precomputed list filtered to dark themes (`isDark == true`).
+- `HighlightTheme.findBundledById(id)`: O(1) lookup returning the matching `HighlightThemeDescriptor?` by stable ID.
+
+Each [`HighlightThemeDescriptor`](https://hossain-khan.github.io/android-compose-highlight/api/compose-highlight/dev.hossain.highlight.engine/-highlight-theme-descriptor/index.html)
+provides metadata:
+
+- `id`: Stable string identifier (`"tomorrow"`, `"tomorrow-night"`, `"atom-one-light"`,
+  `"atom-one-dark"`, `"github"`, `"github-dark"`, `"alucard"`, `"dracula"`).
+- `displayName`: Human-readable name for UI presentation (`"Tomorrow"`, `"Tomorrow Night"`, `"Dracula"`, etc.).
+- `isDark` / `isLight`: Mode indicators for filtering or matching the current system theme.
+- `theme` / `create()`: Lazily created and cached `HighlightTheme` instance.
+
+### Building a theme picker in Compose
+
+```kotlin
+LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+    items(HighlightTheme.bundledDark) { descriptor ->
+        ThemeChip(
+            label = descriptor.displayName,
+            selected = selectedThemeId == descriptor.id,
+            onClick = { onThemeSelected(descriptor.id) },
+        )
+    }
+}
+```
+
+### Persisting and restoring themes
+
+Save `descriptor.id` into your persistence store. On app launch or restore, look up the descriptor and safely fall
+back if the ID is unrecognized or missing:
+
+```kotlin
+val savedId = preferences.getString("theme_id", "tomorrow")
+val activeTheme = HighlightTheme.findBundledById(savedId)?.create()
+    ?: if (isSystemInDarkTheme()) HighlightTheme.tomorrowNight()
+    else HighlightTheme.tomorrow()
+```
 
 ## Custom theme from asset CSS
 

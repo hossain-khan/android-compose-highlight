@@ -28,6 +28,8 @@ internal sealed class DemoTab(
 
     data object Themes : DemoTab("Themes")
 
+    data object ThemeDiscovery : DemoTab("Theme Discovery")
+
     data object AllThemes : DemoTab("All Themes")
 
     data object Advanced : DemoTab("Advanced")
@@ -48,6 +50,7 @@ internal sealed class DemoTab(
                 Callbacks,
                 Placeholder,
                 Themes,
+                ThemeDiscovery,
                 AllThemes,
                 LanguageDiscoverability,
                 LiveEditor,

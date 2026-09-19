@@ -192,6 +192,63 @@ class HighlightTheme private constructor(
 
     companion object {
         /**
+         * All bundled themes provided by the library.
+         *
+         * Themes are represented as lightweight [HighlightThemeDescriptor] instances that
+         * provide display metadata ([HighlightThemeDescriptor.displayName],
+         * [HighlightThemeDescriptor.isDark]) without initializing the theme until accessed.
+         *
+         * ```kotlin
+         * LazyRow {
+         *     items(HighlightTheme.bundled) { descriptor ->
+         *         ThemeChip(
+         *             label = descriptor.displayName,
+         *             selected = selectedThemeId == descriptor.id,
+         *             onClick = { onThemeSelected(descriptor.id) },
+         *         )
+         *     }
+         * }
+         * ```
+         */
+        val bundled: List<HighlightThemeDescriptor> =
+            listOf(
+                HighlightThemeDescriptor("tomorrow", "Tomorrow", isDark = false) { tomorrow() },
+                HighlightThemeDescriptor("tomorrow-night", "Tomorrow Night", isDark = true) { tomorrowNight() },
+                HighlightThemeDescriptor("atom-one-light", "Atom One Light", isDark = false) { atomOneLight() },
+                HighlightThemeDescriptor("atom-one-dark", "Atom One Dark", isDark = true) { atomOneDark() },
+                HighlightThemeDescriptor("github", "GitHub Light", isDark = false) { githubLight() },
+                HighlightThemeDescriptor("github-dark", "GitHub Dark", isDark = true) { githubDark() },
+                HighlightThemeDescriptor("alucard", "Alucard", isDark = false) { alucardLight() },
+                HighlightThemeDescriptor("dracula", "Dracula", isDark = true) { draculaDark() },
+            )
+
+        /**
+         * Bundled themes designed for light backgrounds. Precomputed for zero runtime allocation.
+         */
+        val bundledLight: List<HighlightThemeDescriptor> = bundled.filter { it.isLight }
+
+        /**
+         * Bundled themes designed for dark backgrounds. Precomputed for zero runtime allocation.
+         */
+        val bundledDark: List<HighlightThemeDescriptor> = bundled.filter { it.isDark }
+
+        private val bundledIdMap: Map<String, HighlightThemeDescriptor> =
+            bundled.associateBy { it.id }
+
+        /**
+         * Finds a bundled theme descriptor by its stable [id], or returns `null` if not found.
+         *
+         * ```kotlin
+         * val descriptor = HighlightTheme.findBundledById(savedThemeId)
+         * val theme = descriptor?.create() ?: HighlightTheme.tomorrow()
+         * ```
+         *
+         * @param id The stable theme identifier to look up (e.g. `"tomorrow"`, `"dracula"`).
+         * @return The matching [HighlightThemeDescriptor], or `null` if unrecognized.
+         */
+        fun findBundledById(id: String): HighlightThemeDescriptor? = bundledIdMap[id]
+
+        /**
          * Built-in Base16 Tomorrow light theme.
          *
          * Uses a precompiled color map generated at build time from the bundled

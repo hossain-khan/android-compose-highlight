@@ -4,11 +4,18 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.SpanStyle
@@ -112,25 +119,40 @@ internal fun ThemeCreationSection() {
             )
         }
 
+    var selectedBundledThemeId by rememberSaveable { mutableStateOf("atom-one-dark") }
+    val selectedBundledTheme =
+        remember(selectedBundledThemeId) {
+            HighlightTheme.findBundledById(selectedBundledThemeId)?.create() ?: HighlightTheme.atomOneDark()
+        }
+
     Column(
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        // ── Built-in theme ─────────────────────────────────────────────────
-        SubSectionHeader("Built-in themes")
+        // ── Built-in themes ────────────────────────────────────────────────
+        SubSectionHeader("Built-in themes (HighlightTheme.bundled)")
         Text(
             text =
-                "The library bundles 8 ready-to-use themes: atomOneDark, atomOneLight, " +
-                    "tomorrow, tomorrowNight, githubLight, githubDark, draculaDark, and alucardLight. " +
-                    "No extra assets needed - just call the corresponding factory function. " +
-                    "Here is atomOneDark as an example:",
+                "The library bundles 8 ready-to-use themes discoverable via HighlightTheme.bundled. " +
+                    "Select any theme below to preview it dynamically:",
             style = MaterialTheme.typography.bodySmall,
             modifier = Modifier.padding(horizontal = 4.dp),
         )
+        LazyRow(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            items(HighlightTheme.bundled) { desc ->
+                FilterChip(
+                    selected = desc.id == selectedBundledThemeId,
+                    onClick = { selectedBundledThemeId = desc.id },
+                    label = { Text(desc.displayName) },
+                )
+            }
+        }
         SyntaxHighlightedCode(
             code = KOTLIN_SNIPPET,
             language = "kotlin",
             modifier = Modifier.fillMaxWidth(),
-            theme = atomOneDarkTheme,
+            theme = selectedBundledTheme,
         )
 
         HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
