@@ -82,7 +82,7 @@ private enum class ThemeFilter {
 @Composable
 internal fun ThemeDiscoverySection() {
     var selectedFilter by remember { mutableStateOf(ThemeFilter.ALL) }
-    var testIdInput by remember { mutableStateOf("dracula-dark") }
+    var testIdInput by remember { mutableStateOf("dracula") }
 
     val displayedThemes =
         remember(selectedFilter) {
@@ -127,7 +127,7 @@ internal fun ThemeDiscoverySection() {
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 Text(
-                    text = "Test how stable IDs and legacy aliases resolve in O(1):",
+                    text = "Test how stable theme IDs resolve in O(1):",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -135,7 +135,7 @@ internal fun ThemeDiscoverySection() {
                 OutlinedTextField(
                     value = testIdInput,
                     onValueChange = { testIdInput = it },
-                    label = { Text("Theme ID or Alias") },
+                    label = { Text("Theme ID") },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                 )
@@ -151,11 +151,11 @@ internal fun ThemeDiscoverySection() {
                     verticalArrangement = Arrangement.spacedBy(6.dp),
                 ) {
                     listOf(
-                        "tomorrow" to "Canonical Light",
-                        "dracula" to "Canonical Dark",
-                        "dracula-dark" to "Alias",
-                        "github-light" to "Alias",
-                        "alucard-light" to "Alias",
+                        "tomorrow" to "Light",
+                        "dracula" to "Dark",
+                        "atom-one-dark" to "Dark",
+                        "github" to "Light",
+                        "alucard" to "Light",
                         "monokai" to "Unknown",
                     ).forEach { (id, tag) ->
                         FilterChip(
@@ -200,13 +200,7 @@ internal fun ThemeDiscoverySection() {
                                 ThemeModeBadge(isDark = resolvedDescriptor.isDark)
                             }
                             Text(
-                                text =
-                                    "Canonical ID: \"${resolvedDescriptor.id}\"" +
-                                        if (testIdInput.trim() != resolvedDescriptor.id) {
-                                            " (via legacy alias \"${testIdInput.trim()}\")"
-                                        } else {
-                                            " (exact match)"
-                                        },
+                                text = "ID: \"${resolvedDescriptor.id}\"",
                                 style = MaterialTheme.typography.bodySmall,
                                 fontFamily = FontFamily.Monospace,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,

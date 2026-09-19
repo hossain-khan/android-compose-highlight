@@ -233,26 +233,17 @@ class HighlightTheme private constructor(
         val bundledDark: List<HighlightThemeDescriptor> = bundled.filter { it.isDark }
 
         private val bundledIdMap: Map<String, HighlightThemeDescriptor> =
-            buildMap {
-                bundled.forEach { put(it.id, it) }
-                // Legacy aliases for apps already persisting suffixed IDs
-                get("github")?.let { put("github-light", it) }
-                get("dracula")?.let { put("dracula-dark", it) }
-                get("alucard")?.let { put("alucard-light", it) }
-            }
+            bundled.associateBy { it.id }
 
         /**
          * Finds a bundled theme descriptor by its stable [id], or returns `null` if not found.
-         *
-         * Also resolves legacy aliases (e.g. `"github-light"` -> `"github"`, `"dracula-dark"` -> `"dracula"`,
-         * `"alucard-light"` -> `"alucard"`).
          *
          * ```kotlin
          * val descriptor = HighlightTheme.findBundledById(savedThemeId)
          * val theme = descriptor?.create() ?: HighlightTheme.tomorrow()
          * ```
          *
-         * @param id The stable theme identifier to look up.
+         * @param id The stable theme identifier to look up (e.g. `"tomorrow"`, `"dracula"`).
          * @return The matching [HighlightThemeDescriptor], or `null` if unrecognized.
          */
         fun findBundledById(id: String): HighlightThemeDescriptor? = bundledIdMap[id]

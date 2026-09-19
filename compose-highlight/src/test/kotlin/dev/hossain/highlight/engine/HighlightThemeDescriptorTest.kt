@@ -62,25 +62,13 @@ class HighlightThemeDescriptorTest {
     }
 
     @Test
-    fun `findBundledById resolves legacy aliases`() {
-        val githubLight = HighlightTheme.findBundledById("github-light")
-        assertThat(githubLight).isNotNull()
-        assertThat(githubLight!!.id).isEqualTo("github")
-
-        val draculaDark = HighlightTheme.findBundledById("dracula-dark")
-        assertThat(draculaDark).isNotNull()
-        assertThat(draculaDark!!.id).isEqualTo("dracula")
-
-        val alucardLight = HighlightTheme.findBundledById("alucard-light")
-        assertThat(alucardLight).isNotNull()
-        assertThat(alucardLight!!.id).isEqualTo("alucard")
-    }
-
-    @Test
     fun `findBundledById returns null for unrecognized IDs`() {
         assertThat(HighlightTheme.findBundledById("non-existent")).isNull()
         assertThat(HighlightTheme.findBundledById("")).isNull()
         assertThat(HighlightTheme.findBundledById("monokai")).isNull()
+        assertThat(HighlightTheme.findBundledById("dracula-dark")).isNull()
+        assertThat(HighlightTheme.findBundledById("github-light")).isNull()
+        assertThat(HighlightTheme.findBundledById("alucard-light")).isNull()
     }
 
     @Test
