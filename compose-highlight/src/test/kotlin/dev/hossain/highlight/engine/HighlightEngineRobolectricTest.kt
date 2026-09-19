@@ -280,12 +280,12 @@ class HighlightEngineRobolectricTest {
 
             val result1 = deferred1.await()
             assertThat(result1.isSuccess).isTrue()
-            assertThat(result1.getOrThrow()).containsExactly("javascript", "kotlin", "python", "rust", "swift")
+            assertThat(result1.getOrThrow()).containsExactly("html", "javascript", "kotlin", "python", "rust", "swift")
 
             // Second call should return cached list immediately without invoking JS evaluation
             val result2 = engine.supportedLanguages()
             assertThat(result2.isSuccess).isTrue()
-            assertThat(result2.getOrThrow()).containsExactly("javascript", "kotlin", "python", "rust", "swift")
+            assertThat(result2.getOrThrow()).containsExactly("html", "javascript", "kotlin", "python", "rust", "swift")
 
             engine.destroy()
         }

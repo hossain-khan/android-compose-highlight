@@ -13,7 +13,8 @@ To upgrade the entire Highlight.js bundle, fixtures, and themes in one step, use
 ```
 
 This script bundles the full 190+ language library via esbuild, downloads all matching CSS themes,
-refreshes test fixtures, updates version references, and validates the bridge contract.
+refreshes test fixtures, updates the static language catalog and aliases, updates version references,
+and validates the bridge contract.
 
 ## Refreshing Themes Only
 

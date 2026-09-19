@@ -53,6 +53,11 @@ echo "Step 1: Bundling highlight.js@$NEW_VERSION..."
 node "$REPO_ROOT/scripts/bundle-hljs.mjs" "$NEW_VERSION"
 echo ""
 
+# 1b. Update static language catalog and aliases
+echo "Step 1b: Updating static language catalog and aliases..."
+node "$REPO_ROOT/scripts/generate-languages.mjs"
+echo ""
+
 # 2. Refresh sample app themes
 echo "Step 2: Downloading sample app CSS themes from cdnjs..."
 "$REPO_ROOT/scripts/refresh-sample-themes.sh" "$NEW_VERSION"

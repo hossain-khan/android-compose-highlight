@@ -6,6 +6,13 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+- **Synchronous language catalog and alias normalization via `HighlightLanguage`** - Added synchronous compile-time
+  access to all 194 supported language identifiers (`HighlightLanguage.all`), a curated subset for quick-access
+  pickers (`HighlightLanguage.primary`), instant language support validation (`HighlightLanguage.isSupported`),
+  and alias normalization (`HighlightLanguage.canonicalName`) resolving short aliases like `kt`, `js`, `ts`, `py`,
+  `sh`, and `html` to canonical Highlight.js grammar names without WebView initialization latency (#473). Added
+  an automated Node.js generator (`scripts/generate-languages.mjs`) integrated into `scripts/upgrade-hljs.sh`
+  to extract languages and official aliases directly from the bundled engine.
 - **First-party theme discovery and metadata via `HighlightThemeDescriptor`** - Added `HighlightThemeDescriptor`
   and companion properties `HighlightTheme.bundled`, `HighlightTheme.bundledLight`, `HighlightTheme.bundledDark`,
   and `HighlightTheme.findBundledById` to dynamically enumerate, filter, and restore bundled themes with stable
