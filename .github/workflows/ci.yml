@@ -192,7 +192,7 @@ jobs:
 
       - name: Assemble library (release) and generate Compose compiler reports
         if: steps.changes.outputs.code == 'true'
-        run: ./gradlew :compose-highlight:assembleRelease -PcomposeReports=true
+        run: ./gradlew :compose-highlight:assembleRelease -PcomposeReports=true --rerun-tasks
 
       - name: Assemble sample app (release)
         if: steps.changes.outputs.code == 'true'
