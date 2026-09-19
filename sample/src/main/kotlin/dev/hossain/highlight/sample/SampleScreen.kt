@@ -56,6 +56,7 @@ import dev.hossain.highlight.sample.sections.SectionHeader
 import dev.hossain.highlight.sample.sections.StreamingSection
 import dev.hossain.highlight.sample.sections.StylingSection
 import dev.hossain.highlight.sample.sections.ThemeCreationSection
+import dev.hossain.highlight.sample.sections.ThemeDiscoverySection
 import dev.hossain.highlight.sample.sections.TogglesSection
 import dev.hossain.highlight.sample.sections.TypographySection
 import dev.hossain.highlight.ui.HighlightThemeProvider
@@ -271,6 +272,10 @@ internal fun SampleScreen(viewModel: SampleViewModel = viewModel()) {
 
                         DemoTab.Themes -> {
                             item { ThemeCreationSection() }
+                        }
+
+                        DemoTab.ThemeDiscovery -> {
+                            item { ThemeDiscoverySection() }
                         }
 
                         DemoTab.AllThemes -> {

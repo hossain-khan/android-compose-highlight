@@ -9,7 +9,8 @@ All notable changes to this project will be documented in this file.
 - **First-party theme discovery and metadata via `HighlightThemeDescriptor`** - Added `HighlightThemeDescriptor`
   and companion properties `HighlightTheme.bundled`, `HighlightTheme.bundledLight`, `HighlightTheme.bundledDark`,
   and `HighlightTheme.findBundledById` to dynamically enumerate, filter, and restore bundled themes with stable
-  identifiers and display metadata for theme pickers and settings screens (#472).
+  identifiers and display metadata for theme pickers and settings screens (#472). Added dedicated "Theme Discovery"
+  tab in the sample app showcasing the API, dark/light badges, color swatches, and interactive ID resolution.
 - **Horizontal scrolling demo toggle in sample app editor** - Added a toggle in `LiveEditorSection` to showcase
   `SyntaxHighlightedTextEditor`'s `horizontalScrollState` parameter, allowing users to toggle between soft line
   wrapping and horizontal scrolling.
