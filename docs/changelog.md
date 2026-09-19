@@ -6,6 +6,14 @@ For release artifacts and APK downloads, see the [GitHub Releases page](https://
 
 ## Recent highlights
 
+### 0.37.0 - Theme discovery, synchronous language catalog, and recomposition testing
+
+- Added `HighlightThemeDescriptor` and `HighlightTheme.bundled` APIs to dynamically discover, filter, and restore bundled themes with metadata
+- Added synchronous compile-time language catalog (`HighlightLanguage.all`), `primary` languages, `isSupported()`, and alias normalization (`canonicalName()`)
+- Added dedicated "Theme Discovery" tab and language normalization interactive demos in the sample app
+- Added horizontal scrolling toggle in the sample app live editor
+- Integrated Dejavu for automated recomposition stability testing across all code block composables
+
 ### 0.36.0 - Highlight.js 11.12.0 & Sample UX Enhancements
 
 - Upgraded bundled Highlight.js engine from 11.11.1 to 11.12.0 with grammar fixes for Python, Rust, C/C++, Java, and Go
@@ -37,13 +45,6 @@ For release artifacts and APK downloads, see the [GitHub Releases page](https://
 - Fixed trailing newline bug in documentation code blocks
 - Added post-build asset fingerprinting for custom docsite assets to ensure reliable browser cache-busting
 - Updated Compose BOM (`2026.08.00`), AndroidX WebKit (`1.17.0`), Kotlinter (`5.7.0`), Roborazzi (`1.71.0`), and Gradle wrapper (`9.7.0`)
-
-### 0.32.0 - New precompiled themes, spec compliance, and API cleanups
-
-- Added four new built-in themes (GitHub, GitHub Dark, Dracula, and Alucard) with precompiled color maps for fast loading without Context
-- Aligned Dracula and Alucard built-in themes to be fully spec-compliant with correct color and selector mappings
-- Renamed `rememberTomorrowTheme()` to `rememberTomorrowLightTheme()` for naming consistency across light/dark suffix theme helpers
-- Removed dead legacy parser code from `HtmlParser.kt` to shrink AAR size and improve code coverage metrics
 
 ---
 
