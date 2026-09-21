@@ -5,6 +5,7 @@ import androidx.compose.runtime.Stable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.SpanStyle
 import dev.hossain.highlight.engine.internal.ThemeParser
+import java.io.IOException
 import java.nio.ByteBuffer
 import java.security.MessageDigest
 import java.util.concurrent.atomic.AtomicBoolean
@@ -118,11 +119,33 @@ class HighlightTheme private constructor(
      * to detect theme changes even when two themes share the same [name].
      */
     private val contentIdentity: LongArray,
+    private val explicitBackgroundColor: Color = Color.Unspecified,
+    private val explicitDefaultTextColor: Color = Color.Unspecified,
+    private val isImmediate: Boolean = false,
 ) {
-    /** Lazily-parsed map of hljs class names → [SpanStyle]. Cached forever. */
+    /** Lazily-parsed map of hljs class names -> [SpanStyle]. Cached forever. */
     private val colorMapLazy = lazy { colorMapProvider() }
     val colorMap: Map<String, SpanStyle>
         get() = colorMapLazy.value
+
+    /**
+     * Whether this theme's [colorMap] has been resolved (parsed and loaded into memory).
+     *
+     * For built-in themes and [fromColorMap], this is always `true`. For CSS- or asset-backed themes,
+     * this becomes `true` after the first parse completes.
+     */
+    val isResolved: Boolean
+        get() = isImmediate || colorMapLazy.isInitialized()
+
+    /**
+     * Whether this theme has immediately available base colors ([backgroundColor] and [defaultTextColor])
+     * without requiring lazy CSS parsing or asset I/O.
+     *
+     * Returns `true` for all built-in themes, themes created via [fromColorMap], custom themes constructed
+     * with explicit background and text colors, and custom themes whose [colorMap] has already been resolved.
+     */
+    val hasImmediateColors: Boolean
+        get() = isResolved || explicitBackgroundColor != Color.Unspecified || explicitDefaultTextColor != Color.Unspecified
 
     /**
      * Tracks whether [colorMap] has been initialized (lazy block has run).
@@ -166,14 +189,32 @@ class HighlightTheme private constructor(
         }
 
     /** Background color from the `.hljs` CSS rule. Unspecified if not present in theme. */
-    val backgroundColor: Color by lazy {
-        colorMap[HljsSelectors.BASE]?.background?.takeIf { it != Color.Unspecified } ?: Color.Unspecified
-    }
+    val backgroundColor: Color
+        get() =
+            explicitBackgroundColor.takeIf { it != Color.Unspecified }
+                ?: if (colorMapLazy.isInitialized()) {
+                    colorMap[HljsSelectors.BASE]?.background?.takeIf { it != Color.Unspecified } ?: Color.Unspecified
+                } else {
+                    try {
+                        colorMap[HljsSelectors.BASE]?.background?.takeIf { it != Color.Unspecified } ?: Color.Unspecified
+                    } catch (_: Throwable) {
+                        Color.Unspecified
+                    }
+                }
 
     /** Default text color from the `.hljs` CSS rule. Unspecified if not present in theme. */
-    val defaultTextColor: Color by lazy {
-        colorMap[HljsSelectors.BASE]?.color?.takeIf { it != Color.Unspecified } ?: Color.Unspecified
-    }
+    val defaultTextColor: Color
+        get() =
+            explicitDefaultTextColor.takeIf { it != Color.Unspecified }
+                ?: if (colorMapLazy.isInitialized()) {
+                    colorMap[HljsSelectors.BASE]?.color?.takeIf { it != Color.Unspecified } ?: Color.Unspecified
+                } else {
+                    try {
+                        colorMap[HljsSelectors.BASE]?.color?.takeIf { it != Color.Unspecified } ?: Color.Unspecified
+                    } catch (_: Throwable) {
+                        Color.Unspecified
+                    }
+                }
 
     /**
      * Two themes are equal when they have the same [name] **and** the same content identity.
@@ -256,10 +297,34 @@ class HighlightTheme private constructor(
          *
          * @return A [HighlightTheme] backed by the bundled `tomorrow.css`.
          */
+        private fun fromPrecompiled(
+            name: String,
+            colorMap: Map<String, SpanStyle>,
+            contentIdentity: LongArray,
+        ): HighlightTheme {
+            val baseStyle = colorMap[HljsSelectors.BASE]
+            return HighlightTheme(
+                name = name,
+                colorMapProvider = { colorMap },
+                contentIdentity = contentIdentity,
+                explicitBackgroundColor = baseStyle?.background ?: Color.Unspecified,
+                explicitDefaultTextColor = baseStyle?.color ?: Color.Unspecified,
+                isImmediate = true,
+            )
+        }
+
+        /**
+         * Built-in Base16 Tomorrow light theme.
+         *
+         * Uses a precompiled color map generated at build time from the bundled
+         * `tomorrow.css` - the runtime CSS parser is never invoked. No [Context] is required.
+         *
+         * @return A [HighlightTheme] backed by the bundled `tomorrow.css`.
+         */
         fun tomorrow(): HighlightTheme =
-            HighlightTheme(
+            fromPrecompiled(
                 name = "tomorrow",
-                colorMapProvider = { GeneratedThemes.TOMORROW },
+                colorMap = GeneratedThemes.TOMORROW,
                 contentIdentity = GeneratedThemes.TOMORROW_IDENTITY,
             )
 
@@ -273,9 +338,9 @@ class HighlightTheme private constructor(
          * @return A [HighlightTheme] backed by the bundled `tomorrow-night.css`.
          */
         fun tomorrowNight(): HighlightTheme =
-            HighlightTheme(
+            fromPrecompiled(
                 name = "tomorrow-night",
-                colorMapProvider = { GeneratedThemes.TOMORROW_NIGHT },
+                colorMap = GeneratedThemes.TOMORROW_NIGHT,
                 contentIdentity = GeneratedThemes.TOMORROW_NIGHT_IDENTITY,
             )
 
@@ -289,9 +354,9 @@ class HighlightTheme private constructor(
          * @return A [HighlightTheme] backed by the bundled `atom-one-dark.css`.
          */
         fun atomOneDark(): HighlightTheme =
-            HighlightTheme(
+            fromPrecompiled(
                 name = "atom-one-dark",
-                colorMapProvider = { GeneratedThemes.ATOM_ONE_DARK },
+                colorMap = GeneratedThemes.ATOM_ONE_DARK,
                 contentIdentity = GeneratedThemes.ATOM_ONE_DARK_IDENTITY,
             )
 
@@ -305,9 +370,9 @@ class HighlightTheme private constructor(
          * @return A [HighlightTheme] backed by the bundled `atom-one-light.css`.
          */
         fun atomOneLight(): HighlightTheme =
-            HighlightTheme(
+            fromPrecompiled(
                 name = "atom-one-light",
-                colorMapProvider = { GeneratedThemes.ATOM_ONE_LIGHT },
+                colorMap = GeneratedThemes.ATOM_ONE_LIGHT,
                 contentIdentity = GeneratedThemes.ATOM_ONE_LIGHT_IDENTITY,
             )
 
@@ -321,9 +386,9 @@ class HighlightTheme private constructor(
          * @return A [HighlightTheme] backed by the bundled `github.css`.
          */
         fun githubLight(): HighlightTheme =
-            HighlightTheme(
+            fromPrecompiled(
                 name = "github",
-                colorMapProvider = { GeneratedThemes.GITHUB_LIGHT },
+                colorMap = GeneratedThemes.GITHUB_LIGHT,
                 contentIdentity = GeneratedThemes.GITHUB_LIGHT_IDENTITY,
             )
 
@@ -337,9 +402,9 @@ class HighlightTheme private constructor(
          * @return A [HighlightTheme] backed by the bundled `github-dark.css`.
          */
         fun githubDark(): HighlightTheme =
-            HighlightTheme(
+            fromPrecompiled(
                 name = "github-dark",
-                colorMapProvider = { GeneratedThemes.GITHUB_DARK },
+                colorMap = GeneratedThemes.GITHUB_DARK,
                 contentIdentity = GeneratedThemes.GITHUB_DARK_IDENTITY,
             )
 
@@ -360,9 +425,9 @@ class HighlightTheme private constructor(
          * @see alucardLight
          */
         fun draculaDark(): HighlightTheme =
-            HighlightTheme(
+            fromPrecompiled(
                 name = "dracula",
-                colorMapProvider = { GeneratedThemes.DRACULA_DARK },
+                colorMap = GeneratedThemes.DRACULA_DARK,
                 contentIdentity = GeneratedThemes.DRACULA_DARK_IDENTITY,
             )
 
@@ -383,9 +448,9 @@ class HighlightTheme private constructor(
          * @see draculaDark
          */
         fun alucardLight(): HighlightTheme =
-            HighlightTheme(
+            fromPrecompiled(
                 name = "alucard",
-                colorMapProvider = { GeneratedThemes.ALUCARD_LIGHT },
+                colorMap = GeneratedThemes.ALUCARD_LIGHT,
                 contentIdentity = GeneratedThemes.ALUCARD_LIGHT_IDENTITY,
             )
 
@@ -415,7 +480,7 @@ class HighlightTheme private constructor(
          * directory, place it in `src/main/assets/`, and reference it here.
          *
          * ```kotlin
-         * // src/main/assets/themes/github.css  ← place the CSS here
+         * // src/main/assets/themes/github.css  <- place the CSS here
          * val theme = HighlightTheme.fromAsset(
          *     context   = context,
          *     assetPath = "themes/github.css",
@@ -428,29 +493,42 @@ class HighlightTheme private constructor(
          * The provided [context] is defensively normalized to `applicationContext` before being
          * retained by the lazy theme provider.
          *
-         * @throws [HighlightException.ThemeNotFound] if the asset file is found but contains no
-         *   parseable color rules (e.g. it is empty or uses only unsupported CSS properties).
-         * @throws java.io.IOException if the asset file cannot be opened (missing or unreadable).
-         *   This exception is also thrown lazily, on first use of the theme.
+         * @throws [HighlightException.ThemeNotFound] if the asset file is missing, unreadable, or contains
+         *   no parseable color rules (e.g. it is empty or uses only unsupported CSS properties).
          * @param context Any [Context]; normalized to `applicationContext` internally.
          * @param assetPath Path within `assets/` to the Highlight.js CSS file (e.g. `"themes/github.css"`).
          * @param name Display name for the theme.
+         * @param backgroundColor Optional explicit background color available immediately during composition
+         *   before the asset is loaded on a background dispatcher.
+         * @param defaultTextColor Optional explicit default text color available immediately during composition
+         *   before the asset is loaded on a background dispatcher.
          * @return A [HighlightTheme] whose color map is lazily parsed from [assetPath].
          */
+        @JvmOverloads
         fun fromAsset(
             context: Context,
             assetPath: String,
             name: String,
+            backgroundColor: Color? = null,
+            defaultTextColor: Color? = null,
         ): HighlightTheme {
             val appContext = context.applicationContext
             return HighlightTheme(
                 name = name,
                 colorMapProvider = {
-                    val map = ThemeParser.parseAsset(appContext, assetPath)
+                    val map =
+                        try {
+                            ThemeParser.parseAsset(appContext, assetPath)
+                        } catch (e: IOException) {
+                            throw HighlightException.ThemeNotFound(assetPath, e)
+                        }
                     if (map.isEmpty()) throw HighlightException.ThemeNotFound(assetPath)
                     map
                 },
-                contentIdentity = contentDigest256("asset", assetPath),
+                contentIdentity = contentDigest256("asset", assetPath, backgroundColor, defaultTextColor),
+                explicitBackgroundColor = backgroundColor ?: Color.Unspecified,
+                explicitDefaultTextColor = defaultTextColor ?: Color.Unspecified,
+                isImmediate = false,
             )
         }
 
@@ -469,16 +547,26 @@ class HighlightTheme private constructor(
          *
          * @param cssText Raw Highlight.js-compatible CSS text.
          * @param name Display name for the theme.
+         * @param backgroundColor Optional explicit background color available immediately during composition
+         *   before the CSS is parsed on a background dispatcher.
+         * @param defaultTextColor Optional explicit default text color available immediately during composition
+         *   before the CSS is parsed on a background dispatcher.
          * @return A [HighlightTheme] whose color map is lazily parsed from [cssText].
          */
+        @JvmOverloads
         fun fromCss(
             cssText: String,
             name: String,
+            backgroundColor: Color? = null,
+            defaultTextColor: Color? = null,
         ): HighlightTheme =
             HighlightTheme(
                 name = name,
                 colorMapProvider = { ThemeParser.parse(cssText) },
-                contentIdentity = contentDigest256("css", cssText),
+                contentIdentity = contentDigest256("css", cssText, backgroundColor, defaultTextColor),
+                explicitBackgroundColor = backgroundColor ?: Color.Unspecified,
+                explicitDefaultTextColor = defaultTextColor ?: Color.Unspecified,
+                isImmediate = false,
             )
 
         /**
@@ -512,7 +600,7 @@ class HighlightTheme private constructor(
          * ```
          *
          * @param name Display name for the theme.
-         * @param colorMap Map of hljs class name → [SpanStyle]. Use [HljsSelectors] constants
+         * @param colorMap Map of hljs class name -> [SpanStyle]. Use [HljsSelectors] constants
          *   for known scopes (e.g. `HljsSelectors.KEYWORD` instead of `"hljs-keyword"`).
          * @param backgroundColor Optional explicit background color. If null, derived from `colorMap["hljs"]`.
          * @param defaultTextColor Optional explicit default text color. If null, derived from `colorMap["hljs"]`.
@@ -540,21 +628,45 @@ class HighlightTheme private constructor(
                     immutableMap
                 }
             val contentIdentity = contentDigest256(effectiveColorMap)
+            val baseStyle = effectiveColorMap[HljsSelectors.BASE]
             return HighlightTheme(
                 name = name,
                 colorMapProvider = { effectiveColorMap },
                 contentIdentity = contentIdentity,
+                explicitBackgroundColor = backgroundColor ?: baseStyle?.background ?: Color.Unspecified,
+                explicitDefaultTextColor = defaultTextColor ?: baseStyle?.color ?: Color.Unspecified,
+                isImmediate = true,
             )
         }
 
         private fun contentDigest256(
             prefix: String,
             value: String,
+            backgroundColor: Color? = null,
+            defaultTextColor: Color? = null,
         ): LongArray =
             digestToLongArray {
                 update(prefix.toByteArray(Charsets.UTF_8))
                 update(byteArrayOf(0))
                 update(value.toByteArray(Charsets.UTF_8))
+                if (backgroundColor != null && backgroundColor != Color.Unspecified) {
+                    update(byteArrayOf(0))
+                    update(
+                        backgroundColor.value
+                            .toLong()
+                            .toString()
+                            .toByteArray(Charsets.UTF_8),
+                    )
+                }
+                if (defaultTextColor != null && defaultTextColor != Color.Unspecified) {
+                    update(byteArrayOf(0))
+                    update(
+                        defaultTextColor.value
+                            .toLong()
+                            .toString()
+                            .toByteArray(Charsets.UTF_8),
+                    )
+                }
             }
 
         private fun contentDigest256(colorMap: Map<String, SpanStyle>): LongArray =

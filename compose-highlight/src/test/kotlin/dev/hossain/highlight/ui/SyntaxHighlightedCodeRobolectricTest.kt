@@ -317,6 +317,29 @@ class SyntaxHighlightedCodeRobolectricTest {
     }
 
     @Test
+    fun `first composition with missing custom theme asset does not crash and renders fallback text`() {
+        val errors = mutableListOf<HighlightException>()
+        composeTestRule.setContent {
+            val context = androidx.compose.ui.platform.LocalContext.current
+            val theme = HighlightTheme.fromAsset(context, "missing-theme.css", "missing")
+            HighlightThemeProvider {
+                SyntaxHighlightedCode(
+                    code = "val safe = 123",
+                    language = "kotlin",
+                    theme = theme,
+                    onError = { errors.add(it) },
+                )
+            }
+        }
+        composeTestRule.waitForIdle()
+
+        // Code block is displayed safely with fallback text, no crash
+        composeTestRule
+            .onNodeWithText("val safe = 123")
+            .assertIsDisplayed()
+    }
+
+    @Test
     fun `uses hoisted scroll state`() {
         var scrollState: ScrollState? = null
         composeTestRule.setContent {

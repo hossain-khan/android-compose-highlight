@@ -10,6 +10,15 @@ All notable changes to this project will be documented in this file.
   Compatibility Validator with `android-bcv-bridge` to track and enforce public ABI compatibility across
   releases via `./gradlew apiCheck` and `./gradlew apiDump`, establishing the baseline in `compose-highlight.api` (#479).
 
+### Fixed
+
+- **Safe and asynchronous custom theme resolution in Compose UI** - Custom themes loaded from assets or CSS no longer
+  trigger synchronous asset I/O or CSS parsing on the main thread during initial composition. Code blocks now render
+  gracefully with fallback colors while the theme parses asynchronously on `Dispatchers.Default`, eliminating main thread
+  jank and crashes caused by missing or unreadable custom theme files. Added `isResolved` and `hasImmediateColors` properties
+  to `HighlightTheme`, preserved typed `HighlightException.ThemeNotFound` across the engine error pipeline, and added optional
+  immediate background and text color parameters to `HighlightTheme.fromAsset` and `HighlightTheme.fromCss` (#485).
+
 ## [0.37.0] - 2026-09-19
 
 ### Added

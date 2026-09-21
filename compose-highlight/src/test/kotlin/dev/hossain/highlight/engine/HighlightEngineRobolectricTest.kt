@@ -171,6 +171,31 @@ class HighlightEngineRobolectricTest {
         }
 
     @Test
+    fun `highlight returns ThemeNotFound when custom theme asset is missing`() =
+        runTest {
+            val engine = createReadyEngine()
+            val sampleCode = "val x = 42"
+            val expectedHtml = """<span class="hljs-keyword">val</span> x = 42"""
+            val innerJson =
+                JSONObject()
+                    .apply {
+                        put("html", expectedHtml)
+                        put("relevance", 5)
+                    }.toString()
+            val rawResult = JSONObject.quote(innerJson)
+            val theme = HighlightTheme.fromAsset(context, "missing-theme.css", "missing-theme")
+
+            val deferred = async { engine.highlight(sampleCode, "kotlin", theme) }
+            respondToJs(engine, rawResult)
+
+            val result = deferred.await()
+            assertThat(result.isFailure).isTrue()
+            assertThat(result.exceptionOrNull()).isInstanceOf(HighlightException.ThemeNotFound::class.java)
+
+            engine.destroy()
+        }
+
+    @Test
     fun `highlightBothThemes produces both light and dark AnnotatedStrings`() =
         runTest {
             val engine = createReadyEngine()

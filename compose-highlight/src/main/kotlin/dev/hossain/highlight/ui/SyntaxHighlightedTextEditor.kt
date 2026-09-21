@@ -209,17 +209,32 @@ fun SyntaxHighlightedTextEditor(
             onError = onError,
         )
 
+    // Resolve base colors: if the theme has immediate colors (built-in, fromColorMap,
+    // or custom themes constructed with explicit base colors), use them immediately.
+    // If the theme is an unparsed custom theme, use fallback colors during initial composition
+    // so no asset I/O or CSS parsing runs on the main thread and composition never crashes.
+    // Once highlighting completes on Dispatchers.Default, theme.isResolved becomes true and
+    // the editor updates to the theme's colors.
+    val isThemeResolved = theme.hasImmediateColors || theme.isResolved
     val backgroundColor =
-        remember(theme) {
-            theme.backgroundColor.takeIf { it != Color.Unspecified }
-                ?: SyntaxHighlightedCodeDefaults.fallbackBackgroundColor
+        remember(theme, isThemeResolved) {
+            if (isThemeResolved) {
+                theme.backgroundColor.takeIf { it != Color.Unspecified }
+                    ?: SyntaxHighlightedCodeDefaults.fallbackBackgroundColor
+            } else {
+                SyntaxHighlightedCodeDefaults.fallbackBackgroundColor
+            }
         }
     val textColor =
-        remember(theme) {
-            theme.defaultTextColor.takeIf { it != Color.Unspecified }
-                ?: SyntaxHighlightedCodeDefaults.fallbackTextColor
+        remember(theme, isThemeResolved) {
+            if (isThemeResolved) {
+                theme.defaultTextColor.takeIf { it != Color.Unspecified }
+                    ?: SyntaxHighlightedCodeDefaults.fallbackTextColor
+            } else {
+                SyntaxHighlightedCodeDefaults.fallbackTextColor
+            }
         }
-    val themedTextStyle = remember(theme, textStyle) { textStyle.copy(color = textColor) }
+    val themedTextStyle = remember(theme, textStyle, textColor) { textStyle.copy(color = textColor) }
 
     // When the caller passes null, derive the cursor color from the theme so it stays visible on
     // both light and dark themes. BasicTextField's own default (SolidColor(Color.Black)) is

@@ -220,27 +220,46 @@ fun SyntaxHighlightedCode(
     onError: ((HighlightException) -> Unit)? = null,
     placeholder: (@Composable (code: String) -> Unit)? = null,
 ) {
-    // Remember derived colors and text styles keyed on theme and style so they are only
-    // recomputed when the theme or style actually changes, not on every recomposition.
+    // Resolve base colors: if the theme has immediate colors (built-in, fromColorMap,
+    // or custom themes constructed with explicit base colors), use them immediately.
+    // If the theme is an unparsed custom theme, use fallback colors during initial composition
+    // so no asset I/O or CSS parsing runs on the main thread and composition never crashes.
+    // Once highlighting completes on Dispatchers.Default, theme.isResolved becomes true and
+    // the code block updates to the theme's colors.
+    val isThemeResolved = theme.hasImmediateColors || theme.isResolved
     val backgroundColor =
-        remember(theme, style) {
-            theme.backgroundColor.takeIf { it != Color.Unspecified }
-                ?: style.fallbackBackgroundColor
+        remember(theme, style, isThemeResolved) {
+            if (isThemeResolved) {
+                theme.backgroundColor.takeIf { it != Color.Unspecified }
+                    ?: style.fallbackBackgroundColor
+            } else {
+                style.fallbackBackgroundColor
+            }
         }
     val textColor =
-        remember(theme, style) {
-            theme.defaultTextColor.takeIf { it != Color.Unspecified }
-                ?: style.fallbackTextColor
+        remember(theme, style, isThemeResolved) {
+            if (isThemeResolved) {
+                theme.defaultTextColor.takeIf { it != Color.Unspecified }
+                    ?: style.fallbackTextColor
+            } else {
+                style.fallbackTextColor
+            }
         }
     val lineNumberColor =
-        remember(theme, style) {
+        remember(theme, style, isThemeResolved) {
             style.lineNumberColor.takeIf { it != Color.Unspecified }
-                ?: (theme.defaultTextColor.takeIf { it != Color.Unspecified } ?: style.fallbackTextColor).copy(alpha = 0.4f)
+                ?: (
+                    if (isThemeResolved) {
+                        theme.defaultTextColor.takeIf { it != Color.Unspecified }
+                    } else {
+                        null
+                    } ?: style.fallbackTextColor
+                ).copy(alpha = 0.4f)
         }
 
     // Apply the theme's foreground color on top of the caller-supplied text style.
-    val themedCodeStyle = remember(theme, style) { style.textStyle.copy(color = textColor) }
-    val themedLineNumStyle = remember(theme, style) { style.textStyle.copy(color = lineNumberColor) }
+    val themedCodeStyle = remember(theme, style, textColor) { style.textStyle.copy(color = textColor) }
+    val themedLineNumStyle = remember(theme, style, lineNumberColor) { style.textStyle.copy(color = lineNumberColor) }
 
     // Resolve the effective language label: when the caller used the default (sentinel),
     // substitute the real default composable. Wrapped in remember so the lambda instance is

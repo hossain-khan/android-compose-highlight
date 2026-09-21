@@ -36,8 +36,9 @@ internal suspend fun <T> withEngineErrorHandling(block: suspend () -> Result<T>)
  * Executes [block] and maps exceptions from the HTML parsing and theme resolution pipeline to
  * [Result] failure types, while correctly propagating [CancellationException].
  *
- * - [CancellationException] → rethrown (preserves structured concurrency)
- * - Any other [Exception] → wrapped in [HighlightException.HtmlParseFailed]
+ * - [CancellationException] -> rethrown (preserves structured concurrency)
+ * - [HighlightException] -> preserved as [Result.failure]
+ * - Any other [Exception] -> wrapped in [HighlightException.HtmlParseFailed]
  *
  * Used by [dev.hossain.highlight.engine.HighlightEngine.highlight],
  * [dev.hossain.highlight.engine.HighlightEngine.highlightBothThemes], and
@@ -51,6 +52,8 @@ internal suspend fun <T> withHtmlParsingErrorHandling(block: suspend () -> Resul
         block()
     } catch (e: CancellationException) {
         throw e
+    } catch (e: HighlightException) {
+        Result.failure(e)
     } catch (e: Exception) {
         Result.failure(HighlightException.HtmlParseFailed(e))
     }

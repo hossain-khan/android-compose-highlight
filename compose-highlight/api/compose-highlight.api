@@ -58,6 +58,9 @@ public final class dev/hossain/highlight/engine/HighlightException$JsExecutionFa
 public final class dev/hossain/highlight/engine/HighlightException$ThemeNotFound : dev/hossain/highlight/engine/HighlightException {
 	public static final field $stable I
 	public fun <init> (Ljava/lang/String;)V
+	public fun <init> (Ljava/lang/String;Ljava/lang/Throwable;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getPath ()Ljava/lang/String;
 }
 
 public final class dev/hossain/highlight/engine/HighlightException$Timeout : dev/hossain/highlight/engine/HighlightException {
@@ -119,13 +122,15 @@ public final class dev/hossain/highlight/engine/HighlightResult {
 public final class dev/hossain/highlight/engine/HighlightTheme {
 	public static final field $stable I
 	public static final field Companion Ldev/hossain/highlight/engine/HighlightTheme$Companion;
-	public synthetic fun <init> (Ljava/lang/String;Lkotlin/jvm/functions/Function0;[JLkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ljava/lang/String;Lkotlin/jvm/functions/Function0;[JJJZLkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getBackgroundColor-0d7_KjU ()J
 	public final fun getColorMap ()Ljava/util/Map;
 	public final fun getDefaultTextColor-0d7_KjU ()J
+	public final fun getHasImmediateColors ()Z
 	public final fun getName ()Ljava/lang/String;
 	public fun hashCode ()I
+	public final fun isResolved ()Z
 	public fun toString ()Ljava/lang/String;
 }
 
@@ -138,9 +143,15 @@ public final class dev/hossain/highlight/engine/HighlightTheme$Companion {
 	public final fun draculaLight ()Ldev/hossain/highlight/engine/HighlightTheme;
 	public final fun findBundledById (Ljava/lang/String;)Ldev/hossain/highlight/engine/HighlightThemeDescriptor;
 	public final fun fromAsset (Landroid/content/Context;Ljava/lang/String;Ljava/lang/String;)Ldev/hossain/highlight/engine/HighlightTheme;
+	public final fun fromAsset-24o5doA (Landroid/content/Context;Ljava/lang/String;Ljava/lang/String;Landroidx/compose/ui/graphics/Color;Landroidx/compose/ui/graphics/Color;)Ldev/hossain/highlight/engine/HighlightTheme;
+	public static synthetic fun fromAsset-24o5doA$default (Ldev/hossain/highlight/engine/HighlightTheme$Companion;Landroid/content/Context;Ljava/lang/String;Ljava/lang/String;Landroidx/compose/ui/graphics/Color;Landroidx/compose/ui/graphics/Color;ILjava/lang/Object;)Ldev/hossain/highlight/engine/HighlightTheme;
+	public final fun fromAsset-gP2Z1ig (Landroid/content/Context;Ljava/lang/String;Ljava/lang/String;Landroidx/compose/ui/graphics/Color;)Ldev/hossain/highlight/engine/HighlightTheme;
 	public final fun fromColorMap-Ij2XjQ8 (Ljava/lang/String;Ljava/util/Map;Landroidx/compose/ui/graphics/Color;Landroidx/compose/ui/graphics/Color;)Ldev/hossain/highlight/engine/HighlightTheme;
 	public static synthetic fun fromColorMap-Ij2XjQ8$default (Ldev/hossain/highlight/engine/HighlightTheme$Companion;Ljava/lang/String;Ljava/util/Map;Landroidx/compose/ui/graphics/Color;Landroidx/compose/ui/graphics/Color;ILjava/lang/Object;)Ldev/hossain/highlight/engine/HighlightTheme;
 	public final fun fromCss (Ljava/lang/String;Ljava/lang/String;)Ldev/hossain/highlight/engine/HighlightTheme;
+	public final fun fromCss-Ij2XjQ8 (Ljava/lang/String;Ljava/lang/String;Landroidx/compose/ui/graphics/Color;Landroidx/compose/ui/graphics/Color;)Ldev/hossain/highlight/engine/HighlightTheme;
+	public static synthetic fun fromCss-Ij2XjQ8$default (Ldev/hossain/highlight/engine/HighlightTheme$Companion;Ljava/lang/String;Ljava/lang/String;Landroidx/compose/ui/graphics/Color;Landroidx/compose/ui/graphics/Color;ILjava/lang/Object;)Ldev/hossain/highlight/engine/HighlightTheme;
+	public final fun fromCss-t9lfQc4 (Ljava/lang/String;Ljava/lang/String;Landroidx/compose/ui/graphics/Color;)Ldev/hossain/highlight/engine/HighlightTheme;
 	public final fun getBundled ()Ljava/util/List;
 	public final fun getBundledDark ()Ljava/util/List;
 	public final fun getBundledLight ()Ljava/util/List;
