@@ -381,4 +381,45 @@ class SyntaxHighlightedCodeRobolectricTest {
         composeTestRule.waitForIdle()
         assertThat(hasEngine).isFalse()
     }
+
+    @Test
+    fun `renders line numbers when showLineNumbers is true`() {
+        val theme = HighlightTheme.fromCss("", "test-empty-theme")
+        composeTestRule.setContent {
+            HighlightThemeProvider {
+                SyntaxHighlightedCode(
+                    code = "val x = 1\nval y = 2\nval z = 3",
+                    language = "kotlin",
+                    theme = theme,
+                    showLineNumbers = true,
+                )
+            }
+        }
+        composeTestRule.waitForIdle()
+        composeTestRule
+            .onNodeWithText("1\n2\n3", useUnmergedTree = true)
+            .assertIsDisplayed()
+    }
+
+    @Test
+    fun `renders line numbers for large line count exceeding 1000 lines`() {
+        val lineCount = 1005
+        val lines = (1..lineCount).joinToString("\n") { "val line$it = $it" }
+        val expectedLineNumbers = (1..lineCount).joinToString("\n")
+        val theme = HighlightTheme.fromCss("", "test-empty-theme")
+        composeTestRule.setContent {
+            HighlightThemeProvider {
+                SyntaxHighlightedCode(
+                    code = lines,
+                    language = "kotlin",
+                    theme = theme,
+                    showLineNumbers = true,
+                )
+            }
+        }
+        composeTestRule.waitForIdle()
+        composeTestRule
+            .onNodeWithText(expectedLineNumbers, useUnmergedTree = true)
+            .assertExists()
+    }
 }

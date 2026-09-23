@@ -84,7 +84,12 @@ object SyntaxHighlightedCodeDefaults {
     /** Default padding for the header row (language label + copy button). */
     val headerPadding: PaddingValues = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
 
-    /** Default width reserved for the line-number gutter. */
+    /**
+     * Default minimum width reserved for the line-number gutter.
+     *
+     * The gutter automatically expands beyond this value for code blocks with 1,000+ lines
+     * or larger typography to fit multi-digit line numbers without wrapping.
+     */
     val lineNumberWidth: Dp = 32.dp
 
     /** Default size (width and height) of the copy button. */

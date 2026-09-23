@@ -75,7 +75,12 @@ data class CodeBlockStyle(
      * Override to use a fixed color.
      */
     val lineNumberColor: Color = Color.Unspecified,
-    /** Width reserved for the line number gutter. */
+    /**
+     * Minimum width reserved for the line number gutter.
+     *
+     * The gutter automatically expands beyond this value for code blocks with 1,000+ lines
+     * or larger typography to fit multi-digit line numbers without wrapping.
+     */
     val lineNumberWidth: Dp = SyntaxHighlightedCodeDefaults.lineNumberWidth,
     /** Size (width and height) of the copy-to-clipboard button icon. */
     val copyButtonSize: Dp = SyntaxHighlightedCodeDefaults.copyButtonSize,

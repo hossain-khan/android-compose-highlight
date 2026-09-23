@@ -14,6 +14,14 @@ All notable changes to this project will be documented in this file.
   pinned latency chips and a pipeline stage breakdown table (`HighlightTimings`) to evaluate syntax highlighting
   performance on production-scale files.
 
+### Fixed
+
+- **Line number gutter wrapping on large files (1,000+ lines)** - Changed line number gutter width constraint
+  from fixed `Modifier.width(style.lineNumberWidth)` to `Modifier.widthIn(min = style.lineNumberWidth)` and
+  added `softWrap = false` across `SyntaxHighlightedCode` and `StreamingSyntaxHighlightedCode` (#505). This
+  allows the line number gutter to automatically expand for files with 1,000+ lines (or larger font sizes)
+  without wrapping digits onto multiple lines or desynchronizing from the code.
+
 ## [0.37.0] - 2026-09-19
 
 ### Added
