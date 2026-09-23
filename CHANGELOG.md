@@ -9,6 +9,10 @@ All notable changes to this project will be documented in this file.
 - **Binary Compatibility Validator (BCV) for public API tracking** - Added JetBrains' official Binary
   Compatibility Validator with `android-bcv-bridge` to track and enforce public ABI compatibility across
   releases via `./gradlew apiCheck` and `./gradlew apiDump`, establishing the baseline in `compose-highlight.api` (#479).
+- **Large file benchmark demo tab in sample app** - Added a dedicated "Large File" demo tab in the sample app
+  rendering the non-minified Underscore.js ES module source (~71.5 KB, 2,170+ lines of JavaScript) alongside
+  pinned latency chips and a pipeline stage breakdown table (`HighlightTimings`) to evaluate syntax highlighting
+  performance on production-scale files.
 
 ## [0.37.0] - 2026-09-19
 
