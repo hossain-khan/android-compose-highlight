@@ -50,6 +50,7 @@ import dev.hossain.highlight.sample.sections.AllThemesSection
 import dev.hossain.highlight.sample.sections.CallbacksSection
 import dev.hossain.highlight.sample.sections.EngineInfoSection
 import dev.hossain.highlight.sample.sections.LanguageDiscoverabilitySection
+import dev.hossain.highlight.sample.sections.LargeFileSection
 import dev.hossain.highlight.sample.sections.LiveEditorSection
 import dev.hossain.highlight.sample.sections.PlaceholderSection
 import dev.hossain.highlight.sample.sections.SectionHeader
@@ -86,6 +87,7 @@ import kotlinx.coroutines.withContext
  * - **Toggles**: shows all boolean flag combinations (line numbers, language label, copy button).
  * - **Callbacks**: demonstrates `onHighlightComplete` and `onCopyClick` callbacks of [SyntaxHighlightedCode].
  * - **Themes**: exercises every [HighlightTheme] factory method.
+ * - **Large File**: demonstrates highlighting performance on a 2,000+ line JavaScript library file.
  * - **Advanced**: shows [rememberHighlightedCodeBothThemes] for instant theme switching.
  * - **Engine**: shows [HighlightEngine.highlightJsVersion] and [HighlightEngine.supportedLanguages].
  */
@@ -302,6 +304,10 @@ internal fun SampleScreen(viewModel: SampleViewModel = viewModel()) {
 
                         DemoTab.Streaming -> {
                             item { StreamingSection() }
+                        }
+
+                        DemoTab.LargeFile -> {
+                            item { LargeFileSection(onCopyClick = onCopyClick) }
                         }
                     }
                 }

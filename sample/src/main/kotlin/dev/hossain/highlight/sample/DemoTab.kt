@@ -40,6 +40,8 @@ internal sealed class DemoTab(
 
     data object Streaming : DemoTab("LLM/Streaming")
 
+    data object LargeFile : DemoTab("Large File")
+
     companion object {
         val all by lazy {
             listOf(
@@ -55,6 +57,7 @@ internal sealed class DemoTab(
                 LanguageDiscoverability,
                 LiveEditor,
                 Streaming,
+                LargeFile,
                 Advanced,
                 Engine,
             )
