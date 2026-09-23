@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.37.1] - 2026-09-22
+
 ### Added
 
 - **Binary Compatibility Validator (BCV) for public API tracking** - Added JetBrains' official Binary
