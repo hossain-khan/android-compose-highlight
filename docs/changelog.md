@@ -6,6 +6,13 @@ For release artifacts and APK downloads, see the [GitHub Releases page](https://
 
 ## Recent highlights
 
+### 0.37.1 - Auto-expanding line numbers and large file benchmark
+
+- Fixed line-number gutter wrapping multi-digit numbers onto multiple lines for files with 1,000+ lines
+- Added automatic gutter expansion via minimum width constraint (`widthIn`) and disabled text wrapping
+- Added dedicated "Large File" demo tab in the sample app benchmarking 2,170+ lines of JavaScript with live pipeline timings
+- Added Binary Compatibility Validator (`apiCheck` / `apiDump`) to track and enforce public ABI baseline
+
 ### 0.37.0 - Theme discovery, synchronous language catalog, and recomposition testing
 
 - Added `HighlightThemeDescriptor` and `HighlightTheme.bundled` APIs to dynamically discover, filter, and restore bundled themes with metadata
@@ -37,14 +44,6 @@ For release artifacts and APK downloads, see the [GitHub Releases page](https://
 - Added streaming-aware scroll handling to preserve user scroll offsets during token appends
 - Added "LLM/Streaming" interactive demo tab in the sample app simulating token streams across Kotlin, Python, and TypeScript
 - Upgraded documentation site generator Zensical to 0.0.56 with refreshed Dokka chrome assets
-
-### 0.33.0 - Dracula/Alucard theme aliases, docs asset fingerprinting, and dependency updates
-
-- Added Dracula and Alucard light/dark theme convenience aliases (`rememberDraculaLightTheme()`, `rememberAlucardDarkTheme()`, etc.)
-- Migrated instrumented Compose UI tests to the v2 `createComposeRule` API
-- Fixed trailing newline bug in documentation code blocks
-- Added post-build asset fingerprinting for custom docsite assets to ensure reliable browser cache-busting
-- Updated Compose BOM (`2026.08.00`), AndroidX WebKit (`1.17.0`), Kotlinter (`5.7.0`), Roborazzi (`1.71.0`), and Gradle wrapper (`9.7.0`)
 
 ---
 
