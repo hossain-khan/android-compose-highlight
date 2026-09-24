@@ -171,6 +171,34 @@ class HighlightEngineRobolectricTest {
         }
 
     @Test
+    fun `highlight returns zero spanCount when JS envelope returns unsupported language`() =
+        runTest {
+            val engine = createReadyEngine()
+            val sampleCode = "val x = 42"
+            val escapedHtml = "val x = 42"
+            val innerJson =
+                JSONObject()
+                    .apply {
+                        put("error", false)
+                        put("html", escapedHtml)
+                        put("unsupported", true)
+                    }.toString()
+            val rawResult = JSONObject.quote(innerJson)
+            val theme = HighlightTheme.tomorrow()
+
+            val deferred = async { engine.highlight(sampleCode, "unsupported_lang", theme) }
+            respondToJs(engine, rawResult)
+
+            val result = deferred.await()
+            assertThat(result.isSuccess).isTrue()
+            val highlightResult = result.getOrThrow()
+            assertThat(highlightResult.annotated.text).isEqualTo("val x = 42")
+            assertThat(highlightResult.spanCount).isEqualTo(0)
+
+            engine.destroy()
+        }
+
+    @Test
     fun `highlightBothThemes produces both light and dark AnnotatedStrings`() =
         runTest {
             val engine = createReadyEngine()

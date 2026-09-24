@@ -1,17 +1,26 @@
 <!DOCTYPE html>
 <html><body>
-<pre><code id="code"></code></pre>
 <script src="highlight.min.js"></script>
 <script>
-// https://highlightjs.readthedocs.io/en/latest/api.html#highlightelement
+function escapeHtml(str) {
+  if (!str) return "";
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+// https://highlightjs.readthedocs.io/en/latest/api.html#highlight
 function highlightCode(code, lang) {
   try {
-    const block = document.getElementById("code");
-    block.textContent = code;
-    block.className = lang;
-    delete block.dataset.highlighted;
-    hljs.highlightElement(block);
-    return JSON.stringify({ error: false, html: block.innerHTML });
+    const text = code || "";
+    if (!lang || !hljs.getLanguage(lang)) {
+      return JSON.stringify({ error: false, html: escapeHtml(text), unsupported: true });
+    }
+    const result = hljs.highlight(text, { language: lang, ignoreIllegals: true });
+    return JSON.stringify({ error: false, html: result.value });
   } catch(e) {
     return JSON.stringify({ error: true, message: e.message || String(e) });
   }

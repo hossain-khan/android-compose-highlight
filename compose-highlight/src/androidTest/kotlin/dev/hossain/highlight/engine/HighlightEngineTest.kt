@@ -62,13 +62,31 @@ class HighlightEngineTest {
     fun unknownLanguageReturnsUnhighlightedHtmlWithoutCrash() =
         runBlocking {
             val result = engine.highlightToHtml("some code here", "not-a-real-language")
-            // highlight.js falls back to auto-detection - succeeds without crashing
+            // When language is unknown, bridge.html returns escaped plain text without running auto-detection
             assertThat(result.isSuccess).isTrue()
             val html = result.getOrThrow().html
-            // Auto-detection may wrap tokens in spans (breaking exact phrase), so check individual words
-            assertThat(html).isNotEmpty()
-            assertThat(html).contains("some")
-            assertThat(html).contains("here")
+            assertThat(html).isEqualTo("some code here")
+            assertThat(html).doesNotContain("hljs-")
+        }
+
+    @Test
+    fun unknownLanguageHighlightReturnsPlainAnnotatedStringWithZeroSpans() =
+        runBlocking {
+            val result = engine.highlight("some code here", "not-a-real-language", lightTheme)
+            assertThat(result.isSuccess).isTrue()
+            val highlightResult = result.getOrThrow()
+            assertThat(highlightResult.annotated.text).isEqualTo("some code here")
+            assertThat(highlightResult.spanCount).isEqualTo(0)
+        }
+
+    @Test
+    fun blankLanguageHighlightReturnsPlainAnnotatedStringWithZeroSpans() =
+        runBlocking {
+            val result = engine.highlight("val x = 42", "", lightTheme)
+            assertThat(result.isSuccess).isTrue()
+            val highlightResult = result.getOrThrow()
+            assertThat(highlightResult.annotated.text).isEqualTo("val x = 42")
+            assertThat(highlightResult.spanCount).isEqualTo(0)
         }
 
     @Test
