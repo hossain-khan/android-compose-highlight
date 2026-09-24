@@ -17,7 +17,7 @@
 #        - listLanguages()            - returns all supported language identifiers
 #        - getLanguage(nameOrAlias)   - returns metadata for a given language
 #        - hljsVersion()              - returns the bundled highlight.js version string
-#   4. bridge.html contains an element with id="code" (used by highlightCode() via getElementById)
+#   4. bridge.html delegates directly to hljs.highlight() guarded by hljs.getLanguage()
 #   5. internal/WebViewManager.kt loads bridge.html from the expected appassets.androidplatform.net URL
 #
 # Triggered only when the bridge files or this workflow itself change.

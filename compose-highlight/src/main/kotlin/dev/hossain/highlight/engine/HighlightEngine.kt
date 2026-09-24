@@ -223,7 +223,9 @@ class HighlightEngine(
      * ```
      *
      * @param code The source code to highlight.
-     * @param language Highlight.js language identifier (e.g. `"kotlin"`, `"python"`).
+     * @param language Highlight.js language identifier (e.g. `"kotlin"`, `"python"`). If blank
+     *   or unrecognized by Highlight.js, returns escaped plain text without running automatic
+     *   language detection. Use [highlightAuto] if automatic language detection is desired.
      * @return [Result] wrapping an [HtmlHighlightResult] (html + timing), or [Result.failure]
      *   with a [HighlightException] on error. Returns [HighlightException.Timeout] if the
      *   JavaScript call does not complete within the timeout window.
@@ -254,9 +256,9 @@ class HighlightEngine(
      * Full pipeline: tokenise → apply theme → convert to [HighlightResult].
      *
      * Combines [highlightToHtml] with colour-map application to produce a ready-to-render
-     * [AnnotatedString]. A [HighlightResult.spanCount] of `0` indicates a silent failure -
-     * the language may be unsupported or the code was empty; [HighlightResult.annotated]
-     * still contains plain text so callers can always render something.
+     * [AnnotatedString]. A [HighlightResult.spanCount] of `0` indicates that no syntax tokens
+     * were styled (e.g. unrecognized or blank language, empty code, or plaintext);
+     * [HighlightResult.annotated] still contains plain text so callers can always render something.
      *
      * ```kotlin
      * engine.highlight(code, "kotlin", theme).onSuccess { result ->
@@ -267,7 +269,9 @@ class HighlightEngine(
      * ```
      *
      * @param code The source code to highlight.
-     * @param language Highlight.js language identifier (e.g. `"kotlin"`, `"python"`).
+     * @param language Highlight.js language identifier (e.g. `"kotlin"`, `"python"`). If blank
+     *   or unrecognized by Highlight.js, returns plain unhighlighted text without running
+     *   automatic language detection.
      * @param theme The [HighlightTheme] whose colour map will be applied.
      * @return [Result] wrapping a [HighlightResult], or [Result.failure] with a
      *   [HighlightException] on error.

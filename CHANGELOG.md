@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Fixed
+
+- **Silent `highlightAuto` fallback on unknown or blank languages** - Added language validation using
+  `hljs.getLanguage(lang)` in `bridge.html` before executing highlighting (#508). When an unknown,
+  empty, or misspelled language is passed, the bridge now returns escaped plain text immediately instead
+  of triggering full automatic language detection across all bundled grammars. This eliminates a 56x latency
+  penalty (254 ms down to < 1 ms), prevents engine mutex contention, and aligns with the documented
+  `spanCount == 0` contract.
+
 ### Changed
 
 - **Removed broad consumer R8 keep rules** - Removed blanket `-keep public class` rules from

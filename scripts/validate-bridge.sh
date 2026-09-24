@@ -50,9 +50,13 @@ for fn in highlightCode highlightAuto listLanguages getLanguage hljsVersion; do
   fi
 done
 
-# highlightCode() uses getElementById("code") to set content
-if ! grep -Eq "getElementById[[:space:]]*\([[:space:]]*['\"]code['\"][[:space:]]*\)|querySelector[[:space:]]*\([[:space:]]*['\"]#code['\"][[:space:]]*\)" "$BRIDGE_FILE"; then
-  echo "ERROR: bridge.html missing element with id='code' lookup"
+# highlightCode() delegates directly to hljs.highlight with language guard
+if ! grep -Eq "hljs\.highlight\(" "$BRIDGE_FILE"; then
+  echo "ERROR: bridge.html missing hljs.highlight() invocation"
+  exit 1
+fi
+if ! grep -Eq "hljs\.getLanguage\(" "$BRIDGE_FILE"; then
+  echo "ERROR: bridge.html missing hljs.getLanguage() guard"
   exit 1
 fi
 
@@ -62,4 +66,54 @@ if ! grep -q 'https://appassets.androidplatform.net/assets/compose-highlight/bri
   exit 1
 fi
 
+# 3. Semantic runtime check via Node.js if available
+if command -v node >/dev/null 2>&1; then
+  echo "Running bridge runtime contract check with Node.js..."
+  node -e "
+    const fs = require('fs');
+    const vm = require('vm');
+    const bridgeHtml = fs.readFileSync('$BRIDGE_FILE', 'utf8');
+    const hljsCode = fs.readFileSync('$REPO_ROOT/compose-highlight/src/main/assets/compose-highlight/highlight.min.js', 'utf8');
+    const scriptRegex = /<script>([\s\S]*?)<\/script>/gi;
+    let match;
+    const scripts = [];
+    while ((match = scriptRegex.exec(bridgeHtml)) !== null) {
+      scripts.push(match[1]);
+    }
+    const ctx = {};
+    vm.runInNewContext(hljsCode, ctx);
+    for (const s of scripts) {
+      vm.runInNewContext(s, ctx);
+    }
+
+    // 1. Valid language highlighting
+    const kotlinRes = JSON.parse(ctx.highlightCode('fun main() {}', 'kotlin'));
+    if (kotlinRes.error || !kotlinRes.html.includes('hljs-keyword')) {
+      throw new Error('highlightCode failed for valid language: ' + JSON.stringify(kotlinRes));
+    }
+
+    // 2. Unknown language guard (must NOT trigger highlightAuto)
+    const unknownRes = JSON.parse(ctx.highlightCode('fun main() { val x = 1 < 2 }', 'unknown_lang'));
+    if (unknownRes.error || unknownRes.html.includes('hljs-') || !unknownRes.unsupported) {
+      throw new Error('highlightCode failed to guard unknown language: ' + JSON.stringify(unknownRes));
+    }
+    if (!unknownRes.html.includes('&lt;')) {
+      throw new Error('highlightCode failed to escape HTML for unknown language: ' + JSON.stringify(unknownRes));
+    }
+
+    // 3. Blank language guard
+    const blankRes = JSON.parse(ctx.highlightCode('some text', ''));
+    if (blankRes.error || blankRes.html.includes('hljs-') || !blankRes.unsupported) {
+      throw new Error('highlightCode failed to guard blank language: ' + JSON.stringify(blankRes));
+    }
+
+    // 4. highlightAuto produces spans
+    const autoRes = JSON.parse(ctx.highlightAuto('fun main() {}'));
+    if (autoRes.error || !autoRes.html.includes('hljs-')) {
+      throw new Error('highlightAuto failed: ' + JSON.stringify(autoRes));
+    }
+  "
+fi
+
 echo "Bridge validation passed! All contracts and syntax checks are valid."
+

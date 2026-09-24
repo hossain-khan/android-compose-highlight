@@ -58,7 +58,8 @@ import dev.hossain.highlight.engine.ThemedHighlightResult
  * For light/dark toggling without re-highlighting, prefer [rememberHighlightedCodeBothThemes].
  *
  * @param code The source code to highlight.
- * @param language The Highlight.js language identifier (e.g. `"python"`, `"kotlin"`).
+ * @param language The Highlight.js language identifier (e.g. `"python"`, `"kotlin"`). If blank
+ *   or unrecognized, the code is returned as plain unhighlighted text.
  * @param theme The theme to apply. Defaults to [LocalHighlightTheme].
  * @param onHighlightComplete Optional callback invoked with a [HighlightResult] when highlighting
  *   succeeds. Fires after the [State] is updated. Not called on failure.

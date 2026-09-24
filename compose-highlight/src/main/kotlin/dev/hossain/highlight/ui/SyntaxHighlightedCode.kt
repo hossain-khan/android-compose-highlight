@@ -139,7 +139,9 @@ private val LineNumberGutterSpacing = 8.dp
  * ```
  *
  * @param code The source code to display.
- * @param language Highlight.js language identifier (e.g. `"python"`, `"kotlin"`).
+ * @param language Highlight.js language identifier (e.g. `"python"`, `"kotlin"`). If blank or
+ *   unrecognized by Highlight.js, the code is rendered as plain text with the theme's base styling
+ *   without triggering auto-detection.
  * @param modifier Modifier for the outer container. The composable also applies a
  *   `testTag("syntax-highlighted-code")` on the outer surface to support UI testing.
  * @param theme The theme to use. Defaults to [LocalHighlightTheme]. Throws if no
