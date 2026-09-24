@@ -1,7 +1,3 @@
-# Keep the library's public API surface only.
-# Internal implementation packages are intentionally excluded so downstream R8 can
-# still shrink and optimize those classes.
--keep public class dev.hossain.highlight.ui.* { public *; }
--keep public interface dev.hossain.highlight.ui.* { *; }
--keep public class dev.hossain.highlight.engine.* { public *; }
--keep public interface dev.hossain.highlight.engine.* { *; }
+# compose-highlight does not use reflection, JNI, or @JavascriptInterface.
+# Downstream applications can safely shrink all unused library code.
+

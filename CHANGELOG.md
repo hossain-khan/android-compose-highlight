@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Changed
+
+- **Removed broad consumer R8 keep rules** - Removed blanket `-keep public class` rules from
+  `consumer-rules.pro` (#492). Downstream applications with R8 shrinking enabled can now dead-code
+  eliminate unused library components, composables (e.g. streaming or editor), and theme factories.
+
 ## [0.37.1] - 2026-09-22
 
 ### Added
