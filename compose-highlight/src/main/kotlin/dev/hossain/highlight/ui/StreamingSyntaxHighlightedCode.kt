@@ -21,6 +21,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -190,12 +191,12 @@ fun StreamingSyntaxHighlightedCode(
     val clipboard = LocalClipboard.current
     val scope = rememberCoroutineScope()
 
-    var previousCode by remember { mutableStateOf<String?>(null) }
-    var previousLanguage by remember { mutableStateOf<String?>(null) }
+    var previousCode by rememberSaveable { mutableStateOf(code) }
+    var previousLanguage by rememberSaveable { mutableStateOf(language) }
 
     LaunchedEffect(code, language) {
         val prev = previousCode
-        val isAppend = prev != null && code.startsWith(prev) && language == previousLanguage
+        val isAppend = code.startsWith(prev) && language == previousLanguage
         if (!isAppend) {
             scrollState.scrollTo(0)
         }

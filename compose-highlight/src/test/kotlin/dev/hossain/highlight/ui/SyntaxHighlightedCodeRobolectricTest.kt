@@ -4,8 +4,13 @@ import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.junit4.StateRestorationTester
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
@@ -20,6 +25,7 @@ import dev.hossain.highlight.engine.HighlightException
 import dev.hossain.highlight.engine.HighlightTheme
 import dev.hossain.highlight.engine.ThemedHighlightResult
 import dev.hossain.highlight.ui.internal.LocalHighlightEngine
+import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -421,5 +427,73 @@ class SyntaxHighlightedCodeRobolectricTest {
         composeTestRule
             .onNodeWithText(expectedLineNumbers, useUnmergedTree = true)
             .assertExists()
+    }
+
+    @Test
+    fun `horizontal scroll position is preserved across state restoration`() {
+        val restorationTester = StateRestorationTester(composeTestRule)
+        var scrollState: ScrollState? = null
+        val theme = HighlightTheme.fromCss("", "test-empty-theme")
+
+        restorationTester.setContent {
+            val state = rememberScrollState()
+            scrollState = state
+            HighlightThemeProvider {
+                SyntaxHighlightedCode(
+                    code = "val longLine = " + "x".repeat(500),
+                    language = "kotlin",
+                    theme = theme,
+                    scrollState = state,
+                    modifier = Modifier.width(100.dp),
+                )
+            }
+        }
+        composeTestRule.waitForIdle()
+        assertThat(scrollState?.maxValue).isGreaterThan(0)
+
+        runBlocking {
+            scrollState?.scrollTo(42)
+        }
+        composeTestRule.waitForIdle()
+        assertThat(scrollState?.value).isEqualTo(42)
+
+        restorationTester.emulateSavedInstanceStateRestore()
+        composeTestRule.waitForIdle()
+
+        assertThat(scrollState?.value).isEqualTo(42)
+    }
+
+    @Test
+    fun `horizontal scroll position resets to 0 when code content changes`() {
+        var code by mutableStateOf("val longLine = " + "x".repeat(500))
+        var scrollState: ScrollState? = null
+        val theme = HighlightTheme.fromCss("", "test-empty-theme")
+
+        composeTestRule.setContent {
+            val state = rememberScrollState()
+            scrollState = state
+            HighlightThemeProvider {
+                SyntaxHighlightedCode(
+                    code = code,
+                    language = "kotlin",
+                    theme = theme,
+                    scrollState = state,
+                    modifier = Modifier.width(100.dp),
+                )
+            }
+        }
+        composeTestRule.waitForIdle()
+        assertThat(scrollState?.maxValue).isGreaterThan(0)
+
+        runBlocking {
+            scrollState?.scrollTo(42)
+        }
+        composeTestRule.waitForIdle()
+        assertThat(scrollState?.value).isEqualTo(42)
+
+        code = "val newLongLine = " + "y".repeat(500)
+        composeTestRule.waitForIdle()
+
+        assertThat(scrollState?.value).isEqualTo(0)
     }
 }

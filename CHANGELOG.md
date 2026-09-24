@@ -12,6 +12,10 @@ All notable changes to this project will be documented in this file.
   of triggering full automatic language detection across all bundled grammars. This eliminates a 56x latency
   penalty (254 ms down to < 1 ms), prevents engine mutex contention, and aligns with the documented
   `spanCount == 0` contract.
+- **Horizontal scroll position reset on configuration change and LazyColumn re-entry** - Tracked previous
+  code with `rememberSaveable` in `SyntaxHighlightedCode` and `StreamingSyntaxHighlightedCode` (#509). The
+  horizontal scroll offset is now preserved across screen rotation, state restoration, and LazyColumn recycling,
+  and only resets to 0 when the code snippet content actually changes or a new stream begins.
 
 ### Changed
 
