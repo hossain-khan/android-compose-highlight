@@ -1,6 +1,7 @@
 package dev.hossain.highlight.engine.internal
 
 import android.content.Context
+import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.webkit.WebResourceRequest
@@ -17,6 +18,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.withContext
+import java.io.ByteArrayInputStream
 
 /**
  * Internal manager responsible for creating and initializing the hidden WebView.
@@ -36,6 +38,23 @@ import kotlinx.coroutines.withContext
  * and maps `/assets/` → the app's `assets/` folder, so no real network call is ever made.
  *
  * Official docs: https://developer.android.com/reference/androidx/webkit/WebViewAssetLoader
+ *
+ * ## Security hardening
+ *
+ * To minimize attack surface and prevent unwanted resource or network access:
+ * - [android.webkit.WebSettings.setAllowFileAccess] is set to `false` to disable `file://` filesystem access.
+ *   Official guidance: https://developer.android.com/privacy-and-security/risks/webview-unsafe-file-inclusion
+ * - [android.webkit.WebSettings.setAllowContentAccess] is set to `false` to disable `content://` ContentProvider access.
+ * - [android.webkit.WebSettings.setBlockNetworkLoads] is set to `true` to block outbound network requests.
+ *   Official docs: https://developer.android.com/reference/android/webkit/WebSettings#setBlockNetworkLoads(boolean)
+ * - [android.webkit.WebSettings.setSafeBrowsingEnabled] is set to `false` on API 26+ to avoid Safe Browsing
+ *   initialization overhead and network telemetry on an internal, trusted asset-only WebView.
+ *   Official docs: https://developer.android.com/reference/android/webkit/WebSettings#setSafeBrowsingEnabled(boolean)
+ * - [WebViewClient.shouldOverrideUrlLoading] returns `true` to reject unexpected page navigation.
+ *   Official docs: https://developer.android.com/reference/android/webkit/WebViewClient#shouldOverrideUrlLoading(android.webkit.WebView,%20android.webkit.WebResourceRequest)
+ * - [WebViewClient.shouldInterceptRequest] rejects any request not targeting `https://appassets.androidplatform.net`
+ *   with an HTTP 403 Forbidden response.
+ * - `bridge.html` enforces a strict Content Security Policy (`default-src 'none'; script-src 'self' 'unsafe-inline';`).
  *
  * ## What bridge.html does
  *
@@ -163,13 +182,53 @@ internal class WebViewManager(
             val view =
                 try {
                     WebView(context).apply {
-                        settings.javaScriptEnabled = true
+                        settings.apply {
+                            javaScriptEnabled = true
+                            // Hardened settings: disable file and content access since assets are loaded
+                            // over https:// via WebViewAssetLoader.
+                            // Official docs: https://developer.android.com/privacy-and-security/risks/webview-unsafe-file-inclusion
+                            allowFileAccess = false
+                            allowContentAccess = false
+                            // Block any outbound network loads - bridge.html only needs local bundled assets.
+                            // Official docs: https://developer.android.com/reference/android/webkit/WebSettings#setBlockNetworkLoads(boolean)
+                            blockNetworkLoads = true
+                            // Disable Safe Browsing for local, trusted asset-only WebView to avoid unnecessary
+                            // initialization overhead and network lookups.
+                            // Official docs: https://developer.android.com/reference/android/webkit/WebSettings#setSafeBrowsingEnabled(boolean)
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                                safeBrowsingEnabled = false
+                            }
+                        }
                         webViewClient =
                             object : WebViewClient() {
+                                override fun shouldOverrideUrlLoading(
+                                    view: WebView,
+                                    request: WebResourceRequest,
+                                ): Boolean {
+                                    // Reject any unexpected page navigation away from bridge.html.
+                                    // Official docs: https://developer.android.com/reference/android/webkit/WebViewClient#shouldOverrideUrlLoading(android.webkit.WebView,%20android.webkit.WebResourceRequest)
+                                    return true
+                                }
+
                                 override fun shouldInterceptRequest(
                                     view: WebView,
                                     request: WebResourceRequest,
-                                ): WebResourceResponse? = assetLoader.shouldInterceptRequest(request.url)
+                                ): WebResourceResponse? {
+                                    val url = request.url
+                                    // Reject requests to unexpected origins or schemes.
+                                    // Official docs: https://developer.android.com/reference/androidx/webkit/WebViewAssetLoader
+                                    if (url.scheme != "https" || url.host != "appassets.androidplatform.net") {
+                                        return WebResourceResponse(
+                                            "text/plain",
+                                            "utf-8",
+                                            403,
+                                            "Forbidden",
+                                            emptyMap(),
+                                            ByteArrayInputStream(ByteArray(0)),
+                                        )
+                                    }
+                                    return assetLoader.shouldInterceptRequest(url)
+                                }
 
                                 override fun onPageFinished(
                                     view: WebView,
