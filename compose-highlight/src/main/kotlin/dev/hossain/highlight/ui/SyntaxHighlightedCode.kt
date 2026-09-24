@@ -27,6 +27,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -348,10 +349,15 @@ fun SyntaxHighlightedCode(
             }
 
             // Code content with horizontal scroll. Scroll position resets to 0 when code
-            // changes, but survives configuration changes via rememberScrollState (saveable).
+            // changes, but survives configuration changes via rememberSaveable and rememberScrollState.
+            var previousCode by rememberSaveable { mutableStateOf(code) }
             LaunchedEffect(code) {
-                scrollState.scrollTo(0)
+                if (code != previousCode) {
+                    previousCode = code
+                    scrollState.scrollTo(0)
+                }
             }
+
             Box(modifier = Modifier.horizontalScroll(scrollState)) {
                 val highlighted = highlightedState.value
                 val placeholderContent = placeholder
