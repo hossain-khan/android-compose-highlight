@@ -4,12 +4,17 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.input.key.KeyEvent
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsFocused
+import androidx.compose.ui.test.assertIsNotFocused
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performKeyPress
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
@@ -20,6 +25,7 @@ import dev.hossain.highlight.engine.HighlightTheme
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import android.view.KeyEvent as AndroidKeyEvent
 
 @OptIn(ExperimentalHighlightApi::class)
 @RunWith(AndroidJUnit4::class)
@@ -237,5 +243,35 @@ class SyntaxHighlightedTextEditorTest {
                 .fetchSemanticsNode()
                 .config[SemanticsProperties.ImeAction]
         assertThat(imeAction).isEqualTo(ImeAction.Search)
+    }
+
+    @Test
+    fun escapeKeyClearsFocusWhenEnabled() {
+        composeTestRule.setContent {
+            HighlightThemeProvider {
+                SyntaxHighlightedTextEditor(
+                    value = TextFieldValue(sampleCode),
+                    onValueChange = {},
+                    language = "kotlin",
+                    escapeKeyClearsFocus = true,
+                )
+            }
+        }
+
+        val editorNode = composeTestRule.onNode(hasSetTextAction(), useUnmergedTree = true)
+        editorNode.performClick()
+        composeTestRule.waitForIdle()
+        editorNode.assertIsFocused()
+
+        editorNode.performKeyPress(
+            KeyEvent(
+                AndroidKeyEvent(
+                    AndroidKeyEvent.ACTION_DOWN,
+                    AndroidKeyEvent.KEYCODE_ESCAPE,
+                ),
+            ),
+        )
+        composeTestRule.waitForIdle()
+        editorNode.assertIsNotFocused()
     }
 }

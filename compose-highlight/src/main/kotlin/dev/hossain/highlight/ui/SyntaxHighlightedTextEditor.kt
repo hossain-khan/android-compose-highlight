@@ -12,6 +12,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.graphics.Brush
@@ -21,9 +22,12 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.isCtrlPressed
+import androidx.compose.ui.input.key.isShiftPressed
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextRange
@@ -168,6 +172,11 @@ import dev.hossain.highlight.engine.HighlightTheme
  *   instead of shifting focus to the next view. Defaults to true. Note that arrow keys (Up,
  *   Down, Left, Right) are also intercepted to prevent focus from escaping the editor when
  *   boundaries are reached.
+ * @param escapeKeyClearsFocus Whether pressing the hardware Escape key clears focus from the editor,
+ *   preventing keyboard focus traps (WCAG 2.1.2) for keyboard and switch-access users.
+ *   Defaults to [SyntaxHighlightedTextEditorDefaults.ESCAPE_KEY_CLEARS_FOCUS] (`true`).
+ *   See [Android Keyboard Navigation](https://developer.android.com/develop/ui/views/touch-and-input/keyboard-input/navigation)
+ *   and [Android Desktop Keyboard Interaction](https://developer.android.com/design/ui/desktop/guides/interaction/keyboard).
  * @param horizontalScrollState Hoisted scroll state for horizontal scrolling. When non-null,
  *   horizontal scrolling is enabled and code lines will not wrap. Defaults to `null` (wrapping enabled).
  * @param verticalScrollState Hoisted scroll state for vertical scrolling. When non-null,
@@ -196,6 +205,7 @@ fun SyntaxHighlightedTextEditor(
     indentation: String = SyntaxHighlightedTextEditorDefaults.DEFAULT_INDENTATION,
     autoIndentEnabled: Boolean = SyntaxHighlightedTextEditorDefaults.AUTO_INDENT_ENABLED,
     tabKeyInterceptionEnabled: Boolean = SyntaxHighlightedTextEditorDefaults.TAB_KEY_INTERCEPTION_ENABLED,
+    escapeKeyClearsFocus: Boolean = SyntaxHighlightedTextEditorDefaults.ESCAPE_KEY_CLEARS_FOCUS,
     horizontalScrollState: ScrollState? = null,
     verticalScrollState: ScrollState? = null,
 ) {
@@ -229,12 +239,15 @@ fun SyntaxHighlightedTextEditor(
             resolveEditorCursorBrush(cursorBrush, textColor)
         }
 
+    val focusManager = LocalFocusManager.current
+
     // Wrap frequently changing state in stable State objects so the lambdas below can be
     // remembered once and still see the latest values when invoked.
     val currentValue = rememberUpdatedState(value)
     val currentOnValueChange = rememberUpdatedState(onValueChange)
     val currentAutoIndentEnabled = rememberUpdatedState(autoIndentEnabled)
     val currentTabKeyInterceptionEnabled = rememberUpdatedState(tabKeyInterceptionEnabled)
+    val currentEscapeKeyClearsFocus = rememberUpdatedState(escapeKeyClearsFocus)
     val currentIndentation = rememberUpdatedState(indentation)
 
     val handleValueChange: (TextFieldValue) -> Unit =
@@ -277,14 +290,29 @@ fun SyntaxHighlightedTextEditor(
         }
 
     val previewKeyModifier =
-        remember(tabKeyInterceptionEnabled, autoIndentEnabled) {
-            if (tabKeyInterceptionEnabled || autoIndentEnabled) {
+        remember(tabKeyInterceptionEnabled, autoIndentEnabled, escapeKeyClearsFocus) {
+            if (tabKeyInterceptionEnabled || autoIndentEnabled || escapeKeyClearsFocus) {
                 Modifier.onPreviewKeyEvent { keyEvent ->
                     if (keyEvent.type != KeyEventType.KeyDown) return@onPreviewKeyEvent false
 
                     when (keyEvent.key) {
+                        Key.Escape -> {
+                            if (currentEscapeKeyClearsFocus.value) {
+                                focusManager.clearFocus()
+                                true
+                            } else {
+                                false
+                            }
+                        }
+
                         Key.Tab -> {
-                            if (currentTabKeyInterceptionEnabled.value) {
+                            if (keyEvent.isShiftPressed) {
+                                focusManager.moveFocus(FocusDirection.Previous)
+                                true
+                            } else if (keyEvent.isCtrlPressed) {
+                                focusManager.moveFocus(FocusDirection.Next)
+                                true
+                            } else if (currentTabKeyInterceptionEnabled.value) {
                                 val text = currentValue.value.text
                                 val selection = currentValue.value.selection
                                 val newText = text.replaceRange(selection.min, selection.max, currentIndentation.value)
