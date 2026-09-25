@@ -6,6 +6,14 @@ For release artifacts and APK downloads, see the [GitHub Releases page](https://
 
 ## Recent highlights
 
+### 0.38.0 - Keyboard focus trap fix, WebView hardening, and unknown language optimization
+
+- Added keyboard escape (`Key.Escape`) and focus traversal (`Shift+Tab`, `Ctrl+Tab`) to prevent keyboard traps (WCAG 2.1.2) in `SyntaxHighlightedTextEditor`
+- Optimized unknown or blank language highlighting by validating against `hljs.getLanguage()` to bypass full auto-detection, eliminating a 56x latency penalty
+- Hardened internal WebView security with disabled file/content access, blocked outbound network requests, and Content Security Policy enforcement
+- Preserved horizontal scroll state across screen rotation and LazyColumn recycling in code viewers
+- Removed broad consumer R8 keep rules to allow downstream apps to dead-code eliminate unused library components
+
 ### 0.37.1 - Auto-expanding line numbers and large file benchmark
 
 - Fixed line-number gutter wrapping multi-digit numbers onto multiple lines for files with 1,000+ lines
@@ -36,14 +44,6 @@ For release artifacts and APK downloads, see the [GitHub Releases page](https://
 - Added `triggerOnNewline` and `minThrottleMs` (150 ms) to throttle background highlight jobs and protect the JS engine
 - Fixed mid-stream highlight failures flashing the code block to plain text by preserving previously highlighted spans
 - Updated sample app with an interactive progressive backfill toggle and comprehensive TypeScript streaming demo
-
-### 0.34.0 - Streaming Syntax Highlighting for AI & LLMs
-
-- Added `StreamingSyntaxHighlightedCode` and `rememberStreamingHighlightedCode` (`@ExperimentalHighlightApi`) for real-time and LLM token streaming
-- Implemented span-transfer snapshot pipeline (`applySnapshotSpans`) for zero-flicker, 0 ms UI render latency during streaming
-- Added streaming-aware scroll handling to preserve user scroll offsets during token appends
-- Added "LLM/Streaming" interactive demo tab in the sample app simulating token streams across Kotlin, Python, and TypeScript
-- Upgraded documentation site generator Zensical to 0.0.56 with refreshed Dokka chrome assets
 
 ---
 
