@@ -4,6 +4,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.input.key.KeyEvent
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsFocused
@@ -24,6 +25,7 @@ import dev.hossain.highlight.engine.HighlightTheme
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import android.view.KeyEvent as AndroidKeyEvent
 
 @OptIn(ExperimentalHighlightApi::class)
 @RunWith(AndroidJUnit4::class)
@@ -262,10 +264,10 @@ class SyntaxHighlightedTextEditorTest {
         editorNode.assertIsFocused()
 
         editorNode.performKeyPress(
-            androidx.compose.ui.input.key.KeyEvent(
-                android.view.KeyEvent(
-                    android.view.KeyEvent.ACTION_DOWN,
-                    android.view.KeyEvent.KEYCODE_ESCAPE,
+            KeyEvent(
+                AndroidKeyEvent(
+                    AndroidKeyEvent.ACTION_DOWN,
+                    AndroidKeyEvent.KEYCODE_ESCAPE,
                 ),
             ),
         )

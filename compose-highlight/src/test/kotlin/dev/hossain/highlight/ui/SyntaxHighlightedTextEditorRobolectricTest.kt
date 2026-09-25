@@ -32,6 +32,7 @@ import org.junit.runner.RunWith
 import org.robolectric.Shadows
 import org.robolectric.annotation.Config
 import org.robolectric.shadows.ShadowLooper
+import android.view.KeyEvent as AndroidKeyEvent
 
 /**
  * Robolectric tests for [SyntaxHighlightedTextEditor]. Mirrors the parity layer that
@@ -777,9 +778,9 @@ class SyntaxHighlightedTextEditorRobolectricTest {
         val consumed =
             editorNode.performKeyPress(
                 KeyEvent(
-                    android.view.KeyEvent(
-                        android.view.KeyEvent.ACTION_DOWN,
-                        android.view.KeyEvent.KEYCODE_ESCAPE,
+                    AndroidKeyEvent(
+                        AndroidKeyEvent.ACTION_DOWN,
+                        AndroidKeyEvent.KEYCODE_ESCAPE,
                     ),
                 ),
             )
@@ -813,9 +814,9 @@ class SyntaxHighlightedTextEditorRobolectricTest {
         val consumed =
             editorNode.performKeyPress(
                 KeyEvent(
-                    android.view.KeyEvent(
-                        android.view.KeyEvent.ACTION_DOWN,
-                        android.view.KeyEvent.KEYCODE_ESCAPE,
+                    AndroidKeyEvent(
+                        AndroidKeyEvent.ACTION_DOWN,
+                        AndroidKeyEvent.KEYCODE_ESCAPE,
                     ),
                 ),
             )
@@ -855,13 +856,13 @@ class SyntaxHighlightedTextEditorRobolectricTest {
         // Send Shift+Tab key event (META_SHIFT_ON + META_SHIFT_LEFT_ON)
         editorNode.performKeyPress(
             KeyEvent(
-                android.view.KeyEvent(
+                AndroidKeyEvent(
                     0L,
                     0L,
-                    android.view.KeyEvent.ACTION_DOWN,
-                    android.view.KeyEvent.KEYCODE_TAB,
+                    AndroidKeyEvent.ACTION_DOWN,
+                    AndroidKeyEvent.KEYCODE_TAB,
                     0,
-                    android.view.KeyEvent.META_SHIFT_ON or android.view.KeyEvent.META_SHIFT_LEFT_ON,
+                    AndroidKeyEvent.META_SHIFT_ON or AndroidKeyEvent.META_SHIFT_LEFT_ON,
                 ),
             ),
         )
@@ -902,13 +903,13 @@ class SyntaxHighlightedTextEditorRobolectricTest {
         // Send Ctrl+Tab key event (META_CTRL_ON + META_CTRL_LEFT_ON)
         editorNode.performKeyPress(
             KeyEvent(
-                android.view.KeyEvent(
+                AndroidKeyEvent(
                     0L,
                     0L,
-                    android.view.KeyEvent.ACTION_DOWN,
-                    android.view.KeyEvent.KEYCODE_TAB,
+                    AndroidKeyEvent.ACTION_DOWN,
+                    AndroidKeyEvent.KEYCODE_TAB,
                     0,
-                    android.view.KeyEvent.META_CTRL_ON or android.view.KeyEvent.META_CTRL_LEFT_ON,
+                    AndroidKeyEvent.META_CTRL_ON or AndroidKeyEvent.META_CTRL_LEFT_ON,
                 ),
             ),
         )
