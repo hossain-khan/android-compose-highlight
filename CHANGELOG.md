@@ -29,6 +29,13 @@ All notable changes to this project will be documented in this file.
   `consumer-rules.pro` (#492). Downstream applications with R8 shrinking enabled can now dead-code
   eliminate unused library components, composables (e.g. streaming or editor), and theme factories.
 
+### Infrastructure
+
+- **Expanded bridge contract and security validation script** - Enhanced `scripts/validate-bridge.sh` to enforce
+  Content Security Policy meta tags in `bridge.html`, verify `WebViewManager.kt` security hardening invariants, and
+  run Node.js runtime contract assertions across all 5 bridge functions (`listLanguages`, `getLanguage` with alias
+  resolution, `hljsVersion`, and comprehensive HTML entity escaping).
+
 ## [0.37.1] - 2026-09-22
 
 ### Added
