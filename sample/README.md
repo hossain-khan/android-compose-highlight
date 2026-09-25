@@ -10,13 +10,16 @@ sample/
 ├── src/main/
 │   ├── assets/
 │   │   ├── samples/          # Code snippets shown in the Languages tab (one file per language)
-│   │   └── themes/           # 80+ Highlight.js CSS themes (bundled from highlight.js CDN)
+│   │   └── themes/           # 250+ Highlight.js CSS themes (bundled from highlight.js CDN)
 │   │                         # Demonstrates HighlightTheme.fromAsset()
 │   └── kotlin/…/sample/
 │       ├── MainActivity.kt         # Entry point; wraps SampleScreen in HighlightThemeProvider
 │       ├── SampleScreen.kt         # Top-level screen: tab bar + per-tab content routing
-│       ├── DemoTab.kt              # Sealed class for the 11 demo tabs (type-safe routing)
+│       ├── SampleViewModel.kt      # Manages sample app state and configuration
+│       ├── DemoTab.kt              # Sealed class for the 15 demo tabs (type-safe routing)
 │       ├── SampleData.kt           # loadCodeSamples(), loadThemePairs(), KOTLIN_SNIPPET, PYTHON_SNIPPET
+│       ├── info/                   # Info banner components
+│       │   └── InfoBanner.kt
 │       ├── sections/               # One file per tab - each exports a single @Composable
 │       │   ├── SectionComponents.kt    # Shared SectionHeader / SubSectionHeader
 │       │   ├── StylingSection.kt
@@ -25,8 +28,12 @@ sample/
 │       │   ├── CallbacksSection.kt
 │       │   ├── PlaceholderSection.kt
 │       │   ├── ThemeCreationSection.kt
+│       │   ├── ThemeDiscoverySection.kt
 │       │   ├── AllThemesSection.kt
 │       │   ├── LanguageDiscoverabilitySection.kt
+│       │   ├── LiveEditorSection.kt
+│       │   ├── StreamingSection.kt
+│       │   ├── LargeFileSection.kt
 │       │   ├── AdvancedEngineSection.kt
 │       │   └── EngineInfoSection.kt
 │       └── perf/                   # Separate performance-benchmark screen
@@ -45,8 +52,12 @@ sample/
 | **Callbacks** | `onHighlightComplete` and `onCopyClick` in action |
 | **Placeholder** | `placeholder` slot of `SyntaxHighlightedCode` - default, dimmed text, and loading label |
 | **Themes** | `HighlightTheme` factory methods demonstrated side-by-side |
+| **Theme Discovery** | Search and filter bundled themes by category and style |
 | **All Themes** | Scrollable showcase of all bundled highlight.js themes with live preview |
 | **Lang Discover** | Language detection and manual language selection with filter chips |
+| **Live Editor** | Interactive code editing using `SyntaxHighlightedTextEditor` |
+| **LLM/Streaming** | Real-time progressive rendering using `StreamingSyntaxHighlightedCode` |
+| **Large File** | Production-scale file highlighting (~71.5 KB JS) with latency stage breakdown |
 | **Advanced** | `rememberHighlightedCodeBothThemes` for instant light/dark switching |
 | **Engine** | `HighlightEngine.highlightJsVersion` and `supportedLanguages` |
 
@@ -81,4 +92,4 @@ See `SampleData.kt` → `loadThemePairs()` for a working example using the bundl
 > ./gradlew :compose-highlight:connectedAndroidTest \
 >   -Pandroid.testInstrumentationRunnerArguments.class=dev.hossain.highlight.benchmark.HighlightEngineBenchmark
 > ```
-> See the [Benchmarks section in the root README](../README.md#benchmarks) for full details.
+> See the benchmarking commands in [AGENTS.md](../AGENTS.md) or [`HighlightEngineBenchmark`](../compose-highlight/src/androidTest/kotlin/dev/hossain/highlight/benchmark/HighlightEngineBenchmark.kt) for full details.

@@ -151,6 +151,10 @@ val THEME_INPUTS = listOf(
     "TOMORROW_NIGHT"  to "tomorrow-night.css",
     "ATOM_ONE_DARK"   to "atom-one-dark.css",
     "ATOM_ONE_LIGHT"  to "atom-one-light.css",
+    "GITHUB_LIGHT"    to "github.css",
+    "GITHUB_DARK"     to "github-dark.css",
+    "DRACULA_DARK"    to "dracula.css",
+    "ALUCARD_LIGHT"   to "alucard.css",
 )
 ```
 
@@ -160,7 +164,7 @@ First entry is the Kotlin constant name in `GeneratedThemes`. Second is the file
 ### What happens when you drop a new CSS file
 
 The task's `@InputFiles` covers the entire `cssDir`, so up-to-date checks see the new file and
-re-run the task. But `THEME_INPUTS` only references the four it knows about, so nothing happens
+re-run the task. But `THEME_INPUTS` only references the eight it knows about, so nothing happens
 for the new file:
 
 ```
@@ -169,44 +173,48 @@ compose-highlight/src/main/assets/compose-highlight/themes/
 ├── tomorrow-night.css   in THEME_INPUTS, gets compiled
 ├── atom-one-dark.css    in THEME_INPUTS, gets compiled
 ├── atom-one-light.css   in THEME_INPUTS, gets compiled
-└── dracula.css          NEW: ships in the AAR, ignored at build time
+├── github.css           in THEME_INPUTS, gets compiled
+├── github-dark.css      in THEME_INPUTS, gets compiled
+├── dracula.css          in THEME_INPUTS, gets compiled
+├── alucard.css          in THEME_INPUTS, gets compiled
+└── nord.css             NEW: ships in the AAR, ignored at build time
 ```
 
 The new CSS still ships in the AAR (because the asset folder is bundled wholesale) so it is
 still loadable at runtime via:
 
 ```kotlin
-HighlightTheme.fromAsset(context, "compose-highlight/themes/dracula.css", "dracula")
+HighlightTheme.fromAsset(context, "compose-highlight/themes/nord.css", "nord")
 ```
 
 It just does not get a precompiled constant or a factory method.
 
 ### Adding a new built-in (manual, by design)
 
-Five places to update for `dracula`:
+Five places to update for `nord`:
 
 1. Drop the CSS at
-   `compose-highlight/src/main/assets/compose-highlight/themes/dracula.css`.
+   `compose-highlight/src/main/assets/compose-highlight/themes/nord.css`.
 2. Add to `THEME_INPUTS` in `GenerateThemesTask.kt`:
 
    ```kotlin
-   "DRACULA" to "dracula.css",
+   "NORD" to "nord.css",
    ```
 
 3. Add the factory in
    `compose-highlight/src/main/kotlin/.../engine/HighlightTheme.kt`:
 
    ```kotlin
-   fun dracula(): HighlightTheme =
+   fun nord(): HighlightTheme =
        HighlightTheme(
-           name = "dracula",
-           colorMapProvider = { GeneratedThemes.DRACULA },
-           contentIdentity = GeneratedThemes.DRACULA_IDENTITY,
+           name = "nord",
+           colorMapProvider = { GeneratedThemes.NORD },
+           contentIdentity = GeneratedThemes.NORD_IDENTITY,
        )
    ```
 
-4. Add `rememberDraculaTheme()` in
-   `compose-highlight/src/main/kotlin/.../ui/HighlightThemeComposables.kt`.
+4. Add `rememberNordTheme()` in
+   `compose-highlight/src/main/kotlin/.../ui/HighlightThemeProvider.kt`.
 5. Add a parity test entry in
    `compose-highlight/src/test/kotlin/.../engine/GeneratedThemesParityTest.kt`.
 

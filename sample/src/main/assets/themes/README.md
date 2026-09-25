@@ -32,10 +32,10 @@ themes/
     └── ...
 ```
 
-> **Note:** The `compose-highlight` library also bundles 4 themes as its own
-> assets (`atom-one-dark`, `atom-one-light`, `tomorrow`, `tomorrow-night`).
-> Those live in the library module under
-> `compose-highlight/src/main/assets/compose-highlight/themes/` and are
+> **Note:** The `compose-highlight` library also bundles 8 themes as its own
+> assets (`alucard`, `atom-one-dark`, `atom-one-light`, `dracula`, `github`,
+> `github-dark`, `tomorrow`, `tomorrow-night`). Those live in the library module
+> under `compose-highlight/src/main/assets/compose-highlight/themes/` and are
 > separate from this directory.
 
 ## How themes are loaded in the sample app
