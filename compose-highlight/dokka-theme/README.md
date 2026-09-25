@@ -104,8 +104,8 @@ dokka {
     pluginsConfiguration.html {
         customStyleSheets.from(
             layout.projectDirectory.file("dokka-theme/zensical-overrides.css"),
-            layout.projectDirectory.file("dokka-theme/zensical-assets/main.20815dad.min.css"),
-            layout.projectDirectory.file("dokka-theme/zensical-assets/palette.dfe2e883.min.css"),
+            layout.projectDirectory.file("dokka-theme/zensical-assets/main.ce62732f.min.css"),
+            layout.projectDirectory.file("dokka-theme/zensical-assets/palette.812a03bb.min.css"),
         )
         customAssets.from(layout.projectDirectory.file("dokka-theme/dokka-zensical-chrome.js"))
     }

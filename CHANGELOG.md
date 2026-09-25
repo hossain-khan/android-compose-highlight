@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Documentation
+
+- **Synchronized repository README documentation** - Updated `sample/README.md` to reflect all 15 demo tabs,
+  complete sections directory listing, and current microbenchmark links. Corrected bundled theme counts (8 themes)
+  in `sample/src/main/assets/themes/README.md` and `buildSrc/README.md`. Refreshed frozen Zensical stylesheet bundle
+  hashes in `compose-highlight/dokka-theme/README.md`.
+
 ## [0.38.0] - 2026-09-24
 
 ### Fixed

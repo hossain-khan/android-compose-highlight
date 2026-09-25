@@ -11,10 +11,10 @@ import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 
 /**
- * Gradle task that reads the four bundled hljs theme CSS files and generates a Kotlin
+ * Gradle task that reads the eight bundled hljs theme CSS files and generates a Kotlin
  * source file containing precompiled `Map<String, SpanStyle>` constants.
  *
- * Inputs: the four CSS files (declared with [PathSensitivity.RELATIVE] so up-to-date
+ * Inputs: the eight CSS files (declared with [PathSensitivity.RELATIVE] so up-to-date
  * checks survive moves of the project root).
  *
  * Output: a single `GeneratedThemes.kt` under [outputDir].
