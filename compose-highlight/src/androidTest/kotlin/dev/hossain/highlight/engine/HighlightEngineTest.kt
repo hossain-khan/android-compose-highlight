@@ -1,13 +1,16 @@
 package dev.hossain.highlight.engine
 
+import android.os.Build
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.SpanStyle
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.google.common.truth.Truth.assertThat
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
@@ -37,6 +40,26 @@ class HighlightEngineTest {
             // Wait for bridge.html to finish loading (onPageFinished → isInitialized = true)
             engine.isInitialized.first { it }
             assertThat(engine.isInitialized.value).isTrue()
+        }
+
+    @Test
+    fun webViewAppliesHardenedSecuritySettings() =
+        runBlocking {
+            engine.initialize()
+            engine.isInitialized.first { it }
+
+            withContext(Dispatchers.Main) {
+                val webView = engine.webViewForTest() ?: error("WebView was not created")
+                val settings = webView.settings
+
+                assertThat(settings.javaScriptEnabled).isTrue()
+                assertThat(settings.allowFileAccess).isFalse()
+                assertThat(settings.allowContentAccess).isFalse()
+                assertThat(settings.blockNetworkLoads).isTrue()
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    assertThat(settings.safeBrowsingEnabled).isFalse()
+                }
+            }
         }
 
     @Test

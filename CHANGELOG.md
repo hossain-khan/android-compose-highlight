@@ -19,6 +19,12 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
+- **Hardened hidden WebView settings and origin restrictions** - Hardened internal `WebViewManager` configuration
+  following official Android security guidelines (#497). Disabled unused file and content access (`allowFileAccess =
+  false`, `allowContentAccess = false`), blocked outbound network loads (`blockNetworkLoads = true`), and disabled
+  Safe Browsing overhead (`safeBrowsingEnabled = false` on API 26+) for local asset execution. Restricted request
+  handling to `https://appassets.androidplatform.net`, rejected unexpected origins with HTTP 403 Forbidden, blocked
+  unexpected navigations, and enforced a strict Content Security Policy in `bridge.html`.
 - **Removed broad consumer R8 keep rules** - Removed blanket `-keep public class` rules from
   `consumer-rules.pro` (#492). Downstream applications with R8 shrinking enabled can now dead-code
   eliminate unused library components, composables (e.g. streaming or editor), and theme factories.
