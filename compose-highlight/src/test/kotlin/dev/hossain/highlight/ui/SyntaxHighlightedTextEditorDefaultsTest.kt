@@ -43,4 +43,10 @@ class SyntaxHighlightedTextEditorDefaultsTest {
         // the difference) so the constant should not drift accidentally.
         assertThat(SyntaxHighlightedTextEditorDefaults.DEBOUNCE_MS).isEqualTo(150L)
     }
+
+    @Test
+    fun `ESCAPE_KEY_CLEARS_FOCUS is true`() {
+        // WCAG 2.1.2 requirement: keyboard focus trap prevention is enabled by default.
+        assertThat(SyntaxHighlightedTextEditorDefaults.ESCAPE_KEY_CLEARS_FOCUS).isTrue()
+    }
 }

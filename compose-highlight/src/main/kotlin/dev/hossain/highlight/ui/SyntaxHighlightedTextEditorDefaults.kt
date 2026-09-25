@@ -83,4 +83,16 @@ object SyntaxHighlightedTextEditorDefaults {
 
     /** Default enablement of Tab key interception to insert spaces rather than shift focus. */
     const val TAB_KEY_INTERCEPTION_ENABLED: Boolean = true
+
+    /**
+     * Default enablement of Escape key handling to clear focus and escape the editor.
+     *
+     * Prevents keyboard focus traps (WCAG 2.1.2) for hardware keyboard and switch-access users
+     * by allowing Escape to act as a local 'cancel' command, dropping focus from the editor.
+     *
+     * Official guidance:
+     * - https://developer.android.com/design/ui/desktop/guides/interaction/keyboard
+     * - https://developer.android.com/develop/ui/views/touch-and-input/keyboard-input/navigation
+     */
+    const val ESCAPE_KEY_CLEARS_FOCUS: Boolean = true
 }

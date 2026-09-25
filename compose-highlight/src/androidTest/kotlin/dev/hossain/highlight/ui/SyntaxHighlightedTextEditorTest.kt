@@ -6,10 +6,14 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsFocused
+import androidx.compose.ui.test.assertIsNotFocused
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performKeyPress
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
@@ -237,5 +241,35 @@ class SyntaxHighlightedTextEditorTest {
                 .fetchSemanticsNode()
                 .config[SemanticsProperties.ImeAction]
         assertThat(imeAction).isEqualTo(ImeAction.Search)
+    }
+
+    @Test
+    fun escapeKeyClearsFocusWhenEnabled() {
+        composeTestRule.setContent {
+            HighlightThemeProvider {
+                SyntaxHighlightedTextEditor(
+                    value = TextFieldValue(sampleCode),
+                    onValueChange = {},
+                    language = "kotlin",
+                    escapeKeyClearsFocus = true,
+                )
+            }
+        }
+
+        val editorNode = composeTestRule.onNode(hasSetTextAction(), useUnmergedTree = true)
+        editorNode.performClick()
+        composeTestRule.waitForIdle()
+        editorNode.assertIsFocused()
+
+        editorNode.performKeyPress(
+            androidx.compose.ui.input.key.KeyEvent(
+                android.view.KeyEvent(
+                    android.view.KeyEvent.ACTION_DOWN,
+                    android.view.KeyEvent.KEYCODE_ESCAPE,
+                ),
+            ),
+        )
+        composeTestRule.waitForIdle()
+        editorNode.assertIsNotFocused()
     }
 }

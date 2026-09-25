@@ -405,6 +405,7 @@ public final class dev/hossain/highlight/ui/SyntaxHighlightedTextEditorDefaults 
 	public static final field AUTO_INDENT_ENABLED Z
 	public static final field DEBOUNCE_MS J
 	public static final field DEFAULT_INDENTATION Ljava/lang/String;
+	public static final field ESCAPE_KEY_CLEARS_FOCUS Z
 	public static final field INSTANCE Ldev/hossain/highlight/ui/SyntaxHighlightedTextEditorDefaults;
 	public static final field TAB_KEY_INTERCEPTION_ENABLED Z
 	public final fun getCodeKeyboardOptions ()Landroidx/compose/foundation/text/KeyboardOptions;
@@ -412,6 +413,6 @@ public final class dev/hossain/highlight/ui/SyntaxHighlightedTextEditorDefaults 
 }
 
 public final class dev/hossain/highlight/ui/SyntaxHighlightedTextEditorKt {
-	public static final fun SyntaxHighlightedTextEditor (Landroidx/compose/ui/text/input/TextFieldValue;Lkotlin/jvm/functions/Function1;Ljava/lang/String;Landroidx/compose/ui/Modifier;Landroidx/compose/foundation/layout/PaddingValues;Landroidx/compose/ui/graphics/Shape;Ldev/hossain/highlight/engine/HighlightTheme;Landroidx/compose/ui/text/TextStyle;Landroidx/compose/foundation/text/KeyboardOptions;Landroidx/compose/ui/graphics/Brush;JLkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Ljava/lang/String;ZZLandroidx/compose/foundation/ScrollState;Landroidx/compose/foundation/ScrollState;Landroidx/compose/runtime/Composer;III)V
+	public static final fun SyntaxHighlightedTextEditor (Landroidx/compose/ui/text/input/TextFieldValue;Lkotlin/jvm/functions/Function1;Ljava/lang/String;Landroidx/compose/ui/Modifier;Landroidx/compose/foundation/layout/PaddingValues;Landroidx/compose/ui/graphics/Shape;Ldev/hossain/highlight/engine/HighlightTheme;Landroidx/compose/ui/text/TextStyle;Landroidx/compose/foundation/text/KeyboardOptions;Landroidx/compose/ui/graphics/Brush;JLkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Ljava/lang/String;ZZZLandroidx/compose/foundation/ScrollState;Landroidx/compose/foundation/ScrollState;Landroidx/compose/runtime/Composer;III)V
 }
 

@@ -12,6 +12,12 @@ All notable changes to this project will be documented in this file.
   of triggering full automatic language detection across all bundled grammars. This eliminates a 56x latency
   penalty (254 ms down to < 1 ms), prevents engine mutex contention, and aligns with the documented
   `spanCount == 0` contract.
+- **Keyboard focus trap and missing escape mechanism in `SyntaxHighlightedTextEditor`** - Added hardware keyboard
+  escape and focus traversal mechanisms to prevent keyboard focus traps per WCAG 2.1.2 and official Android keyboard
+  guidelines (#511). Pressing `Key.Escape` clears editor focus via `FocusManager.clearFocus()`, configurable via
+  `escapeKeyClearsFocus: Boolean` (defaults to `SyntaxHighlightedTextEditorDefaults.ESCAPE_KEY_CLEARS_FOCUS = true`).
+  Pressing `Shift+Tab` moves focus backwards via `FocusDirection.Previous`, `Ctrl+Tab` advances focus via
+  `FocusDirection.Next`, and unintercepted `Tab` passes through without trapping the user in the editor.
 - **Horizontal scroll position reset on configuration change and LazyColumn re-entry** - Tracked previous
   code with `rememberSaveable` in `SyntaxHighlightedCode` and `StreamingSyntaxHighlightedCode` (#509). The
   horizontal scroll offset is now preserved across screen rotation, state restoration, and LazyColumn recycling,

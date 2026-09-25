@@ -9,6 +9,8 @@ import androidx.compose.ui.input.key.KeyEvent
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsFocused
+import androidx.compose.ui.test.assertIsNotFocused
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
@@ -748,5 +750,171 @@ class SyntaxHighlightedTextEditorRobolectricTest {
         composeTestRule.waitForIdle()
         assertThat(hState?.maxValue).isGreaterThan(0)
         assertThat(vState?.maxValue).isGreaterThan(0)
+    }
+
+    @Test
+    fun `escape key clears focus when escapeKeyClearsFocus is enabled`() {
+        var value = TextFieldValue("val x = 42")
+        composeTestRule.setContent {
+            CompositionLocalProvider(LocalInspectionMode provides true) {
+                HighlightThemeProvider {
+                    SyntaxHighlightedTextEditor(
+                        value = value,
+                        onValueChange = { value = it },
+                        language = "kotlin",
+                        escapeKeyClearsFocus = true,
+                    )
+                }
+            }
+        }
+        composeTestRule.waitForIdle()
+
+        val editorNode = composeTestRule.onNode(hasSetTextAction(), useUnmergedTree = true)
+        editorNode.performClick()
+        composeTestRule.waitForIdle()
+
+        // Send hardware Escape key
+        val consumed =
+            editorNode.performKeyPress(
+                KeyEvent(
+                    android.view.KeyEvent(
+                        android.view.KeyEvent.ACTION_DOWN,
+                        android.view.KeyEvent.KEYCODE_ESCAPE,
+                    ),
+                ),
+            )
+        composeTestRule.waitForIdle()
+
+        assertThat(consumed).isTrue()
+    }
+
+    @Test
+    fun `escape key does not clear focus when escapeKeyClearsFocus is disabled`() {
+        var value = TextFieldValue("val x = 42")
+        composeTestRule.setContent {
+            CompositionLocalProvider(LocalInspectionMode provides true) {
+                HighlightThemeProvider {
+                    SyntaxHighlightedTextEditor(
+                        value = value,
+                        onValueChange = { value = it },
+                        language = "kotlin",
+                        escapeKeyClearsFocus = false,
+                    )
+                }
+            }
+        }
+        composeTestRule.waitForIdle()
+
+        val editorNode = composeTestRule.onNode(hasSetTextAction(), useUnmergedTree = true)
+        editorNode.performClick()
+        composeTestRule.waitForIdle()
+
+        // Send hardware Escape key
+        val consumed =
+            editorNode.performKeyPress(
+                KeyEvent(
+                    android.view.KeyEvent(
+                        android.view.KeyEvent.ACTION_DOWN,
+                        android.view.KeyEvent.KEYCODE_ESCAPE,
+                    ),
+                ),
+            )
+        composeTestRule.waitForIdle()
+
+        assertThat(consumed).isFalse()
+    }
+
+    @Test
+    fun `shift tab key does not insert tab indentation`() {
+        var value = TextFieldValue("val x = 42", selection = TextRange(0))
+        var calledValue: TextFieldValue? = null
+
+        composeTestRule.setContent {
+            CompositionLocalProvider(LocalInspectionMode provides true) {
+                HighlightThemeProvider {
+                    SyntaxHighlightedTextEditor(
+                        value = value,
+                        onValueChange = {
+                            value = it
+                            calledValue = it
+                        },
+                        language = "kotlin",
+                        tabKeyInterceptionEnabled = true,
+                    )
+                }
+            }
+        }
+        composeTestRule.waitForIdle()
+
+        val editorNode = composeTestRule.onNode(hasSetTextAction(), useUnmergedTree = true)
+        editorNode.performClick()
+        composeTestRule.waitForIdle()
+
+        calledValue = null
+
+        // Send Shift+Tab key event (META_SHIFT_ON + META_SHIFT_LEFT_ON)
+        editorNode.performKeyPress(
+            KeyEvent(
+                android.view.KeyEvent(
+                    0L,
+                    0L,
+                    android.view.KeyEvent.ACTION_DOWN,
+                    android.view.KeyEvent.KEYCODE_TAB,
+                    0,
+                    android.view.KeyEvent.META_SHIFT_ON or android.view.KeyEvent.META_SHIFT_LEFT_ON,
+                ),
+            ),
+        )
+        composeTestRule.waitForIdle()
+
+        // Shift+Tab traverses focus backwards rather than inserting spaces into the editor
+        assertThat(calledValue).isNull()
+    }
+
+    @Test
+    fun `ctrl tab key does not insert tab indentation`() {
+        var value = TextFieldValue("val x = 42", selection = TextRange(0))
+        var calledValue: TextFieldValue? = null
+
+        composeTestRule.setContent {
+            CompositionLocalProvider(LocalInspectionMode provides true) {
+                HighlightThemeProvider {
+                    SyntaxHighlightedTextEditor(
+                        value = value,
+                        onValueChange = {
+                            value = it
+                            calledValue = it
+                        },
+                        language = "kotlin",
+                        tabKeyInterceptionEnabled = true,
+                    )
+                }
+            }
+        }
+        composeTestRule.waitForIdle()
+
+        val editorNode = composeTestRule.onNode(hasSetTextAction(), useUnmergedTree = true)
+        editorNode.performClick()
+        composeTestRule.waitForIdle()
+
+        calledValue = null
+
+        // Send Ctrl+Tab key event (META_CTRL_ON + META_CTRL_LEFT_ON)
+        editorNode.performKeyPress(
+            KeyEvent(
+                android.view.KeyEvent(
+                    0L,
+                    0L,
+                    android.view.KeyEvent.ACTION_DOWN,
+                    android.view.KeyEvent.KEYCODE_TAB,
+                    0,
+                    android.view.KeyEvent.META_CTRL_ON or android.view.KeyEvent.META_CTRL_LEFT_ON,
+                ),
+            ),
+        )
+        composeTestRule.waitForIdle()
+
+        // Ctrl+Tab traverses focus forward rather than inserting spaces into the editor
+        assertThat(calledValue).isNull()
     }
 }

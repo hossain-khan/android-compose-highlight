@@ -142,6 +142,7 @@ internal fun LiveEditorSection() {
     var selectedLanguage by rememberSaveable { mutableStateOf("kotlin") }
     var customCursorColor by rememberSaveable { mutableStateOf(false) }
     var horizontalScrollEnabled by rememberSaveable { mutableStateOf(false) }
+    var escapeKeyClearsFocus by rememberSaveable { mutableStateOf(true) }
     val editorStateHolder = rememberSaveableStateHolder()
 
     // Resolve the cursor brush in composition so MaterialTheme.colorScheme is in scope.
@@ -191,6 +192,7 @@ internal fun LiveEditorSection() {
         // - cursorBrush: flips between the editor's theme-aware default (null) and an explicit
         //   primary-color SolidColor.
         // - horizontalScrollState: toggles horizontal scrolling (no line wrapping) vs soft wrapping.
+        // - escapeKeyClearsFocus: toggles hardware Escape key focus release (WCAG 2.1.2 focus trap prevention).
         Row(
             modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -204,6 +206,11 @@ internal fun LiveEditorSection() {
                 selected = horizontalScrollEnabled,
                 onClick = { horizontalScrollEnabled = !horizontalScrollEnabled },
                 label = { Text("Horizontal scroll (no-wrap)") },
+            )
+            FilterChip(
+                selected = escapeKeyClearsFocus,
+                onClick = { escapeKeyClearsFocus = !escapeKeyClearsFocus },
+                label = { Text("Escape clears focus") },
             )
         }
 
@@ -244,6 +251,7 @@ internal fun LiveEditorSection() {
                     SyntaxHighlightedTextEditorDefaults.CodeKeyboardOptions
                         .copy(imeAction = ImeAction.Done),
                 cursorBrush = cursorBrush,
+                escapeKeyClearsFocus = escapeKeyClearsFocus,
                 horizontalScrollState = if (horizontalScrollEnabled) horizontalScrollState else null,
             )
         }
