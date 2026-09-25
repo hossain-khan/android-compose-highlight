@@ -10,15 +10,18 @@
 #
 # What is validated:
 #   1. bridge.html is valid HTML (htmlhint: matching tags, lowercase names, no duplicate ids, etc.)
-#   2. bridge.html loads highlight.min.js via a <script src=...> tag
-#   3. bridge.html exposes all 5 JS functions called by HighlightEngine:
+#   2. bridge.html defines a strict Content Security Policy meta tag (default-src 'none')
+#   3. bridge.html loads highlight.min.js via a <script src=...> tag
+#   4. bridge.html exposes all 5 JS functions called by HighlightEngine:
 #        - highlightCode(code, lang)  - primary per-language syntax highlighting
 #        - highlightAuto(code)        - auto-language-detection highlighting
 #        - listLanguages()            - returns all supported language identifiers
 #        - getLanguage(nameOrAlias)   - returns metadata for a given language
 #        - hljsVersion()              - returns the bundled highlight.js version string
-#   4. bridge.html delegates directly to hljs.highlight() guarded by hljs.getLanguage()
-#   5. internal/WebViewManager.kt loads bridge.html from the expected appassets.androidplatform.net URL
+#   5. bridge.html delegates directly to hljs.highlight() guarded by hljs.getLanguage()
+#   6. internal/WebViewManager.kt loads bridge.html from the expected appassets.androidplatform.net URL
+#   7. internal/WebViewManager.kt enforces security hardening invariants (file/content/network blocking & guards)
+#   8. Node.js runtime validation verifies all 5 functions, alias resolution, unknown guards, and entity escaping
 #
 # Triggered only when the bridge files or this workflow itself change.
 
