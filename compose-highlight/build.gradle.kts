@@ -77,6 +77,7 @@ android {
 
 kotlin {
     jvmToolchain(17)
+    explicitApi()
 }
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -357,4 +358,3 @@ tasks.register<JacocoReport>("jacocoTestReport") {
         }
     )
 }
-

@@ -61,7 +61,7 @@ import dev.hossain.highlight.engine.HighlightTheme
  * ```
  */
 @Stable
-data class CodeBlockStyle(
+public data class CodeBlockStyle(
     /** Shape applied to the outer container of the code block. */
     val shape: Shape = SyntaxHighlightedCodeDefaults.shape,
     /** Inner padding between the container edge and the code content area. */
@@ -109,12 +109,12 @@ data class CodeBlockStyle(
      */
     val fallbackTextColor: Color = SyntaxHighlightedCodeDefaults.fallbackTextColor,
 ) {
-    companion object {
+    public companion object {
         /** Standard code block with rounded corners and comfortable padding. */
-        val Default = CodeBlockStyle()
+        public val Default: CodeBlockStyle = CodeBlockStyle()
 
         /** Compact variant with reduced padding for space-constrained layouts. */
-        val Compact =
+        public val Compact: CodeBlockStyle =
             CodeBlockStyle(
                 padding = PaddingValues(12.dp),
                 headerPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),

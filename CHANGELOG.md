@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Infrastructure
+
+- **Enabled strict Kotlin explicit API mode** for the library module so public visibility and API types are intentional.
+
 ### Tests
 
 - **100% unit test coverage for engine and internal packages** - Added dedicated `HtmlParserTest` covering single and

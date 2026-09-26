@@ -52,7 +52,7 @@ import dev.hossain.highlight.R
  * )
  * ```
  */
-object SyntaxHighlightedCodeDefaults {
+public object SyntaxHighlightedCodeDefaults {
     /**
      * Default [TextStyle] applied to the code text: monospace font, 13 sp size, 20 sp line height.
      *
@@ -68,7 +68,7 @@ object SyntaxHighlightedCodeDefaults {
      * )
      * ```
      */
-    val codeTextStyle: TextStyle =
+    public val codeTextStyle: TextStyle =
         TextStyle(
             fontFamily = FontFamily.Monospace,
             fontSize = 13.sp,
@@ -76,13 +76,13 @@ object SyntaxHighlightedCodeDefaults {
         )
 
     /** Default corner radius for the code block container. */
-    val shape: Shape = RoundedCornerShape(8.dp)
+    public val shape: Shape = RoundedCornerShape(8.dp)
 
     /** Default inner padding for the code content area. */
-    val padding: PaddingValues = PaddingValues(16.dp)
+    public val padding: PaddingValues = PaddingValues(16.dp)
 
     /** Default padding for the header row (language label + copy button). */
-    val headerPadding: PaddingValues = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+    public val headerPadding: PaddingValues = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
 
     /**
      * Default minimum width reserved for the line-number gutter.
@@ -90,22 +90,22 @@ object SyntaxHighlightedCodeDefaults {
      * The gutter automatically expands beyond this value for code blocks with 1,000+ lines
      * or larger typography to fit multi-digit line numbers without wrapping.
      */
-    val lineNumberWidth: Dp = 32.dp
+    public val lineNumberWidth: Dp = 32.dp
 
     /** Default size (width and height) of the copy button. */
-    val copyButtonSize: Dp = 32.dp
+    public val copyButtonSize: Dp = 32.dp
 
     /**
      * Default background color used when the active theme CSS has no `.hljs { background: ... }`
      * rule. Matches the dark background from the built-in tomorrow-night and atom-one-dark themes.
      */
-    val fallbackBackgroundColor: Color = Color(0xFF1E1E1E)
+    public val fallbackBackgroundColor: Color = Color(0xFF1E1E1E)
 
     /**
      * Default text color used when the active theme CSS has no `.hljs { color: ... }` rule.
      * Provides readable light-gray text on the dark [fallbackBackgroundColor].
      */
-    val fallbackTextColor: Color = Color(0xFFCCCCCC)
+    public val fallbackTextColor: Color = Color(0xFFCCCCCC)
 
     /**
      * Default copy-to-clipboard button used by [SyntaxHighlightedCode]'s `copyButton` slot.
@@ -141,7 +141,7 @@ object SyntaxHighlightedCodeDefaults {
      * @param size Width and height of the button touch target. Defaults to [copyButtonSize].
      */
     @Composable
-    fun CopyButton(
+    public fun CopyButton(
         onClick: () -> Unit,
         modifier: Modifier = Modifier,
         tint: Color = LocalContentColor.current.copy(alpha = 0.7f),
@@ -195,7 +195,7 @@ object SyntaxHighlightedCodeDefaults {
      * @param fontSize Label font size. Defaults to 12 sp.
      */
     @Composable
-    fun LanguageLabel(
+    public fun LanguageLabel(
         language: String,
         modifier: Modifier = Modifier,
         color: Color = LocalContentColor.current.copy(alpha = 0.6f),

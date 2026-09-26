@@ -63,7 +63,7 @@ import androidx.compose.ui.text.AnnotatedString
  * @property timings Per-layer timing breakdown for this highlight call. Always populated.
  *   See [HighlightTimings] for the full stage breakdown.
  */
-data class HighlightResult(
+public data class HighlightResult(
     val annotated: AnnotatedString,
     val spanCount: Int,
     val language: String,

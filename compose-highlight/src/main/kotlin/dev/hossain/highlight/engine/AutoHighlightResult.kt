@@ -35,7 +35,7 @@ import androidx.compose.ui.text.AnnotatedString
  *   `timings.total.inWholeMilliseconds`.
  * @property timings Per-layer timing breakdown for this highlight call. Always populated.
  */
-data class AutoHighlightResult(
+public data class AutoHighlightResult(
     val annotated: AnnotatedString,
     val detectedLanguage: String,
     val spanCount: Int,

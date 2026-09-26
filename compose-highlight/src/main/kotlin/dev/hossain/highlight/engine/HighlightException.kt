@@ -10,7 +10,7 @@ package dev.hossain.highlight.engine
  * @param message Human-readable description of the failure.
  * @param cause The underlying throwable that triggered this exception, if any.
  */
-sealed class HighlightException(
+public sealed class HighlightException(
     message: String,
     cause: Throwable? = null,
 ) : Exception(message, cause) {
@@ -19,7 +19,7 @@ sealed class HighlightException(
      *
      * @param cause The underlying throwable that triggered the initialization failure.
      */
-    class WebViewInitFailed(
+    public class WebViewInitFailed(
         cause: Throwable,
     ) : HighlightException("WebView initialization failed", cause)
 
@@ -29,7 +29,7 @@ sealed class HighlightException(
      *
      * @param cause The underlying throwable from the JavaScript execution failure.
      */
-    class JsExecutionFailed(
+    public class JsExecutionFailed(
         cause: Throwable,
     ) : HighlightException("JavaScript execution failed", cause)
 
@@ -42,7 +42,7 @@ sealed class HighlightException(
      *
      * @param path The asset path that was resolved but yielded no usable color rules.
      */
-    class ThemeNotFound(
+    public class ThemeNotFound(
         path: String,
     ) : HighlightException("Theme CSS has no parseable color rules: $path")
 
@@ -51,15 +51,15 @@ sealed class HighlightException(
      *
      * @param cause The underlying throwable from the HTML parse failure.
      */
-    class HtmlParseFailed(
+    public class HtmlParseFailed(
         cause: Throwable,
     ) : HighlightException("HTML parsing failed", cause)
 
     /** Thrown when a highlight call does not complete within [TIMEOUT_SECONDS] seconds. */
-    class Timeout : HighlightException("Highlighting timed out after ${TIMEOUT_SECONDS}s")
+    public class Timeout : HighlightException("Highlighting timed out after ${TIMEOUT_SECONDS}s")
 
-    companion object {
+    public companion object {
         /** Maximum number of seconds a single highlight call may take before [Timeout] is thrown. */
-        const val TIMEOUT_SECONDS = 5L
+        public const val TIMEOUT_SECONDS: Long = 5L
     }
 }

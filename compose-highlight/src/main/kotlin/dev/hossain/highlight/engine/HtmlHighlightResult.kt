@@ -37,7 +37,7 @@ import kotlin.time.Duration
  * @property jsonUnescapeDuration Time for `unescapeJsString` - the character-by-character pass
  *   that strips JSON encoding from the string returned by the JS engine.
  */
-data class HtmlHighlightResult(
+public data class HtmlHighlightResult(
     val html: String,
     val durationMs: Long,
     val jsBridgeDuration: Duration = Duration.ZERO,

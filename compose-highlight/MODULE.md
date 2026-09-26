@@ -138,6 +138,8 @@ The friction is intentional. A new built-in is an API decision, not "I dropped a
 
 **Testing split:** JVM tests live in `src/test/` and should use `ThemeParser.parse(cssString)` and direct `unescapeJsString(...)` calls where possible. The opt-in `HtmlParserBenchmark` JVM microbenchmark also lives under `src/test/kotlin/dev/hossain/highlight/benchmark/` (skipped by default; enable with `-PrunBenchmark=true`). Instrumented tests and on-device benchmarks live in `src/androidTest/`. Roborazzi-driven screenshot regression tests live in `src/test/kotlin/dev/hossain/highlight/screenshot/`; see [SCREENSHOT_TESTS.md](SCREENSHOT_TESTS.md) for the workflow.
 
+**Public API visibility must be explicit.** The library module uses Kotlin strict explicit API mode. Mark intentional API declarations with `public` and explicit return types, and mark implementation-only declarations `internal` or `private`.
+
 ## Contributor workflow
 
 **Formatting and validation:**

@@ -115,7 +115,7 @@ package dev.hossain.highlight.engine
  * @see [hljs CSS Classes Reference](https://highlightjs.readthedocs.io/en/latest/css-classes-reference.html)
  * @see [hljs Theme Guide](https://highlightjs.readthedocs.io/en/latest/theme-guide.html)
  */
-object HljsSelectors {
+public object HljsSelectors {
     // ----- Base -----
 
     /**
@@ -125,48 +125,48 @@ object HljsSelectors {
      * entire code block. Used to derive [HighlightTheme.backgroundColor] and
      * [HighlightTheme.defaultTextColor].
      */
-    const val BASE = "hljs"
+    public const val BASE: String = "hljs"
 
     // ----- General purpose -----
 
     /** Keyword tokens (`if`, `for`, `fun`, `def`, etc.). */
-    const val KEYWORD = "hljs-keyword"
+    public const val KEYWORD: String = "hljs-keyword"
 
     /** Built-in or library objects (constants, classes, functions). */
-    const val BUILT_IN = "hljs-built_in"
+    public const val BUILT_IN: String = "hljs-built_in"
 
     /** Data types (`string`, `int`, `array`, etc.). */
-    const val TYPE = "hljs-type"
+    public const val TYPE: String = "hljs-type"
 
     /** Special identifiers for built-in values (`true`, `false`, `null`, `None`). */
-    const val LITERAL = "hljs-literal"
+    public const val LITERAL: String = "hljs-literal"
 
     /** Numbers, including units and modifiers. */
-    const val NUMBER = "hljs-number"
+    public const val NUMBER: String = "hljs-number"
 
     /**
      * Operators: `+`, `-`, `>>`, `|`, `==`.
      * Newer scope - not present in all themes.
      */
-    const val OPERATOR = "hljs-operator"
+    public const val OPERATOR: String = "hljs-operator"
 
     /**
      * Auxiliary punctuation: parentheses, brackets, etc.
      * Newer scope - not present in all themes.
      */
-    const val PUNCTUATION = "hljs-punctuation"
+    public const val PUNCTUATION: String = "hljs-punctuation"
 
     /**
      * Object properties: `obj.prop1.prop2.value`.
      * Newer scope - not present in all themes.
      */
-    const val PROPERTY = "hljs-property"
+    public const val PROPERTY: String = "hljs-property"
 
     /** Literal regular expressions. */
-    const val REGEXP = "hljs-regexp"
+    public const val REGEXP: String = "hljs-regexp"
 
     /** Literal strings and characters. */
-    const val STRING = "hljs-string"
+    public const val STRING: String = "hljs-string"
 
     /**
      * Character literals - base scope.
@@ -174,156 +174,156 @@ object HljsSelectors {
      * (via `substringBefore('.')`), so both [CHAR] and [CHAR_ESCAPE] will resolve
      * to the same style from real theme CSS.
      */
-    const val CHAR = "hljs-char"
+    public const val CHAR: String = "hljs-char"
 
     /**
      * Character escape literals (e.g. `\n`, `\t`).
      * hljs emits `class="hljs-char escape_"` which resolves to the compound key
      * `hljs-char.escape_`. All real theme CSS files use `.hljs-char.escape_`.
      */
-    const val CHAR_ESCAPE = "hljs-char.escape_"
+    public const val CHAR_ESCAPE: String = "hljs-char.escape_"
 
     /**
      * Parsed sections inside literal strings.
      * The hljs theme guide explicitly says "don't forget to style .subst" - it should
      * usually reset to the default text color (e.g. `.hljs, .hljs-subst { color: black }`).
      */
-    const val SUBST = "hljs-subst"
+    public const val SUBST: String = "hljs-subst"
 
     /** Symbolic constants, interned strings, goto labels. */
-    const val SYMBOL = "hljs-symbol"
+    public const val SYMBOL: String = "hljs-symbol"
 
     /** General variables (e.g. `$variable` in shell scripts). */
-    const val VARIABLE = "hljs-variable"
+    public const val VARIABLE: String = "hljs-variable"
 
     /**
      * Variables with special meaning in a language:
      * `this`, `window`, `super`, `self`, etc.
      */
-    const val VARIABLE_LANGUAGE = "hljs-variable.language_"
+    public const val VARIABLE_LANGUAGE: String = "hljs-variable.language_"
 
     /** Constant-value variables (e.g. `MAX_FILES`). */
-    const val VARIABLE_CONSTANT = "hljs-variable.constant_"
+    public const val VARIABLE_CONSTANT: String = "hljs-variable.constant_"
 
     /** Name of a class or function. */
-    const val TITLE = "hljs-title"
+    public const val TITLE: String = "hljs-title"
 
     /** Function arguments/parameters at the place of declaration. */
-    const val PARAMS = "hljs-params"
+    public const val PARAMS: String = "hljs-params"
 
     /** Single-line and multi-line comments. */
-    const val COMMENT = "hljs-comment"
+    public const val COMMENT: String = "hljs-comment"
 
     /** Documentation markup within comments (e.g. `@param`). */
-    const val DOCTAG = "hljs-doctag"
+    public const val DOCTAG: String = "hljs-doctag"
 
     // ----- Title subscopes -----
 
     /** Name of a class, interface, trait, or module. */
-    const val TITLE_CLASS = "hljs-title.class_"
+    public const val TITLE_CLASS: String = "hljs-title.class_"
 
     /**
      * Name of a class being inherited from, extended, etc.
      * hljs emits `class="hljs-title class_ inherited__"` which resolves to the compound key
      * `hljs-title.class_.inherited__` (note: double underscore on `inherited__`).
      */
-    const val TITLE_CLASS_INHERITED = "hljs-title.class_.inherited__"
+    public const val TITLE_CLASS_INHERITED: String = "hljs-title.class_.inherited__"
 
     /** Name of a function. */
-    const val TITLE_FUNCTION = "hljs-title.function_"
+    public const val TITLE_FUNCTION: String = "hljs-title.function_"
 
     /** Name of a function when being invoked. */
-    const val TITLE_FUNCTION_INVOKE = "hljs-title.function.invoke_"
+    public const val TITLE_FUNCTION_INVOKE: String = "hljs-title.function.invoke_"
 
     // ----- Meta -----
 
     /** Flags, modifiers, annotations, preprocessor directives. */
-    const val META = "hljs-meta"
+    public const val META: String = "hljs-meta"
 
     /** Keywords inside a meta block (nested, hyphenated in CSS). */
-    const val META_KEYWORD = "hljs-meta-keyword"
+    public const val META_KEYWORD: String = "hljs-meta-keyword"
 
     /** Strings inside a meta block (nested, hyphenated in CSS). */
-    const val META_STRING = "hljs-meta-string"
+    public const val META_STRING: String = "hljs-meta-string"
 
     /** REPL or shell prompts. */
-    const val META_PROMPT = "hljs-meta.prompt_"
+    public const val META_PROMPT: String = "hljs-meta.prompt_"
 
     // ----- Tags, attributes, configs -----
 
     /** XML/HTML tags. */
-    const val TAG = "hljs-tag"
+    public const val TAG: String = "hljs-tag"
 
     /** Name of an XML tag, the first word in an s-expression. */
-    const val NAME = "hljs-name"
+    public const val NAME: String = "hljs-name"
 
     /**
      * Attribute names without language-defined semantics
      * (JSON keys, .ini settings), also sub-attributes within another highlighted object.
      */
-    const val ATTR = "hljs-attr"
+    public const val ATTR: String = "hljs-attr"
 
     /** Attribute names followed by structured values (e.g. CSS properties). */
-    const val ATTRIBUTE = "hljs-attribute"
+    public const val ATTRIBUTE: String = "hljs-attribute"
 
     /** Section headings in config files or text markup. */
-    const val SECTION = "hljs-section"
+    public const val SECTION: String = "hljs-section"
 
     // ----- CSS selectors -----
 
     /** Tag selectors (e.g. `div`, `span`). */
-    const val SELECTOR_TAG = "hljs-selector-tag"
+    public const val SELECTOR_TAG: String = "hljs-selector-tag"
 
     /** `#id` selectors. */
-    const val SELECTOR_ID = "hljs-selector-id"
+    public const val SELECTOR_ID: String = "hljs-selector-id"
 
     /** `.class` selectors. */
-    const val SELECTOR_CLASS = "hljs-selector-class"
+    public const val SELECTOR_CLASS: String = "hljs-selector-class"
 
     /** `[attr]` selectors. */
-    const val SELECTOR_ATTR = "hljs-selector-attr"
+    public const val SELECTOR_ATTR: String = "hljs-selector-attr"
 
     /** `:pseudo` selectors. */
-    const val SELECTOR_PSEUDO = "hljs-selector-pseudo"
+    public const val SELECTOR_PSEUDO: String = "hljs-selector-pseudo"
 
     // ----- Text markup -----
 
     /** List item bullets. */
-    const val BULLET = "hljs-bullet"
+    public const val BULLET: String = "hljs-bullet"
 
     /** Code blocks. */
-    const val CODE = "hljs-code"
+    public const val CODE: String = "hljs-code"
 
     /** Emphasis (typically maps to [androidx.compose.ui.text.font.FontStyle.Italic]). */
-    const val EMPHASIS = "hljs-emphasis"
+    public const val EMPHASIS: String = "hljs-emphasis"
 
     /** Strong emphasis (typically maps to [androidx.compose.ui.text.font.FontWeight.Bold]). */
-    const val STRONG = "hljs-strong"
+    public const val STRONG: String = "hljs-strong"
 
     /** Mathematical formulas. */
-    const val FORMULA = "hljs-formula"
+    public const val FORMULA: String = "hljs-formula"
 
     /** Hyperlinks. */
-    const val LINK = "hljs-link"
+    public const val LINK: String = "hljs-link"
 
     /** Quotations or blockquotes. */
-    const val QUOTE = "hljs-quote"
+    public const val QUOTE: String = "hljs-quote"
 
     // ----- Templates -----
 
     /** Tags of template languages. */
-    const val TEMPLATE_TAG = "hljs-template-tag"
+    public const val TEMPLATE_TAG: String = "hljs-template-tag"
 
     /** Variables in template languages. */
-    const val TEMPLATE_VARIABLE = "hljs-template-variable"
+    public const val TEMPLATE_VARIABLE: String = "hljs-template-variable"
 
     // ----- Diff -----
 
     /** Added or changed lines. */
-    const val ADDITION = "hljs-addition"
+    public const val ADDITION: String = "hljs-addition"
 
     /** Deleted lines. */
-    const val DELETION = "hljs-deletion"
+    public const val DELETION: String = "hljs-deletion"
 
     // ----- Other -----
 
@@ -331,5 +331,5 @@ object HljsSelectors {
      * At-rule tokens.
      * Found in a small number of themes.
      */
-    const val ATRULE = "hljs-atrule"
+    public const val ATRULE: String = "hljs-atrule"
 }

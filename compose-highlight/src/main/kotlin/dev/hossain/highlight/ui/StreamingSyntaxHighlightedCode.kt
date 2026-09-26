@@ -97,7 +97,7 @@ private val LineNumberGutterSpacing = 8.dp
  */
 @ExperimentalHighlightApi
 @Composable
-fun StreamingSyntaxHighlightedCode(
+public fun StreamingSyntaxHighlightedCode(
     code: String,
     language: String,
     modifier: Modifier = Modifier,

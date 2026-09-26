@@ -4,6 +4,7 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.ProvidableCompositionLocal
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.platform.LocalContext
@@ -19,7 +20,7 @@ import dev.hossain.highlight.ui.internal.LocalHighlightEngine
  *
  * Throws a descriptive error if accessed without a [HighlightThemeProvider] ancestor.
  */
-val LocalHighlightTheme =
+public val LocalHighlightTheme: ProvidableCompositionLocal<HighlightTheme> =
     staticCompositionLocalOf<HighlightTheme> {
         error(
             "No HighlightTheme provided. " +
@@ -35,7 +36,7 @@ val LocalHighlightTheme =
  *
  * Throws a descriptive error if accessed without a [HighlightThemeProvider] ancestor.
  */
-val LocalLightHighlightTheme =
+public val LocalLightHighlightTheme: ProvidableCompositionLocal<HighlightTheme> =
     staticCompositionLocalOf<HighlightTheme> {
         error(
             "No light HighlightTheme provided. " +
@@ -51,7 +52,7 @@ val LocalLightHighlightTheme =
  *
  * Throws a descriptive error if accessed without a [HighlightThemeProvider] ancestor.
  */
-val LocalDarkHighlightTheme =
+public val LocalDarkHighlightTheme: ProvidableCompositionLocal<HighlightTheme> =
     staticCompositionLocalOf<HighlightTheme> {
         error(
             "No dark HighlightTheme provided. " +
@@ -159,7 +160,7 @@ val LocalDarkHighlightTheme =
  * @param content The composable content to which the theme and shared engine are provided.
  */
 @Composable
-fun HighlightThemeProvider(
+public fun HighlightThemeProvider(
     darkTheme: Boolean = isSystemInDarkTheme(),
     lightHighlightTheme: HighlightTheme = rememberTomorrowLightTheme(),
     darkHighlightTheme: HighlightTheme = rememberTomorrowNightTheme(),
@@ -208,7 +209,7 @@ fun HighlightThemeProvider(
  * @return A stable [HighlightTheme] instance remembered across recompositions.
  */
 @Composable
-fun rememberTomorrowLightTheme(): HighlightTheme = remember { HighlightTheme.tomorrow() }
+public fun rememberTomorrowLightTheme(): HighlightTheme = remember { HighlightTheme.tomorrow() }
 
 /**
  * Creates and remembers the built-in Base16 Tomorrow Night (dark) [HighlightTheme].
@@ -228,7 +229,7 @@ fun rememberTomorrowLightTheme(): HighlightTheme = remember { HighlightTheme.tom
  * @return A stable [HighlightTheme] instance remembered across recompositions.
  */
 @Composable
-fun rememberTomorrowNightTheme(): HighlightTheme = remember { HighlightTheme.tomorrowNight() }
+public fun rememberTomorrowNightTheme(): HighlightTheme = remember { HighlightTheme.tomorrowNight() }
 
 /**
  * Creates and remembers the built-in Atom One Dark [HighlightTheme].
@@ -245,7 +246,7 @@ fun rememberTomorrowNightTheme(): HighlightTheme = remember { HighlightTheme.tom
  * @return A stable [HighlightTheme] instance remembered across recompositions.
  */
 @Composable
-fun rememberAtomOneDarkTheme(): HighlightTheme = remember { HighlightTheme.atomOneDark() }
+public fun rememberAtomOneDarkTheme(): HighlightTheme = remember { HighlightTheme.atomOneDark() }
 
 /**
  * Creates and remembers the built-in Atom One Light [HighlightTheme].
@@ -262,7 +263,7 @@ fun rememberAtomOneDarkTheme(): HighlightTheme = remember { HighlightTheme.atomO
  * @return A stable [HighlightTheme] instance remembered across recompositions.
  */
 @Composable
-fun rememberAtomOneLightTheme(): HighlightTheme = remember { HighlightTheme.atomOneLight() }
+public fun rememberAtomOneLightTheme(): HighlightTheme = remember { HighlightTheme.atomOneLight() }
 
 /**
  * Creates and remembers the built-in GitHub Light [HighlightTheme].
@@ -279,7 +280,7 @@ fun rememberAtomOneLightTheme(): HighlightTheme = remember { HighlightTheme.atom
  * @return A stable [HighlightTheme] instance remembered across recompositions.
  */
 @Composable
-fun rememberGithubLightTheme(): HighlightTheme = remember { HighlightTheme.githubLight() }
+public fun rememberGithubLightTheme(): HighlightTheme = remember { HighlightTheme.githubLight() }
 
 /**
  * Creates and remembers the built-in GitHub Dark [HighlightTheme].
@@ -296,7 +297,7 @@ fun rememberGithubLightTheme(): HighlightTheme = remember { HighlightTheme.githu
  * @return A stable [HighlightTheme] instance remembered across recompositions.
  */
 @Composable
-fun rememberGithubDarkTheme(): HighlightTheme = remember { HighlightTheme.githubDark() }
+public fun rememberGithubDarkTheme(): HighlightTheme = remember { HighlightTheme.githubDark() }
 
 /**
  * Creates and remembers the built-in Dracula (dark) [HighlightTheme].
@@ -321,7 +322,7 @@ fun rememberGithubDarkTheme(): HighlightTheme = remember { HighlightTheme.github
  * @see rememberAlucardLightTheme
  */
 @Composable
-fun rememberDraculaDarkTheme(): HighlightTheme = remember { HighlightTheme.draculaDark() }
+public fun rememberDraculaDarkTheme(): HighlightTheme = remember { HighlightTheme.draculaDark() }
 
 /**
  * Creates and remembers the built-in Alucard (light) [HighlightTheme].
@@ -346,7 +347,7 @@ fun rememberDraculaDarkTheme(): HighlightTheme = remember { HighlightTheme.dracu
  * @see rememberDraculaDarkTheme
  */
 @Composable
-fun rememberAlucardLightTheme(): HighlightTheme = remember { HighlightTheme.alucardLight() }
+public fun rememberAlucardLightTheme(): HighlightTheme = remember { HighlightTheme.alucardLight() }
 
 /**
  * Creates and remembers the built-in Alucard (light) theme as an alias under the Dracula naming scheme.
@@ -356,7 +357,7 @@ fun rememberAlucardLightTheme(): HighlightTheme = remember { HighlightTheme.aluc
  * @see rememberAlucardLightTheme
  */
 @Composable
-fun rememberDraculaLightTheme(): HighlightTheme = rememberAlucardLightTheme()
+public fun rememberDraculaLightTheme(): HighlightTheme = rememberAlucardLightTheme()
 
 /**
  * Creates and remembers the built-in Dracula (dark) theme as an alias under the Alucard naming scheme.
@@ -366,7 +367,7 @@ fun rememberDraculaLightTheme(): HighlightTheme = rememberAlucardLightTheme()
  * @see rememberDraculaDarkTheme
  */
 @Composable
-fun rememberAlucardDarkTheme(): HighlightTheme = rememberDraculaDarkTheme()
+public fun rememberAlucardDarkTheme(): HighlightTheme = rememberDraculaDarkTheme()
 
 @Preview(showBackground = true)
 @Composable
