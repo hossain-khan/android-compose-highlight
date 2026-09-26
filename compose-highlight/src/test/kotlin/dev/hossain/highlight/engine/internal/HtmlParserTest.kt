@@ -269,4 +269,124 @@ class HtmlParserTest {
         assertThat(resolveStyle("   ", colorMap)).isNull()
         assertThat(resolveStyle("hljs-unknown", colorMap)).isNull()
     }
+
+    // ────────────────────────────────────────────────────────────────────────────
+    // Comprehensive Branch Coverage Tests
+    // ────────────────────────────────────────────────────────────────────────────
+
+    @Test
+    fun `parseAndBuild handles trailing open angle bracket at EOF`() {
+        val result = parseSingle("text<")
+        assertThat(result.text).isEqualTo("text<")
+    }
+
+    @Test
+    fun `parseAndBuildBoth handles trailing open angle bracket at EOF`() {
+        val (light, dark) = parseBoth("text<")
+        assertThat(light.text).isEqualTo("text<")
+        assertThat(dark.text).isEqualTo("text<")
+    }
+
+    @Test
+    fun `parseAndBuild handles empty tags and closing tag variants`() {
+        val result = parseSingle("<><span>text</  span >")
+        assertThat(result.text).isEqualTo("text")
+    }
+
+    @Test
+    fun `parseAndBuildBoth handles empty tags and closing tag variants`() {
+        val (light, dark) = parseBoth("<><span>text</  span >")
+        assertThat(light.text).isEqualTo("text")
+        assertThat(dark.text).isEqualTo("text")
+    }
+
+    @Test
+    fun `parseAndBuildBoth handles blank and empty class attributes`() {
+        val (light, dark) = parseBoth("<span class=\"\">kw1</span><span class=\"   \">kw2</span>")
+        assertThat(light.text).isEqualTo("kw1kw2")
+        assertThat(dark.text).isEqualTo("kw1kw2")
+        assertThat(light.spanStyles).isEmpty()
+        assertThat(dark.spanStyles).isEmpty()
+    }
+
+    @Test
+    fun `parseAndBuild handles attribute shapes with whitespace and quotes`() {
+        val html = "<span   id   =   \"x\"   class   =   'hljs-keyword'   disabled   >test</span>"
+        val result = parseSingle(html)
+        assertThat(result.text).isEqualTo("test")
+        assertThat(result.spanStyles).hasSize(1)
+        assertThat(result.spanStyles[0].item.color).isEqualTo(Color.Red)
+    }
+
+    @Test
+    fun `extractClassAttrInPlace handles boolean attributes trailing whitespace and missing values`() {
+        assertThat(extractClassAttrInPlace("disabled", 0, 8)).isEmpty()
+        assertThat(extractClassAttrInPlace("disabled=", 0, 9)).isEmpty()
+        assertThat(extractClassAttrInPlace("   =val", 0, 7)).isEmpty()
+        assertThat(extractClassAttrInPlace("class='unclosed", 0, 15)).isEqualTo("unclosed")
+        assertThat(extractClassAttrInPlace("id='unclosed", 0, 12)).isEmpty()
+        assertThat(extractClassAttrInPlace("class=val id=2", 0, 14)).isEqualTo("val")
+        assertThat(extractClassAttrInPlace("class=val", 0, 9)).isEqualTo("val")
+        assertThat(extractClassAttrInPlace("   ", 0, 3)).isEmpty()
+        // Test equals sign occurring after end
+        assertThat(extractClassAttrInPlace("disabled> <span class=foo>", 0, 8)).isEmpty()
+        // Test closing quote occurring after end
+        assertThat(extractClassAttrInPlace("class=\"unclosed> <span class=\"closed\">", 0, 15)).isEqualTo("unclosed")
+    }
+
+    @Test
+    fun `parseAndBuild and parseAndBuildBoth handle all closing tag whitespace variants`() {
+        val cases =
+            listOf(
+                "<span></></span>",
+                "<span></   ></span>",
+                "<span></span   ></span>",
+                "<span></  span  ></span>",
+                "<span></span>",
+                "<   >",
+                "< />",
+                "<  />",
+                "<br   />",
+            )
+        for (html in cases) {
+            parseSingle(html)
+            parseBoth(html)
+        }
+    }
+
+    @Test
+    fun `decodeEntities handles all entity discrimination branches`() {
+        // len 2: lt, gt, neither, starts with l but not lt, starts with g but not gt
+        assertThat(decodeEntities("&lt;&gt;&lx;&gx;&ax;")).isEqualTo("<>&lx;&gx;&ax;")
+
+        // len 3: amp, starts with am but not p, starts with a but not m, neither
+        assertThat(decodeEntities("&amp;&amx;&abc;&xyz;")).isEqualTo("&&amx;&abc;&xyz;")
+
+        // len 4: quot, apos, nbsp, starts with q but not quot, starts with a but not apos, starts with n but not nbsp
+        assertThat(decodeEntities("&quot;&apos;&nbsp;&quit;&apex;&next;&zzzz;")).isEqualTo("\"'\u00A0&quit;&apex;&next;&zzzz;")
+
+        // Empty entity
+        assertThat(decodeEntities("&;")).isEqualTo("&;")
+    }
+
+    @Test
+    fun `decodeEntities handles all numeric hex and decimal character references`() {
+        // Hex entity with digits, lowercase a-f, uppercase A-F
+        assertThat(decodeEntities("&#x30;&#x61;&#x41;&#x66;&#x46;")).isEqualTo("0aAfF")
+
+        // Hex entity with non-hex digit
+        assertThat(decodeEntities("&#x1G;")).isEqualTo("&#x1G;")
+
+        // Hex entity overflow > 0x10FFFF
+        assertThat(decodeEntities("&#x110000;")).isEqualTo("&#x110000;")
+
+        // Decimal entity with char < '0' or > '9'
+        assertThat(decodeEntities("&#/;&#:;")).isEqualTo("&#/;&#:;")
+
+        // Decimal entity overflow > 0x10FFFF
+        assertThat(decodeEntities("&#1114112;")).isEqualTo("&#1114112;")
+
+        // Surrogate codepoints
+        assertThat(decodeEntities("&#xD800;&#xDFFF;")).isEqualTo("&#xD800;&#xDFFF;")
+    }
 }

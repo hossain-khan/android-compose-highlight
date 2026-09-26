@@ -10,6 +10,10 @@ All notable changes to this project will be documented in this file.
   dual-theme SAX parsing, HTML entity decoding, attribute extraction, and malformed HTML handling. Added double-checked
   locking and concurrency tests for `HighlightEngine` language and version caching, exception mapping paths, and error
   handling. Expanded edge-case coverage across `ThemeParser`, `WebViewManager`, `JsStringEscape`, and `HighlightTheme`.
+- **100% branch coverage for HtmlParser, ThemeParser, and JsStringEscape** - Achieved 100% branch and line coverage
+  across `HtmlParser`, `ThemeParser`, and `JsStringEscape`. Eliminated synthetic bytecode branches from inline
+  constructs, optimized hex parsing with `Character.digit`, streamlined case-insensitive token comparisons with
+  `regionMatches`, and added tests for entity decoding, surrogate pairs, and CSS property merging.
 
 ### Documentation
 

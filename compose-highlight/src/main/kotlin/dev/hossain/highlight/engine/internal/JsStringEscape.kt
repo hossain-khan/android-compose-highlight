@@ -176,9 +176,8 @@ internal fun escapeForJs(str: String): String {
             }
 
             else -> {
-                val code = c.code
-                if (code in 0x00..0x1F) {
-                    sb.append("\\u").append(code.toString(16).padStart(4, '0'))
+                if (c.code <= 0x1F) {
+                    sb.append("\\u").append(c.code.toString(16).padStart(4, '0'))
                 } else {
                     sb.append(c)
                 }

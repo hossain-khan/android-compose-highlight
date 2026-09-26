@@ -235,4 +235,39 @@ class HighlightEngineUnescapeTest {
         assertThat(unescapeJsString("\"hello")).isEqualTo("\"hello")
         assertThat(unescapeJsString("hello\"")).isEqualTo("hello\"")
     }
+
+    @Test
+    fun `high surrogate followed by non-backslash emits high surrogate as-is`() {
+        val input = "\"\\uD83Dworld!\""
+        val result = unescapeJsString(input)
+        assertThat(result.startsWith("\uD83Dworld!")).isTrue()
+    }
+
+    @Test
+    fun `high surrogate followed by non-u escape emits high surrogate as-is`() {
+        val input = "\"\\uD83D\\nworld\""
+        val result = unescapeJsString(input)
+        assertThat(result).isEqualTo("\uD83D\nworld")
+    }
+
+    @Test
+    fun `high surrogate followed by invalid hex in low surrogate emits high surrogate as-is`() {
+        val input = "\"\\uD83D\\uZZZZ\""
+        val result = unescapeJsString(input)
+        assertThat(result).isEqualTo("\uD83D\\uZZZZ")
+    }
+
+    @Test
+    fun `high surrogate followed by code point below low surrogate range emits high surrogate as-is`() {
+        val input = "\"\\uD83D\\u0020\""
+        val result = unescapeJsString(input)
+        assertThat(result).isEqualTo("\uD83D ")
+    }
+
+    @Test
+    fun `high surrogate followed by code point above low surrogate range emits high surrogate as-is`() {
+        val input = "\"\\uD83D\\uE000\""
+        val result = unescapeJsString(input)
+        assertThat(result).isEqualTo("\uD83D\uE000")
+    }
 }
