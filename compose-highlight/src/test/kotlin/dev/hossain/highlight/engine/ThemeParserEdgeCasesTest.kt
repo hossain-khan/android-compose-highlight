@@ -375,4 +375,77 @@ class ThemeParserEdgeCasesTest {
         assertThat(result1[HljsSelectors.KEYWORD]).isNull()
         assertThat(result2[HljsSelectors.STRING]).isNull()
     }
+
+    @Test
+    fun `parse preserves existing background when incoming rule has unspecified background`() {
+        val css =
+            """
+            .hljs-keyword { background: #112233; }
+            .hljs-keyword { color: #445566; }
+            """.trimIndent()
+        val result = ThemeParser.parse(css)
+        assertThat(result[HljsSelectors.KEYWORD]?.background).isEqualTo(Color(0xFF112233))
+        assertThat(result[HljsSelectors.KEYWORD]?.color).isEqualTo(Color(0xFF445566))
+    }
+
+    @Test
+    fun `parse handles unclosed rule at EOF without closing brace`() {
+        val css = ".hljs-keyword { color: #112233"
+        val result = ThemeParser.parse(css)
+        assertThat(result[HljsSelectors.KEYWORD]?.color).isEqualTo(Color(0xFF112233))
+    }
+
+    @Test
+    fun `parse handles font-weight bolder and unsupported weight`() {
+        val css =
+            """
+            .hljs-keyword { font-weight: bolder; }
+            .hljs-string { font-weight: invalid; }
+            .hljs-comment { font-weight: 500; }
+            """.trimIndent()
+        val result = ThemeParser.parse(css)
+        assertThat(result[HljsSelectors.KEYWORD]?.fontWeight).isEqualTo(androidx.compose.ui.text.font.FontWeight.Bold)
+        assertThat(result[HljsSelectors.STRING]?.fontWeight).isNull()
+        assertThat(result[HljsSelectors.COMMENT]?.fontWeight).isEqualTo(androidx.compose.ui.text.font.FontWeight.Normal)
+    }
+
+    @Test
+    fun `parse handles font-style normal`() {
+        val css = ".hljs-keyword { font-style: normal; }"
+        val result = ThemeParser.parse(css)
+        assertThat(result[HljsSelectors.KEYWORD]).isNull()
+    }
+
+    @Test
+    fun `parse space separated rgb with multiple spaces`() {
+        val css = ".hljs-keyword { color: rgb(255   128   0); }"
+        val result = ThemeParser.parse(css)
+        assertThat(result[HljsSelectors.KEYWORD]?.color).isEqualTo(Color(255, 128, 0))
+    }
+
+    @Test
+    fun `parse preserves existing color when incoming rule has specified background`() {
+        val css =
+            """
+            .hljs-keyword { color: #112233; }
+            .hljs-keyword { background: #445566; }
+            """.trimIndent()
+        val result = ThemeParser.parse(css)
+        assertThat(result[HljsSelectors.KEYWORD]?.color).isEqualTo(Color(0xFF112233))
+        assertThat(result[HljsSelectors.KEYWORD]?.background).isEqualTo(Color(0xFF445566))
+    }
+
+    @Test
+    fun `parse stops at stray closing brace inside selector prelude`() {
+        val css = ".hljs-keyword } .hljs-string { color: #112233; }"
+        val result = ThemeParser.parse(css)
+        assertThat(result).isEmpty()
+    }
+
+    @Test
+    fun `parse handles empty selector before brace`() {
+        val css = "{ color: #112233; }"
+        val result = ThemeParser.parse(css)
+        assertThat(result).isEmpty()
+    }
 }

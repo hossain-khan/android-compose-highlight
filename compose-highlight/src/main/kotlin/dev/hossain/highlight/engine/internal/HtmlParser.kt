@@ -106,9 +106,7 @@ internal fun parseAndBuild(
             } else {
                 val nextTag = html.indexOf('<', index)
                 val textEnd = if (nextTag != -1) nextTag else length
-                if (textEnd > index) {
-                    appendDecodedText(builder, html, index, textEnd)
-                }
+                appendDecodedText(builder, html, index, textEnd)
                 index = textEnd
             }
         }
@@ -213,9 +211,7 @@ internal fun parseAndBuildBoth(
             } else {
                 val nextTag = html.indexOf('<', index)
                 val textEnd = if (nextTag != -1) nextTag else length
-                if (textEnd > index) {
-                    appendDecodedTextBoth(lightBuilder, darkBuilder, html, index, textEnd)
-                }
+                appendDecodedTextBoth(lightBuilder, darkBuilder, html, index, textEnd)
                 index = textEnd
             }
         }
@@ -280,7 +276,7 @@ internal fun decodeEntities(text: String): String {
                 // Decode numeric references
                 if (text[i + 1] == '#') {
                     val code = parseNumericEntity(text, i + 2, semi)
-                    if (code != null && code in 0..0x10FFFF && code !in 0xD800..0xDFFF) {
+                    if (code != null && code !in 0xD800..0xDFFF) {
                         sb.appendCodePoint(code)
                         i = semi + 1
                         continue
@@ -379,13 +375,8 @@ private fun parseHexInt(
     var result = 0
     for (i in start until end) {
         val c = text[i]
-        val digit =
-            when (c) {
-                in '0'..'9' -> c - '0'
-                in 'a'..'f' -> c - 'a' + 10
-                in 'A'..'F' -> c - 'A' + 10
-                else -> return null
-            }
+        val digit = Character.digit(c, 16)
+        if (digit == -1) return null
         result = result * 16 + digit
         if (result > 0x10FFFF) return null // Overflow guard
     }
@@ -493,11 +484,7 @@ private fun isLastTokenClass(
     // Check if this token is "class" (5 chars)
     val tokenLen = tokenEnd - tokenStart
     if (tokenLen != 5) return false
-    return (html[tokenStart] == 'c' || html[tokenStart] == 'C') &&
-        (html[tokenStart + 1] == 'l' || html[tokenStart + 1] == 'L') &&
-        (html[tokenStart + 2] == 'a' || html[tokenStart + 2] == 'A') &&
-        (html[tokenStart + 3] == 's' || html[tokenStart + 3] == 'S') &&
-        (html[tokenStart + 4] == 's' || html[tokenStart + 4] == 'S')
+    return html.regionMatches(tokenStart, "class", 0, 5, ignoreCase = true)
 }
 
 /**
@@ -519,10 +506,7 @@ private fun regionMatchesTrimmedLowercase(
 
     val len = e - s
     if (len != expected.length) return false
-    for (j in 0 until len) {
-        if (html[s + j].lowercaseChar() != expected[j]) return false
-    }
-    return true
+    return html.regionMatches(s, expected, 0, len, ignoreCase = true)
 }
 
 /** Skips leading whitespace in html[start, end) and returns the first non-whitespace index. */
@@ -585,7 +569,7 @@ private fun lowercaseSubstring(
 ): String {
     var needsLowercase = false
     for (i in start until end) {
-        if (html[i] in 'A'..'Z') {
+        if (html[i].isUpperCase()) {
             needsLowercase = true
             break
         }

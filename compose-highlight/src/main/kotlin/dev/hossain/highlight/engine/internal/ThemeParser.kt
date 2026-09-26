@@ -45,11 +45,13 @@ internal object ThemeParser {
         cssAssetPath: String,
     ): Map<String, SpanStyle> =
         try {
+            val stream = context.assets.open(cssAssetPath)
             val css =
-                context.assets
-                    .open(cssAssetPath)
-                    .bufferedReader()
-                    .use { it.readText() }
+                try {
+                    String(stream.readBytes(), Charsets.UTF_8)
+                } finally {
+                    stream.close()
+                }
             parse(css)
         } catch (e: IOException) {
             // Missing or unreadable asset - documented silent path. Anything else
@@ -69,11 +71,13 @@ internal object ThemeParser {
         context: Context,
         cssAssetPath: String,
     ): Map<String, SpanStyle> {
+        val stream = context.assets.open(cssAssetPath)
         val css =
-            context.assets
-                .open(cssAssetPath)
-                .bufferedReader()
-                .use { it.readText() }
+            try {
+                String(stream.readBytes(), Charsets.UTF_8)
+            } finally {
+                stream.close()
+            }
         return parse(css)
     }
 
@@ -224,12 +228,10 @@ internal object ThemeParser {
         /** Reads a single top-level rule (selector list + declarations). */
         private fun readRule(): CssRule? {
             val selectorsRaw = readUntilOpenBrace() ?: return null
-            // Consume the '{'
-            if (pos >= len || src[pos] != '{') return null
-            pos++
+            pos++ // Consume the '{'
             val declarations = readDeclarations()
             // Consume the '}'
-            if (pos < len && src[pos] == '}') pos++
+            if (pos < len) pos++
             val selectors = splitTopLevelByComma(selectorsRaw)
             return CssRule(selectors, declarations)
         }
@@ -305,7 +307,6 @@ internal object ThemeParser {
 
         /** Assumes [pos] is on `{`. Consumes it and everything up to and including the matching `}`. */
         private fun skipBalancedBlock() {
-            if (pos >= len || src[pos] != '{') return
             pos++ // opening '{'
             var depth = 1
             while (pos < len && depth > 0) {
@@ -438,7 +439,7 @@ internal object ThemeParser {
                             fontWeight = FontWeight.Bold
                         }
 
-                        value == "normal" || value == "lighter" || (numericWeight != null && numericWeight < 600) -> {
+                        value == "normal" || value == "lighter" || numericWeight != null -> {
                             fontWeight = FontWeight.Normal
                         }
                     }
@@ -565,11 +566,11 @@ internal object ThemeParser {
             val slashIdx = inner.indexOf("/")
             val colorPart = inner.substring(0, slashIdx).trim()
             val alphaPart = inner.substring(slashIdx + 1).trim()
-            val parts = colorPart.split(WHITESPACE_REGEX).filter { it.isNotEmpty() }
+            val parts = colorPart.split(WHITESPACE_REGEX)
             if (parts.size != 3) return null
             colorFromRgbStrings(parts[0], parts[1], parts[2], alpha = alphaPart)
         } else {
-            val parts = inner.split(WHITESPACE_REGEX).filter { it.isNotEmpty() }
+            val parts = inner.trim().split(WHITESPACE_REGEX)
             if (parts.size != 3) return null
             colorFromRgbStrings(parts[0], parts[1], parts[2], alpha = null)
         }
