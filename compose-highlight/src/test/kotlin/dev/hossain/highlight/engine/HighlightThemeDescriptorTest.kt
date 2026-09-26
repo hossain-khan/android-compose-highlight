@@ -94,6 +94,8 @@ class HighlightThemeDescriptorTest {
         assertThat(desc1).isEqualTo(desc2)
         assertThat(desc1.hashCode()).isEqualTo(desc2.hashCode())
         assertThat(desc1).isNotEqualTo(desc3)
+        assertThat(desc1.equals(null)).isFalse()
+        assertThat(desc1.equals("not a descriptor")).isFalse()
     }
 
     @Test

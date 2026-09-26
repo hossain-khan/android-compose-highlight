@@ -320,4 +320,59 @@ class ThemeParserEdgeCasesTest {
         val result = ThemeParser.parse(css)
         assertThat(result[HljsSelectors.KEYWORD]?.color).isEqualTo(Color(0, 0, 0, 255))
     }
+
+    @Test
+    fun `parse handles selector reaching EOF before open brace`() {
+        val css = ".hljs-keyword"
+        val result = ThemeParser.parse(css)
+        assertThat(result).isEmpty()
+    }
+
+    @Test
+    fun `parse skips nested balanced block inside declarations`() {
+        val css = ".hljs-keyword { color: #112233; { nested: value; } font-weight: bold; }"
+        val result = ThemeParser.parse(css)
+        assertThat(result[HljsSelectors.KEYWORD]?.color).isEqualTo(Color(0xFF112233))
+        assertThat(result[HljsSelectors.KEYWORD]?.fontWeight).isEqualTo(androidx.compose.ui.text.font.FontWeight.Bold)
+    }
+
+    @Test
+    fun `parse handles at-rule reaching EOF without semicolon or brace`() {
+        val css = "@media screen and (min-width: 500px)"
+        val result = ThemeParser.parse(css)
+        assertThat(result).isEmpty()
+    }
+
+    @Test
+    fun `parse handles font-weight lighter normal and numeric`() {
+        val css =
+            """
+            .hljs-keyword { font-weight: lighter; }
+            .hljs-string { font-weight: normal; }
+            .hljs-comment { font-weight: 300; }
+            .hljs-number { font-weight: 700; }
+            """.trimIndent()
+        val result = ThemeParser.parse(css)
+        assertThat(result[HljsSelectors.KEYWORD]?.fontWeight).isEqualTo(androidx.compose.ui.text.font.FontWeight.Normal)
+        assertThat(result[HljsSelectors.STRING]?.fontWeight).isEqualTo(androidx.compose.ui.text.font.FontWeight.Normal)
+        assertThat(result[HljsSelectors.COMMENT]?.fontWeight).isEqualTo(androidx.compose.ui.text.font.FontWeight.Normal)
+        assertThat(result[HljsSelectors.NUMBER]?.fontWeight).isEqualTo(androidx.compose.ui.text.font.FontWeight.Bold)
+    }
+
+    @Test
+    fun `parse handles font-style oblique`() {
+        val css = ".hljs-keyword { font-style: oblique; }"
+        val result = ThemeParser.parse(css)
+        assertThat(result[HljsSelectors.KEYWORD]?.fontStyle).isEqualTo(androidx.compose.ui.text.font.FontStyle.Italic)
+    }
+
+    @Test
+    fun `parse returns null for rgb with invalid green or blue component`() {
+        val css1 = ".hljs-keyword { color: rgb(255, invalid, 0); }"
+        val css2 = ".hljs-string { color: rgb(255, 0, invalid); }"
+        val result1 = ThemeParser.parse(css1)
+        val result2 = ThemeParser.parse(css2)
+        assertThat(result1[HljsSelectors.KEYWORD]).isNull()
+        assertThat(result2[HljsSelectors.STRING]).isNull()
+    }
 }

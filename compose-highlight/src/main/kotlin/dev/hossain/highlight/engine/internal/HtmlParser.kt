@@ -419,7 +419,7 @@ private fun parseDecInt(
  * @param end End index of the attributes region (before `>` or `/`)
  * @return The class attribute value, or empty string if not found
  */
-private fun extractClassAttrInPlace(
+internal fun extractClassAttrInPlace(
     html: String,
     start: Int,
     end: Int,

@@ -77,6 +77,21 @@ class HtmlToAnnotatedStringTest {
     }
 
     @Test
+    fun `convert with base having unspecified color does not add full-range span`() {
+        val map = mapOf(HljsSelectors.BASE to SpanStyle(color = Color.Unspecified, background = Color.White))
+        val result = HtmlToAnnotatedString.convert("hello", map)
+        assertThat(result.spanStyles).isEmpty()
+    }
+
+    @Test
+    fun `convertBothThemes with base having unspecified color does not add full-range span`() {
+        val map = mapOf(HljsSelectors.BASE to SpanStyle(color = Color.Unspecified, background = Color.White))
+        val (light, dark) = HtmlToAnnotatedString.convertBothThemes("hello", map, map)
+        assertThat(light.spanStyles).isEmpty()
+        assertThat(dark.spanStyles).isEmpty()
+    }
+
+    @Test
     fun `convert preserves plain text outside spans`() {
         val html = """def <span class="hljs-keyword">if</span> x"""
         val result = HtmlToAnnotatedString.convert(html, colorMapNoBase)

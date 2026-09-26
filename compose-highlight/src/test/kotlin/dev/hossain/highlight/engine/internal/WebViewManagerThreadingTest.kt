@@ -1,5 +1,6 @@
 package dev.hossain.highlight.engine.internal
 
+import android.webkit.WebView
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.google.common.truth.Truth.assertThat
@@ -163,6 +164,49 @@ class WebViewManagerThreadingTest {
             // if the manager regressed into never resuming the awaiter.
             awaiter.cancel()
             awaiterScope.cancel()
+            manager.destroy()
+        }
+
+    @Test
+    fun `initialize resets readyDeferred if it was completed`() =
+        runTest {
+            val manager = WebViewManager(context)
+            val field = WebViewManager::class.java.getDeclaredField("readyDeferred")
+            field.isAccessible = true
+            @Suppress("UNCHECKED_CAST")
+            val initialDeferred = field.get(manager) as CompletableDeferred<WebView>
+            val dummyWebView = WebView(context)
+            initialDeferred.complete(dummyWebView)
+            assertThat(initialDeferred.isCompleted).isTrue()
+
+            manager.initialize()
+            ShadowLooper.idleMainLooper()
+
+            @Suppress("UNCHECKED_CAST")
+            val newDeferred = field.get(manager) as CompletableDeferred<WebView>
+            assertThat(newDeferred).isNotSameInstanceAs(initialDeferred)
+            assertThat(newDeferred.isCompleted).isFalse()
+
+            manager.destroy()
+        }
+
+    @Test
+    fun `calling onPageFinished multiple times is safe and does not re-complete deferred`() =
+        runTest {
+            val manager = WebViewManager(context)
+            manager.initialize()
+            ShadowLooper.idleMainLooper()
+
+            val webView = manager.webViewForTest() ?: error("WebView was not created")
+            val client = Shadows.shadowOf(webView).webViewClient
+            client?.onPageFinished(webView, "https://appassets.androidplatform.net/assets/compose-highlight/bridge.html")
+            ShadowLooper.idleMainLooper()
+
+            // Second onPageFinished call against same webView
+            client?.onPageFinished(webView, "https://appassets.androidplatform.net/assets/compose-highlight/bridge.html")
+            ShadowLooper.idleMainLooper()
+
+            assertThat(manager.isInitialized.value).isTrue()
             manager.destroy()
         }
 }

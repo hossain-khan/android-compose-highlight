@@ -104,6 +104,17 @@ class HighlightThemeAssetTest {
         }
     }
 
+    @Test
+    fun `fromAsset with empty css asset throws ThemeNotFound on colorMap access`() {
+        val theme = HighlightTheme.fromAsset(context, "empty-theme.css", "empty")
+        try {
+            theme.colorMap
+            org.junit.Assert.fail("Expected ThemeNotFound but colorMap access succeeded")
+        } catch (e: HighlightException.ThemeNotFound) {
+            assertThat(e.message).contains("empty-theme.css")
+        }
+    }
+
     private class ThrowingAssetsContext(
         base: Context,
     ) : ContextWrapper(base) {

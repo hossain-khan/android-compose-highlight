@@ -214,4 +214,25 @@ class HighlightEngineUnescapeTest {
         val input = "\"// TODO: fix this \\uD83D\\uDC1B\""
         assertThat(unescapeJsString(input)).isEqualTo("// TODO: fix this 🐛")
     }
+
+    @Test
+    fun `unicode escape with non-hex digits passes through backslash`() {
+        val input = "\"\\uZZZZ\""
+        assertThat(unescapeJsString(input)).isEqualTo("\\uZZZZ")
+    }
+
+    @Test
+    fun `high surrogate followed by invalid low surrogate emits high surrogate as-is`() {
+        val input = "\"\\uD83D\\u1234\""
+        val result = unescapeJsString(input)
+        assertThat(result).hasLength(2)
+        assertThat(result[0].code).isEqualTo(0xD83D)
+        assertThat(result[1].code).isEqualTo(0x1234)
+    }
+
+    @Test
+    fun `single surrounding quote does not strip quotes`() {
+        assertThat(unescapeJsString("\"hello")).isEqualTo("\"hello")
+        assertThat(unescapeJsString("hello\"")).isEqualTo("hello\"")
+    }
 }
