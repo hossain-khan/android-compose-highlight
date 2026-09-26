@@ -202,8 +202,6 @@ class HighlightEngine(
             throw e
         } catch (e: HighlightException) {
             Result.failure(e)
-        } catch (e: Exception) {
-            Result.failure(HighlightException.WebViewInitFailed(e))
         }
 
     /**

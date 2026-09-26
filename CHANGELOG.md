@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Tests
+
+- **100% unit test coverage for engine and internal packages** - Added dedicated `HtmlParserTest` covering single and
+  dual-theme SAX parsing, HTML entity decoding, attribute extraction, and malformed HTML handling. Added double-checked
+  locking and concurrency tests for `HighlightEngine` language and version caching, exception mapping paths, and error
+  handling. Expanded edge-case coverage across `ThemeParser`, `WebViewManager`, `JsStringEscape`, and `HighlightTheme`.
+
 ### Documentation
 
 - **Synchronized repository README documentation** - Updated `sample/README.md` to reflect all 15 demo tabs,

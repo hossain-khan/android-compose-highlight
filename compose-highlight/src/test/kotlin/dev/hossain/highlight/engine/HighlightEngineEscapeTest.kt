@@ -116,6 +116,17 @@ class HighlightEngineEscapeTest {
     }
 
     @Test
+    fun `every control char in 0x00 to 0x1F except tab newline and carriage return is escaped`() {
+        for (i in 0..0x1F) {
+            if (i == 9 || i == 10 || i == 13) continue
+            val char = i.toChar()
+            val escaped = escapeForJs(char.toString())
+            val expectedHex = i.toString(16).padStart(4, '0')
+            assertThat(escaped).isEqualTo("\\u$expectedHex")
+        }
+    }
+
+    @Test
     fun `tab newline and carriage return are NOT escaped by control char regex`() {
         // \t (U+0009), \n (U+000A), \r (U+000D) are handled by explicit replacements,
         // not the control char regex, so they produce \t, \n, \r (not \u0009 etc.).

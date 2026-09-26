@@ -354,4 +354,26 @@ class HighlightThemeTest {
             assertThat(theme.defaultTextColor).isNotNull()
         }
     }
+
+    @Test
+    fun `theme without base rule returns Unspecified background and text color`() {
+        val theme = HighlightTheme.fromColorMap(name = "nobase", colorMap = emptyMap())
+        assertThat(theme.backgroundColor).isEqualTo(Color.Unspecified)
+        assertThat(theme.defaultTextColor).isEqualTo(Color.Unspecified)
+    }
+
+    @Test
+    fun `fromColorMap with explicit background and text color but empty colorMap applies them to base`() {
+        val theme =
+            HighlightTheme.fromColorMap(
+                name = "override",
+                colorMap = emptyMap(),
+                backgroundColor = Color.Black,
+                defaultTextColor = Color.White,
+            )
+        assertThat(theme.backgroundColor).isEqualTo(Color.Black)
+        assertThat(theme.defaultTextColor).isEqualTo(Color.White)
+        assertThat(theme.colorMap[HljsSelectors.BASE]?.background).isEqualTo(Color.Black)
+        assertThat(theme.colorMap[HljsSelectors.BASE]?.color).isEqualTo(Color.White)
+    }
 }

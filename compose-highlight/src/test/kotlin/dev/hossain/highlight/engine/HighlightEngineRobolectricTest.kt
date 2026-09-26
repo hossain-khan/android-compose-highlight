@@ -1,11 +1,17 @@
 package dev.hossain.highlight.engine
 
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.SpanStyle
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.google.common.truth.Truth.assertThat
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
@@ -442,6 +448,229 @@ class HighlightEngineRobolectricTest {
 
             // Calling close again is a no-op
             engine.close()
+            engine.destroy()
+        }
+
+    @Test
+    fun `concurrent highlightJsVersion calls hit double-checked cache lock`() =
+        runTest {
+            val engine = createReadyEngine()
+            val rawResult = JSONObject.quote("11.12.0")
+
+            val def1 = async { engine.highlightJsVersion() }
+            val def2 = async { engine.highlightJsVersion() }
+
+            respondToJs(engine, rawResult)
+
+            val res1 = def1.await()
+            val res2 = def2.await()
+            assertThat(res1.getOrThrow()).isEqualTo("11.12.0")
+            assertThat(res2.getOrThrow()).isEqualTo("11.12.0")
+
+            engine.destroy()
+        }
+
+    @Test
+    fun `concurrent supportedLanguages calls hit double-checked cache lock`() =
+        runTest {
+            val engine = createReadyEngine()
+            val languagesJson = """["kotlin","python"]"""
+
+            val def1 = async { engine.supportedLanguages() }
+            val def2 = async { engine.supportedLanguages() }
+
+            respondToJs(engine, languagesJson)
+
+            val res1 = def1.await()
+            val res2 = def2.await()
+            assertThat(res1.getOrThrow()).containsExactly("html", "kotlin", "python")
+            assertThat(res2.getOrThrow()).containsExactly("html", "kotlin", "python")
+
+            engine.destroy()
+        }
+
+    @Test
+    fun `getLanguage returns JsExecutionFailed when evaluateJavascript returns null reference`() =
+        runTest {
+            val engine = createReadyEngine()
+
+            val deferred = async { engine.getLanguage("kotlin") }
+            respondToJs(engine, null)
+
+            val result = deferred.await()
+            assertThat(result.isFailure).isTrue()
+            assertThat(result.exceptionOrNull()).isInstanceOf(HighlightException.JsExecutionFailed::class.java)
+
+            engine.destroy()
+        }
+
+    @Test
+    fun `getLanguage returns JsExecutionFailed when JS returns invalid JSON`() =
+        runTest {
+            val engine = createReadyEngine()
+
+            val deferred = async { engine.getLanguage("kotlin") }
+            respondToJs(engine, "not-valid-json")
+
+            val result = deferred.await()
+            assertThat(result.isFailure).isTrue()
+            assertThat(result.exceptionOrNull()).isInstanceOf(HighlightException.JsExecutionFailed::class.java)
+
+            engine.destroy()
+        }
+
+    @Test
+    fun `highlight returns JsExecutionFailed when JS returns invalid JSON`() =
+        runTest {
+            val engine = createReadyEngine()
+
+            val deferred = async { engine.highlight("val x = 1", "kotlin", HighlightTheme.tomorrow()) }
+            respondToJs(engine, "not-valid-json")
+
+            val result = deferred.await()
+            assertThat(result.isFailure).isTrue()
+            assertThat(result.exceptionOrNull()).isInstanceOf(HighlightException.JsExecutionFailed::class.java)
+
+            engine.destroy()
+        }
+
+    @Test
+    fun `supportedLanguages returns JsExecutionFailed when JS returns invalid JSON`() =
+        runTest {
+            val engine = createReadyEngine()
+
+            val deferred = async { engine.supportedLanguages() }
+            respondToJs(engine, "not-valid-json")
+
+            val result = deferred.await()
+            assertThat(result.isFailure).isTrue()
+            assertThat(result.exceptionOrNull()).isInstanceOf(HighlightException.JsExecutionFailed::class.java)
+
+            engine.destroy()
+        }
+
+    @Test
+    fun `highlightToHtml returns JsExecutionFailed when JS returns invalid JSON`() =
+        runTest {
+            val engine = createReadyEngine()
+
+            val deferred = async { engine.highlightToHtml("code", "kotlin") }
+            respondToJs(engine, "not-valid-json")
+
+            val result = deferred.await()
+            assertThat(result.isFailure).isTrue()
+            assertThat(result.exceptionOrNull()).isInstanceOf(HighlightException.JsExecutionFailed::class.java)
+
+            engine.destroy()
+        }
+
+    @Test
+    fun `highlightBothThemes returns failure when highlightToHtml fails`() =
+        runTest {
+            val engine = createReadyEngine()
+
+            val deferred =
+                async {
+                    engine.highlightBothThemes(
+                        code = "code",
+                        language = "kotlin",
+                        lightTheme = HighlightTheme.tomorrow(),
+                        darkTheme = HighlightTheme.tomorrowNight(),
+                    )
+                }
+            respondToJs(engine, "null")
+
+            val result = deferred.await()
+            assertThat(result.isFailure).isTrue()
+            assertThat(result.exceptionOrNull()).isInstanceOf(HighlightException.JsExecutionFailed::class.java)
+
+            engine.destroy()
+        }
+
+    @Test
+    fun `initialize rethrows CancellationException when coroutine is cancelled`() =
+        runTest {
+            val engine = HighlightEngine(context)
+            try {
+                launch(start = CoroutineStart.UNDISPATCHED) {
+                    coroutineContext[Job]!!.cancel()
+                    engine.initialize()
+                }
+            } catch (e: CancellationException) {
+                // Expected
+            }
+            engine.destroy()
+        }
+
+    @Test
+    fun `highlight with blank HTML and with theme having unspecified base color`() =
+        runTest {
+            val engine = createReadyEngine()
+            val blankTheme =
+                HighlightTheme.fromColorMap(
+                    name = "blankTheme",
+                    colorMap = mapOf(HljsSelectors.BASE to SpanStyle(color = Color.Unspecified)),
+                )
+
+            val innerJson =
+                JSONObject()
+                    .apply {
+                        put("html", "")
+                        put("relevance", 0)
+                    }.toString()
+            val rawResult = JSONObject.quote(innerJson)
+
+            val deferred = async { engine.highlight("   ", "kotlin", blankTheme) }
+            respondToJs(engine, rawResult)
+
+            val result = deferred.await()
+            assertThat(result.isSuccess).isTrue()
+            assertThat(result.getOrThrow().spanCount).isEqualTo(0)
+
+            engine.destroy()
+        }
+
+    @Test
+    fun `highlightAuto with blank HTML produces zero spanCount`() =
+        runTest {
+            val engine = createReadyEngine()
+            val blankTheme =
+                HighlightTheme.fromColorMap(
+                    name = "blankTheme",
+                    colorMap = mapOf(HljsSelectors.BASE to SpanStyle(color = Color.Unspecified)),
+                )
+
+            val innerJson =
+                JSONObject()
+                    .apply {
+                        put("html", "")
+                        put("language", "plaintext")
+                        put("relevance", 0)
+                    }.toString()
+            val rawResult = JSONObject.quote(innerJson)
+
+            val deferred = async { engine.highlightAuto("   ", blankTheme) }
+            respondToJs(engine, rawResult)
+
+            val result = deferred.await()
+            assertThat(result.isSuccess).isTrue()
+            assertThat(result.getOrThrow().annotated.spanStyles).isEmpty()
+
+            engine.destroy()
+        }
+
+    @Test
+    fun `highlightAuto returns JsExecutionFailed when JS returns invalid JSON`() =
+        runTest {
+            val engine = createReadyEngine()
+
+            val deferred = async { engine.highlightAuto("val x = 1", HighlightTheme.tomorrow()) }
+            respondToJs(engine, "not-valid-json")
+
+            val result = deferred.await()
+            assertThat(result.isFailure).isTrue()
+            assertThat(result.exceptionOrNull()).isInstanceOf(HighlightException.JsExecutionFailed::class.java)
+
             engine.destroy()
         }
 }
