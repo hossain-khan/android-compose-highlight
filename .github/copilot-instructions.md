@@ -156,7 +156,9 @@ human-readable signal; the modifier is the enforcement. Dokka suppresses
 
 ## Key conventions
 
-**Public vs internal:** Public API consists of the `ui/` package plus the public `engine/` declarations used by it:
+**Public vs internal:** The `:compose-highlight` module enforces Kotlin explicit API mode (`explicitApi()`),
+requiring all public declarations to declare explicit `public` visibility and explicit return types.
+Public API consists of the `ui/` package plus the public `engine/` declarations used by it:
 `HighlightEngine`, `HighlightTheme`, `HighlightException`, `HighlightResult`, `ThemedHighlightResult`,
 `AutoHighlightResult`, `HtmlHighlightResult`, `HighlightTimings`, `HighlightLanguage`, `HighlightLanguageInfo`,
 and `HljsSelectors`. All implementation helpers under `engine/internal/` (`WebViewManager`, `ThemeParser`,

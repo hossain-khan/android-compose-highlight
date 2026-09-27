@@ -47,4 +47,4 @@ package dev.hossain.highlight.ui
     AnnotationTarget.PROPERTY,
     AnnotationTarget.FIELD,
 )
-annotation class ExperimentalHighlightApi
+public annotation class ExperimentalHighlightApi

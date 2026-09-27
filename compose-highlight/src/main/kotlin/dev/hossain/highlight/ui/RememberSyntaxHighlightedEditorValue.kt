@@ -88,7 +88,7 @@ import kotlinx.coroutines.delay
  */
 @ExperimentalHighlightApi
 @Composable
-fun rememberSyntaxHighlightedEditorValue(
+public fun rememberSyntaxHighlightedEditorValue(
     value: TextFieldValue,
     language: String,
     theme: HighlightTheme = LocalHighlightTheme.current,

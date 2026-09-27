@@ -73,7 +73,7 @@ import kotlinx.coroutines.launch
  */
 @ExperimentalHighlightApi
 @Composable
-fun rememberStreamingHighlightedCode(
+public fun rememberStreamingHighlightedCode(
     code: String,
     language: String,
     theme: HighlightTheme = LocalHighlightTheme.current,

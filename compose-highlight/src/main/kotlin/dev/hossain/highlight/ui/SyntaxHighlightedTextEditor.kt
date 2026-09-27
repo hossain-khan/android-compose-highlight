@@ -188,7 +188,7 @@ import dev.hossain.highlight.engine.HighlightTheme
  */
 @ExperimentalHighlightApi
 @Composable
-fun SyntaxHighlightedTextEditor(
+public fun SyntaxHighlightedTextEditor(
     value: TextFieldValue,
     onValueChange: (TextFieldValue) -> Unit,
     language: String,

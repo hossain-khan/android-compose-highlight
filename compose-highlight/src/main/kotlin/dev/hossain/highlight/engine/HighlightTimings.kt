@@ -51,10 +51,10 @@ import kotlin.time.Duration
  *   latency; use the individual stage fields to identify which layer is the bottleneck.
  *   Equals [HighlightResult.durationMs] converted to [Duration].
  */
-data class HighlightTimings(
-    val jsBridge: Duration,
-    val jsonUnescape: Duration,
-    val htmlParse: Duration,
-    val themeParse: Duration,
-    val total: Duration,
+public data class HighlightTimings(
+    public val jsBridge: Duration,
+    public val jsonUnescape: Duration,
+    public val htmlParse: Duration,
+    public val themeParse: Duration,
+    public val total: Duration,
 )

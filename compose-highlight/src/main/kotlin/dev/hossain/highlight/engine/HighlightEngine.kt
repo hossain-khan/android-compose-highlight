@@ -137,7 +137,7 @@ import kotlin.time.measureTimedValue
  * }
  * ```
  */
-class HighlightEngine(
+public class HighlightEngine(
     context: Context,
 ) : Closeable {
     // Use applicationContext to avoid retaining an Activity context in the long-lived WebView.
@@ -179,7 +179,7 @@ class HighlightEngine(
      * }
      * ```
      */
-    val isInitialized: StateFlow<Boolean> get() = manager.isInitialized
+    public val isInitialized: StateFlow<Boolean> get() = manager.isInitialized
 
     /**
      * Warms up the hidden WebView and loads bridge.html.
@@ -194,7 +194,7 @@ class HighlightEngine(
      *   signalled asynchronously via [isInitialized]), or [Result.failure] wrapping a
      *   [HighlightException.WebViewInitFailed] if initialization fails.
      */
-    suspend fun initialize(): Result<Unit> =
+    public suspend fun initialize(): Result<Unit> =
         try {
             manager.initialize()
             Result.success(Unit)
@@ -228,7 +228,7 @@ class HighlightEngine(
      *   with a [HighlightException] on error. Returns [HighlightException.Timeout] if the
      *   JavaScript call does not complete within the timeout window.
      */
-    suspend fun highlightToHtml(
+    public suspend fun highlightToHtml(
         code: String,
         language: String,
     ): Result<HtmlHighlightResult> =
@@ -274,7 +274,7 @@ class HighlightEngine(
      * @return [Result] wrapping a [HighlightResult], or [Result.failure] with a
      *   [HighlightException] on error.
      */
-    suspend fun highlight(
+    public suspend fun highlight(
         code: String,
         language: String,
         theme: HighlightTheme,
@@ -338,7 +338,7 @@ class HighlightEngine(
      * @return [Result] wrapping a [ThemedHighlightResult], or [Result.failure] with a
      *   [HighlightException] on error.
      */
-    suspend fun highlightBothThemes(
+    public suspend fun highlightBothThemes(
         code: String,
         language: String,
         lightTheme: HighlightTheme,
@@ -403,7 +403,7 @@ class HighlightEngine(
      *   initialized, [HighlightException.Timeout] if the JS call exceeds the timeout, or
      *   [HighlightException.JsExecutionFailed] for other JS errors.
      */
-    suspend fun supportedLanguages(): Result<List<String>> {
+    public suspend fun supportedLanguages(): Result<List<String>> {
         cachedLanguages?.let { return Result.success(it) }
         return withEngineErrorHandling {
             manager.initialize()
@@ -471,7 +471,7 @@ class HighlightEngine(
      *   not be initialized, [HighlightException.Timeout] if the JS call exceeds the timeout, or
      *   [HighlightException.JsExecutionFailed] for other JS errors.
      */
-    suspend fun highlightJsVersion(): Result<String> {
+    public suspend fun highlightJsVersion(): Result<String> {
         cachedVersion?.let { return Result.success(it) }
         return withEngineErrorHandling {
             manager.initialize()
@@ -526,7 +526,7 @@ class HighlightEngine(
      * @return [Result.success] with [HighlightLanguageInfo] when found, `null` when Highlight.js
      *   does not know the language, or [Result.failure] with a [HighlightException] on error.
      */
-    suspend fun getLanguage(nameOrAlias: String): Result<HighlightLanguageInfo?> =
+    public suspend fun getLanguage(nameOrAlias: String): Result<HighlightLanguageInfo?> =
         withEngineErrorHandling {
             manager.initialize()
             val webView = manager.getReadyWebView()
@@ -602,7 +602,7 @@ class HighlightEngine(
      * @return [Result] wrapping an [AutoHighlightResult], or [Result.failure] with a
      *   [HighlightException] on error.
      */
-    suspend fun highlightAuto(
+    public suspend fun highlightAuto(
         code: String,
         theme: HighlightTheme,
     ): Result<AutoHighlightResult> {
@@ -654,7 +654,7 @@ class HighlightEngine(
      *
      * Idempotent - safe to call multiple times. Subsequent calls after the first are no-ops.
      */
-    fun destroy() {
+    public fun destroy() {
         cachedLanguages = null
         cachedVersion = null
         manager.destroy()
@@ -665,7 +665,7 @@ class HighlightEngine(
      * engine participates in IDE resource-leak inspections and supports explicit cleanup through
      * [close]. Safe to call multiple times.
      */
-    override fun close() {
+    public override fun close() {
         destroy()
     }
 

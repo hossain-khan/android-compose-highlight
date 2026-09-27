@@ -86,7 +86,7 @@ import dev.hossain.highlight.engine.ThemedHighlightResult
  *   In inspection mode, the state is initialized to plain text immediately.
  */
 @Composable
-fun rememberHighlightedCode(
+public fun rememberHighlightedCode(
     code: String,
     language: String,
     theme: HighlightTheme = LocalHighlightTheme.current,
@@ -175,7 +175,7 @@ fun rememberHighlightedCode(
  *   [ThemedHighlightResult.durationMs] for timing), or `null` while loading / on error.
  */
 @Composable
-fun rememberHighlightedCodeBothThemes(
+public fun rememberHighlightedCodeBothThemes(
     code: String,
     language: String,
     lightTheme: HighlightTheme = LocalLightHighlightTheme.current,
