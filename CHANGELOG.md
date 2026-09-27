@@ -6,6 +6,21 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+- **`actions` header slot and `header` chrome slot for code blocks** - Added two new slots to
+  `SyntaxHighlightedCode` and `StreamingSyntaxHighlightedCode` (#457, #458). The `actions` slot runs with a
+  `RowScope` receiver and receives a pre-wired `onCopy` action, so multiple trailing header buttons (edit,
+  share, roll-off, copy) lay out in a row without building a custom `Row`. The coarse-grained `header` slot
+  replaces the entire header row for full chrome customization (file tabs, IDE title bars, custom header
+  backgrounds), and `header = null` omits all header chrome. Added `SyntaxHighlightedCodeDefaults.Header`
+  exposing the default header layout.
+
+### Changed
+
+- **BREAKING: removed the `copyButton` parameter** - `SyntaxHighlightedCode` and
+  `StreamingSyntaxHighlightedCode` no longer accept `copyButton`; the new `actions` slot replaces it (#457).
+  Migrate `copyButton = { onClick -> ... }` to `actions = { onCopy -> ... }` and `copyButton = null` to
+  `actions = null`. When `actions` is not provided the built-in `CopyButton` renders, matching the old default
+  behavior. This is a binary- and source-incompatible signature change.
 - **Kotlin explicit API mode for library module** - Enabled Kotlin `explicitApi()` mode in `:compose-highlight` (#499).
   All public declarations now explicitly declare `public` visibility and explicit return types, ensuring internal
   implementation details cannot leak accidentally and reinforcing the binary API boundary verified by `apiCheck`.

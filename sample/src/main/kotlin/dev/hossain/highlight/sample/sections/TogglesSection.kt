@@ -3,6 +3,7 @@ package dev.hossain.highlight.sample.sections
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -27,7 +28,8 @@ import dev.hossain.highlight.ui.SyntaxHighlightedCodeDefaults
 /**
  * Demonstrates every [SyntaxHighlightedCode] visibility option:
  * - `languageLabel` - default, null (hidden), and rich custom slot
- * - `copyButton` - default, null (hidden), and custom vector icon
+ * - `actions` - default, null (hidden), multiple trailing buttons, and custom vector icon
+ * - `header` - custom chrome and null (no header)
  * - `showLineNumbers` × `languageLabel` (2×2)
  */
 @Composable
@@ -73,13 +75,13 @@ internal fun TogglesSection() {
 
         HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
 
-        SubSectionHeader("copyButton - custom vector icon")
+        SubSectionHeader("actions - custom vector icon")
         SyntaxHighlightedCode(
             code = KOTLIN_SNIPPET,
             language = "kotlin",
             modifier = Modifier.fillMaxWidth(),
-            copyButton = { onClick ->
-                androidx.compose.material3.IconButton(onClick = onClick) {
+            actions = { onCopy ->
+                androidx.compose.material3.IconButton(onClick = onCopy) {
                     Icon(
                         imageVector = ImageVector.vectorResource(R.drawable.copy_content_alt_rounded),
                         modifier = Modifier.size(16.dp),
@@ -91,14 +93,14 @@ internal fun TogglesSection() {
 
         HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
 
-        SubSectionHeader("copyButton - custom icon with large size (56.dp)")
+        SubSectionHeader("actions - custom icon with large size (56.dp)")
         SyntaxHighlightedCode(
             code = KOTLIN_SNIPPET,
             language = "kotlin",
             modifier = Modifier.fillMaxWidth(),
-            copyButton = { onClick ->
+            actions = { onCopy ->
                 androidx.compose.material3.IconButton(
-                    onClick = onClick,
+                    onClick = onCopy,
                     modifier = Modifier.size(56.dp),
                 ) {
                     Icon(
@@ -148,30 +150,98 @@ internal fun TogglesSection() {
 
         HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
 
-        SubSectionHeader("copyButton=default")
+        SubSectionHeader("actions - multiple trailing buttons (edit, share, copy)")
         SyntaxHighlightedCode(
             code = KOTLIN_SNIPPET,
             language = "kotlin",
             modifier = Modifier.fillMaxWidth(),
-        )
-
-        SubSectionHeader("copyButton=null (hidden)")
-        SyntaxHighlightedCode(
-            code = KOTLIN_SNIPPET,
-            language = "kotlin",
-            modifier = Modifier.fillMaxWidth(),
-            copyButton = null,
+            actions = { onCopy ->
+                androidx.compose.material3.IconButton(onClick = {}) {
+                    Icon(
+                        imageVector = ImageVector.vectorResource(R.drawable.stars_2_24dp),
+                        modifier = Modifier.size(16.dp),
+                        contentDescription = "Edit",
+                    )
+                }
+                androidx.compose.material3.IconButton(onClick = {}) {
+                    Icon(
+                        imageVector = ImageVector.vectorResource(R.drawable.copy_content_alt_rounded),
+                        modifier = Modifier.size(16.dp),
+                        contentDescription = "Share",
+                    )
+                }
+                SyntaxHighlightedCodeDefaults.CopyButton(onClick = onCopy)
+            },
         )
 
         HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
 
-        SubSectionHeader("languageLabel=null + copyButton=null (header row hidden)")
+        SubSectionHeader("header - custom chrome (file titlebar)")
+        SyntaxHighlightedCode(
+            code = KOTLIN_SNIPPET,
+            language = "kotlin",
+            modifier = Modifier.fillMaxWidth(),
+            header = { onCopy ->
+                Row(
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 12.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Icon(
+                        imageVector = ImageVector.vectorResource(R.drawable.stars_2_24dp),
+                        modifier = Modifier.size(14.dp),
+                        contentDescription = null,
+                    )
+                    androidx.compose.material3.Text(
+                        text = "MainActivity.kt",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(start = 6.dp),
+                    )
+                    Spacer(modifier = Modifier.weight(1f))
+                    SyntaxHighlightedCodeDefaults.CopyButton(onClick = onCopy)
+                }
+            },
+        )
+
+        HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+
+        SubSectionHeader("header=null (no header chrome)")
+        SyntaxHighlightedCode(
+            code = KOTLIN_SNIPPET,
+            language = "kotlin",
+            modifier = Modifier.fillMaxWidth(),
+            header = null,
+        )
+
+        HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+
+        SubSectionHeader("copy button=default")
+        SyntaxHighlightedCode(
+            code = KOTLIN_SNIPPET,
+            language = "kotlin",
+            modifier = Modifier.fillMaxWidth(),
+        )
+
+        SubSectionHeader("actions=null (copy button hidden)")
+        SyntaxHighlightedCode(
+            code = KOTLIN_SNIPPET,
+            language = "kotlin",
+            modifier = Modifier.fillMaxWidth(),
+            actions = null,
+        )
+
+        HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+
+        SubSectionHeader("languageLabel=null + actions=null (header row hidden)")
         SyntaxHighlightedCode(
             code = KOTLIN_SNIPPET,
             language = "kotlin",
             modifier = Modifier.fillMaxWidth(),
             languageLabel = null,
-            copyButton = null,
+            actions = null,
         )
     }
 }

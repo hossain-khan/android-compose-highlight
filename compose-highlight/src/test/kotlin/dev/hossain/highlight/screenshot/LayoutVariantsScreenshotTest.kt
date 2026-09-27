@@ -58,7 +58,7 @@ class LayoutVariantsScreenshotTest {
                 language = "kotlin",
                 theme = HighlightTheme.tomorrow(),
                 languageLabel = null,
-                copyButton = null,
+                actions = null,
             )
         }
     }
@@ -71,7 +71,7 @@ class LayoutVariantsScreenshotTest {
                 code = code,
                 language = "kotlin",
                 theme = HighlightTheme.tomorrow(),
-                copyButton = null,
+                actions = null,
             )
         }
     }

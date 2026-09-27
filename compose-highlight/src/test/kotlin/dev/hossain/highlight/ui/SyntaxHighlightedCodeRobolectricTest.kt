@@ -105,7 +105,7 @@ class SyntaxHighlightedCodeRobolectricTest {
                     SyntaxHighlightedCode(
                         code = "val x = 42",
                         language = "kotlin",
-                        copyButton = null,
+                        actions = null,
                     )
                 }
             }
@@ -142,9 +142,9 @@ class SyntaxHighlightedCodeRobolectricTest {
                 SyntaxHighlightedCode(
                     code = "x = 1",
                     language = "python",
-                    copyButton = { onClick ->
+                    actions = { onCopy ->
                         SyntaxHighlightedCodeDefaults.CopyButton(
-                            onClick = onClick,
+                            onClick = onCopy,
                             contentDescription = "Copiar código",
                         )
                     },

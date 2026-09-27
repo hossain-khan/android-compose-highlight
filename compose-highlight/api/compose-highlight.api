@@ -319,20 +319,6 @@ public final class dev/hossain/highlight/ui/ComposableSingletons$HighlightThemeP
 	public final fun getLambda$-1993505960$compose_highlight ()Lkotlin/jvm/functions/Function2;
 }
 
-public final class dev/hossain/highlight/ui/ComposableSingletons$StreamingSyntaxHighlightedCodeKt {
-	public static final field INSTANCE Ldev/hossain/highlight/ui/ComposableSingletons$StreamingSyntaxHighlightedCodeKt;
-	public fun <init> ()V
-	public final fun getLambda$-246793220$compose_highlight ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$320840085$compose_highlight ()Lkotlin/jvm/functions/Function3;
-}
-
-public final class dev/hossain/highlight/ui/ComposableSingletons$SyntaxHighlightedCodeKt {
-	public static final field INSTANCE Ldev/hossain/highlight/ui/ComposableSingletons$SyntaxHighlightedCodeKt;
-	public fun <init> ()V
-	public final fun getLambda$-809605254$compose_highlight ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$153657793$compose_highlight ()Lkotlin/jvm/functions/Function3;
-}
-
 public abstract interface annotation class dev/hossain/highlight/ui/ExperimentalHighlightApi : java/lang/annotation/Annotation {
 }
 
@@ -378,13 +364,14 @@ public final class dev/hossain/highlight/ui/StreamingSyntaxHighlightedCodeDefaul
 }
 
 public final class dev/hossain/highlight/ui/StreamingSyntaxHighlightedCodeKt {
-	public static final fun StreamingSyntaxHighlightedCode (Ljava/lang/String;Ljava/lang/String;Landroidx/compose/ui/Modifier;Ldev/hossain/highlight/engine/HighlightTheme;Ldev/hossain/highlight/ui/CodeBlockStyle;ZJZJLandroidx/compose/foundation/ScrollState;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Landroidx/compose/runtime/Composer;III)V
+	public static final fun StreamingSyntaxHighlightedCode (Ljava/lang/String;Ljava/lang/String;Landroidx/compose/ui/Modifier;Ldev/hossain/highlight/engine/HighlightTheme;Ldev/hossain/highlight/ui/CodeBlockStyle;ZJZJLandroidx/compose/foundation/ScrollState;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function4;Lkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Landroidx/compose/runtime/Composer;III)V
 }
 
 public final class dev/hossain/highlight/ui/SyntaxHighlightedCodeDefaults {
 	public static final field $stable I
 	public static final field INSTANCE Ldev/hossain/highlight/ui/SyntaxHighlightedCodeDefaults;
 	public final fun CopyButton-u4SGt0E (Lkotlin/jvm/functions/Function0;Landroidx/compose/ui/Modifier;JLjava/lang/String;FLandroidx/compose/runtime/Composer;II)V
+	public final fun Header (Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function4;Lkotlin/jvm/functions/Function0;Landroidx/compose/ui/Modifier;Landroidx/compose/foundation/layout/PaddingValues;Landroidx/compose/runtime/Composer;II)V
 	public final fun LanguageLabel-mhOCef0 (Ljava/lang/String;Landroidx/compose/ui/Modifier;JJLandroidx/compose/runtime/Composer;II)V
 	public final fun getCodeTextStyle ()Landroidx/compose/ui/text/TextStyle;
 	public final fun getCopyButtonSize-D9Ej5fM ()F
@@ -397,7 +384,7 @@ public final class dev/hossain/highlight/ui/SyntaxHighlightedCodeDefaults {
 }
 
 public final class dev/hossain/highlight/ui/SyntaxHighlightedCodeKt {
-	public static final fun SyntaxHighlightedCode (Ljava/lang/String;Ljava/lang/String;Landroidx/compose/ui/Modifier;Ldev/hossain/highlight/engine/HighlightTheme;Ldev/hossain/highlight/ui/CodeBlockStyle;ZLandroidx/compose/foundation/ScrollState;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function3;Landroidx/compose/runtime/Composer;III)V
+	public static final fun SyntaxHighlightedCode (Ljava/lang/String;Ljava/lang/String;Landroidx/compose/ui/Modifier;Ldev/hossain/highlight/engine/HighlightTheme;Ldev/hossain/highlight/ui/CodeBlockStyle;ZLandroidx/compose/foundation/ScrollState;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function4;Lkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function3;Landroidx/compose/runtime/Composer;III)V
 }
 
 public final class dev/hossain/highlight/ui/SyntaxHighlightedTextEditorDefaults {
@@ -414,5 +401,13 @@ public final class dev/hossain/highlight/ui/SyntaxHighlightedTextEditorDefaults 
 
 public final class dev/hossain/highlight/ui/SyntaxHighlightedTextEditorKt {
 	public static final fun SyntaxHighlightedTextEditor (Landroidx/compose/ui/text/input/TextFieldValue;Lkotlin/jvm/functions/Function1;Ljava/lang/String;Landroidx/compose/ui/Modifier;Landroidx/compose/foundation/layout/PaddingValues;Landroidx/compose/ui/graphics/Shape;Ldev/hossain/highlight/engine/HighlightTheme;Landroidx/compose/ui/text/TextStyle;Landroidx/compose/foundation/text/KeyboardOptions;Landroidx/compose/ui/graphics/Brush;JLkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Ljava/lang/String;ZZZLandroidx/compose/foundation/ScrollState;Landroidx/compose/foundation/ScrollState;Landroidx/compose/runtime/Composer;III)V
+}
+
+public final class dev/hossain/highlight/ui/internal/ComposableSingletons$CodeBlockHeaderKt {
+	public static final field INSTANCE Ldev/hossain/highlight/ui/internal/ComposableSingletons$CodeBlockHeaderKt;
+	public fun <init> ()V
+	public final fun getLambda$-1997126567$compose_highlight ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$1336903844$compose_highlight ()Lkotlin/jvm/functions/Function4;
+	public final fun getLambda$1755093688$compose_highlight ()Lkotlin/jvm/functions/Function3;
 }
 

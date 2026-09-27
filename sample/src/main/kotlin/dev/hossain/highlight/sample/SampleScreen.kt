@@ -241,9 +241,9 @@ internal fun SampleScreen(viewModel: SampleViewModel = viewModel()) {
                                         modifier = Modifier.fillMaxWidth(),
                                         showLineNumbers = sample.language == "python",
                                         onCopyClick = onCopyClick,
-                                        copyButton = { onClick ->
+                                        actions = { onCopy ->
                                             SyntaxHighlightedCodeDefaults.CopyButton(
-                                                onClick = onClick,
+                                                onClick = onCopy,
                                                 contentDescription = "Copy code",
                                             )
                                         },

@@ -117,13 +117,13 @@ internal fun StylingSection(
             } else {
                 { SyntaxHighlightedCodeDefaults.LanguageLabel("kotlin") }
             },
-        copyButton =
+        actions =
             if (!showCopyButton) {
                 null
             } else if (useCustomCopyIcon) {
-                { onClick ->
+                { onCopy ->
                     androidx.compose.material3.IconButton(
-                        onClick = onClick,
+                        onClick = onCopy,
                         modifier = Modifier.size(style.copyButtonSize),
                     ) {
                         Icon(
@@ -134,7 +134,7 @@ internal fun StylingSection(
                     }
                 }
             } else {
-                { onClick -> SyntaxHighlightedCodeDefaults.CopyButton(onClick = onClick, size = style.copyButtonSize) }
+                { onCopy -> SyntaxHighlightedCodeDefaults.CopyButton(onClick = onCopy, size = style.copyButtonSize) }
             },
     )
 

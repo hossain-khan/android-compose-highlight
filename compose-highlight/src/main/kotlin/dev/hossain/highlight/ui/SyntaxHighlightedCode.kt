@@ -10,6 +10,7 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -44,19 +45,11 @@ import androidx.compose.ui.unit.dp
 import dev.hossain.highlight.engine.HighlightException
 import dev.hossain.highlight.engine.HighlightResult
 import dev.hossain.highlight.engine.HighlightTheme
+import dev.hossain.highlight.ui.internal.CodeBlockHeader
+import dev.hossain.highlight.ui.internal.DefaultActionsSentinel
+import dev.hossain.highlight.ui.internal.DefaultHeaderSentinel
+import dev.hossain.highlight.ui.internal.DefaultLanguageLabelSentinel
 import kotlinx.coroutines.launch
-
-// Sentinel used to detect when the caller did not supply a custom copyButton.
-// This allows the composable body to resolve the default CopyButton with the correct
-// size from CodeBlockStyle.copyButtonSize, which cannot be referenced in a parameter
-// default value (Kotlin does not allow forward references to other parameters).
-private val DefaultCopyButtonSentinel: (@Composable (onClick: () -> Unit) -> Unit) = { }
-
-// Sentinel used to detect when the caller did not supply a custom languageLabel.
-// Without this, the default expression in the parameter list allocates a new @Composable
-// lambda on every recomposition of the call site. The sentinel enables remember-based
-// resolution inside the body, keeping the lambda instance stable across recompositions.
-private val DefaultLanguageLabelSentinel: (@Composable () -> Unit) = { }
 
 private val LineNumberGutterSpacing = 8.dp
 
@@ -95,18 +88,32 @@ private val LineNumberGutterSpacing = 8.dp
  * )
  * ```
  *
- * ## Custom copy button slot
+ * ## Custom header actions
  *
  * ```kotlin
  * SyntaxHighlightedCode(
  *     code = snippet,
  *     language = "kotlin",
- *     copyButton = { onClick ->
- *         IconButton(onClick = onClick) {
- *             Icon(
- *                 imageVector = ImageVector.vectorResource(R.drawable.content_copy_24dp),
- *                 contentDescription = "Copy",
- *             )
+ *     actions = { onCopy ->
+ *         IconButton(onClick = onEdit) {
+ *             Icon(Icons.Default.Edit, contentDescription = "Edit")
+ *         }
+ *         SyntaxHighlightedCodeDefaults.CopyButton(onClick = onCopy)
+ *     },
+ * )
+ * ```
+ *
+ * ## Custom header chrome
+ *
+ * ```kotlin
+ * SyntaxHighlightedCode(
+ *     code = snippet,
+ *     language = "kotlin",
+ *     header = { onCopy ->
+ *         Row(Modifier.fillMaxWidth().background(Color(0xFF2D2D2D))) {
+ *             Text("MainActivity.kt", color = Color.White)
+ *             Spacer(Modifier.weight(1f))
+ *             SyntaxHighlightedCodeDefaults.CopyButton(onClick = onCopy)
  *         }
  *     },
  * )
@@ -119,7 +126,7 @@ private val LineNumberGutterSpacing = 8.dp
  *     code = jsonSnippet,
  *     language = "json",
  *     languageLabel = null,   // hide the language badge
- *     copyButton    = null,   // hide the copy button
+ *     actions = null,         // hide the default copy button
  * )
  * ```
  *
@@ -158,13 +165,33 @@ private val LineNumberGutterSpacing = 8.dp
  *   - use `LocalContentColor.current` inside your slot to inherit it automatically.
  *   Use [SyntaxHighlightedCodeDefaults.LanguageLabel] as a starting point for customisation.
  *   Wrap your lambda in `remember` if it captures an unstable value.
- * @param copyButton Optional composable slot for the copy button in the header. `null`
- *   hides the button entirely. The slot receives an `onClick` action pre-wired to copy [code] to
- *   the system clipboard (or call [onCopyClick] if provided) - pass it to your button's `onClick`.
- *   The default uses [SyntaxHighlightedCodeDefaults.CopyButton].
+ *   Ignored when [header] is customized.
+ * @param actions Optional composable slot for trailing header actions (copy, edit, share, etc.).
+ *   `null` hides all trailing actions. The slot runs with a [RowScope] receiver so multiple
+ *   actions lay out in a row without building your own [Row], and receives an `onCopy` action
+ *   pre-wired to copy [code] to the system clipboard (or call [onCopyClick] if provided).
+ *   The default renders [SyntaxHighlightedCodeDefaults.CopyButton].
  *   ```kotlin
- *   copyButton = { onClick ->
- *       TextButton(onClick = onClick) { Text("Copy") }
+ *   actions = { onCopy ->
+ *       IconButton(onClick = onEdit) { Icon(Icons.Default.Edit, contentDescription = "Edit") }
+ *       SyntaxHighlightedCodeDefaults.CopyButton(onClick = onCopy)
+ *   }
+ *   ```
+ *   Wrap your lambda in `remember` if it captures unstable values.
+ *   Ignored when [header] is customized.
+ * @param header Optional coarse-grained slot that replaces the entire header row (language badge
+ *   and actions). `null` renders no header chrome at all. The slot receives an `onCopy` action
+ *   pre-wired to copy [code] to the system clipboard (or call [onCopyClick] if provided).
+ *   When customized, [languageLabel] and [actions] are ignored - the custom header
+ *   owns the chrome. The default delegates to [SyntaxHighlightedCodeDefaults.Header], which lays
+ *   out [languageLabel] on the left and [actions] on the right.
+ *   ```kotlin
+ *   header = { onCopy ->
+ *       Row(Modifier.fillMaxWidth().background(Color(0xFF2D2D2D))) {
+ *           Text("MainActivity.kt", color = Color.White)
+ *           Spacer(Modifier.weight(1f))
+ *           SyntaxHighlightedCodeDefaults.CopyButton(onClick = onCopy)
+ *       }
  *   }
  *   ```
  *   Wrap your lambda in `remember` if it captures unstable values.
@@ -218,7 +245,8 @@ public fun SyntaxHighlightedCode(
     scrollState: ScrollState = rememberScrollState(),
     languageLabel: (@Composable () -> Unit)? =
         if (language.isNotBlank()) DefaultLanguageLabelSentinel else null,
-    copyButton: (@Composable (onClick: () -> Unit) -> Unit)? = DefaultCopyButtonSentinel,
+    actions: (@Composable RowScope.(onCopy: () -> Unit) -> Unit)? = DefaultActionsSentinel,
+    header: (@Composable (onCopy: () -> Unit) -> Unit)? = DefaultHeaderSentinel,
     onCopyClick: ((String) -> Unit)? = null,
     onHighlightComplete: ((HighlightResult) -> Unit)? = null,
     onError: ((HighlightException) -> Unit)? = null,
@@ -246,38 +274,8 @@ public fun SyntaxHighlightedCode(
     val themedCodeStyle = remember(theme, style) { style.textStyle.copy(color = textColor) }
     val themedLineNumStyle = remember(theme, style) { style.textStyle.copy(color = lineNumberColor) }
 
-    // Resolve the effective language label: when the caller used the default (sentinel),
-    // substitute the real default composable. Wrapped in remember so the lambda instance is
-    // stable across recompositions, preventing unnecessary recomposition of the header subtree.
-    val effectiveLanguageLabel: (@Composable () -> Unit)? =
-        remember(languageLabel, language) {
-            when {
-                languageLabel === DefaultLanguageLabelSentinel -> {
-                    { SyntaxHighlightedCodeDefaults.LanguageLabel(language = language) }
-                }
-
-                else -> {
-                    languageLabel
-                }
-            }
-        }
-
-    // Resolve the effective copy button: when the caller used the default (sentinel),
-    // substitute a real lambda that forwards style.copyButtonSize so the CodeBlockStyle
-    // property actually takes effect. Wrapped in remember so the lambda instance is stable
-    // across recompositions, preventing unnecessary recomposition of the copy button subtree.
-    val effectiveCopyButton: (@Composable (onClick: () -> Unit) -> Unit)? =
-        remember(copyButton, style.copyButtonSize) {
-            when {
-                copyButton === DefaultCopyButtonSentinel -> {
-                    { onClick: () -> Unit -> SyntaxHighlightedCodeDefaults.CopyButton(onClick = onClick, size = style.copyButtonSize) }
-                }
-
-                else -> {
-                    copyButton
-                }
-            }
-        }
+    // Resolve the effective language label and header actions in the shared internal
+    // CodeBlockHeader, which implements the documented slot precedence rules.
     // In Android Studio Preview, WebView cannot be created. Render a themed fallback
     // (using the active theme's background and text colors) so that @Preview composables
     // work without crashing.
@@ -312,6 +310,18 @@ public fun SyntaxHighlightedCode(
         )
     val clipboard = LocalClipboard.current
     val scope = rememberCoroutineScope()
+    val onCopyAction: () -> Unit = {
+        val handler = onCopyClick
+        if (handler != null) {
+            handler(code)
+        } else {
+            scope.launch {
+                clipboard.setClipEntry(
+                    ClipEntry(ClipData.newPlainText("code", code)),
+                )
+            }
+        }
+    }
 
     Surface(
         modifier = modifier.testTag("syntax-highlighted-code"),
@@ -320,33 +330,15 @@ public fun SyntaxHighlightedCode(
         contentColor = textColor,
     ) {
         Column {
-            // Header: language badge + copy button
-            if (effectiveLanguageLabel != null || effectiveCopyButton != null) {
-                Row(
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(style.headerPadding),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    effectiveLanguageLabel?.invoke()
-                    Spacer(modifier = Modifier.weight(1f))
-                    if (effectiveCopyButton != null) {
-                        effectiveCopyButton {
-                            val handler = onCopyClick
-                            if (handler != null) {
-                                handler(code)
-                            } else {
-                                scope.launch {
-                                    clipboard.setClipEntry(
-                                        ClipEntry(ClipData.newPlainText("code", code)),
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+            // Header: language badge + actions (or a fully custom header slot)
+            CodeBlockHeader(
+                language = language,
+                style = style,
+                onCopy = onCopyAction,
+                languageLabel = languageLabel,
+                actions = actions,
+                header = header,
+            )
 
             // Code content with horizontal scroll. Scroll position resets to 0 when code
             // changes, but survives configuration changes via rememberSaveable and rememberScrollState.
