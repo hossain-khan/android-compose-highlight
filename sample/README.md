@@ -46,9 +46,9 @@ sample/
 | Tab | What it shows |
 |-----|---------------|
 | **Languages** | Highlights every file from `assets/samples/` - one code block per language |
-| **Styling** | `CodeBlockStyle` variants and custom background/border parameters |
+| **Styling** | `CodeBlockStyle` variants, custom background/border, and multi-action buttons |
 | **Typography** | `CodeBlockStyle.textStyle` - font size, weight, line height |
-| **Toggles** | All boolean flags: line numbers, language label, copy button |
+| **Toggles** | Visibility and slot options: line numbers, language label, trailing actions, custom header |
 | **Callbacks** | `onHighlightComplete` and `onCopyClick` in action |
 | **Placeholder** | `placeholder` slot of `SyntaxHighlightedCode` - default, dimmed text, and loading label |
 | **Themes** | `HighlightTheme` factory methods demonstrated side-by-side |

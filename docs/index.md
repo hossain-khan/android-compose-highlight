@@ -45,7 +45,7 @@ That's it. `HighlightThemeProvider` automatically picks Tomorrow (light) or Tomo
 - **Light + dark themes** - automatic system-mode switching, or manual override
 - **Built-in themes** - Tomorrow, Tomorrow Night, Atom One Dark, Atom One Light, GitHub Light, GitHub Dark, Dracula Dark, Alucard Light
 - **Custom themes** - load any Highlight.js CSS from `assets/`, raw CSS string, or a `Map<String, SpanStyle>`
-- **Slots** - replace the language badge and copy button with any composable
+- **Slots** - customize the language badge, trailing actions, or entire header row with any composables
 - **Line numbers** - optional gutter with configurable width and color
 - **Copy to clipboard** - built-in, with an `onCopyClick` callback for custom feedback
 - **Performance** - one hidden WebView shared across all code blocks via `HighlightThemeProvider`
