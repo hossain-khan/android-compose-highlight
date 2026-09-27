@@ -6,6 +6,14 @@ For release artifacts and APK downloads, see the [GitHub Releases page](https://
 
 ## Recent highlights
 
+### 0.39.0 - Actions and header slots
+
+- Added `actions` trailing slot with `RowScope` receiver and pre-wired `onCopy` action to `SyntaxHighlightedCode` and `StreamingSyntaxHighlightedCode` (#457)
+- Added coarse-grained `header` chrome slot for full top bar replacement (tabs, titlebars) and clean single-parameter headerless mode (`header = null`) (#458)
+- Added `SyntaxHighlightedCodeDefaults.Header` exposing the standard header layout as a reusable composable
+- BREAKING: Removed legacy `copyButton` parameter in favor of the more flexible `actions` and `header` slots
+- Enabled Kotlin `explicitApi()` mode across `:compose-highlight` to enforce public API boundaries and explicit visibility (#499)
+
 ### 0.38.0 - Keyboard focus trap fix, WebView hardening, and unknown language optimization
 
 - Added keyboard escape (`Key.Escape`) and focus traversal (`Shift+Tab`, `Ctrl+Tab`) to prevent keyboard traps (WCAG 2.1.2) in `SyntaxHighlightedTextEditor`
@@ -36,14 +44,6 @@ For release artifacts and APK downloads, see the [GitHub Releases page](https://
 - Fixed soft keyboard obscuring editor and search fields in the sample app by applying `imePadding` and refining insets
 - Added manual "Stream" button control to the sample app LLM/Streaming demo tab
 - Streamlined Highlight.js upgrade tooling with automated weekly upstream release monitoring
-
-### 0.35.0 - Newline-aware streaming & progressive backfill
-
-- Added newline-aware debouncing and progressive line backfilling for `StreamingSyntaxHighlightedCode` and `rememberStreamingHighlightedCode`
-- Completed lines now snap into full syntax highlighting in the background as newlines (`\n`) arrive without waiting for idle pauses
-- Added `triggerOnNewline` and `minThrottleMs` (150 ms) to throttle background highlight jobs and protect the JS engine
-- Fixed mid-stream highlight failures flashing the code block to plain text by preserving previously highlighted spans
-- Updated sample app with an interactive progressive backfill toggle and comprehensive TypeScript streaming demo
 
 ---
 
