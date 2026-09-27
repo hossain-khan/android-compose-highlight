@@ -51,9 +51,12 @@ SyntaxHighlightedCode(
 )
 ```
 
-## Copy button
+## Header actions
 
-### Custom icon
+The `actions` slot runs with a `RowScope` receiver and provides a pre-wired `onCopy` action.
+Use it to provide custom trailing buttons, multiple actions, or hide trailing actions.
+
+### Custom copy icon
 
 ```kotlin
 import dev.hossain.highlight.ui.SyntaxHighlightedCode
@@ -61,7 +64,7 @@ import dev.hossain.highlight.ui.SyntaxHighlightedCode
 SyntaxHighlightedCode(
     code     = snippet,
     language = "kotlin",
-    actions = { onCopy ->
+    actions  = { onCopy ->
         IconButton(onClick = onCopy) {
             Icon(Icons.Default.ContentCopy, contentDescription = "Copy code")
         }
@@ -69,12 +72,41 @@ SyntaxHighlightedCode(
 )
 ```
 
-### Hide copy button
+### Multiple action buttons
+
+Because `actions` runs within a `RowScope`, multiple action buttons lay out horizontally without requiring a custom `Row`:
+
+```kotlin
+import dev.hossain.highlight.ui.SyntaxHighlightedCode
+import dev.hossain.highlight.ui.SyntaxHighlightedCodeDefaults
+
+SyntaxHighlightedCode(
+    code     = snippet,
+    language = "kotlin",
+    actions  = { onCopy ->
+        IconButton(onClick = onEdit) {
+            Icon(Icons.Default.Edit, contentDescription = "Edit code")
+        }
+        IconButton(onClick = onShare) {
+            Icon(Icons.Default.Share, contentDescription = "Share code")
+        }
+        SyntaxHighlightedCodeDefaults.CopyButton(onClick = onCopy)
+    },
+)
+```
+
+### Hide trailing actions
+
+Pass `null` to `actions` to hide all trailing actions (including the default copy button) while keeping the language label:
 
 ```kotlin
 import dev.hossain.highlight.ui.SyntaxHighlightedCode
 
-SyntaxHighlightedCode(code = snippet, language = "kotlin", actions = null)
+SyntaxHighlightedCode(
+    code     = snippet,
+    language = "kotlin",
+    actions  = null,
+)
 ```
 
 ### Custom copy feedback (Snackbar, Toast, etc.)
@@ -107,6 +139,50 @@ SyntaxHighlightedCode(
     code     = snippet,
     language = "kotlin",
     style    = CodeBlockStyle(copyButtonSize = 48.dp),
+)
+```
+
+## Custom header chrome
+
+Use the coarse-grained `header` slot to replace the entire header row inside the card (for example, with a file
+title bar, IDE tabs, or custom background):
+
+```kotlin
+import dev.hossain.highlight.ui.SyntaxHighlightedCode
+import dev.hossain.highlight.ui.SyntaxHighlightedCodeDefaults
+
+SyntaxHighlightedCode(
+    code     = snippet,
+    language = "kotlin",
+    header   = { onCopy ->
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Color(0xFF2D2D2D))
+                .padding(horizontal = 12.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text("MainActivity.kt", color = Color.White, fontWeight = FontWeight.Bold)
+            Spacer(modifier = Modifier.weight(1f))
+            SyntaxHighlightedCodeDefaults.CopyButton(onClick = onCopy)
+        }
+    },
+)
+```
+
+When `header` is provided, `languageLabel` and `actions` are ignored.
+
+### Headerless mode
+
+Pass `header = null` to omit the header row completely in a single parameter:
+
+```kotlin
+import dev.hossain.highlight.ui.SyntaxHighlightedCode
+
+SyntaxHighlightedCode(
+    code     = snippet,
+    language = "kotlin",
+    header   = null,
 )
 ```
 
