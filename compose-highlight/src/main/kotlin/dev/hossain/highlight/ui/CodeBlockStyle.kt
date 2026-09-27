@@ -61,29 +61,29 @@ import dev.hossain.highlight.engine.HighlightTheme
  * ```
  */
 @Stable
-data class CodeBlockStyle(
+public data class CodeBlockStyle(
     /** Shape applied to the outer container of the code block. */
-    val shape: Shape = SyntaxHighlightedCodeDefaults.shape,
+    public val shape: Shape = SyntaxHighlightedCodeDefaults.shape,
     /** Inner padding between the container edge and the code content area. */
-    val padding: PaddingValues = SyntaxHighlightedCodeDefaults.padding,
+    public val padding: PaddingValues = SyntaxHighlightedCodeDefaults.padding,
     /** Padding for the header row (language label + copy button). */
-    val headerPadding: PaddingValues = SyntaxHighlightedCodeDefaults.headerPadding,
+    public val headerPadding: PaddingValues = SyntaxHighlightedCodeDefaults.headerPadding,
     /**
      * Color of the line number gutter text.
      *
      * Defaults to [Color.Unspecified], which derives the color from the active theme at 40% opacity.
      * Override to use a fixed color.
      */
-    val lineNumberColor: Color = Color.Unspecified,
+    public val lineNumberColor: Color = Color.Unspecified,
     /**
      * Minimum width reserved for the line number gutter.
      *
      * The gutter automatically expands beyond this value for code blocks with 1,000+ lines
      * or larger typography to fit multi-digit line numbers without wrapping.
      */
-    val lineNumberWidth: Dp = SyntaxHighlightedCodeDefaults.lineNumberWidth,
+    public val lineNumberWidth: Dp = SyntaxHighlightedCodeDefaults.lineNumberWidth,
     /** Size (width and height) of the copy-to-clipboard button icon. */
-    val copyButtonSize: Dp = SyntaxHighlightedCodeDefaults.copyButtonSize,
+    public val copyButtonSize: Dp = SyntaxHighlightedCodeDefaults.copyButtonSize,
     /**
      * Text style applied to the code content (font family, size, line height, etc.).
      *
@@ -91,7 +91,7 @@ data class CodeBlockStyle(
      * line height. The theme's foreground color is applied on top of this style at render time,
      * so [TextStyle.color] set here is overridden by the active [HighlightTheme].
      */
-    val textStyle: TextStyle = SyntaxHighlightedCodeDefaults.codeTextStyle,
+    public val textStyle: TextStyle = SyntaxHighlightedCodeDefaults.codeTextStyle,
     /**
      * Background color used when the active theme's CSS has no `.hljs { background: ... }` rule.
      *
@@ -99,7 +99,7 @@ data class CodeBlockStyle(
      * using a custom theme CSS that omits the base `.hljs` rule. Defaults to
      * [SyntaxHighlightedCodeDefaults.fallbackBackgroundColor].
      */
-    val fallbackBackgroundColor: Color = SyntaxHighlightedCodeDefaults.fallbackBackgroundColor,
+    public val fallbackBackgroundColor: Color = SyntaxHighlightedCodeDefaults.fallbackBackgroundColor,
     /**
      * Text color used when the active theme's CSS has no `.hljs { color: ... }` rule.
      *
@@ -107,14 +107,14 @@ data class CodeBlockStyle(
      * using a custom theme CSS that omits the base `.hljs` rule. Defaults to
      * [SyntaxHighlightedCodeDefaults.fallbackTextColor].
      */
-    val fallbackTextColor: Color = SyntaxHighlightedCodeDefaults.fallbackTextColor,
+    public val fallbackTextColor: Color = SyntaxHighlightedCodeDefaults.fallbackTextColor,
 ) {
-    companion object {
+    public companion object {
         /** Standard code block with rounded corners and comfortable padding. */
-        val Default = CodeBlockStyle()
+        public val Default: CodeBlockStyle = CodeBlockStyle()
 
         /** Compact variant with reduced padding for space-constrained layouts. */
-        val Compact =
+        public val Compact: CodeBlockStyle =
             CodeBlockStyle(
                 padding = PaddingValues(12.dp),
                 headerPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),

@@ -34,7 +34,7 @@ import dev.hossain.highlight.ui.internal.LocalHighlightEngine
  * [HighlightEngine.highlightBothThemes] or reading [HighlightEngine.isInitialized].
  */
 @Composable
-fun rememberHighlightEngine(): HighlightEngine {
+public fun rememberHighlightEngine(): HighlightEngine {
     val sharedEngine = LocalHighlightEngine.current
     val context = LocalContext.current
 

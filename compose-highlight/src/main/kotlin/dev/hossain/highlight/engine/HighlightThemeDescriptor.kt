@@ -14,20 +14,20 @@ import androidx.compose.runtime.Immutable
  * @property isDark Whether this theme is designed for dark backgrounds.
  */
 @Immutable
-class HighlightThemeDescriptor internal constructor(
-    val id: String,
-    val displayName: String,
-    val isDark: Boolean,
+public class HighlightThemeDescriptor internal constructor(
+    public val id: String,
+    public val displayName: String,
+    public val isDark: Boolean,
     factory: () -> HighlightTheme,
 ) {
     /** Whether this theme is designed for light backgrounds. */
-    val isLight: Boolean get() = !isDark
+    public val isLight: Boolean get() = !isDark
 
     /** The [HighlightTheme] instance. Lazily created on first access, then cached. */
-    val theme: HighlightTheme by lazy(factory)
+    public val theme: HighlightTheme by lazy(factory)
 
     /** Creates (or returns the cached) [HighlightTheme] instance. */
-    fun create(): HighlightTheme = theme
+    public fun create(): HighlightTheme = theme
 
     /**
      * Compares this descriptor to another for equality based solely on [id].

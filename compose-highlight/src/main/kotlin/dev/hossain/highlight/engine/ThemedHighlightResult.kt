@@ -25,9 +25,9 @@ import androidx.compose.ui.text.AnnotatedString
  * @property timings Per-layer timing breakdown for this highlight call. Always populated.
  *   See [HighlightTimings] for the full stage breakdown.
  */
-data class ThemedHighlightResult(
-    val light: AnnotatedString,
-    val dark: AnnotatedString,
-    val durationMs: Long,
-    val timings: HighlightTimings,
+public data class ThemedHighlightResult(
+    public val light: AnnotatedString,
+    public val dark: AnnotatedString,
+    public val durationMs: Long,
+    public val timings: HighlightTimings,
 )

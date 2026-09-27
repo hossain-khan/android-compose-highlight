@@ -208,7 +208,7 @@ private val LineNumberGutterSpacing = 8.dp
  *   ```
  */
 @Composable
-fun SyntaxHighlightedCode(
+public fun SyntaxHighlightedCode(
     code: String,
     language: String,
     modifier: Modifier = Modifier,

@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+
+- **Kotlin explicit API mode for library module** - Enabled Kotlin `explicitApi()` mode in `:compose-highlight` (#499).
+  All public declarations now explicitly declare `public` visibility and explicit return types, ensuring internal
+  implementation details cannot leak accidentally and reinforcing the binary API boundary verified by `apiCheck`.
+
 ### Tests
 
 - **100% unit test coverage for engine and internal packages** - Added dedicated `HtmlParserTest` covering single and

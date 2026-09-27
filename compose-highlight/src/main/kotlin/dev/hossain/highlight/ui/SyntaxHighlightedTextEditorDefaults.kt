@@ -28,20 +28,20 @@ import androidx.compose.ui.text.input.KeyboardType
  * ```
  */
 @ExperimentalHighlightApi
-object SyntaxHighlightedTextEditorDefaults {
+public object SyntaxHighlightedTextEditorDefaults {
     /**
      * Default [TextStyle] for the editor: monospace family. Pre-allocated singleton so the
      * editor's `textStyle` parameter default does not allocate a fresh `TextStyle` per
      * recomposition. Callers can `copy(...)` this to derive customised styles.
      */
-    val DefaultTextStyle: TextStyle = TextStyle(fontFamily = FontFamily.Monospace)
+    public val DefaultTextStyle: TextStyle = TextStyle(fontFamily = FontFamily.Monospace)
 
     /**
      * Default debounce window in milliseconds after the last keystroke before the editor
      * triggers a new highlight call. 150 ms is a balance between responsiveness and avoiding
      * unnecessary WebView calls on fast typists.
      */
-    const val DEBOUNCE_MS: Long = 150L
+    public const val DEBOUNCE_MS: Long = 150L
 
     /**
      * Default [KeyboardOptions] tuned for source-code input.
@@ -68,7 +68,7 @@ object SyntaxHighlightedTextEditorDefaults {
      * )
      * ```
      */
-    val CodeKeyboardOptions: KeyboardOptions =
+    public val CodeKeyboardOptions: KeyboardOptions =
         KeyboardOptions(
             capitalization = KeyboardCapitalization.None,
             autoCorrectEnabled = false,
@@ -76,13 +76,13 @@ object SyntaxHighlightedTextEditorDefaults {
         )
 
     /** Default indentation string: 4 spaces. */
-    const val DEFAULT_INDENTATION: String = "    "
+    public const val DEFAULT_INDENTATION: String = "    "
 
     /** Default enablement of auto-indentation. */
-    const val AUTO_INDENT_ENABLED: Boolean = true
+    public const val AUTO_INDENT_ENABLED: Boolean = true
 
     /** Default enablement of Tab key interception to insert spaces rather than shift focus. */
-    const val TAB_KEY_INTERCEPTION_ENABLED: Boolean = true
+    public const val TAB_KEY_INTERCEPTION_ENABLED: Boolean = true
 
     /**
      * Default enablement of Escape key handling to clear focus and escape the editor.
@@ -94,5 +94,5 @@ object SyntaxHighlightedTextEditorDefaults {
      * - https://developer.android.com/design/ui/desktop/guides/interaction/keyboard
      * - https://developer.android.com/develop/ui/views/touch-and-input/keyboard-input/navigation
      */
-    const val ESCAPE_KEY_CLEARS_FOCUS: Boolean = true
+    public const val ESCAPE_KEY_CLEARS_FOCUS: Boolean = true
 }

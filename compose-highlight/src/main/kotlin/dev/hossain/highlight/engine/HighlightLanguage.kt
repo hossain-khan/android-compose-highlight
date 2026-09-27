@@ -283,7 +283,7 @@ public object HighlightLanguage {
      * @return Highlight.js language name such as `"kotlin"`, or `null` if the extension is not
      *   recognised.
      */
-    fun fromExtension(extension: String): String? = extensionMap[extension.lowercase(Locale.ROOT)]
+    public fun fromExtension(extension: String): String? = extensionMap[extension.lowercase(Locale.ROOT)]
 }
 
 /**
@@ -297,7 +297,7 @@ public object HighlightLanguage {
  *   [HighlightEngine.getLanguage] as the identifier for highlighting calls.
  * @property aliases Registered aliases for the language.
  */
-data class HighlightLanguageInfo(
-    val name: String,
-    val aliases: List<String>,
+public data class HighlightLanguageInfo(
+    public val name: String,
+    public val aliases: List<String>,
 )

@@ -108,8 +108,8 @@ import kotlin.time.measureTimedValue
  *   and [hashCode].
  */
 @Stable
-class HighlightTheme private constructor(
-    val name: String,
+public class HighlightTheme private constructor(
+    public val name: String,
     private val colorMapProvider: () -> Map<String, SpanStyle>,
     /**
      * Precomputed identity digest for the theme content. Computed once at construction time
@@ -121,7 +121,7 @@ class HighlightTheme private constructor(
 ) {
     /** Lazily-parsed map of hljs class names → [SpanStyle]. Cached forever. */
     private val colorMapLazy = lazy { colorMapProvider() }
-    val colorMap: Map<String, SpanStyle>
+    public val colorMap: Map<String, SpanStyle>
         get() = colorMapLazy.value
 
     /**
@@ -166,12 +166,12 @@ class HighlightTheme private constructor(
         }
 
     /** Background color from the `.hljs` CSS rule. Unspecified if not present in theme. */
-    val backgroundColor: Color by lazy {
+    public val backgroundColor: Color by lazy {
         colorMap[HljsSelectors.BASE]?.background?.takeIf { it != Color.Unspecified } ?: Color.Unspecified
     }
 
     /** Default text color from the `.hljs` CSS rule. Unspecified if not present in theme. */
-    val defaultTextColor: Color by lazy {
+    public val defaultTextColor: Color by lazy {
         colorMap[HljsSelectors.BASE]?.color?.takeIf { it != Color.Unspecified } ?: Color.Unspecified
     }
 
@@ -181,16 +181,16 @@ class HighlightTheme private constructor(
      * are treated as distinct, so Compose recomposition keys (`remember`, `LaunchedEffect`)
      * correctly trigger a re-highlight when the theme content changes.
      */
-    override fun equals(other: Any?): Boolean =
+    public override fun equals(other: Any?): Boolean =
         other is HighlightTheme &&
             name == other.name &&
             contentIdentity.contentEquals(other.contentIdentity)
 
-    override fun hashCode(): Int = 31 * name.hashCode() + contentIdentity.contentHashCode()
+    public override fun hashCode(): Int = 31 * name.hashCode() + contentIdentity.contentHashCode()
 
-    override fun toString(): String = "HighlightTheme(name=$name)"
+    public override fun toString(): String = "HighlightTheme(name=$name)"
 
-    companion object {
+    public companion object {
         /**
          * All bundled themes provided by the library.
          *
@@ -210,7 +210,7 @@ class HighlightTheme private constructor(
          * }
          * ```
          */
-        val bundled: List<HighlightThemeDescriptor> =
+        public val bundled: List<HighlightThemeDescriptor> =
             listOf(
                 HighlightThemeDescriptor("tomorrow", "Tomorrow", isDark = false) { tomorrow() },
                 HighlightThemeDescriptor("tomorrow-night", "Tomorrow Night", isDark = true) { tomorrowNight() },
@@ -225,12 +225,12 @@ class HighlightTheme private constructor(
         /**
          * Bundled themes designed for light backgrounds. Precomputed for zero runtime allocation.
          */
-        val bundledLight: List<HighlightThemeDescriptor> = bundled.filter { it.isLight }
+        public val bundledLight: List<HighlightThemeDescriptor> = bundled.filter { it.isLight }
 
         /**
          * Bundled themes designed for dark backgrounds. Precomputed for zero runtime allocation.
          */
-        val bundledDark: List<HighlightThemeDescriptor> = bundled.filter { it.isDark }
+        public val bundledDark: List<HighlightThemeDescriptor> = bundled.filter { it.isDark }
 
         private val bundledIdMap: Map<String, HighlightThemeDescriptor> =
             bundled.associateBy { it.id }
@@ -246,7 +246,7 @@ class HighlightTheme private constructor(
          * @param id The stable theme identifier to look up (e.g. `"tomorrow"`, `"dracula"`).
          * @return The matching [HighlightThemeDescriptor], or `null` if unrecognized.
          */
-        fun findBundledById(id: String): HighlightThemeDescriptor? = bundledIdMap[id]
+        public fun findBundledById(id: String): HighlightThemeDescriptor? = bundledIdMap[id]
 
         /**
          * Built-in Base16 Tomorrow light theme.
@@ -256,7 +256,7 @@ class HighlightTheme private constructor(
          *
          * @return A [HighlightTheme] backed by the bundled `tomorrow.css`.
          */
-        fun tomorrow(): HighlightTheme =
+        public fun tomorrow(): HighlightTheme =
             HighlightTheme(
                 name = "tomorrow",
                 colorMapProvider = { GeneratedThemes.TOMORROW },
@@ -272,7 +272,7 @@ class HighlightTheme private constructor(
          *
          * @return A [HighlightTheme] backed by the bundled `tomorrow-night.css`.
          */
-        fun tomorrowNight(): HighlightTheme =
+        public fun tomorrowNight(): HighlightTheme =
             HighlightTheme(
                 name = "tomorrow-night",
                 colorMapProvider = { GeneratedThemes.TOMORROW_NIGHT },
@@ -288,7 +288,7 @@ class HighlightTheme private constructor(
          *
          * @return A [HighlightTheme] backed by the bundled `atom-one-dark.css`.
          */
-        fun atomOneDark(): HighlightTheme =
+        public fun atomOneDark(): HighlightTheme =
             HighlightTheme(
                 name = "atom-one-dark",
                 colorMapProvider = { GeneratedThemes.ATOM_ONE_DARK },
@@ -304,7 +304,7 @@ class HighlightTheme private constructor(
          *
          * @return A [HighlightTheme] backed by the bundled `atom-one-light.css`.
          */
-        fun atomOneLight(): HighlightTheme =
+        public fun atomOneLight(): HighlightTheme =
             HighlightTheme(
                 name = "atom-one-light",
                 colorMapProvider = { GeneratedThemes.ATOM_ONE_LIGHT },
@@ -320,7 +320,7 @@ class HighlightTheme private constructor(
          *
          * @return A [HighlightTheme] backed by the bundled `github.css`.
          */
-        fun githubLight(): HighlightTheme =
+        public fun githubLight(): HighlightTheme =
             HighlightTheme(
                 name = "github",
                 colorMapProvider = { GeneratedThemes.GITHUB_LIGHT },
@@ -336,7 +336,7 @@ class HighlightTheme private constructor(
          *
          * @return A [HighlightTheme] backed by the bundled `github-dark.css`.
          */
-        fun githubDark(): HighlightTheme =
+        public fun githubDark(): HighlightTheme =
             HighlightTheme(
                 name = "github-dark",
                 colorMapProvider = { GeneratedThemes.GITHUB_DARK },
@@ -359,7 +359,7 @@ class HighlightTheme private constructor(
          * @return A [HighlightTheme] backed by the bundled `dracula.css`.
          * @see alucardLight
          */
-        fun draculaDark(): HighlightTheme =
+        public fun draculaDark(): HighlightTheme =
             HighlightTheme(
                 name = "dracula",
                 colorMapProvider = { GeneratedThemes.DRACULA_DARK },
@@ -382,7 +382,7 @@ class HighlightTheme private constructor(
          * @return A [HighlightTheme] backed by the bundled `alucard.css`.
          * @see draculaDark
          */
-        fun alucardLight(): HighlightTheme =
+        public fun alucardLight(): HighlightTheme =
             HighlightTheme(
                 name = "alucard",
                 colorMapProvider = { GeneratedThemes.ALUCARD_LIGHT },
@@ -396,7 +396,7 @@ class HighlightTheme private constructor(
          * @return A [HighlightTheme] backed by the bundled `alucard.css`.
          * @see alucardLight
          */
-        fun draculaLight(): HighlightTheme = alucardLight()
+        public fun draculaLight(): HighlightTheme = alucardLight()
 
         /**
          * Alias for [draculaDark]. Makes the Dracula dark theme discoverable under
@@ -405,7 +405,7 @@ class HighlightTheme private constructor(
          * @return A [HighlightTheme] backed by the bundled `dracula.css`.
          * @see draculaDark
          */
-        fun alucardDark(): HighlightTheme = draculaDark()
+        public fun alucardDark(): HighlightTheme = draculaDark()
 
         /**
          * Custom theme loaded from a Highlight.js CSS file in the app's `assets/` folder.
@@ -437,7 +437,7 @@ class HighlightTheme private constructor(
          * @param name Display name for the theme.
          * @return A [HighlightTheme] whose color map is lazily parsed from [assetPath].
          */
-        fun fromAsset(
+        public fun fromAsset(
             context: Context,
             assetPath: String,
             name: String,
@@ -471,7 +471,7 @@ class HighlightTheme private constructor(
          * @param name Display name for the theme.
          * @return A [HighlightTheme] whose color map is lazily parsed from [cssText].
          */
-        fun fromCss(
+        public fun fromCss(
             cssText: String,
             name: String,
         ): HighlightTheme =
@@ -518,7 +518,7 @@ class HighlightTheme private constructor(
          * @param defaultTextColor Optional explicit default text color. If null, derived from `colorMap["hljs"]`.
          * @return A [HighlightTheme] backed by the provided [colorMap].
          */
-        fun fromColorMap(
+        public fun fromColorMap(
             name: String,
             colorMap: Map<String, SpanStyle>,
             backgroundColor: Color? = null,
