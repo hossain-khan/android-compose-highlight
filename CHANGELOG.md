@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.39.0] - 2026-09-27
+
 ### Added
 
 - **`actions` header slot and `header` chrome slot for code blocks** - Added two new slots to
