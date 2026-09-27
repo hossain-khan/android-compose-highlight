@@ -47,12 +47,14 @@ import dev.hossain.highlight.ui.SyntaxHighlightedCodeDefaults
  *
  * @param showSheet Whether the configuration bottom sheet is currently visible.
  * @param onDismissSheet Called when the sheet should be dismissed.
+ * @param onActionMessage Receives a snackbar message when a custom action button (edit, share) is tapped.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun StylingSection(
     showSheet: Boolean,
     onDismissSheet: () -> Unit,
+    onActionMessage: (String) -> Unit = {},
 ) {
     // ── Style state ───────────────────────────────────────────────────────────
     var cornerRadius by remember { mutableFloatStateOf(8f) }
@@ -67,6 +69,7 @@ internal fun StylingSection(
     var showCopyButton by remember { mutableStateOf(true) }
     var useCustomLanguageLabel by remember { mutableStateOf(false) }
     var useCustomCopyIcon by remember { mutableStateOf(false) }
+    var showMultipleActions by remember { mutableStateOf(false) }
 
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
 
@@ -120,6 +123,25 @@ internal fun StylingSection(
         actions =
             if (!showCopyButton) {
                 null
+            } else if (showMultipleActions) {
+                // Demo the actions slot with multiple trailing buttons: edit, share, copy.
+                { onCopy ->
+                    androidx.compose.material3.IconButton(onClick = { onActionMessage("Edit action clicked") }) {
+                        Icon(
+                            imageVector = ImageVector.vectorResource(R.drawable.edit_square_24dp),
+                            contentDescription = "Edit code",
+                            modifier = Modifier.size(style.copyButtonSize * 0.6f),
+                        )
+                    }
+                    androidx.compose.material3.IconButton(onClick = { onActionMessage("Share action clicked") }) {
+                        Icon(
+                            imageVector = ImageVector.vectorResource(R.drawable.share_24dp),
+                            contentDescription = "Share code",
+                            modifier = Modifier.size(style.copyButtonSize * 0.6f),
+                        )
+                    }
+                    SyntaxHighlightedCodeDefaults.CopyButton(onClick = onCopy, size = style.copyButtonSize)
+                }
             } else if (useCustomCopyIcon) {
                 { onCopy ->
                     androidx.compose.material3.IconButton(
@@ -165,6 +187,7 @@ internal fun StylingSection(
                 ToggleRow("Custom language label", useCustomLanguageLabel) { useCustomLanguageLabel = it }
                 ToggleRow("Show copy button", showCopyButton) { showCopyButton = it }
                 ToggleRow("Custom copy icon", useCustomCopyIcon) { useCustomCopyIcon = it }
+                ToggleRow("Multiple actions (edit, share, copy)", showMultipleActions) { showMultipleActions = it }
 
                 Spacer(Modifier.height(8.dp))
                 HorizontalDivider()

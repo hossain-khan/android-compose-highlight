@@ -117,6 +117,12 @@ internal fun SampleScreen(viewModel: SampleViewModel = viewModel()) {
             }
         }
 
+    // Shared feedback handler for custom header action demos (edit, share, ...).
+    val onActionMessage: (String) -> Unit =
+        remember(scope, snackbarHostState) {
+            { message -> scope.launch { snackbarHostState.showSnackbar(message) } }
+        }
+
     var selectedThemeIndex by rememberSaveable { mutableIntStateOf(4) } // Atom One
     val activePair = themePairs[selectedThemeIndex.coerceIn(themePairs.indices)]
     val tabs = DemoTab.all
@@ -253,7 +259,13 @@ internal fun SampleScreen(viewModel: SampleViewModel = viewModel()) {
                         }
 
                         DemoTab.Styling -> {
-                            item { StylingSection(showSheet = showStylingSheet, onDismissSheet = { showStylingSheet = false }) }
+                            item {
+                                StylingSection(
+                                    showSheet = showStylingSheet,
+                                    onDismissSheet = { showStylingSheet = false },
+                                    onActionMessage = onActionMessage,
+                                )
+                            }
                         }
 
                         DemoTab.Typography -> {
@@ -261,7 +273,7 @@ internal fun SampleScreen(viewModel: SampleViewModel = viewModel()) {
                         }
 
                         DemoTab.Toggles -> {
-                            item { TogglesSection() }
+                            item { TogglesSection(onActionMessage = onActionMessage) }
                         }
 
                         DemoTab.Callbacks -> {

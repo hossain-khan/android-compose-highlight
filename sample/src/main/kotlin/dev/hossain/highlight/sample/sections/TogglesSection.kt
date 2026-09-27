@@ -31,9 +31,11 @@ import dev.hossain.highlight.ui.SyntaxHighlightedCodeDefaults
  * - `actions` - default, null (hidden), multiple trailing buttons, and custom vector icon
  * - `header` - custom chrome and null (no header)
  * - `showLineNumbers` × `languageLabel` (2×2)
+ *
+ * @param onActionMessage Receives a snackbar message when a custom action button (edit, share) is tapped.
  */
 @Composable
-internal fun TogglesSection() {
+internal fun TogglesSection(onActionMessage: (String) -> Unit = {}) {
     Column(
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
@@ -156,16 +158,16 @@ internal fun TogglesSection() {
             language = "kotlin",
             modifier = Modifier.fillMaxWidth(),
             actions = { onCopy ->
-                androidx.compose.material3.IconButton(onClick = {}) {
+                androidx.compose.material3.IconButton(onClick = { onActionMessage("Edit action clicked") }) {
                     Icon(
-                        imageVector = ImageVector.vectorResource(R.drawable.stars_2_24dp),
+                        imageVector = ImageVector.vectorResource(R.drawable.edit_square_24dp),
                         modifier = Modifier.size(16.dp),
                         contentDescription = "Edit",
                     )
                 }
-                androidx.compose.material3.IconButton(onClick = {}) {
+                androidx.compose.material3.IconButton(onClick = { onActionMessage("Share action clicked") }) {
                     Icon(
-                        imageVector = ImageVector.vectorResource(R.drawable.copy_content_alt_rounded),
+                        imageVector = ImageVector.vectorResource(R.drawable.share_24dp),
                         modifier = Modifier.size(16.dp),
                         contentDescription = "Share",
                     )
@@ -201,6 +203,26 @@ internal fun TogglesSection() {
                         modifier = Modifier.padding(start = 6.dp),
                     )
                     Spacer(modifier = Modifier.weight(1f))
+                    androidx.compose.material3.IconButton(
+                        onClick = { onActionMessage("Edit action clicked") },
+                        modifier = Modifier.size(28.dp),
+                    ) {
+                        Icon(
+                            imageVector = ImageVector.vectorResource(R.drawable.edit_square_24dp),
+                            modifier = Modifier.size(14.dp),
+                            contentDescription = "Edit",
+                        )
+                    }
+                    androidx.compose.material3.IconButton(
+                        onClick = { onActionMessage("Share action clicked") },
+                        modifier = Modifier.size(28.dp),
+                    ) {
+                        Icon(
+                            imageVector = ImageVector.vectorResource(R.drawable.share_24dp),
+                            modifier = Modifier.size(14.dp),
+                            contentDescription = "Share",
+                        )
+                    }
                     SyntaxHighlightedCodeDefaults.CopyButton(onClick = onCopy)
                 }
             },
