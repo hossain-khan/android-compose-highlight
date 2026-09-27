@@ -61,8 +61,8 @@ import dev.hossain.highlight.ui.SyntaxHighlightedCode
 SyntaxHighlightedCode(
     code     = snippet,
     language = "kotlin",
-    copyButton = { onClick ->
-        IconButton(onClick = onClick) {
+    actions = { onCopy ->
+        IconButton(onClick = onCopy) {
             Icon(Icons.Default.ContentCopy, contentDescription = "Copy code")
         }
     },
@@ -74,7 +74,7 @@ SyntaxHighlightedCode(
 ```kotlin
 import dev.hossain.highlight.ui.SyntaxHighlightedCode
 
-SyntaxHighlightedCode(code = snippet, language = "kotlin", copyButton = null)
+SyntaxHighlightedCode(code = snippet, language = "kotlin", actions = null)
 ```
 
 ### Custom copy feedback (Snackbar, Toast, etc.)
@@ -193,9 +193,9 @@ import dev.hossain.highlight.ui.SyntaxHighlightedCodeDefaults
 SyntaxHighlightedCode(
     code     = snippet,
     language = "kotlin",
-    copyButton = { onClick ->
+    actions = { onCopy ->
         SyntaxHighlightedCodeDefaults.CopyButton(
-            onClick            = onClick,
+            onClick            = onCopy,
             contentDescription = stringResource(R.string.copy_code_a11y),
         )
     },

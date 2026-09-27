@@ -177,18 +177,21 @@ public fun StreamingSyntaxHighlightedCode(
 
     val clipboard = LocalClipboard.current
     val scope = rememberCoroutineScope()
-    val onCopyAction: () -> Unit = {
-        val handler = onCopyClick
-        if (handler != null) {
-            handler(code)
-        } else {
-            scope.launch {
-                clipboard.setClipEntry(
-                    ClipEntry(ClipData.newPlainText("code", code)),
-                )
+    val onCopyAction: () -> Unit =
+        remember(code, onCopyClick, clipboard, scope) {
+            {
+                val handler = onCopyClick
+                if (handler != null) {
+                    handler(code)
+                } else {
+                    scope.launch {
+                        clipboard.setClipEntry(
+                            ClipEntry(ClipData.newPlainText("code", code)),
+                        )
+                    }
+                }
             }
         }
-    }
 
     var previousCode by rememberSaveable { mutableStateOf(code) }
     var previousLanguage by rememberSaveable { mutableStateOf(language) }

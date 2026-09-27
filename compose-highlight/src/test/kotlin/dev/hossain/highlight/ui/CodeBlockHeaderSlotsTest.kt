@@ -163,6 +163,33 @@ class CodeBlockHeaderSlotsTest {
     }
 
     @Test
+    fun `header takes precedence over languageLabel and actions`() {
+        composeTestRule.setContent {
+            HighlightThemeProvider {
+                SyntaxHighlightedCode(
+                    code = "val x = 42",
+                    language = "kotlin",
+                    languageLabel = { Text("ignored-label", modifier = Modifier.testTag("ignored-label")) },
+                    actions = { _ -> TextButton(onClick = {}, modifier = Modifier.testTag("ignored-action")) { Text("Ignored") } },
+                    header = { onCopy ->
+                        Row {
+                            Text("MainActivity.kt", modifier = Modifier.testTag("file-title"))
+                            Spacer(modifier = Modifier.width(8.dp))
+                            TextButton(onClick = onCopy, modifier = Modifier.testTag("header-copy")) { Text("Copy") }
+                        }
+                    },
+                )
+            }
+        }
+        composeTestRule.waitForIdle()
+        // header chrome wins; fine-grained slots are ignored.
+        composeTestRule.onNodeWithTag("file-title").assertIsDisplayed()
+        composeTestRule.onNodeWithTag("header-copy").assertIsDisplayed()
+        composeTestRule.onNodeWithTag("ignored-label").assertDoesNotExist()
+        composeTestRule.onNodeWithTag("ignored-action").assertDoesNotExist()
+    }
+
+    @Test
     fun `header null renders no header chrome`() {
         composeTestRule.setContent {
             HighlightThemeProvider {

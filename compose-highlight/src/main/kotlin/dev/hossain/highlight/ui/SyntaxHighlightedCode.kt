@@ -310,18 +310,21 @@ public fun SyntaxHighlightedCode(
         )
     val clipboard = LocalClipboard.current
     val scope = rememberCoroutineScope()
-    val onCopyAction: () -> Unit = {
-        val handler = onCopyClick
-        if (handler != null) {
-            handler(code)
-        } else {
-            scope.launch {
-                clipboard.setClipEntry(
-                    ClipEntry(ClipData.newPlainText("code", code)),
-                )
+    val onCopyAction: () -> Unit =
+        remember(code, onCopyClick, clipboard, scope) {
+            {
+                val handler = onCopyClick
+                if (handler != null) {
+                    handler(code)
+                } else {
+                    scope.launch {
+                        clipboard.setClipEntry(
+                            ClipEntry(ClipData.newPlainText("code", code)),
+                        )
+                    }
+                }
             }
         }
-    }
 
     Surface(
         modifier = modifier.testTag("syntax-highlighted-code"),

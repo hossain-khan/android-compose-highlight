@@ -95,7 +95,7 @@ SyntaxHighlightedCode(
     code          = snippet,
     language      = "kotlin",
     languageLabel = null,  // hide language badge
-    copyButton    = null,  // hide copy button
+    actions       = null,  // hide copy button
 )
 ```
 
