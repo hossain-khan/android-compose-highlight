@@ -240,11 +240,12 @@ git checkout main && git pull
 git tag <new-version> && git push origin <new-version>
 ```
 
-**Publishing to Maven Central is a manual two-step workflow - it is NOT triggered automatically by pushing a tag.** After tagging:
-1. Manually trigger the publish GitHub Actions workflow in **dry-run mode** first and verify it passes.
-2. Only if the dry run succeeds, trigger the workflow again **without dry-run** to actually publish to Maven Central.
+**Publishing to Maven Central is a manual two-step workflow - it is NOT triggered automatically by pushing a tag, and AI agents MUST NEVER run the publish workflow on their own.** Running both the dry-run and actual release workflows must always be performed manually by the user/repository owner. After tagging:
+1. Provide the user with the release notes and manual instructions to trigger the workflow.
+2. The user will manually trigger the publish GitHub Actions workflow in **dry-run mode** first and verify it passes.
+3. Only if the dry run succeeds, the user will trigger the workflow again **without dry-run** to actually publish to Maven Central.
 
-Never tell the user "the publish workflow will trigger automatically" - it won't.
+Never trigger the publish workflow via `gh workflow run` or any CLI command as an AI agent. Never tell the user "the publish workflow will trigger automatically" - it won't.
 
 **Release notes format** - after a git tag is pushed, automatically provide brief release notes in markdown format without waiting for the user to ask. Keep it concise - 3-5 key bullet points max, focusing on user-facing changes. Example:
 ```markdown

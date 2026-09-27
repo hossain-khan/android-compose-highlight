@@ -156,7 +156,7 @@ The friction is intentional. A new built-in is an API decision, not "I dropped a
 
 **Tags:** release tags must not use a `v` prefix.
 
-**Publishing:** Maven Central publishing is a manual two-step workflow after the release PR is merged and the tag is pushed: run the publish workflow in dry-run mode first, then run it again without dry-run.
+**Publishing:** Maven Central publishing is a manual two-step workflow performed exclusively by the user/repository owner (AI agents must never run the publish workflow). After the release PR is merged and the tag is pushed: the user runs the publish workflow in dry-run mode first, then runs it again without dry-run.
 
 **CHANGELOG:** keep `CHANGELOG.md` updated under `[Unreleased]` for features, fixes, and breaking changes.
 
