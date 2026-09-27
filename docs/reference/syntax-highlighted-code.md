@@ -26,7 +26,12 @@ Full API in Dokka:
 - `showLineNumbers` - enables line-number gutter.
 - `scrollState` - hoisted horizontal scroll state. Pass one when you need to control or observe
   horizontal position from outside the composable.
-- `languageLabel` and `copyButton` - slots for header customization, or `null` to hide.
+- `languageLabel` - slot for the language badge in the header, or `null` to hide.
+- `actions` - `RowScope` slot for trailing header actions (copy, edit, share, etc.), or `null` to
+  hide. Receives a pre-wired `onCopy` action.
+- `header` - coarse-grained slot that replaces the entire header row, or `null` for no header
+  chrome. Receives a pre-wired `onCopy` action. When customized, `languageLabel` and
+  `actions` are ignored.
 - `placeholder` - custom loading content while highlighting is in progress.
 - `onHighlightComplete` and `onError` - observability hooks for metrics and diagnostics.
 
@@ -74,21 +79,48 @@ SyntaxHighlightedCode(
     code          = snippet,
     language      = "json",
     languageLabel = null,  // hide language badge
-    copyButton    = null,  // hide copy button
+    actions       = null,  // hide trailing actions
 )
 ```
 
-### Custom copy button
+### Custom header actions
 
 ```kotlin
 import dev.hossain.highlight.ui.SyntaxHighlightedCode
+import dev.hossain.highlight.ui.SyntaxHighlightedCodeDefaults
 
 SyntaxHighlightedCode(
     code = snippet,
     language = "kotlin",
-    copyButton = { onClick ->
-        IconButton(onClick = onClick) {
-            Icon(Icons.Default.ContentCopy, contentDescription = "Copy")
+    actions = { onCopy ->
+        IconButton(onClick = onEdit) {
+            Icon(Icons.Default.Edit, contentDescription = "Edit")
+        }
+        IconButton(onClick = onShare) {
+            Icon(Icons.Default.Share, contentDescription = "Share")
+        }
+        SyntaxHighlightedCodeDefaults.CopyButton(onClick = onCopy)
+    },
+)
+```
+
+### Custom header chrome
+
+```kotlin
+import dev.hossain.highlight.ui.SyntaxHighlightedCode
+import dev.hossain.highlight.ui.SyntaxHighlightedCodeDefaults
+
+SyntaxHighlightedCode(
+    code = snippet,
+    language = "kotlin",
+    header = { onCopy ->
+        Row(
+            modifier = Modifier.fillMaxWidth().background(Color(0xFF2D2D2D)).padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text("MainActivity.kt", color = Color.White)
+            Spacer(Modifier.weight(1f))
+            SyntaxHighlightedCodeDefaults.CopyButton(onClick = onCopy)
         }
     },
 )

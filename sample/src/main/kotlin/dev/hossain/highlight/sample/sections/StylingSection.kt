@@ -13,6 +13,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Slider
@@ -47,12 +48,14 @@ import dev.hossain.highlight.ui.SyntaxHighlightedCodeDefaults
  *
  * @param showSheet Whether the configuration bottom sheet is currently visible.
  * @param onDismissSheet Called when the sheet should be dismissed.
+ * @param onActionMessage Receives a snackbar message when a custom action button (edit, share) is tapped.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun StylingSection(
     showSheet: Boolean,
     onDismissSheet: () -> Unit,
+    onActionMessage: (String) -> Unit = {},
 ) {
     // ── Style state ───────────────────────────────────────────────────────────
     var cornerRadius by remember { mutableFloatStateOf(8f) }
@@ -67,6 +70,7 @@ internal fun StylingSection(
     var showCopyButton by remember { mutableStateOf(true) }
     var useCustomLanguageLabel by remember { mutableStateOf(false) }
     var useCustomCopyIcon by remember { mutableStateOf(false) }
+    var showMultipleActions by remember { mutableStateOf(false) }
 
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
 
@@ -117,13 +121,32 @@ internal fun StylingSection(
             } else {
                 { SyntaxHighlightedCodeDefaults.LanguageLabel("kotlin") }
             },
-        copyButton =
+        actions =
             if (!showCopyButton) {
                 null
+            } else if (showMultipleActions) {
+                // Demo the actions slot with multiple trailing buttons: edit, share, copy.
+                { onCopy ->
+                    IconButton(onClick = { onActionMessage("Edit action clicked") }) {
+                        Icon(
+                            imageVector = ImageVector.vectorResource(R.drawable.edit_square_24dp),
+                            contentDescription = "Edit code",
+                            modifier = Modifier.size(style.copyButtonSize * 0.6f),
+                        )
+                    }
+                    IconButton(onClick = { onActionMessage("Share action clicked") }) {
+                        Icon(
+                            imageVector = ImageVector.vectorResource(R.drawable.share_24dp),
+                            contentDescription = "Share code",
+                            modifier = Modifier.size(style.copyButtonSize * 0.6f),
+                        )
+                    }
+                    SyntaxHighlightedCodeDefaults.CopyButton(onClick = onCopy, size = style.copyButtonSize)
+                }
             } else if (useCustomCopyIcon) {
-                { onClick ->
-                    androidx.compose.material3.IconButton(
-                        onClick = onClick,
+                { onCopy ->
+                    IconButton(
+                        onClick = onCopy,
                         modifier = Modifier.size(style.copyButtonSize),
                     ) {
                         Icon(
@@ -134,7 +157,7 @@ internal fun StylingSection(
                     }
                 }
             } else {
-                { onClick -> SyntaxHighlightedCodeDefaults.CopyButton(onClick = onClick, size = style.copyButtonSize) }
+                { onCopy -> SyntaxHighlightedCodeDefaults.CopyButton(onClick = onCopy, size = style.copyButtonSize) }
             },
     )
 
@@ -165,6 +188,7 @@ internal fun StylingSection(
                 ToggleRow("Custom language label", useCustomLanguageLabel) { useCustomLanguageLabel = it }
                 ToggleRow("Show copy button", showCopyButton) { showCopyButton = it }
                 ToggleRow("Custom copy icon", useCustomCopyIcon) { useCustomCopyIcon = it }
+                ToggleRow("Multiple actions (edit, share, copy)", showMultipleActions) { showMultipleActions = it }
 
                 Spacer(Modifier.height(8.dp))
                 HorizontalDivider()

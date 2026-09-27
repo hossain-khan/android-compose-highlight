@@ -1,6 +1,11 @@
 package dev.hossain.highlight.ui
 
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
@@ -8,6 +13,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
@@ -39,13 +45,13 @@ import dev.hossain.highlight.R
  *     lineNumberWidth = SyntaxHighlightedCodeDefaults.lineNumberWidth + 16.dp,
  * )
  *
- * // Customise the copy button slot while keeping the default icon
+ * // Customise the actions slot while keeping the default copy button
  * SyntaxHighlightedCode(
  *     code = snippet,
  *     language = "kotlin",
- *     copyButton = { onClick ->
+ *     actions = { onCopy ->
  *         SyntaxHighlightedCodeDefaults.CopyButton(
- *             onClick = onClick,
+ *             onClick = onCopy,
  *             contentDescription = stringResource(R.string.copy_code),
  *         )
  *     },
@@ -108,30 +114,30 @@ public object SyntaxHighlightedCodeDefaults {
     public val fallbackTextColor: Color = Color(0xFFCCCCCC)
 
     /**
-     * Default copy-to-clipboard button used by [SyntaxHighlightedCode]'s `copyButton` slot.
+     * Default copy-to-clipboard button used by [SyntaxHighlightedCode]'s `actions` slot.
      *
      * Renders a vector copy icon inside an [IconButton]. The icon size scales proportionally
      * to the button [size] (60 % of the touch target) so that callers who customize the button
      * size get a matching icon automatically. Tint and size default to values that blend naturally
      * with the code block background when placed inside a [SyntaxHighlightedCode] block.
      *
-     * Pass to `copyButton` to retain the default look while customising other parameters:
+     * Pass to `actions` to retain the default look while customising other parameters:
      *
      * ```kotlin
      * SyntaxHighlightedCode(
      *     code = snippet,
      *     language = "kotlin",
-     *     copyButton = { onClick ->
+     *     actions = { onCopy ->
      *         SyntaxHighlightedCodeDefaults.CopyButton(
-     *             onClick = onClick,
+     *             onClick = onCopy,
      *             contentDescription = stringResource(R.string.copy_code_label),
      *         )
      *     },
      * )
      * ```
      *
-     * @param onClick Action invoked when the button is clicked. Wire this to the `onClick`
-     *   parameter received from the `copyButton` slot.
+     * @param onClick Action invoked when the button is clicked. Wire this to the `onCopy`
+     *   parameter received from the `actions` slot.
      * @param modifier Modifier applied to the root [IconButton]. Use this for padding, test tags,
      *   or other positioning/customisation.
      * @param tint Icon color. Defaults to [LocalContentColor] at 70 % opacity, which resolves
@@ -163,6 +169,61 @@ public object SyntaxHighlightedCodeDefaults {
                 modifier = Modifier.size(size * 0.6f),
                 tint = tint,
             )
+        }
+    }
+
+    /**
+     * Default header layout used by [SyntaxHighlightedCode]'s `header` slot: the language label
+     * on the left, the trailing actions on the right.
+     *
+     * Pass to `header` to retain the default layout while customising individual pieces via
+     * `languageLabel` and `actions`, or call it directly from a custom `header` slot:
+     *
+     * ```kotlin
+     * SyntaxHighlightedCode(
+     *     code = snippet,
+     *     language = "kotlin",
+     *     header = { onCopy ->
+     *         SyntaxHighlightedCodeDefaults.Header(
+     *             languageLabel = { SyntaxHighlightedCodeDefaults.LanguageLabel("kotlin") },
+     *             actions = { copy -> SyntaxHighlightedCodeDefaults.CopyButton(onClick = copy) },
+     *             onCopy = onCopy,
+     *             padding = PaddingValues(horizontal = 24.dp, vertical = 12.dp),
+     *         )
+     *     },
+     * )
+     * ```
+     *
+     * Nothing is rendered when both [languageLabel] and [actions] are `null`.
+     *
+     * @param languageLabel Optional composable rendered on the left side of the row.
+     * @param actions Optional trailing actions rendered on the right side of the row, laid out
+     *   with [RowScope]. Receives the pre-wired copy action to forward to copy buttons.
+     * @param onCopy Copy action forwarded to [actions]. Wire this to any copy button's `onClick`.
+     * @param modifier Modifier applied to the root [Row]. Use this for background, test tags,
+     *   or other positioning/customisation.
+     * @param padding Padding applied around the header row. Defaults to [headerPadding].
+     */
+    @Composable
+    public fun Header(
+        languageLabel: (@Composable () -> Unit)?,
+        actions: (@Composable RowScope.(onCopy: () -> Unit) -> Unit)?,
+        onCopy: () -> Unit,
+        modifier: Modifier = Modifier,
+        padding: PaddingValues = headerPadding,
+    ) {
+        if (languageLabel != null || actions != null) {
+            Row(
+                modifier =
+                    modifier
+                        .fillMaxWidth()
+                        .padding(padding),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                languageLabel?.invoke()
+                Spacer(modifier = Modifier.weight(1f))
+                actions?.invoke(this, onCopy)
+            }
         }
     }
 

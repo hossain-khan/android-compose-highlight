@@ -6,6 +6,7 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -38,10 +39,12 @@ import androidx.compose.ui.unit.dp
 import dev.hossain.highlight.engine.HighlightException
 import dev.hossain.highlight.engine.HighlightResult
 import dev.hossain.highlight.engine.HighlightTheme
+import dev.hossain.highlight.ui.internal.CodeBlockHeader
+import dev.hossain.highlight.ui.internal.DefaultActionsSentinel
+import dev.hossain.highlight.ui.internal.DefaultHeaderSentinel
+import dev.hossain.highlight.ui.internal.DefaultLanguageLabelSentinel
 import kotlinx.coroutines.launch
 
-private val DefaultCopyButtonSentinel: (@Composable (onClick: () -> Unit) -> Unit) = { }
-private val DefaultLanguageLabelSentinel: (@Composable () -> Unit) = { }
 private val LineNumberGutterSpacing = 8.dp
 
 /**
@@ -90,7 +93,16 @@ private val LineNumberGutterSpacing = 8.dp
  *   [StreamingSyntaxHighlightedCodeDefaults.MIN_THROTTLE_MS] (150 ms).
  * @param scrollState Hoisted scroll state for horizontal scrolling.
  * @param languageLabel Optional composable for the language badge in the header. `null` hides it.
- * @param copyButton Optional composable for the copy button in the header. `null` hides it.
+ *   Ignored when [header] is customized.
+ * @param actions Optional composable slot for trailing header actions (copy, edit, share, etc.).
+ *   `null` hides all trailing actions. Runs with a [RowScope] receiver and receives an `onCopy`
+ *   action pre-wired to copy [code] to the system clipboard (or call [onCopyClick] if provided).
+ *   The default renders [SyntaxHighlightedCodeDefaults.CopyButton].
+ *   Ignored when [header] is customized.
+ * @param header Optional coarse-grained slot that replaces the entire header row. `null` renders
+ *   no header chrome at all. Receives an `onCopy` action pre-wired to copy [code] to the system
+ *   clipboard (or call [onCopyClick] if provided). When customized, [languageLabel] and
+ *   [actions] are ignored. The default delegates to [SyntaxHighlightedCodeDefaults.Header].
  * @param onCopyClick Optional custom copy callback. When `null`, copies to the system clipboard.
  * @param onHighlightComplete Optional callback invoked with [HighlightResult] when highlighting succeeds.
  * @param onError Optional callback invoked with [HighlightException] when highlighting fails.
@@ -110,7 +122,8 @@ public fun StreamingSyntaxHighlightedCode(
     scrollState: ScrollState = rememberScrollState(),
     languageLabel: (@Composable () -> Unit)? =
         if (language.isNotBlank()) DefaultLanguageLabelSentinel else null,
-    copyButton: (@Composable (onClick: () -> Unit) -> Unit)? = DefaultCopyButtonSentinel,
+    actions: (@Composable RowScope.(onCopy: () -> Unit) -> Unit)? = DefaultActionsSentinel,
+    header: (@Composable (onCopy: () -> Unit) -> Unit)? = DefaultHeaderSentinel,
     onCopyClick: ((String) -> Unit)? = null,
     onHighlightComplete: ((HighlightResult) -> Unit)? = null,
     onError: ((HighlightException) -> Unit)? = null,
@@ -133,32 +146,6 @@ public fun StreamingSyntaxHighlightedCode(
 
     val themedCodeStyle = remember(theme, style) { style.textStyle.copy(color = textColor) }
     val themedLineNumStyle = remember(theme, style) { style.textStyle.copy(color = lineNumberColor) }
-
-    val effectiveLanguageLabel: (@Composable () -> Unit)? =
-        remember(languageLabel, language) {
-            when {
-                languageLabel === DefaultLanguageLabelSentinel -> {
-                    { SyntaxHighlightedCodeDefaults.LanguageLabel(language = language) }
-                }
-
-                else -> {
-                    languageLabel
-                }
-            }
-        }
-
-    val effectiveCopyButton: (@Composable (onClick: () -> Unit) -> Unit)? =
-        remember(copyButton, style.copyButtonSize) {
-            when {
-                copyButton === DefaultCopyButtonSentinel -> {
-                    { onClick: () -> Unit -> SyntaxHighlightedCodeDefaults.CopyButton(onClick = onClick, size = style.copyButtonSize) }
-                }
-
-                else -> {
-                    copyButton
-                }
-            }
-        }
 
     if (LocalInspectionMode.current) {
         Surface(
@@ -190,6 +177,21 @@ public fun StreamingSyntaxHighlightedCode(
 
     val clipboard = LocalClipboard.current
     val scope = rememberCoroutineScope()
+    val onCopyAction: () -> Unit =
+        remember(code, onCopyClick, clipboard, scope) {
+            {
+                val handler = onCopyClick
+                if (handler != null) {
+                    handler(code)
+                } else {
+                    scope.launch {
+                        clipboard.setClipEntry(
+                            ClipEntry(ClipData.newPlainText("code", code)),
+                        )
+                    }
+                }
+            }
+        }
 
     var previousCode by rememberSaveable { mutableStateOf(code) }
     var previousLanguage by rememberSaveable { mutableStateOf(language) }
@@ -211,32 +213,15 @@ public fun StreamingSyntaxHighlightedCode(
         contentColor = textColor,
     ) {
         Column {
-            if (effectiveLanguageLabel != null || effectiveCopyButton != null) {
-                Row(
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(style.headerPadding),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    effectiveLanguageLabel?.invoke()
-                    Spacer(modifier = Modifier.weight(1f))
-                    if (effectiveCopyButton != null) {
-                        effectiveCopyButton {
-                            val handler = onCopyClick
-                            if (handler != null) {
-                                handler(code)
-                            } else {
-                                scope.launch {
-                                    clipboard.setClipEntry(
-                                        ClipEntry(ClipData.newPlainText("code", code)),
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+            // Header: language badge + actions (or a fully custom header slot)
+            CodeBlockHeader(
+                language = language,
+                style = style,
+                onCopy = onCopyAction,
+                languageLabel = languageLabel,
+                actions = actions,
+                header = header,
+            )
 
             Box(modifier = Modifier.horizontalScroll(scrollState)) {
                 SelectionContainer {

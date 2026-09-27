@@ -129,9 +129,9 @@ internal fun LargeFileSection(
                         timings = result.timings
                     },
                     onCopyClick = onCopyClick,
-                    copyButton = { onClick ->
+                    actions = { onCopy ->
                         SyntaxHighlightedCodeDefaults.CopyButton(
-                            onClick = onClick,
+                            onClick = onCopy,
                             contentDescription = "Copy code",
                         )
                     },

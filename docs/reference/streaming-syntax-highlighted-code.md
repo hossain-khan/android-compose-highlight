@@ -66,7 +66,10 @@ Unlike `SyntaxHighlightedCode` (which uses fade-in animations and resets in-flig
 - `minThrottleMs` - Minimum interval in milliseconds between consecutive newline-triggered highlight runs. Defaults to `StreamingSyntaxHighlightedCodeDefaults.MIN_THROTTLE_MS` (150 ms).
 - `scrollState` - Hoisted horizontal `ScrollState`.
 - `languageLabel` - Optional composable slot for the language badge in the header (`null` to hide).
-- `copyButton` - Optional composable slot for the copy button in the header (`null` to hide).
+- `actions` - Optional `RowScope` slot for trailing header actions with a pre-wired `onCopy` action (`null` to hide the
+  default copy button). Replaces the removed `copyButton` parameter.
+- `header` - Optional coarse-grained slot replacing the entire header row (`null` for no header chrome). When set,
+  `languageLabel` and `actions` are ignored.
 - `onCopyClick` - Optional callback when the copy button is clicked.
 - `onHighlightComplete` - Optional callback invoked with `HighlightResult` on successful highlight cycle.
 - `onError` - Optional callback invoked with `HighlightException` on failure.

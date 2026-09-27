@@ -93,7 +93,7 @@ class StreamingSyntaxHighlightedCodeRobolectricTest {
                 StreamingSyntaxHighlightedCode(
                     code = "val x = 42",
                     language = "kotlin",
-                    copyButton = null,
+                    actions = null,
                 )
             }
         }
