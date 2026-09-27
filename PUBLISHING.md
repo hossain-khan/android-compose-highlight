@@ -58,6 +58,11 @@ The workflow maps these to `ORG_GRADLE_PROJECT_*` environment variables that the
 
 ## Releasing a new version
 
+> [!IMPORTANT]
+> **Manual Execution Only:** The GitHub Actions publish workflow (`publish.yml`) must always be triggered
+> manually by the repository owner (first in dry-run mode, then real publish). **AI coding agents must NEVER
+> trigger this workflow on their own.**
+
 ### Step 1 - Bump the version
 
 Use the release script to update all version references atomically:
