@@ -13,6 +13,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Slider
@@ -126,14 +127,14 @@ internal fun StylingSection(
             } else if (showMultipleActions) {
                 // Demo the actions slot with multiple trailing buttons: edit, share, copy.
                 { onCopy ->
-                    androidx.compose.material3.IconButton(onClick = { onActionMessage("Edit action clicked") }) {
+                    IconButton(onClick = { onActionMessage("Edit action clicked") }) {
                         Icon(
                             imageVector = ImageVector.vectorResource(R.drawable.edit_square_24dp),
                             contentDescription = "Edit code",
                             modifier = Modifier.size(style.copyButtonSize * 0.6f),
                         )
                     }
-                    androidx.compose.material3.IconButton(onClick = { onActionMessage("Share action clicked") }) {
+                    IconButton(onClick = { onActionMessage("Share action clicked") }) {
                         Icon(
                             imageVector = ImageVector.vectorResource(R.drawable.share_24dp),
                             contentDescription = "Share code",
@@ -144,7 +145,7 @@ internal fun StylingSection(
                 }
             } else if (useCustomCopyIcon) {
                 { onCopy ->
-                    androidx.compose.material3.IconButton(
+                    IconButton(
                         onClick = onCopy,
                         modifier = Modifier.size(style.copyButtonSize),
                     ) {

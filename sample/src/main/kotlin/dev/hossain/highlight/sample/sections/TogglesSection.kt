@@ -9,8 +9,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -40,7 +42,7 @@ internal fun TogglesSection(onActionMessage: (String) -> Unit = {}) {
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         SubSectionHeader("languageLabel - rich custom label")
-        androidx.compose.material3.Text(
+        Text(
             text = "The slot accepts any @Composable - here is an example with a custom label, icon, and metadata badge.",
             style =
                 androidx.compose.ui.text
@@ -55,7 +57,7 @@ internal fun TogglesSection(onActionMessage: (String) -> Unit = {}) {
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
-                    androidx.compose.material3.Text(
+                    Text(
                         text = "Kotlin",
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Bold,
@@ -66,7 +68,7 @@ internal fun TogglesSection(onActionMessage: (String) -> Unit = {}) {
                         modifier = Modifier.size(14.dp),
                         tint = MaterialTheme.colorScheme.primary,
                     )
-                    androidx.compose.material3.Text(
+                    Text(
                         text = "42 likes",
                         fontSize = 12.sp,
                         color = LocalContentColor.current.copy(alpha = 0.6f),
@@ -83,7 +85,7 @@ internal fun TogglesSection(onActionMessage: (String) -> Unit = {}) {
             language = "kotlin",
             modifier = Modifier.fillMaxWidth(),
             actions = { onCopy ->
-                androidx.compose.material3.IconButton(onClick = onCopy) {
+                IconButton(onClick = onCopy) {
                     Icon(
                         imageVector = ImageVector.vectorResource(R.drawable.copy_content_alt_rounded),
                         modifier = Modifier.size(16.dp),
@@ -101,7 +103,7 @@ internal fun TogglesSection(onActionMessage: (String) -> Unit = {}) {
             language = "kotlin",
             modifier = Modifier.fillMaxWidth(),
             actions = { onCopy ->
-                androidx.compose.material3.IconButton(
+                IconButton(
                     onClick = onCopy,
                     modifier = Modifier.size(56.dp),
                 ) {
@@ -158,14 +160,14 @@ internal fun TogglesSection(onActionMessage: (String) -> Unit = {}) {
             language = "kotlin",
             modifier = Modifier.fillMaxWidth(),
             actions = { onCopy ->
-                androidx.compose.material3.IconButton(onClick = { onActionMessage("Edit action clicked") }) {
+                IconButton(onClick = { onActionMessage("Edit action clicked") }) {
                     Icon(
                         imageVector = ImageVector.vectorResource(R.drawable.edit_square_24dp),
                         modifier = Modifier.size(16.dp),
                         contentDescription = "Edit",
                     )
                 }
-                androidx.compose.material3.IconButton(onClick = { onActionMessage("Share action clicked") }) {
+                IconButton(onClick = { onActionMessage("Share action clicked") }) {
                     Icon(
                         imageVector = ImageVector.vectorResource(R.drawable.share_24dp),
                         modifier = Modifier.size(16.dp),
@@ -196,14 +198,14 @@ internal fun TogglesSection(onActionMessage: (String) -> Unit = {}) {
                         modifier = Modifier.size(14.dp),
                         contentDescription = null,
                     )
-                    androidx.compose.material3.Text(
+                    Text(
                         text = "MainActivity.kt",
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.padding(start = 6.dp),
                     )
                     Spacer(modifier = Modifier.weight(1f))
-                    androidx.compose.material3.IconButton(
+                    IconButton(
                         onClick = { onActionMessage("Edit action clicked") },
                         modifier = Modifier.size(28.dp),
                     ) {
@@ -213,7 +215,7 @@ internal fun TogglesSection(onActionMessage: (String) -> Unit = {}) {
                             contentDescription = "Edit",
                         )
                     }
-                    androidx.compose.material3.IconButton(
+                    IconButton(
                         onClick = { onActionMessage("Share action clicked") },
                         modifier = Modifier.size(28.dp),
                     ) {
