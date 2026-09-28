@@ -205,6 +205,8 @@ part of the supported public surface.
 ```
 Do not commit if any of these fail.
 
+**README code snippet validation via sample app:** The sample app contains a `Quick Start` tab (`ReadmeQuickStartSection.kt`) located just before the `Advanced` tab that executes the exact code snippet published in `README.md`. Whenever the `README.md` code snippet is updated (or whenever changes to library composables might affect the snippet), keep `ReadmeQuickStartSection.kt` in sync and use it to validate that the snippet compiles cleanly and runs interactively.
+
 **Git tags must not use a `v` prefix.** Use `0.3.0`, not `v0.3.0`. Maven Central uses the tag as the dependency version (via `-PVERSION_NAME=<tag>` in the publish workflow), so the version string consumers write in their `build.gradle.kts` matches the tag exactly.
 
 **Before tagging a release - use the release script to update all version references atomically:**

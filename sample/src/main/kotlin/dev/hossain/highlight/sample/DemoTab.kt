@@ -16,8 +16,6 @@ internal sealed class DemoTab(
 
     data object Languages : DemoTab("Languages")
 
-    data object QuickStart : DemoTab("Quick Start")
-
     data object Styling : DemoTab("Styling")
 
     data object Typography : DemoTab("Typography")
@@ -34,6 +32,8 @@ internal sealed class DemoTab(
 
     data object AllThemes : DemoTab("All Themes")
 
+    data object QuickStart : DemoTab("Quick Start")
+
     data object Advanced : DemoTab("Advanced")
 
     data object Engine : DemoTab("Engine")
@@ -48,7 +48,6 @@ internal sealed class DemoTab(
         val all by lazy {
             listOf(
                 Languages,
-                QuickStart,
                 Styling,
                 Typography,
                 Toggles,
@@ -61,6 +60,7 @@ internal sealed class DemoTab(
                 LiveEditor,
                 Streaming,
                 LargeFile,
+                QuickStart,
                 Advanced,
                 Engine,
             )

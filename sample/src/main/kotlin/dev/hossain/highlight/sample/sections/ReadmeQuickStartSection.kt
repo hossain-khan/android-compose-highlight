@@ -77,7 +77,9 @@ internal fun ReadmeQuickStartSection() {
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = "Runs the exact code snippet published in README.md.",
+                        text =
+                            "Runs the exact code snippet published in README.md for validation purposes " +
+                                "to ensure it compiles and functions correctly.",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
