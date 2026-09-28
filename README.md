@@ -67,9 +67,9 @@ HighlightThemeProvider(
 
 See it in action in the <img alt="google-play" src="https://github.com/user-attachments/assets/18725aa7-ea0b-4d6d-962a-e0358703041c" height="14"> [CodeMateX](https://play.google.com/store/apps/details?id=dev.hossain.codematex&pcampaignid=web_share) app's code block settings.
 
-<img width="2560" height="1600" alt="Demo Settings Screen for Compose Highlight Code Block Settings" src="https://github.com/user-attachments/assets/d9aac6fd-9e64-4b67-8958-7f87b897c1a3" />
+<!--img width="2560" height="1600" alt="Demo Settings Screen for Compose Highlight Code Block Settings" src="https://github.com/user-attachments/assets/d9aac6fd-9e64-4b67-8958-7f87b897c1a3" /-->
 
-
+<img width="1784" height="1120" alt="CodeMateX Demo" src="https://github.com/user-attachments/assets/e04b5bd0-3832-4321-859f-73b77a767066" />
 
 ## Links
 
