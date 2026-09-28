@@ -53,6 +53,7 @@ import dev.hossain.highlight.sample.sections.LanguageDiscoverabilitySection
 import dev.hossain.highlight.sample.sections.LargeFileSection
 import dev.hossain.highlight.sample.sections.LiveEditorSection
 import dev.hossain.highlight.sample.sections.PlaceholderSection
+import dev.hossain.highlight.sample.sections.ReadmeQuickStartSection
 import dev.hossain.highlight.sample.sections.SectionHeader
 import dev.hossain.highlight.sample.sections.StreamingSection
 import dev.hossain.highlight.sample.sections.StylingSection
@@ -256,6 +257,10 @@ internal fun SampleScreen(viewModel: SampleViewModel = viewModel()) {
                                     )
                                 }
                             }
+                        }
+
+                        DemoTab.QuickStart -> {
+                            item { ReadmeQuickStartSection() }
                         }
 
                         DemoTab.Styling -> {
