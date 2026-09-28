@@ -259,10 +259,6 @@ internal fun SampleScreen(viewModel: SampleViewModel = viewModel()) {
                             }
                         }
 
-                        DemoTab.QuickStart -> {
-                            item { ReadmeQuickStartSection() }
-                        }
-
                         DemoTab.Styling -> {
                             item {
                                 StylingSection(
@@ -299,6 +295,10 @@ internal fun SampleScreen(viewModel: SampleViewModel = viewModel()) {
 
                         DemoTab.AllThemes -> {
                             item { AllThemesSection() }
+                        }
+
+                        DemoTab.QuickStart -> {
+                            item { ReadmeQuickStartSection() }
                         }
 
                         DemoTab.Advanced -> {
