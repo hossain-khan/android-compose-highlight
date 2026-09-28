@@ -3,12 +3,30 @@ name: Android Release Build
 # Workflow that builds a signed release APK for the sample app.
 # Triggers:
 #   1. When a GitHub release is published - automatically attaches APK to the release.
-#   2. Manually via workflow_dispatch - useful for verifying the workflow works correctly.
+#   2. Manually via workflow_dispatch - builds on demand; optionally attaches or replaces the APK on a target release.
 
 on:
   release:
     types: [published]
   workflow_dispatch:
+    inputs:
+      git_ref:
+        description: 'Source code ref to checkout and build (e.g. main, a branch, tag, or SHA). Leave empty to use the branch you triggered from (typically main for latest changes).'
+        required: false
+        default: ''
+      release_tag:
+        description: 'Destination GitHub release tag to attach the APK to (e.g. 0.39.0). Leave empty if you only want to build and test the APK artifact without uploading to a release.'
+        required: false
+        default: ''
+      apk_name_suffix:
+        description: 'Optional suffix appended to APK filename before extension (e.g. enter -SNAPSHOT to produce highlight-v0.39.0-SNAPSHOT.apk). Leave empty for standard release naming.'
+        required: false
+        default: ''
+      clobber:
+        description: 'Replace existing APK asset on the release if one already exists with the same filename.'
+        required: false
+        type: boolean
+        default: true
 
 jobs:
   build-release-apk:
@@ -20,6 +38,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v7.0.1
+        with:
+          ref: ${{ inputs.git_ref != '' && inputs.git_ref || github.ref }}
 
       - name: Set up JDK 17
         uses: actions/setup-java@v6.0.1
@@ -42,27 +62,41 @@ jobs:
           echo "VERSION=$VERSION_NAME" >> "$GITHUB_OUTPUT"
           echo "Sample app version: $VERSION_NAME"
 
-      - name: Rename APK
+      - name: Determine APK Filename and Target Tag
+        id: config
         run: |
+          SUFFIX="${{ inputs.apk_name_suffix }}"
+          APK_BASENAME="highlight-v${{ steps.version.outputs.VERSION }}${SUFFIX}.apk"
           mkdir -p artifact
-          cp sample/build/outputs/apk/release/sample-release.apk \
-            artifact/highlight-v${{ steps.version.outputs.VERSION }}.apk
-          echo "APK renamed to: highlight-v${{ steps.version.outputs.VERSION }}.apk"
+          cp sample/build/outputs/apk/release/sample-release.apk "artifact/$APK_BASENAME"
+          echo "APK_FILE=artifact/$APK_BASENAME" >> "$GITHUB_OUTPUT"
+          echo "APK_BASENAME=$APK_BASENAME" >> "$GITHUB_OUTPUT"
+          echo "APK prepared: artifact/$APK_BASENAME"
+
+          if [ "${{ github.event_name }}" = "release" ]; then
+            echo "TARGET_TAG=${{ github.ref_name }}" >> "$GITHUB_OUTPUT"
+          elif [ -n "${{ inputs.release_tag }}" ]; then
+            echo "TARGET_TAG=${{ inputs.release_tag }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "TARGET_TAG=" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v7.0.1
         with:
           name: highlight-apk
-          path: artifact/highlight-v${{ steps.version.outputs.VERSION }}.apk
+          path: ${{ steps.config.outputs.APK_FILE }}
           retention-days: 90
 
       - name: Attach APK to GitHub Release
-        if: github.event_name == 'release'
+        if: steps.config.outputs.TARGET_TAG != ''
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          APK_FILE="artifact/highlight-v${{ steps.version.outputs.VERSION }}.apk"
+          TARGET_TAG="${{ steps.config.outputs.TARGET_TAG }}"
+          APK_FILE="${{ steps.config.outputs.APK_FILE }}"
+          CLOBBER_FLAG="${{ inputs.clobber != false && '--clobber' || '' }}"
 
-          gh release upload "${{ github.ref_name }}" "$APK_FILE" --clobber
-          echo "Successfully attached $(basename "$APK_FILE") to release ${{ github.ref_name }}"
+          gh release upload "$TARGET_TAG" "$APK_FILE" $CLOBBER_FLAG
+          echo "Successfully attached $(basename "$APK_FILE") to release $TARGET_TAG"
