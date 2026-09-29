@@ -16,7 +16,7 @@ sample/
 │       ├── MainActivity.kt         # Entry point; wraps SampleScreen in HighlightThemeProvider
 │       ├── SampleScreen.kt         # Top-level screen: tab bar + per-tab content routing
 │       ├── SampleViewModel.kt      # Manages sample app state and configuration
-│       ├── DemoTab.kt              # Sealed class for the 9 demo tabs (type-safe routing)
+│       ├── DemoTab.kt              # Sealed class for the 10 demo tabs (type-safe routing)
 │       ├── SampleData.kt           # loadCodeSamples(), loadThemePairs(), KOTLIN_SNIPPET, PYTHON_SNIPPET
 │       ├── info/                   # Info banner components
 │       │   └── InfoBanner.kt
@@ -28,8 +28,9 @@ sample/
 │       │   ├── LiveEditorSection.kt    # Debounced inline code editor
 │       │   ├── StreamingSection.kt     # Real-time token streaming with ticker stats
 │       │   ├── LanguageCatalogSection.kt # Languages, engine info, and auto-detection playground
+│       │   ├── LargeFileSection.kt     # Production-scale file benchmark (~71 KB JS)
 │       │   ├── ReadmeQuickStartSection.kt # Validates README.md snippet compiles and runs
-│       │   └── AdvancedSection.kt      # Large file benchmark, dual-theme, bare Text(), callbacks
+│       │   └── AdvancedSection.kt      # Dual-theme caching, bare Text(), callbacks, low-level APIs
 │       └── perf/                   # Separate performance-benchmark screen
 │           ├── PerfActivity.kt
 │           └── PerfScreen.kt
@@ -46,8 +47,9 @@ sample/
 | **Live Editor** | Interactive code editing using `SyntaxHighlightedTextEditor` |
 | **LLM/Streaming** | Real-time progressive rendering using `StreamingSyntaxHighlightedCode` |
 | **Languages & Engine** | Static language catalog, file extensions, engine info, and `highlightAuto` playground |
+| **Large File** | Production-scale file highlighting (~71.5 KB JS) with latency stage breakdown |
 | **Quick Start** | Validates that the exact `README.md` getting-started code snippet compiles and runs |
-| **Advanced & Perf** | Large file benchmark, dual-theme caching, bare Compose `Text()`, callbacks, placeholders |
+| **Advanced** | Dual-theme caching, bare Compose `Text()`, callbacks, placeholders, low-level APIs |
 
 ## Adding a language sample
 

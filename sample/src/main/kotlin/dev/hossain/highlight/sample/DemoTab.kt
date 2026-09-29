@@ -17,9 +17,11 @@ internal sealed class DemoTab(
 
     data object LanguageCatalog : DemoTab("Languages & Engine")
 
+    data object LargeFile : DemoTab("Large File")
+
     data object QuickStart : DemoTab("Quick Start")
 
-    data object Advanced : DemoTab("Advanced & Perf")
+    data object Advanced : DemoTab("Advanced")
 
     companion object {
         val all by lazy {
@@ -31,6 +33,7 @@ internal sealed class DemoTab(
                 LiveEditor,
                 Streaming,
                 LanguageCatalog,
+                LargeFile,
                 QuickStart,
                 Advanced,
             )

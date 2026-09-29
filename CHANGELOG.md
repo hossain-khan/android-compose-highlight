@@ -6,14 +6,15 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
-- **Consolidated sample app demo tabs into 9 focused hubs** - Streamlined the sample app from 16 scattered
-  tabs into 9 dedicated feature hubs (#539). Merged `Styling`, `Typography`, and `Toggles` into an interactive
+- **Consolidated sample app demo tabs into 10 focused hubs** - Streamlined the sample app from 16 scattered
+  tabs into 10 dedicated feature hubs (#539). Merged `Styling`, `Typography`, and `Toggles` into an interactive
   `Styling` playground with real-time typography slider controls and custom chrome demos (macOS title bar,
   tabbed file switcher, headerless card). Merged `ThemeDiscovery` and `AllThemes` into a unified `Theme Gallery`
   hub with segmented browsing between 8 built-in themes and 200+ asset themes. Merged `LanguageDiscoverability`
-  and `EngineInfo` into `Languages & Engine` with an interactive `highlightAuto` playground. Merged `LargeFile`,
-  `AdvancedEngine`, `Callbacks`, and `Placeholder` into `Advanced & Perf` with large file latency benchmarks,
-  dual-theme caching, bare `Text()` with `rememberHighlightedCode`, and lifecycle hooks.
+  and `EngineInfo` into `Languages & Engine` with an interactive `highlightAuto` playground. Kept `Large File`
+  as a dedicated benchmark tab (~71 KB JS) to prevent 2,000+ line blocks from crowding other demos. Merged
+  `AdvancedEngine`, `Callbacks`, and `Placeholder` into `Advanced` with dual-theme caching, bare `Text()` with
+  `rememberHighlightedCode`, and lifecycle hooks.
 
 ## [0.39.0] - 2026-09-27
 

@@ -3,21 +3,11 @@ package dev.hossain.highlight.sample.sections
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Surface
@@ -28,50 +18,32 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontStyle
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import dev.hossain.highlight.engine.HighlightEngine
 import dev.hossain.highlight.engine.HighlightException
 import dev.hossain.highlight.engine.HighlightResult
 import dev.hossain.highlight.engine.HighlightTheme
-import dev.hossain.highlight.engine.HighlightTimings
 import dev.hossain.highlight.sample.KOTLIN_SNIPPET
 import dev.hossain.highlight.sample.PYTHON_SNIPPET
-import dev.hossain.highlight.sample.R
 import dev.hossain.highlight.ui.LocalHighlightTheme
 import dev.hossain.highlight.ui.SyntaxHighlightedCode
-import dev.hossain.highlight.ui.SyntaxHighlightedCodeDefaults
 import dev.hossain.highlight.ui.rememberHighlightEngine
 import dev.hossain.highlight.ui.rememberHighlightedCode
 import dev.hossain.highlight.ui.rememberHighlightedCodeBothThemes
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import kotlin.time.Duration
-
-private const val LARGE_FILE_ASSET_PATH = "large_samples/underscore-esm.js"
-private const val LARGE_FILE_LANGUAGE = "javascript"
-private const val LARGE_FILE_LABEL = "underscore-esm.js"
 
 private val DarkCodeBackground = Color(0xFF1E1E1E)
 private val LightCodeBackground = Color(0xFFFAFAFA)
@@ -79,22 +51,20 @@ private val DarkCodeText = Color(0xFFCCCCCC)
 private val LightCodeText = Color(0xFF333333)
 
 /**
- * Consolidated advanced features and performance hub:
- * 1. Large file performance benchmark with pipeline breakdown.
- * 2. Dual-theme caching via [rememberHighlightedCodeBothThemes].
- * 3. Bare Compose [Text] usage with [rememberHighlightedCode].
- * 4. Engine pre-warming and lifecycle management.
- * 5. Direct suspend engine calls outside composables.
- * 6. Event callbacks and silent failure detection.
- * 7. Placeholder slots during asynchronous load.
- * 8. Raw HTML token pipeline and error handling with [HighlightException].
+ * Consolidated advanced engine features and integration patterns:
+ * 1. Dual-theme caching via [rememberHighlightedCodeBothThemes].
+ * 2. Custom Compose integrations with bare [Text] and [rememberHighlightedCode].
+ * 3. Engine pre-warming and lifecycle management.
+ * 4. Direct suspend engine calls outside composables.
+ * 5. Event callbacks and silent failure detection.
+ * 6. Placeholder slots during asynchronous load.
+ * 7. Raw HTML token pipeline and error handling with [HighlightException].
  */
 @Composable
 internal fun AdvancedSection(
     lightTheme: HighlightTheme,
     darkTheme: HighlightTheme,
     isDark: Boolean,
-    onCopyClick: ((String) -> Unit)? = null,
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
@@ -106,89 +76,14 @@ internal fun AdvancedSection(
     ) {
         Text(
             text =
-                "Deep dive into advanced engine capabilities, pipeline benchmarks, " +
-                    "custom Compose integrations, and low-level engine APIs.",
+                "Deep dive into advanced engine capabilities, custom Compose integrations, " +
+                    "lifecycle hooks, and low-level engine APIs.",
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
 
-        // ── 1. Large File Benchmark ──────────────────────────────────────────
-        SubSectionHeader("1. Production-Scale Performance Benchmark")
-        Text(
-            text =
-                "Highlights Underscore.js ($LARGE_FILE_LABEL, ~71 KB, 2,170+ lines) " +
-                    "to measure latency across JS evaluation, JSON unescape, HTML parsing, and theme styling.",
-            style = TextStyle(fontSize = 13.sp),
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-
-        var largeFileRunId by remember { mutableIntStateOf(0) }
-        var timings by remember(largeFileRunId) { mutableStateOf<HighlightTimings?>(null) }
-        val largeCode by produceState<String?>(initialValue = null, context) {
-            value =
-                withContext(Dispatchers.IO) {
-                    runCatching {
-                        context.assets
-                            .open(LARGE_FILE_ASSET_PATH)
-                            .bufferedReader()
-                            .use { it.readText() }
-                    }.getOrNull()
-                }
-        }
-
-        val currentLargeCode = largeCode
-        if (currentLargeCode == null) {
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(16.dp),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    CircularProgressIndicator(modifier = Modifier.size(24.dp))
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Text(
-                        text = "Loading $LARGE_FILE_LABEL...",
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                }
-            }
-        } else {
-            LargeFileMetricsCard(
-                timings = timings,
-                lineCount = currentLargeCode.lines().size,
-                charCount = currentLargeCode.length,
-                byteSize = currentLargeCode.toByteArray().size,
-                onReRun = {
-                    timings = null
-                    largeFileRunId++
-                },
-            )
-
-            key(largeFileRunId) {
-                SyntaxHighlightedCode(
-                    code = currentLargeCode,
-                    language = LARGE_FILE_LANGUAGE,
-                    modifier = Modifier.fillMaxWidth(),
-                    showLineNumbers = true,
-                    onHighlightComplete = { result -> timings = result.timings },
-                    onCopyClick = onCopyClick,
-                    actions = { onCopy ->
-                        SyntaxHighlightedCodeDefaults.CopyButton(
-                            onClick = onCopy,
-                            contentDescription = "Copy code",
-                        )
-                    },
-                )
-            }
-        }
-
-        HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
-
-        // ── 2. Dual-Theme Caching ───────────────────────────────────────────
-        SubSectionHeader("2. Instant Theme Switching (rememberHighlightedCodeBothThemes)")
+        // ── 1. Dual-Theme Caching ───────────────────────────────────────────
+        SubSectionHeader("1. Instant Theme Switching (rememberHighlightedCodeBothThemes)")
         Text(
             text =
                 "Highlights once for both light and dark in a single JavaScript pass. " +
@@ -260,12 +155,12 @@ internal fun AdvancedSection(
 
         HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
 
-        // ── 3. Bare Compose Text() with rememberHighlightedCode ──────────────
-        SubSectionHeader("3. Custom UI via Bare Text() & rememberHighlightedCode")
+        // ── 2. Bare Compose Text() with rememberHighlightedCode ──────────────
+        SubSectionHeader("2. Custom UI via Bare Text() & rememberHighlightedCode")
         Text(
             text =
-                "SyntaxHighlightedCode is optional. For custom cards, speech bubbles, or custom padding, " +
-                    "use rememberHighlightedCode() directly and pass result?.annotated to standard Compose Text().",
+                "SyntaxHighlightedCode is optional. For custom cards, speech bubbles, or custom layout, " +
+                    "use rememberHighlightedCode() directly and pass the AnnotatedString to standard Compose Text().",
             style = TextStyle(fontSize = 13.sp),
         )
 
@@ -302,8 +197,8 @@ internal fun AdvancedSection(
 
         HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
 
-        // ── 4. Engine Pre-Warming & Warm-up State ─────────────────────────────
-        SubSectionHeader("4. Engine Pre-Warming & Lifecycle")
+        // ── 3. Engine Pre-Warming & Warm-up State ─────────────────────────────
+        SubSectionHeader("3. Engine Pre-Warming & Lifecycle")
         Text(
             text =
                 "Calling initialize() warms up the hidden WebView before user interaction. " +
@@ -372,8 +267,8 @@ internal fun AdvancedSection(
 
         HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
 
-        // ── 5. Direct Suspend Engine Calls ──────────────────────────────────
-        SubSectionHeader("5. Direct Coroutine Pipeline (engine.highlight)")
+        // ── 4. Direct Suspend Engine Calls ──────────────────────────────────
+        SubSectionHeader("4. Direct Coroutine Pipeline (engine.highlight)")
         Text(
             text =
                 "engine.highlight() can be called from ViewModels, background jobs, or repositories " +
@@ -424,8 +319,8 @@ internal fun AdvancedSection(
 
         HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
 
-        // ── 6. Event Callbacks & Silent Failure ──────────────────────────────
-        SubSectionHeader("6. Callbacks & Silent Failure Detection")
+        // ── 5. Event Callbacks & Silent Failure ──────────────────────────────
+        SubSectionHeader("5. Callbacks & Silent Failure Detection")
         Text(
             text =
                 "onHighlightComplete reports duration and tokens. " +
@@ -495,8 +390,8 @@ internal fun AdvancedSection(
 
         HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
 
-        // ── 7. Placeholders ──────────────────────────────────────────────────
-        SubSectionHeader("7. Placeholder Slots During Async Load")
+        // ── 6. Placeholders ──────────────────────────────────────────────────
+        SubSectionHeader("6. Placeholder Slots During Async Load")
         Text(
             text = "Render custom views (dimmed raw text or loading labels) while highlight computation runs.",
             style = TextStyle(fontSize = 13.sp),
@@ -521,8 +416,8 @@ internal fun AdvancedSection(
 
         HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
 
-        // ── 8. Raw Tokens Pipeline & Error Handling ──────────────────────────
-        SubSectionHeader("8. Raw highlightToHtml() & Error Handling")
+        // ── 7. Raw Tokens Pipeline & Error Handling ──────────────────────────
+        SubSectionHeader("7. Raw highlightToHtml() & Error Handling")
         Text(
             text =
                 "highlightToHtml() exposes the raw HTML token string. " +
@@ -600,192 +495,5 @@ internal fun AdvancedSection(
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun LargeFileMetricsCard(
-    timings: HighlightTimings?,
-    lineCount: Int,
-    charCount: Int,
-    byteSize: Int,
-    onReRun: () -> Unit,
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors =
-            CardDefaults.cardColors(
-                containerColor =
-                    if (timings != null) {
-                        MaterialTheme.colorScheme.secondaryContainer
-                    } else {
-                        MaterialTheme.colorScheme.surfaceVariant
-                    },
-            ),
-    ) {
-        Column(modifier = Modifier.padding(12.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    text = "Performance Metrics",
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 14.sp,
-                    color =
-                        if (timings != null) {
-                            MaterialTheme.colorScheme.onSecondaryContainer
-                        } else {
-                            MaterialTheme.colorScheme.onSurfaceVariant
-                        },
-                )
-
-                FilledTonalButton(
-                    onClick = onReRun,
-                    enabled = timings != null,
-                ) {
-                    Icon(
-                        imageVector = ImageVector.vectorResource(R.drawable.readiness_score_24dp),
-                        contentDescription = "Re-run highlight pass",
-                        modifier = Modifier.size(16.dp),
-                    )
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text(text = "Re-highlight", fontSize = 12.sp)
-                }
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                MetricChip(
-                    icon = ImageVector.vectorResource(R.drawable.timer_24dp),
-                    value = timings?.total?.inWholeMilliseconds?.let { "$it ms" } ?: "Working...",
-                    label = "Total time",
-                )
-                MetricChip(
-                    icon = ImageVector.vectorResource(R.drawable.format_line_spacing_24dp),
-                    value = "$lineCount",
-                    label = "Lines",
-                )
-                MetricChip(
-                    icon = ImageVector.vectorResource(R.drawable.type_specimen_24dp),
-                    value = "$charCount",
-                    label = "Characters",
-                )
-                MetricChip(
-                    icon = ImageVector.vectorResource(R.drawable.code_xml_24dp),
-                    value = "${byteSize / 1024} KB",
-                    label = "File size",
-                )
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-            HorizontalDivider(
-                color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.15f),
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-
-            if (timings != null) {
-                Text(
-                    text = "Pipeline Stage Breakdown",
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.7f),
-                    modifier = Modifier.padding(bottom = 4.dp),
-                )
-                PipelineRow(label = "JS Bridge (evaluateJavascript)", duration = timings.jsBridge)
-                PipelineRow(label = "JSON Unescape pass", duration = timings.jsonUnescape)
-                PipelineRow(label = "HTML Parse to AnnotatedString", duration = timings.htmlParse)
-                if (timings.themeParse > Duration.ZERO) {
-                    PipelineRow(
-                        label = "Theme CSS parse (initial load)",
-                        duration = timings.themeParse,
-                        highlight = true,
-                    )
-                }
-            } else {
-                Column(
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 4.dp),
-                ) {
-                    LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = "Highlighting 2,170+ lines of JavaScript...",
-                        fontSize = 11.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun PipelineRow(
-    label: String,
-    duration: Duration,
-    highlight: Boolean = false,
-) {
-    val ms = duration.inWholeMilliseconds
-    val us = duration.inWholeMicroseconds
-    val msRounded = (us + 500) / 1000
-    val approxMs = if (msRounded > 0) "~${msRounded}ms" else "<1ms"
-    val valueText =
-        when {
-            ms >= 1 -> "$ms ms"
-            us >= 1 -> "${us}µs ($approxMs)"
-            else -> "${duration.inWholeNanoseconds} ns"
-        }
-    val color =
-        if (highlight) {
-            MaterialTheme.colorScheme.tertiary
-        } else {
-            MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.85f)
-        }
-
-    Row(
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .padding(vertical = 2.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-    ) {
-        Text(text = label, fontSize = 11.sp, color = color)
-        Text(text = valueText, fontSize = 11.sp, fontWeight = FontWeight.Medium, color = color)
-    }
-}
-
-@Composable
-private fun MetricChip(
-    icon: ImageVector,
-    value: String,
-    label: String,
-) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                modifier = Modifier.height(14.dp),
-                tint = MaterialTheme.colorScheme.onSecondaryContainer,
-            )
-            Text(text = value, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
-        }
-        Text(
-            text = label,
-            fontSize = 10.sp,
-            color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.6f),
-        )
     }
 }

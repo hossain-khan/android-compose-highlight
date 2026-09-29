@@ -46,6 +46,7 @@ import dev.hossain.highlight.sample.info.InfoBanner
 import dev.hossain.highlight.sample.perf.PerfActivity
 import dev.hossain.highlight.sample.sections.AdvancedSection
 import dev.hossain.highlight.sample.sections.LanguageCatalogSection
+import dev.hossain.highlight.sample.sections.LargeFileSection
 import dev.hossain.highlight.sample.sections.LiveEditorSection
 import dev.hossain.highlight.sample.sections.ReadmeQuickStartSection
 import dev.hossain.highlight.sample.sections.SectionHeader
@@ -67,7 +68,7 @@ import kotlinx.coroutines.launch
  *   Tomorrow, and Atom One theme families, demonstrating both built-in and user-provided themes.
  * - **Light/Dark toggle**: switches between the light and dark variant of the selected theme.
  *
- * Sections are organized into 9 consolidated hubs:
+ * Sections are organized into 10 focused hubs:
  * - **Languages**: highlights samples across different languages.
  * - **Styling**: interactive styling playground with typography controls and custom chrome showcase.
  * - **Themes**: exercises every [HighlightTheme] factory method (`fromCss`, `fromAsset`, `Map`).
@@ -75,8 +76,9 @@ import kotlinx.coroutines.launch
  * - **Live Editor**: interactive debounced inline editor with live syntax highlighting.
  * - **LLM/Streaming**: real-time token streaming with ticker stats.
  * - **Languages & Engine**: static language catalog, file extensions, engine info, and auto-detection playground.
+ * - **Large File**: production-scale file benchmark (~71 KB JS) with latency stage breakdown.
  * - **Quick Start**: executes the exact README.md getting-started snippet to ensure it compiles and runs.
- * - **Advanced & Perf**: large file benchmark, dual-theme caching, bare Compose Text usage, and callbacks.
+ * - **Advanced**: dual-theme caching, bare Compose Text usage, callbacks, and low-level engine APIs.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -271,6 +273,10 @@ internal fun SampleScreen(viewModel: SampleViewModel = viewModel()) {
                             item { LanguageCatalogSection() }
                         }
 
+                        DemoTab.LargeFile -> {
+                            item { LargeFileSection(onCopyClick = onCopyClick) }
+                        }
+
                         DemoTab.QuickStart -> {
                             item { ReadmeQuickStartSection() }
                         }
@@ -281,7 +287,6 @@ internal fun SampleScreen(viewModel: SampleViewModel = viewModel()) {
                                     lightTheme = activePair.light,
                                     darkTheme = activePair.dark,
                                     isDark = isDark,
-                                    onCopyClick = onCopyClick,
                                 )
                             }
                         }
