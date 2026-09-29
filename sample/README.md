@@ -16,26 +16,21 @@ sample/
 │       ├── MainActivity.kt         # Entry point; wraps SampleScreen in HighlightThemeProvider
 │       ├── SampleScreen.kt         # Top-level screen: tab bar + per-tab content routing
 │       ├── SampleViewModel.kt      # Manages sample app state and configuration
-│       ├── DemoTab.kt              # Sealed class for the 15 demo tabs (type-safe routing)
+│       ├── DemoTab.kt              # Sealed class for the 10 demo tabs (type-safe routing)
 │       ├── SampleData.kt           # loadCodeSamples(), loadThemePairs(), KOTLIN_SNIPPET, PYTHON_SNIPPET
 │       ├── info/                   # Info banner components
 │       │   └── InfoBanner.kt
 │       ├── sections/               # One file per tab - each exports a single @Composable
 │       │   ├── SectionComponents.kt    # Shared SectionHeader / SubSectionHeader
-│       │   ├── StylingSection.kt
-│       │   ├── TypographySection.kt
-│       │   ├── TogglesSection.kt
-│       │   ├── CallbacksSection.kt
-│       │   ├── PlaceholderSection.kt
-│       │   ├── ThemeCreationSection.kt
-│       │   ├── ThemeDiscoverySection.kt
-│       │   ├── AllThemesSection.kt
-│       │   ├── LanguageDiscoverabilitySection.kt
-│       │   ├── LiveEditorSection.kt
-│       │   ├── StreamingSection.kt
-│       │   ├── LargeFileSection.kt
-│       │   ├── AdvancedEngineSection.kt
-│       │   └── EngineInfoSection.kt
+│       │   ├── StylingSection.kt       # Styling playground, typography, and macOS/tab chrome
+│       │   ├── ThemeCreationSection.kt # Theme creation (fromCss, fromAsset, Map)
+│       │   ├── ThemeGallerySection.kt  # Unified browser for 8 built-in + 200+ asset themes
+│       │   ├── LiveEditorSection.kt    # Debounced inline code editor
+│       │   ├── StreamingSection.kt     # Real-time token streaming with ticker stats
+│       │   ├── LanguageCatalogSection.kt # Languages, engine info, and auto-detection playground
+│       │   ├── LargeFileSection.kt     # Production-scale file benchmark (~71 KB JS)
+│       │   ├── ReadmeQuickStartSection.kt # Validates README.md snippet compiles and runs
+│       │   └── AdvancedSection.kt      # Dual-theme caching, bare Text(), callbacks, low-level APIs
 │       └── perf/                   # Separate performance-benchmark screen
 │           ├── PerfActivity.kt
 │           └── PerfScreen.kt
@@ -46,20 +41,15 @@ sample/
 | Tab | What it shows |
 |-----|---------------|
 | **Languages** | Highlights every file from `assets/samples/` - one code block per language |
-| **Styling** | `CodeBlockStyle` variants, custom background/border, and multi-action buttons |
-| **Typography** | `CodeBlockStyle.textStyle` - font size, weight, line height |
-| **Toggles** | Visibility and slot options: line numbers, language label, trailing actions, custom header |
-| **Callbacks** | `onHighlightComplete` and `onCopyClick` in action |
-| **Placeholder** | `placeholder` slot of `SyntaxHighlightedCode` - default, dimmed text, and loading label |
-| **Themes** | `HighlightTheme` factory methods demonstrated side-by-side |
-| **Theme Discovery** | Search and filter bundled themes by category and style |
-| **All Themes** | Scrollable showcase of all bundled highlight.js themes with live preview |
-| **Lang Discover** | Language detection and manual language selection with filter chips |
+| **Styling** | `CodeBlockStyle` playground, typography slider controls, and macOS/tabs custom chrome |
+| **Themes** | Custom theme creation via `HighlightTheme.fromCss`, `fromAsset`, and `Map` |
+| **Theme Gallery** | Unified browser for 8 built-in themes (with ID resolution) and 200+ asset themes |
 | **Live Editor** | Interactive code editing using `SyntaxHighlightedTextEditor` |
 | **LLM/Streaming** | Real-time progressive rendering using `StreamingSyntaxHighlightedCode` |
+| **Languages & Engine** | Static language catalog, file extensions, engine info, and `highlightAuto` playground |
 | **Large File** | Production-scale file highlighting (~71.5 KB JS) with latency stage breakdown |
-| **Advanced** | `rememberHighlightedCodeBothThemes` for instant light/dark switching |
-| **Engine** | `HighlightEngine.highlightJsVersion` and `supportedLanguages` |
+| **Quick Start** | Validates that the exact `README.md` getting-started code snippet compiles and runs |
+| **Advanced** | Dual-theme caching, bare Compose `Text()`, callbacks, placeholders, low-level APIs |
 
 ## Adding a language sample
 

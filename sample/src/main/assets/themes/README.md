@@ -2,7 +2,7 @@
 
 This directory contains **258 minified CSS theme files** for
 [highlight.js](https://highlightjs.org/) version **11.12.0**, used by the
-`android-compose-highlight` sample app to power the **All Themes** demo tab.
+`android-compose-highlight` sample app to power the **Theme Gallery** demo tab.
 
 ## Source
 
@@ -73,6 +73,6 @@ SyntaxHighlightedCode(
 )
 ```
 
-See [`AllThemesSection.kt`](../../../kotlin/dev/hossain/highlight/sample/sections/AllThemesSection.kt)
+See [`ThemeGallerySection.kt`](../../../kotlin/dev/hossain/highlight/sample/sections/ThemeGallerySection.kt)
 for the full implementation.
 

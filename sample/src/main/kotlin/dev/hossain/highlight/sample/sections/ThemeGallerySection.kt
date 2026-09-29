@@ -10,30 +10,40 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuAnchorType
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import dev.hossain.highlight.engine.HighlightTheme
 import dev.hossain.highlight.engine.HighlightThemeDescriptor
 import dev.hossain.highlight.engine.HljsSelectors
+import dev.hossain.highlight.sample.JAVASCRIPT_EXTENDED_SNIPPET
 import dev.hossain.highlight.sample.R
 import dev.hossain.highlight.ui.SyntaxHighlightedCode
 
@@ -72,15 +82,55 @@ private enum class ThemeFilter {
     DARK,
 }
 
+private enum class GallerySubTab(
+    val label: String,
+) {
+    BUILT_IN("Built-in Themes"),
+    ALL_ASSETS("All Asset Themes"),
+}
+
 /**
- * Showcases first-party theme discovery, metadata, and persistence APIs:
- * - [HighlightTheme.bundled], [HighlightTheme.bundledLight], [HighlightTheme.bundledDark]
- * - [HighlightThemeDescriptor] metadata properties (id, displayName, isDark, isLight)
- * - [HighlightTheme.findBundledById] canonical and alias resolution
+ * Unified theme browser showcasing:
+ * 1. Curated built-in themes with metadata, ID resolution, swatches, and live preview cards.
+ * 2. Full 200+ asset themes catalog discovered at runtime from sample assets.
  */
+@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
+@Composable
+internal fun ThemeGallerySection(modifier: Modifier = Modifier) {
+    var selectedSubTab by rememberSaveable { mutableStateOf(GallerySubTab.BUILT_IN) }
+
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
+        SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+            GallerySubTab.entries.forEachIndexed { index, subTab ->
+                SegmentedButton(
+                    selected = selectedSubTab == subTab,
+                    onClick = { selectedSubTab = subTab },
+                    shape = SegmentedButtonDefaults.itemShape(index = index, count = GallerySubTab.entries.size),
+                ) {
+                    Text(
+                        text =
+                            when (subTab) {
+                                GallerySubTab.BUILT_IN -> "${subTab.label} (${HighlightTheme.bundled.size})"
+                                GallerySubTab.ALL_ASSETS -> subTab.label
+                            },
+                    )
+                }
+            }
+        }
+
+        when (selectedSubTab) {
+            GallerySubTab.BUILT_IN -> BuiltInThemesView()
+            GallerySubTab.ALL_ASSETS -> AllAssetThemesView()
+        }
+    }
+}
+
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-internal fun ThemeDiscoverySection() {
+private fun BuiltInThemesView() {
     var selectedFilter by remember { mutableStateOf(ThemeFilter.ALL) }
     var testIdInput by remember { mutableStateOf("dracula") }
 
@@ -101,14 +151,14 @@ internal fun ThemeDiscoverySection() {
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
         Text(
             text =
-                "Demonstrates the theme discovery and descriptor APIs. " +
+                "First-party theme discovery and descriptor APIs. " +
                     "Enumerate bundled themes, read metadata (display name, dark/light mode), " +
                     "and safely restore persisted themes using stable identifiers.",
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
 
-        // ── API Quick Reference ─────────────────────────────────────────────
+        // API Quick Reference
         SubSectionHeader("API Quick Reference")
         SyntaxHighlightedCode(
             code = API_USAGE_CODE,
@@ -119,7 +169,7 @@ internal fun ThemeDiscoverySection() {
 
         HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
 
-        // ── Interactive ID Resolver ─────────────────────────────────────────
+        // Interactive ID Resolver
         SubSectionHeader("Interactive ID Resolver (HighlightTheme.findBundledById)")
         OutlinedCard(modifier = Modifier.fillMaxWidth()) {
             Column(
@@ -166,7 +216,6 @@ internal fun ThemeDiscoverySection() {
                     }
                 }
 
-                // Resolution result card
                 Surface(
                     shape = RoundedCornerShape(8.dp),
                     color =
@@ -225,10 +274,9 @@ internal fun ThemeDiscoverySection() {
 
         HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
 
-        // ── Bundled Themes Catalog ──────────────────────────────────────────
+        // Bundled Themes Catalog
         SubSectionHeader("Bundled Themes Catalog (${displayedThemes.size} themes)")
 
-        // Filter chips row
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             FilterChip(
                 selected = selectedFilter == ThemeFilter.ALL,
@@ -247,7 +295,6 @@ internal fun ThemeDiscoverySection() {
             )
         }
 
-        // List of theme cards
         displayedThemes.forEach { descriptor ->
             ThemeDescriptorCard(descriptor = descriptor)
         }
@@ -264,7 +311,6 @@ private fun ThemeDescriptorCard(descriptor: HighlightThemeDescriptor) {
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            // Header row with name, badge, and ID chip
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -292,7 +338,6 @@ private fun ThemeDescriptorCard(descriptor: HighlightThemeDescriptor) {
                 ThemeModeBadge(isDark = descriptor.isDark)
             }
 
-            // Color palette swatches
             FlowRow(
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalArrangement = Arrangement.spacedBy(6.dp),
@@ -307,7 +352,6 @@ private fun ThemeDescriptorCard(descriptor: HighlightThemeDescriptor) {
                 }
             }
 
-            // Live code preview rendered in this exact theme
             SyntaxHighlightedCode(
                 code = PREVIEW_CODE_SNIPPET,
                 language = "kotlin",
@@ -315,6 +359,114 @@ private fun ThemeDescriptorCard(descriptor: HighlightThemeDescriptor) {
                 theme = theme,
             )
         }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun AllAssetThemesView() {
+    val context = LocalContext.current.applicationContext
+
+    val allThemeNames =
+        remember(context) {
+            val assets = context.assets
+            val root =
+                assets
+                    .list("themes")
+                    ?.filter { it.endsWith(".min.css") }
+                    ?.map { it.removeSuffix(".min.css") }
+                    ?: emptyList()
+            val base16 =
+                assets
+                    .list("themes/base16")
+                    ?.filter { it.endsWith(".min.css") }
+                    ?.map { "base16/${it.removeSuffix(".min.css")}" }
+                    ?: emptyList()
+            (root + base16).sorted()
+        }
+
+    var selectedThemeName by rememberSaveable { mutableStateOf("atom-one-dark") }
+    var searchQuery by remember { mutableStateOf("") }
+    var expanded by remember { mutableStateOf(false) }
+
+    val filteredThemes =
+        remember(searchQuery, allThemeNames) {
+            if (searchQuery.isEmpty()) {
+                allThemeNames
+            } else {
+                allThemeNames.filter { it.contains(searchQuery, ignoreCase = true) }
+            }
+        }
+
+    val theme =
+        remember(selectedThemeName, context) {
+            HighlightTheme.fromAsset(context, "themes/$selectedThemeName.min.css", selectedThemeName)
+        }
+
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Text(
+            text =
+                "Browse all ${allThemeNames.size} highlight.js themes included in this sample app's assets. " +
+                    "Select any theme to live-preview it.",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+
+        ExposedDropdownMenuBox(
+            expanded = expanded,
+            onExpandedChange = { expanded = it },
+        ) {
+            OutlinedTextField(
+                value = searchQuery,
+                onValueChange = {
+                    searchQuery = it
+                    expanded = true
+                },
+                label = { Text("Search theme (${allThemeNames.size} available)") },
+                placeholder = { Text(selectedThemeName) },
+                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                singleLine = true,
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryEditable),
+            )
+
+            ExposedDropdownMenu(
+                expanded = expanded && filteredThemes.isNotEmpty(),
+                onDismissRequest = {
+                    expanded = false
+                    searchQuery = ""
+                },
+            ) {
+                filteredThemes.forEach { name ->
+                    DropdownMenuItem(
+                        text = { Text(name) },
+                        onClick = {
+                            selectedThemeName = name
+                            searchQuery = ""
+                            expanded = false
+                        },
+                        contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
+                    )
+                }
+            }
+        }
+
+        Text(
+            text = "Active theme: $selectedThemeName",
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.padding(top = 4.dp),
+        )
+
+        SyntaxHighlightedCode(
+            code = JAVASCRIPT_EXTENDED_SNIPPET,
+            language = "javascript",
+            modifier = Modifier.fillMaxWidth(),
+            theme = theme,
+            showLineNumbers = true,
+        )
     }
 }
 

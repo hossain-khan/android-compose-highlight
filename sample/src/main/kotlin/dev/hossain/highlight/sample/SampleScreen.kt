@@ -42,55 +42,43 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import dev.hossain.highlight.engine.HighlightTheme
 import dev.hossain.highlight.sample.info.InfoBanner
 import dev.hossain.highlight.sample.perf.PerfActivity
-import dev.hossain.highlight.sample.sections.AdvancedEngineSection
-import dev.hossain.highlight.sample.sections.AllThemesSection
-import dev.hossain.highlight.sample.sections.CallbacksSection
-import dev.hossain.highlight.sample.sections.EngineInfoSection
-import dev.hossain.highlight.sample.sections.LanguageDiscoverabilitySection
+import dev.hossain.highlight.sample.sections.AdvancedSection
+import dev.hossain.highlight.sample.sections.LanguageCatalogSection
 import dev.hossain.highlight.sample.sections.LargeFileSection
 import dev.hossain.highlight.sample.sections.LiveEditorSection
-import dev.hossain.highlight.sample.sections.PlaceholderSection
 import dev.hossain.highlight.sample.sections.ReadmeQuickStartSection
 import dev.hossain.highlight.sample.sections.SectionHeader
 import dev.hossain.highlight.sample.sections.StreamingSection
 import dev.hossain.highlight.sample.sections.StylingSection
 import dev.hossain.highlight.sample.sections.ThemeCreationSection
-import dev.hossain.highlight.sample.sections.ThemeDiscoverySection
-import dev.hossain.highlight.sample.sections.TogglesSection
-import dev.hossain.highlight.sample.sections.TypographySection
+import dev.hossain.highlight.sample.sections.ThemeGallerySection
 import dev.hossain.highlight.ui.HighlightThemeProvider
 import dev.hossain.highlight.ui.SyntaxHighlightedCode
 import dev.hossain.highlight.ui.SyntaxHighlightedCodeDefaults
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 /**
  * Main demo screen that renders a scrollable list of syntax-highlighted code snippets.
  *
  * Uses [HighlightThemeProvider] to supply the active theme to all [SyntaxHighlightedCode]
  * composables in the tree. The top bar provides two controls:
- * - **Theme picker** (🎨): cycles between Tokyo Night (custom asset-based), GitHub, Dracula,
+ * - **Theme picker** (palette icon): cycles between Tokyo Night, GitHub, Dracula,
  *   Tomorrow, and Atom One theme families, demonstrating both built-in and user-provided themes.
  * - **Light/Dark toggle**: switches between the light and dark variant of the selected theme.
  *
- * The Tokyo Night themes are loaded from the sample app's own assets via
- * [HighlightTheme.fromAsset], showcasing that library users can bundle any Highlight.js CSS and
- * use it as a theme - they are not limited to the built-in options.
- *
- * Sections are organized into tabs:
- * - **Languages**: highlights SAMPLES across different languages (original demo).
- * - **Styling**: demonstrates [CodeBlockStyle] variants and custom style parameters.
- * - **Typography**: shows [SyntaxHighlightedCode] typography customization via [CodeBlockStyle.textStyle].
- * - **Toggles**: shows all boolean flag combinations (line numbers, language label, copy button).
- * - **Callbacks**: demonstrates `onHighlightComplete` and `onCopyClick` callbacks of [SyntaxHighlightedCode].
- * - **Themes**: exercises every [HighlightTheme] factory method.
- * - **Large File**: demonstrates highlighting performance on a 2,000+ line JavaScript library file.
- * - **Advanced**: shows [rememberHighlightedCodeBothThemes] for instant theme switching.
- * - **Engine**: shows [HighlightEngine.highlightJsVersion] and [HighlightEngine.supportedLanguages].
+ * Sections are organized into 10 focused hubs:
+ * - **Languages**: highlights samples across different languages.
+ * - **Styling**: interactive styling playground with typography controls and custom chrome showcase.
+ * - **Themes**: exercises every [HighlightTheme] factory method (`fromCss`, `fromAsset`, `Map`).
+ * - **Theme Gallery**: unified theme browser for 8 built-in themes plus 200+ asset themes.
+ * - **Live Editor**: interactive debounced inline editor with live syntax highlighting.
+ * - **LLM/Streaming**: real-time token streaming with ticker stats.
+ * - **Languages & Engine**: static language catalog, file extensions, engine info, and auto-detection playground.
+ * - **Large File**: production-scale file benchmark (~71 KB JS) with latency stage breakdown.
+ * - **Quick Start**: executes the exact README.md getting-started snippet to ensure it compiles and runs.
+ * - **Advanced**: dual-theme caching, bare Compose Text usage, callbacks, and low-level engine APIs.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -233,10 +221,6 @@ internal fun SampleScreen(viewModel: SampleViewModel = viewModel()) {
                     verticalArrangement = Arrangement.spacedBy(16.dp),
                 ) {
                     when (tabs[selectedTabIndex]) {
-                        DemoTab.LanguageDiscoverability -> {
-                            item { LanguageDiscoverabilitySection() }
-                        }
-
                         DemoTab.Languages -> {
                             item { InfoBanner() }
                             codeSamples.forEach { sample ->
@@ -269,50 +253,12 @@ internal fun SampleScreen(viewModel: SampleViewModel = viewModel()) {
                             }
                         }
 
-                        DemoTab.Typography -> {
-                            item { TypographySection() }
-                        }
-
-                        DemoTab.Toggles -> {
-                            item { TogglesSection(onActionMessage = onActionMessage) }
-                        }
-
-                        DemoTab.Callbacks -> {
-                            item { CallbacksSection() }
-                        }
-
-                        DemoTab.Placeholder -> {
-                            item { PlaceholderSection() }
-                        }
-
                         DemoTab.Themes -> {
                             item { ThemeCreationSection() }
                         }
 
-                        DemoTab.ThemeDiscovery -> {
-                            item { ThemeDiscoverySection() }
-                        }
-
-                        DemoTab.AllThemes -> {
-                            item { AllThemesSection() }
-                        }
-
-                        DemoTab.QuickStart -> {
-                            item { ReadmeQuickStartSection() }
-                        }
-
-                        DemoTab.Advanced -> {
-                            item {
-                                AdvancedEngineSection(
-                                    lightTheme = activePair.light,
-                                    darkTheme = activePair.dark,
-                                    isDark = isDark,
-                                )
-                            }
-                        }
-
-                        DemoTab.Engine -> {
-                            item { EngineInfoSection() }
+                        DemoTab.ThemeGallery -> {
+                            item { ThemeGallerySection() }
                         }
 
                         DemoTab.LiveEditor -> {
@@ -323,8 +269,26 @@ internal fun SampleScreen(viewModel: SampleViewModel = viewModel()) {
                             item { StreamingSection() }
                         }
 
+                        DemoTab.LanguageCatalog -> {
+                            item { LanguageCatalogSection() }
+                        }
+
                         DemoTab.LargeFile -> {
                             item { LargeFileSection(onCopyClick = onCopyClick) }
+                        }
+
+                        DemoTab.QuickStart -> {
+                            item { ReadmeQuickStartSection() }
+                        }
+
+                        DemoTab.Advanced -> {
+                            item {
+                                AdvancedSection(
+                                    lightTheme = activePair.light,
+                                    darkTheme = activePair.dark,
+                                    isDark = isDark,
+                                )
+                            }
                         }
                     }
                 }
