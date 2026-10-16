@@ -151,7 +151,7 @@ jobs:
 
       - name: Upload Roborazzi diff images on failure
         if: failure() && steps.changes.outputs.code == 'true'
-        uses: actions/upload-artifact@v7.0.1
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: roborazzi-diff-images
           path: |
@@ -204,7 +204,7 @@ jobs:
 
       - name: Upload Compose compiler reports
         if: steps.changes.outputs.code == 'true' || failure()
-        uses: actions/upload-artifact@v7.0.1
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: compose-compiler-reports
           path: compose-highlight/build/compose_compiler/
@@ -215,7 +215,7 @@ jobs:
 
       - name: Upload test results
         if: steps.changes.outputs.code == 'true' || failure()
-        uses: actions/upload-artifact@v7.0.1
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: test-results
           path: |
