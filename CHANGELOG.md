@@ -15,6 +15,7 @@ All notable changes to this project will be documented in this file.
   as a dedicated benchmark tab (~71 KB JS) to prevent 2,000+ line blocks from crowding other demos. Merged
   `AdvancedEngine`, `Callbacks`, and `Placeholder` into `Advanced` with dual-theme caching, bare `Text()` with
   `rememberHighlightedCode`, and lifecycle hooks.
+- **Bumped stable dependencies** - Updated Kotlin compiler plugin to `2.4.21` and AndroidX WebKit to `1.17.1`.
 
 ## [0.39.0] - 2026-09-27
 
