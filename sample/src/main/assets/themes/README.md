@@ -75,4 +75,3 @@ SyntaxHighlightedCode(
 
 See [`ThemeGallerySection.kt`](../../../kotlin/dev/hossain/highlight/sample/sections/ThemeGallerySection.kt)
 for the full implementation.
-

@@ -27,6 +27,6 @@ If you only need to re-download or refresh the sample app CSS themes from cdnjs,
 
 ## After running
 
-1. Verify the count shown in the **All Themes** tab matches the downloaded total
+1. Verify the count shown in the **Theme Gallery** tab matches the downloaded total
 2. Verify stability with `./gradlew :compose-highlight:assembleDebug :sample:assembleDebug :compose-highlight:test`
 3. Commit all new/changed/deleted `.min.css` files along with the README update
