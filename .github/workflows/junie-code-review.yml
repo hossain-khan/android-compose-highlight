@@ -1,0 +1,38 @@
+# JetBrains Junie Automated Code Review Workflow
+# Source Action: https://github.com/JetBrains/junie-github-action
+# Documentation: docs/JUNIE_AUTOMATION.md
+#
+# Automatically runs structured code review on non-draft PRs targeting 'main'.
+# Authenticated via OpenRouter BYOK (requires secrets.OPENROUTER_API_KEY).
+# Model configured via secrets.OPENROUTER_MODEL_NAME (must be without provider prefix, e.g. 'claude-sonnet-5-5').
+
+name: Junie Code Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, ready_for_review]
+    branches: [ "main" ]
+
+jobs:
+  review:
+    name: Code Review
+    if: github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+
+      - name: Run Junie Code Review
+        uses: JetBrains/junie-github-action@v1
+        with:
+          openrouter_api_key: ${{ secrets.OPENROUTER_API_KEY }}
+          model: ${{ secrets.OPENROUTER_MODEL_NAME || vars.OPENROUTER_MODEL_NAME || 'claude-sonnet-5-5' }}
+          prompt: "code-review"
+          use_single_comment: "true"

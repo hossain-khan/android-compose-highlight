@@ -71,6 +71,10 @@ See it in action in the <img alt="google-play" src="https://github.com/user-atta
 
 <img width="1784" height="1120" alt="CodeMateX Demo" src="https://github.com/user-attachments/assets/e04b5bd0-3832-4321-859f-73b77a767066" />
 
+## AI Automation 🤖
+
+This repository uses [JetBrains Junie](https://github.com/JetBrains/junie-github-action) powered by OpenRouter for automated PR code reviews and interactive issue/PR assistance. See [`docs/JUNIE_AUTOMATION.md`](docs/JUNIE_AUTOMATION.md) for full setup and usage details.
+
 ## Links
 
 - 📚 **Docs:** [github.io/android-compose-highlight/](https://hossain-khan.github.io/android-compose-highlight/)

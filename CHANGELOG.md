@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+
+- **JetBrains Junie GitHub Automation** - Added JetBrains Junie GitHub workflows (`junie.yml` and
+  `junie-code-review.yml`) with OpenRouter BYOK authentication, linked project guidelines via
+  `.junie/guidelines.md`, and documented setup and usage in `docs/JUNIE_AUTOMATION.md`.
+
 ### Changed
 
 - **Consolidated sample app demo tabs into 10 focused hubs** - Streamlined the sample app from 16 scattered
