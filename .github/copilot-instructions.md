@@ -197,6 +197,12 @@ part of the supported public surface.
 
 **Pull requests must be created in draft mode first.** When opening a PR, always create it as a draft unless the user explicitly asks for a ready-for-review PR. This applies to regular fix branches and release branches.
 
+**JetBrains Junie GitHub Action:** The repository integrates [JetBrains Junie](https://github.com/JetBrains/junie-github-action) with OpenRouter BYOK for automated code reviews and `@junie-agent` interactive tasks.
+- Details & usage: See [`docs/JUNIE_AUTOMATION.md`](../docs/JUNIE_AUTOMATION.md)
+- Workflows: `.github/workflows/junie.yml` (interactive agent) and `.github/workflows/junie-code-review.yml` (PR code review)
+- Guidelines: `.junie/guidelines.md` symlinked to `.github/copilot-instructions.md`
+- Important: Junie model identifiers must omit the provider prefix (e.g. use `claude-sonnet-5-5`, not `anthropic/claude-sonnet-5.5`).
+
 **Before every commit - verify stability.** Run the following three tasks and ensure they all pass:
 ```bash
 ./gradlew formatKotlin                          # auto-fix formatting
