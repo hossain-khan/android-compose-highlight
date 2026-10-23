@@ -213,6 +213,9 @@ dependencies {
     // This overrides the unmocked Android SDK stub at test runtime without requiring Robolectric.
     // Source: https://mvnrepository.com/artifact/org.json/json
     testImplementation(libs.json)
+    // Allows GeneratedThemesParityTest to invoke buildSrc's CssThemeParser directly against
+    // the shared CSS conformance corpus alongside the runtime ThemeParser.
+    testImplementation(files(rootProject.file("buildSrc/build/libs/buildSrc.jar")))
 
     androidTestImplementation(composeBom)
     androidTestImplementation(libs.truth)

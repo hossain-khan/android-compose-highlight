@@ -23,6 +23,14 @@ All notable changes to this project will be documented in this file.
   `rememberHighlightedCode`, and lifecycle hooks.
 - **Bumped stable dependencies** - Updated Kotlin compiler plugin to `2.4.21` and AndroidX WebKit to `1.17.1`.
 
+### Fixed
+
+- **Unified build-time and runtime CSS theme parser behavior** - Aligned `buildSrc`'s `CssThemeParser` with
+  the runtime `ThemeParser` so both interpret 8-digit hex colors in CSS `#RRGGBBAA` order, strip case-insensitive
+  `!important` suffixes, map `font-weight: bolder` and `lighter` to bold and normal, and treat
+  `font-style: oblique` as italic (#493). Added shared CSS conformance corpus tests in `GeneratedThemesParityTest`
+  and updated documentation for the 8 bundled themes and supported CSS subset.
+
 ## [0.39.0] - 2026-09-27
 
 ### Added

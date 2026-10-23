@@ -23,9 +23,27 @@ import kotlin.math.roundToInt
  * that `HtmlToAnnotatedString` uses to apply the correct color to each token when building
  * the final [androidx.compose.ui.text.AnnotatedString].
  *
- * hljs theme CSS files follow a strict, predictable flat-rule format so a regex-based parser
- * is sufficient. At-rule blocks (e.g. `@media`, `@supports`) are stripped before parsing to
- * prevent inner rules from overwriting top-level color declarations.
+ * hljs theme CSS files follow a strict, predictable flat-rule format so a lightweight
+ * recursive-descent parser is sufficient. At-rule blocks (e.g. `@media`, `@supports`) are
+ * stripped before parsing to prevent inner rules from overwriting top-level color declarations.
+ *
+ * ## Supported CSS subset
+ * - Flat top-level `selectors { declarations }` rules (standalone `.hljs` and `.hljs-*`,
+ *   plus compound dot-joined selectors like `.hljs-title.function_`).
+ * - `/* ... */` comments.
+ * - `@media` / `@supports` / `@keyframes` / `@charset` / `@import` at-rules (skipped).
+ * - Colors: 3-, 4-, 6-, and 8-digit hex (`#rgb`, `#rgba`, `#rrggbb`, `#rrggbbaa`),
+ *   comma- and space-separated `rgb()` / `rgba()`, and 21 standard CSS named colors.
+ * - `font-weight`: `bold`, `bolder`, numeric `>= 600` -> [FontWeight.Bold];
+ *   `normal`, `lighter`, numeric `< 600` -> [FontWeight.Normal].
+ * - `font-style`: `italic` and `oblique` -> [FontStyle.Italic].
+ * - Case-insensitive `!important` suffixes (stripped).
+ *
+ * ## Unsupported CSS forms (silently ignored in both build-time and runtime parsers)
+ * - Descendant and sibling combinators (e.g. `.hljs-meta .hljs-keyword`, `.hljs > a`, `+`, `~`).
+ * - Pseudo-elements and pseudo-classes (e.g. `.hljs::selection`, `.hljs:hover`).
+ * - CSS custom properties / variables (`var(--*)`) and keywords (`inherit`, `currentColor`).
+ * - Non-[SpanStyle] declarations (e.g. `text-decoration`, `opacity`, `display`, `padding`).
  */
 internal object ThemeParser {
     /**

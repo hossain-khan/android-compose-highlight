@@ -23,7 +23,7 @@ import org.robolectric.annotation.GraphicsMode
  *
  * The matrix is intentionally small (4 goldens). Theme breadth is already covered by
  * [BuiltInThemesScreenshotTest] for the read-only viewer; the colour map is shared between
- * the two composables so we don't need to re-cover all four themes here. What this file
+ * the two composables so we don't need to re-cover all eight themes here. What this file
  * pins down is editor-specific rendering: the `Surface` chrome, the `shape` + `contentPadding`
  * interaction, and the unique "plain text while highlight is loading" render state that the
  * read-only viewer doesn't have (the viewer has its own `placeholder` slot for that purpose).
