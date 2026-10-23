@@ -128,24 +128,25 @@ public fun StreamingSyntaxHighlightedCode(
     onHighlightComplete: ((HighlightResult) -> Unit)? = null,
     onError: ((HighlightException) -> Unit)? = null,
 ) {
+    val isThemeResolved = theme.isColorMapInitialized
     val backgroundColor =
-        remember(theme, style) {
-            theme.backgroundColor.takeIf { it != Color.Unspecified }
+        remember(theme, style, isThemeResolved) {
+            theme.safeBackgroundColor()?.takeIf { it != Color.Unspecified }
                 ?: style.fallbackBackgroundColor
         }
     val textColor =
-        remember(theme, style) {
-            theme.defaultTextColor.takeIf { it != Color.Unspecified }
+        remember(theme, style, isThemeResolved) {
+            theme.safeDefaultTextColor()?.takeIf { it != Color.Unspecified }
                 ?: style.fallbackTextColor
         }
     val lineNumberColor =
-        remember(theme, style) {
+        remember(theme, style, isThemeResolved) {
             style.lineNumberColor.takeIf { it != Color.Unspecified }
-                ?: (theme.defaultTextColor.takeIf { it != Color.Unspecified } ?: style.fallbackTextColor).copy(alpha = 0.4f)
+                ?: (theme.safeDefaultTextColor()?.takeIf { it != Color.Unspecified } ?: style.fallbackTextColor).copy(alpha = 0.4f)
         }
 
-    val themedCodeStyle = remember(theme, style) { style.textStyle.copy(color = textColor) }
-    val themedLineNumStyle = remember(theme, style) { style.textStyle.copy(color = lineNumberColor) }
+    val themedCodeStyle = remember(theme, style, isThemeResolved) { style.textStyle.copy(color = textColor) }
+    val themedLineNumStyle = remember(theme, style, isThemeResolved) { style.textStyle.copy(color = lineNumberColor) }
 
     if (LocalInspectionMode.current) {
         Surface(

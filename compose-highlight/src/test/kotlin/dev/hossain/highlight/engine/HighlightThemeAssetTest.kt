@@ -92,16 +92,50 @@ class HighlightThemeAssetTest {
     }
 
     @Test
-    fun `fromAsset with missing path throws on colorMap access`() {
+    fun `fromAsset with missing path throws ThemeNotFound with IOException cause on colorMap access`() {
         val theme = HighlightTheme.fromAsset(context, "nonexistent.css", "bad")
         try {
             theme.colorMap
-            org.junit.Assert.fail("Expected ThemeNotFound or IOException but colorMap access succeeded")
+            org.junit.Assert.fail("Expected ThemeNotFound but colorMap access succeeded")
         } catch (e: HighlightException.ThemeNotFound) {
-            // expected
-        } catch (e: java.io.IOException) {
-            // also acceptable - wrapped before ThemeNotFound is thrown on some paths
+            assertThat(e.message).contains("nonexistent.css")
+            assertThat(e.cause).isInstanceOf(java.io.IOException::class.java)
         }
+    }
+
+    @Test
+    fun `fromAsset with missing path does not throw on safeBackgroundColor`() {
+        val theme = HighlightTheme.fromAsset(context, "nonexistent.css", "bad")
+        // safeBackgroundColor returns null without touching colorMap
+        assertThat(theme.safeBackgroundColor()).isNull()
+        assertThat(theme.safeDefaultTextColor()).isNull()
+    }
+
+    @Test
+    fun `fromAsset with missing path throws ThemeNotFound on backgroundColor access`() {
+        val theme = HighlightTheme.fromAsset(context, "nonexistent.css", "bad")
+        try {
+            theme.backgroundColor
+            org.junit.Assert.fail("Expected ThemeNotFound but backgroundColor access succeeded")
+        } catch (e: HighlightException.ThemeNotFound) {
+            assertThat(e.message).contains("nonexistent.css")
+        }
+    }
+
+    @Test
+    fun `fromAsset with explicit colors returns immediate colors without loading asset`() {
+        val theme =
+            HighlightTheme.fromAsset(
+                context = context,
+                assetPath = "compose-highlight/themes/tomorrow.css",
+                name = "test-explicit-asset",
+                backgroundColor = Color.Yellow,
+                defaultTextColor = Color.Blue,
+            )
+        assertThat(theme.hasImmediateColors).isTrue()
+        assertThat(theme.isColorMapInitialized).isFalse()
+        assertThat(theme.safeBackgroundColor()).isEqualTo(Color.Yellow)
+        assertThat(theme.safeDefaultTextColor()).isEqualTo(Color.Blue)
     }
 
     @Test

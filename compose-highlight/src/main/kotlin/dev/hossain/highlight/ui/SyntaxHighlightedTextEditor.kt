@@ -219,17 +219,18 @@ public fun SyntaxHighlightedTextEditor(
             onError = onError,
         )
 
+    val isThemeResolved = theme.isColorMapInitialized
     val backgroundColor =
-        remember(theme) {
-            theme.backgroundColor.takeIf { it != Color.Unspecified }
+        remember(theme, isThemeResolved) {
+            theme.safeBackgroundColor()?.takeIf { it != Color.Unspecified }
                 ?: SyntaxHighlightedCodeDefaults.fallbackBackgroundColor
         }
     val textColor =
-        remember(theme) {
-            theme.defaultTextColor.takeIf { it != Color.Unspecified }
+        remember(theme, isThemeResolved) {
+            theme.safeDefaultTextColor()?.takeIf { it != Color.Unspecified }
                 ?: SyntaxHighlightedCodeDefaults.fallbackTextColor
         }
-    val themedTextStyle = remember(theme, textStyle) { textStyle.copy(color = textColor) }
+    val themedTextStyle = remember(theme, textStyle, isThemeResolved) { textStyle.copy(color = textColor) }
 
     // When the caller passes null, derive the cursor color from the theme so it stays visible on
     // both light and dark themes. BasicTextField's own default (SolidColor(Color.Black)) is

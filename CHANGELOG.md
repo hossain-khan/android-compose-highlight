@@ -25,6 +25,14 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+- **Safe asynchronous theme resolution in Compose UI** - Prevented CSS-backed themes from performing blocking
+  asset I/O or CSS parsing on the Main thread during initial composition (#485). Separated immediate base color
+  metadata from lazy token color maps, allowing built-in themes to render immediately without palette flicker
+  while custom themes fall back to documented style defaults until background resolution completes. Missing,
+  empty, or unparseable custom theme assets now report typed `HighlightException.ThemeNotFound` through `onError`
+  instead of crashing composition, and `ThemeNotFound` exceptions are preserved without being converted into
+  `HtmlParseFailed`. Added optional explicit `backgroundColor` and `defaultTextColor` overloads to
+  `HighlightTheme.fromAsset()` and `HighlightTheme.fromCss()`.
 - **Unified build-time and runtime CSS theme parser behavior** - Aligned `buildSrc`'s `CssThemeParser` with
   the runtime `ThemeParser` so both interpret 8-digit hex colors in CSS `#RRGGBBAA` order, strip case-insensitive
   `!important` suffixes, map `font-weight: bolder` and `lighter` to bold and normal, and treat

@@ -4,7 +4,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.semantics.SemanticsNode
+import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.semantics.getOrNull
 import androidx.compose.ui.test.junit4.ComposeContentTestRule
+import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import com.github.takahirom.roborazzi.RoborazziOptions
 import com.github.takahirom.roborazzi.captureRoboImage
@@ -215,34 +219,35 @@ internal fun ComposeContentTestRule.captureHighlightedScreenshot(
     // Under v2 createComposeRule's StandardTestDispatcher each hop is its own scheduler
     // turn, so one waitForIdle() is not enough.
     //
-    // The pragmatic strategy is to drain the looper repeatedly until the engine signals it
-    // has finished its hot path. We use `engine.isInitialized` (StateFlow<Boolean>) which
-    // flips to `true` once WebViewManager has completed bridge.html loading and the engine
-    // is past the WebView round-trip stages. After it flips, we keep pumping for a small
-    // additional budget so the State write + recomposition + AnimatedContent fade settle.
+    // For successful highlighting, we wait until the rendered UI node contains syntax
+    // highlight spans. Then we pump POST_INIT_STABILITY_TURNS for downstream Compose
+    // settle (State write + recomposition + AnimatedContent fade settle).
     //
-    // This replaces an earlier `repeat(200) { idleMainLooper + waitForIdle }` cap. The
-    // wall-clock timeout makes failures legible: if a future Compose BOM adds another
-    // dispatcher hop, the test fails with a clear "ComposeTimeoutException after Xms"
-    // instead of a confusing "spans = 0" symptom.
+    // For NoResponse and Failure, highlighting intentionally does not produce spans, so
+    // we directly pump stability turns.
     val deadlineMs = System.currentTimeMillis() + DRAIN_TIMEOUT_MS
-    var sawInitialized = false
+    var sawCompleted = (jsResponse !is JsResponse.Success)
     var stableTurns = 0
     while (System.currentTimeMillis() < deadlineMs) {
         ShadowLooper.idleMainLooper()
         waitForIdle()
-        if (!sawInitialized) {
-            sawInitialized = engine.isInitialized.value
-            if (sawInitialized) stableTurns = 0
+        if (!sawCompleted) {
+            sawCompleted =
+                onAllNodesWithTag(testTag)
+                    .fetchSemanticsNodes()
+                    .any { it.hasHighlightSpans() }
+            if (sawCompleted) {
+                stableTurns = 0
+            } else {
+                Thread.sleep(10)
+            }
         } else {
-            // Once the engine reports ready, pump a few more turns for downstream Compose
-            // work (State write + recomposition + AnimatedContent settle), then exit.
             stableTurns++
             if (stableTurns >= POST_INIT_STABILITY_TURNS) break
         }
     }
-    check(sawInitialized) {
-        "engine.isInitialized never flipped to true within ${DRAIN_TIMEOUT_MS}ms after the JS " +
+    check(sawCompleted) {
+        "Highlight spans were never applied to node '$testTag' within ${DRAIN_TIMEOUT_MS}ms after the JS " +
             "callback was invoked. A future Compose BOM may have added a dispatcher hop the " +
             "drain loop does not anticipate; bump DRAIN_TIMEOUT_MS or revisit the wait condition."
     }
@@ -259,4 +264,18 @@ internal fun ComposeContentTestRule.captureHighlightedScreenshot(
     )
 
     engine.destroy()
+}
+
+/**
+ * Recursively checks whether this semantics node or any of its children carries styled
+ * highlight spans in its text or editable text.
+ */
+private fun SemanticsNode.hasHighlightSpans(): Boolean {
+    val textList = config.getOrNull(SemanticsProperties.Text)
+    if (textList?.any { it.spanStyles.isNotEmpty() } == true) return true
+
+    val editableText = config.getOrNull(SemanticsProperties.EditableText)
+    if (editableText?.spanStyles?.isNotEmpty() == true) return true
+
+    return children.any { it.hasHighlightSpans() }
 }

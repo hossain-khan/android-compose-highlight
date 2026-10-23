@@ -34,17 +34,18 @@ public sealed class HighlightException(
     ) : HighlightException("JavaScript execution failed", cause)
 
     /**
-     * Thrown when a theme CSS asset is found but produces no parseable color rules
-     * (e.g. the file is empty or contains only unsupported CSS).
+     * Thrown when a theme CSS asset cannot be found or read, or produces no parseable
+     * color rules (e.g. the file is empty or contains only unsupported CSS).
      *
-     * Note: a *missing* or *unreadable* asset file throws [java.io.IOException] instead,
-     * because the error surfaces before any CSS parsing occurs.
-     *
-     * @param path The asset path that was resolved but yielded no usable color rules.
+     * @param path The asset path that failed to resolve or yielded no usable color rules.
+     * @param cause The underlying throwable that triggered this exception, if any.
      */
-    public class ThemeNotFound(
-        path: String,
-    ) : HighlightException("Theme CSS has no parseable color rules: $path")
+    public class ThemeNotFound
+        @JvmOverloads
+        public constructor(
+            path: String,
+            cause: Throwable? = null,
+        ) : HighlightException("Theme CSS has no parseable color rules: $path", cause)
 
     /**
      * Thrown when the HTML parser fails to parse the HTML returned by Highlight.js.

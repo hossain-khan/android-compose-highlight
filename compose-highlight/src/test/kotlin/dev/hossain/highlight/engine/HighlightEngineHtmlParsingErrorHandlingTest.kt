@@ -92,6 +92,30 @@ class HighlightEngineHtmlParsingErrorHandlingTest {
             assertThat(ex!!.cause).isSameInstanceAs(cause)
         }
 
+    // ----- HighlightException preserved as Result failure -----
+
+    @Test
+    fun `HighlightException ThemeNotFound is preserved, not converted to HtmlParseFailed`() =
+        runTest {
+            val ex = HighlightException.ThemeNotFound("themes/missing.css")
+
+            val result = withHtmlParsingErrorHandling<Unit> { throw ex }
+
+            assertThat(result.isFailure).isTrue()
+            assertThat(result.exceptionOrNull()).isSameInstanceAs(ex)
+        }
+
+    @Test
+    fun `HighlightException JsExecutionFailed is preserved, not converted to HtmlParseFailed`() =
+        runTest {
+            val ex = HighlightException.JsExecutionFailed(RuntimeException("js error"))
+
+            val result = withHtmlParsingErrorHandling<Unit> { throw ex }
+
+            assertThat(result.isFailure).isTrue()
+            assertThat(result.exceptionOrNull()).isSameInstanceAs(ex)
+        }
+
     // ----- success path -----
 
     @Test

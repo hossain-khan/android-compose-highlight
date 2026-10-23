@@ -376,4 +376,73 @@ class HighlightThemeTest {
         assertThat(theme.colorMap[HljsSelectors.BASE]?.background).isEqualTo(Color.Black)
         assertThat(theme.colorMap[HljsSelectors.BASE]?.color).isEqualTo(Color.White)
     }
+
+    // ----- Safe Asynchronous Theme Resolution (Issue #485) -----
+
+    @Test
+    fun `safeBackgroundColor and safeDefaultTextColor return immediate colors for built-in themes`() {
+        val theme = HighlightTheme.tomorrow()
+
+        assertThat(theme.hasImmediateColors).isTrue()
+        assertThat(theme.isColorMapInitialized).isFalse()
+        assertThat(theme.safeBackgroundColor()).isNotNull()
+        assertThat(theme.safeBackgroundColor()).isNotEqualTo(Color.Unspecified)
+        assertThat(theme.safeDefaultTextColor()).isNotNull()
+        assertThat(theme.safeDefaultTextColor()).isNotEqualTo(Color.Unspecified)
+    }
+
+    @Test
+    fun `safeBackgroundColor and safeDefaultTextColor return null for uninitialized custom CSS theme`() {
+        val theme = HighlightTheme.fromCss(sampleCss, "uninitialized-custom")
+
+        assertThat(theme.hasImmediateColors).isFalse()
+        assertThat(theme.isColorMapInitialized).isFalse()
+        // Accessing safe colors must NOT initialize the colorMap
+        assertThat(theme.safeBackgroundColor()).isNull()
+        assertThat(theme.safeDefaultTextColor()).isNull()
+        assertThat(theme.isColorMapInitialized).isFalse()
+    }
+
+    @Test
+    fun `safeBackgroundColor and safeDefaultTextColor return explicit colors for custom CSS theme`() {
+        val theme =
+            HighlightTheme.fromCss(
+                cssText = sampleCss,
+                name = "explicit-custom",
+                backgroundColor = Color.DarkGray,
+                defaultTextColor = Color.LightGray,
+            )
+
+        assertThat(theme.hasImmediateColors).isTrue()
+        assertThat(theme.isColorMapInitialized).isFalse()
+        assertThat(theme.safeBackgroundColor()).isEqualTo(Color.DarkGray)
+        assertThat(theme.safeDefaultTextColor()).isEqualTo(Color.LightGray)
+    }
+
+    @Test
+    fun `safeBackgroundColor returns parsed color once colorMap has been initialized`() {
+        val theme = HighlightTheme.fromCss(sampleCss, "lazy-custom")
+        assertThat(theme.safeBackgroundColor()).isNull()
+
+        // Initialize colorMap
+        theme.colorMap
+        assertThat(theme.isColorMapInitialized).isTrue()
+
+        assertThat(theme.safeBackgroundColor()).isEqualTo(Color(0xFFffffff.toInt()))
+        assertThat(theme.safeDefaultTextColor()).isEqualTo(Color(0xFF4d4d4c))
+    }
+
+    @Test
+    fun `fromCss with explicit colors overrides hljs base rule in parsed colorMap`() {
+        val theme =
+            HighlightTheme.fromCss(
+                cssText = sampleCss,
+                name = "override-css",
+                backgroundColor = Color.Magenta,
+                defaultTextColor = Color.Cyan,
+            )
+
+        assertThat(theme.colorMap[HljsSelectors.BASE]?.background).isEqualTo(Color.Magenta)
+        assertThat(theme.colorMap[HljsSelectors.BASE]?.color).isEqualTo(Color.Cyan)
+    }
 }
