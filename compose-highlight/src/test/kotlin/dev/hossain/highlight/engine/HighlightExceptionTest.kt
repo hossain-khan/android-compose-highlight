@@ -81,6 +81,13 @@ class HighlightExceptionTest {
         assertThat(ex.cause).isNull()
     }
 
+    @Test
+    fun `ThemeNotFound preserves cause`() {
+        val cause = java.io.FileNotFoundException("missing asset")
+        val ex = HighlightException.ThemeNotFound("any/path.css", cause)
+        assertThat(ex.cause).isSameInstanceAs(cause)
+    }
+
     // ----- HtmlParseFailed -----
 
     @Test

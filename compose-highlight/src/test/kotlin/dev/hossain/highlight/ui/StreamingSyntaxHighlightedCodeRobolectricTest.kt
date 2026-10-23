@@ -233,4 +233,25 @@ class StreamingSyntaxHighlightedCodeRobolectricTest {
 
         assertThat(scrollState?.value).isEqualTo(0)
     }
+
+    @Test
+    fun `composition does not crash when theme asset does not exist`() {
+        composeTestRule.setContent {
+            val context = androidx.compose.ui.platform.LocalContext.current
+            val missingTheme =
+                androidx.compose.runtime.remember {
+                    HighlightTheme.fromAsset(context, "does/not/exist.css", "missing-theme")
+                }
+            HighlightThemeProvider {
+                StreamingSyntaxHighlightedCode(
+                    code = "val x = 42",
+                    language = "kotlin",
+                    theme = missingTheme,
+                )
+            }
+        }
+        composeTestRule.waitForIdle()
+
+        composeTestRule.onNodeWithText("val x = 42").assertIsDisplayed()
+    }
 }

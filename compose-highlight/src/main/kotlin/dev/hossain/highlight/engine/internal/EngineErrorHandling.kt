@@ -37,6 +37,7 @@ internal suspend fun <T> withEngineErrorHandling(block: suspend () -> Result<T>)
  * [Result] failure types, while correctly propagating [CancellationException].
  *
  * - [CancellationException] → rethrown (preserves structured concurrency)
+ * - [HighlightException] → preserved as [Result.failure]
  * - Any other [Exception] → wrapped in [HighlightException.HtmlParseFailed]
  *
  * Used by [dev.hossain.highlight.engine.HighlightEngine.highlight],
@@ -51,6 +52,8 @@ internal suspend fun <T> withHtmlParsingErrorHandling(block: suspend () -> Resul
         block()
     } catch (e: CancellationException) {
         throw e
+    } catch (e: HighlightException) {
+        Result.failure(e)
     } catch (e: Exception) {
         Result.failure(HighlightException.HtmlParseFailed(e))
     }

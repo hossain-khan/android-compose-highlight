@@ -918,4 +918,26 @@ class SyntaxHighlightedTextEditorRobolectricTest {
         // Ctrl+Tab traverses focus forward rather than inserting spaces into the editor
         assertThat(calledValue).isNull()
     }
+
+    @Test
+    fun `composition does not crash when theme asset does not exist`() {
+        composeTestRule.setContent {
+            val context = androidx.compose.ui.platform.LocalContext.current
+            val missingTheme =
+                androidx.compose.runtime.remember {
+                    HighlightTheme.fromAsset(context, "does/not/exist.css", "missing-theme")
+                }
+            HighlightThemeProvider {
+                SyntaxHighlightedTextEditor(
+                    value = TextFieldValue("val x = 42"),
+                    onValueChange = {},
+                    language = "kotlin",
+                    theme = missingTheme,
+                )
+            }
+        }
+        composeTestRule.waitForIdle()
+
+        composeTestRule.onNodeWithTag("syntax-highlighted-text-editor").assertIsDisplayed()
+    }
 }

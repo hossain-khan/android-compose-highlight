@@ -496,4 +496,112 @@ class SyntaxHighlightedCodeRobolectricTest {
 
         assertThat(scrollState?.value).isEqualTo(0)
     }
+
+    // ----- Safe Asynchronous Theme Resolution (Issue #485) -----
+
+    @Test
+    fun `composition does not crash when theme asset does not exist and delivers ThemeNotFound to onError`() {
+        val errors = mutableListOf<HighlightException>()
+        var capturedEngine: HighlightEngine? = null
+
+        composeTestRule.setContent {
+            val context = androidx.compose.ui.platform.LocalContext.current
+            val missingTheme =
+                androidx.compose.runtime.remember {
+                    HighlightTheme.fromAsset(context, "does/not/exist.css", "missing-theme")
+                }
+            val engine =
+                androidx.compose.runtime.remember {
+                    HighlightEngine(context.applicationContext).also { capturedEngine = it }
+                }
+            CompositionLocalProvider(LocalHighlightEngine provides engine) {
+                SyntaxHighlightedCode(
+                    code = "val x = 42",
+                    language = "kotlin",
+                    theme = missingTheme,
+                    onError = { errors.add(it) },
+                )
+            }
+        }
+        composeTestRule.waitForIdle()
+
+        // Verify initial frame rendered fallback text and did not crash composition
+        composeTestRule.onNodeWithText("val x = 42").assertIsDisplayed()
+
+        // Complete the JS execution path in the hidden WebView
+        val engine = capturedEngine ?: error("Engine was not captured")
+        val webView = requireNotNull(engine.webViewForTest())
+        val webViewClient = Shadows.shadowOf(webView).getWebViewClient()
+        val lastUrl = Shadows.shadowOf(webView).getLastLoadedUrl() ?: ""
+        webViewClient?.onPageFinished(webView, lastUrl)
+        ShadowLooper.idleMainLooper()
+        composeTestRule.waitForIdle()
+
+        // Return a valid JSON tokenized response from JS
+        val jsCallback = Shadows.shadowOf(webView).getLastEvaluatedJavascriptCallback()
+        val resultPayload =
+            org.json
+                .JSONObject()
+                .apply {
+                    put("error", false)
+                    put("html", "<span class=\"hljs-keyword\">val</span> x = 42")
+                    put("language", "kotlin")
+                }.toString()
+        requireNotNull(jsCallback).onReceiveValue(org.json.JSONObject.quote(resultPayload))
+        ShadowLooper.idleMainLooper()
+        composeTestRule.waitForIdle()
+
+        composeTestRule.waitUntil(timeoutMillis = 5000) {
+            ShadowLooper.idleMainLooper()
+            errors.isNotEmpty()
+        }
+
+        // Verify onError received typed ThemeNotFound with cause
+        assertThat(errors).hasSize(1)
+        val error = errors[0]
+        assertThat(error).isInstanceOf(HighlightException.ThemeNotFound::class.java)
+        assertThat(error.cause).isInstanceOf(java.io.IOException::class.java)
+
+        // Code text remains visible in the UI
+        composeTestRule.onNodeWithText("val x = 42").assertIsDisplayed()
+
+        engine.destroy()
+    }
+
+    @Test
+    fun `initial composition with uninitialized custom theme does not initialize colorMap on initial frame`() {
+        var themeRef: HighlightTheme? = null
+        composeTestRule.setContent {
+            val theme =
+                androidx.compose.runtime.remember {
+                    HighlightTheme.fromCss(".hljs { background: #123456; color: #abcdef; }", "test-css").also {
+                        themeRef = it
+                    }
+                }
+            HighlightThemeProvider {
+                SyntaxHighlightedCode(
+                    code = "val x = 42",
+                    language = "kotlin",
+                    theme = theme,
+                )
+            }
+        }
+        // Immediately after setContent, the colorMap must NOT be initialized (no blocking parse on Main thread)
+        val theme = requireNotNull(themeRef)
+        assertThat(theme.isColorMapInitialized).isFalse()
+    }
+
+    @Test
+    fun `custom theme with explicit colors renders immediate base colors`() {
+        val theme =
+            HighlightTheme.fromCss(
+                cssText = ".hljs { background: #123456; }",
+                name = "explicit-theme",
+                backgroundColor = androidx.compose.ui.graphics.Color.Blue,
+                defaultTextColor = androidx.compose.ui.graphics.Color.White,
+            )
+        assertThat(theme.hasImmediateColors).isTrue()
+        assertThat(theme.safeBackgroundColor()).isEqualTo(androidx.compose.ui.graphics.Color.Blue)
+        assertThat(theme.safeDefaultTextColor()).isEqualTo(androidx.compose.ui.graphics.Color.White)
+    }
 }

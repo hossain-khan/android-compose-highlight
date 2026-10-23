@@ -252,27 +252,29 @@ public fun SyntaxHighlightedCode(
     onError: ((HighlightException) -> Unit)? = null,
     placeholder: (@Composable (code: String) -> Unit)? = null,
 ) {
-    // Remember derived colors and text styles keyed on theme and style so they are only
-    // recomputed when the theme or style actually changes, not on every recomposition.
+    // Remember derived colors and text styles keyed on theme, style, and resolution state.
+    // Base colors use safe theme metadata without blocking asset I/O or CSS parsing on the
+    // Main thread, falling back to style defaults until the theme is resolved.
+    val isThemeResolved = theme.isColorMapInitialized || theme.hasImmediateColors
     val backgroundColor =
-        remember(theme, style) {
-            theme.backgroundColor.takeIf { it != Color.Unspecified }
+        remember(theme, style, isThemeResolved) {
+            theme.safeBackgroundColor()?.takeIf { it != Color.Unspecified }
                 ?: style.fallbackBackgroundColor
         }
     val textColor =
-        remember(theme, style) {
-            theme.defaultTextColor.takeIf { it != Color.Unspecified }
+        remember(theme, style, isThemeResolved) {
+            theme.safeDefaultTextColor()?.takeIf { it != Color.Unspecified }
                 ?: style.fallbackTextColor
         }
     val lineNumberColor =
-        remember(theme, style) {
+        remember(theme, style, isThemeResolved) {
             style.lineNumberColor.takeIf { it != Color.Unspecified }
-                ?: (theme.defaultTextColor.takeIf { it != Color.Unspecified } ?: style.fallbackTextColor).copy(alpha = 0.4f)
+                ?: (theme.safeDefaultTextColor()?.takeIf { it != Color.Unspecified } ?: style.fallbackTextColor).copy(alpha = 0.4f)
         }
 
     // Apply the theme's foreground color on top of the caller-supplied text style.
-    val themedCodeStyle = remember(theme, style) { style.textStyle.copy(color = textColor) }
-    val themedLineNumStyle = remember(theme, style) { style.textStyle.copy(color = lineNumberColor) }
+    val themedCodeStyle = remember(theme, style, isThemeResolved) { style.textStyle.copy(color = textColor) }
+    val themedLineNumStyle = remember(theme, style, isThemeResolved) { style.textStyle.copy(color = lineNumberColor) }
 
     // Resolve the effective language label and header actions in the shared internal
     // CodeBlockHeader, which implements the documented slot precedence rules.
