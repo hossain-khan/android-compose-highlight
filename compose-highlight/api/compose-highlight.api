@@ -45,6 +45,13 @@ public abstract class dev/hossain/highlight/engine/HighlightException : java/lan
 public final class dev/hossain/highlight/engine/HighlightException$Companion {
 }
 
+public final class dev/hossain/highlight/engine/HighlightException$EngineDestroyed : dev/hossain/highlight/engine/HighlightException {
+	public static final field $stable I
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/Throwable;)V
+	public synthetic fun <init> (Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+}
+
 public final class dev/hossain/highlight/engine/HighlightException$HtmlParseFailed : dev/hossain/highlight/engine/HighlightException {
 	public static final field $stable I
 	public fun <init> (Ljava/lang/Throwable;)V
@@ -53,6 +60,15 @@ public final class dev/hossain/highlight/engine/HighlightException$HtmlParseFail
 public final class dev/hossain/highlight/engine/HighlightException$JsExecutionFailed : dev/hossain/highlight/engine/HighlightException {
 	public static final field $stable I
 	public fun <init> (Ljava/lang/Throwable;)V
+}
+
+public final class dev/hossain/highlight/engine/HighlightException$RendererGone : dev/hossain/highlight/engine/HighlightException {
+	public static final field $stable I
+	public fun <init> ()V
+	public fun <init> (Z)V
+	public fun <init> (ZLjava/lang/Throwable;)V
+	public synthetic fun <init> (ZLjava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getDidCrash ()Z
 }
 
 public final class dev/hossain/highlight/engine/HighlightException$ThemeNotFound : dev/hossain/highlight/engine/HighlightException {

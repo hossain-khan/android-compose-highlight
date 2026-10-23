@@ -4,10 +4,12 @@ import android.content.Context
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
+import android.webkit.RenderProcessGoneDetail
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import androidx.annotation.RequiresApi
 import androidx.annotation.VisibleForTesting
 import androidx.webkit.WebViewAssetLoader
 import dev.hossain.highlight.engine.HighlightEngine
@@ -141,6 +143,13 @@ internal class WebViewManager(
     @Volatile
     private var readyDeferred = CompletableDeferred<WebView>()
 
+    /**
+     * Optional callback notified on the Main thread when [WebViewClient.onRenderProcessGone]
+     * is triggered. [HighlightEngine] uses this to fail any in-flight JavaScript continuation
+     * with [HighlightException.RendererGone] without waiting for a timeout.
+     */
+    internal var onRendererGone: ((didCrash: Boolean) -> Unit)? = null
+
     /** Returns the ready WebView. Suspends until bridge.html has finished loading. */
     suspend fun getReadyWebView(): WebView = readyDeferred.await()
 
@@ -247,6 +256,12 @@ internal class WebViewManager(
                                         _isInitialized.value = true
                                     }
                                 }
+
+                                @RequiresApi(Build.VERSION_CODES.O)
+                                override fun onRenderProcessGone(
+                                    view: WebView,
+                                    detail: RenderProcessGoneDetail,
+                                ): Boolean = handleRenderProcessGone(view, detail)
                             }
                         // Serves local assets over https:// via WebViewAssetLoader - required for
                         // Same-Origin Policy compliance so that highlight.min.js can execute.
@@ -254,11 +269,54 @@ internal class WebViewManager(
                         loadUrl("https://appassets.androidplatform.net/assets/compose-highlight/bridge.html")
                     }
                 } catch (e: Exception) {
-                    throw HighlightException.WebViewInitFailed(e)
+                    val initEx = HighlightException.WebViewInitFailed(e)
+                    deferred.completeExceptionally(initEx)
+                    throw initEx
                 }
 
             webView = view
         }
+    }
+
+    /**
+     * Handles WebView renderer process termination (crash or OS low-memory eviction).
+     *
+     * Invoked from [WebViewClient.onRenderProcessGone] on the Main thread. Returns `true`
+     * to signal to Android that the host application handles termination and must not be killed.
+     */
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun handleRenderProcessGone(
+        view: WebView,
+        detail: RenderProcessGoneDetail,
+    ): Boolean {
+        val didCrash = detail.didCrash()
+        val isCurrentWebView = (view === webView)
+
+        if (isCurrentWebView) {
+            webView = null
+            _isInitialized.value = false
+
+            // Fail any pending initialization waiter immediately.
+            if (!readyDeferred.isCompleted) {
+                readyDeferred.completeExceptionally(HighlightException.RendererGone(didCrash))
+            }
+            // Reset readyDeferred so future initialize() calls can allocate a fresh WebView.
+            readyDeferred = CompletableDeferred()
+        }
+
+        // The platform requires that the terminated WebView be destroyed.
+        // onRenderProcessGone runs on Main, so view.destroy() can be called directly.
+        try {
+            view.destroy()
+        } catch (_: Throwable) {
+            // Suppress secondary exceptions during dead WebView destruction.
+        }
+
+        if (isCurrentWebView) {
+            onRendererGone?.invoke(didCrash)
+        }
+
+        return true
     }
 
     /** Destroys the WebView and releases resources. Safe to call from any thread. */
@@ -266,10 +324,10 @@ internal class WebViewManager(
         val wv = webView ?: return
         webView = null
         _isInitialized.value = false
-        // Cancel any pending waiter, then reset to drop the strong reference to the
+        // Fail any pending waiter with EngineDestroyed, then reset to drop the strong reference to the
         // destroyed WebView and allow it to be GC'd immediately.
         if (!readyDeferred.isCompleted) {
-            readyDeferred.cancel()
+            readyDeferred.completeExceptionally(HighlightException.EngineDestroyed())
         }
         readyDeferred = CompletableDeferred()
         // WebView.destroy() must be called on the thread that created it (Main).

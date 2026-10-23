@@ -14,6 +14,7 @@ Full API in Dokka:
 - [`ThemedHighlightResult`](https://hossain-khan.github.io/android-compose-highlight/api/compose-highlight/dev.hossain.highlight.engine/-themed-highlight-result/index.html)
 - [`HighlightLanguageInfo`](https://hossain-khan.github.io/android-compose-highlight/api/compose-highlight/dev.hossain.highlight.engine/-highlight-language-info/index.html)
 - [`AutoHighlightResult`](https://hossain-khan.github.io/android-compose-highlight/api/compose-highlight/dev.hossain.highlight.engine/-auto-highlight-result/index.html)
+- [`HighlightException`](https://hossain-khan.github.io/android-compose-highlight/api/compose-highlight/dev.hossain.highlight.engine/-highlight-exception/index.html)
 - [`rememberHighlightEngine`](https://hossain-khan.github.io/android-compose-highlight/api/compose-highlight/dev.hossain.highlight.ui/remember-highlight-engine.html)
 
 ## When to use it
@@ -47,7 +48,15 @@ In Compose, use `rememberHighlightEngine()` so cleanup is handled automatically.
 - `supportedLanguages()` and `highlightJsVersion()` - runtime capability introspection.
 - `getLanguage()` and `highlightAuto()` - language metadata and auto-detection workflows.
 
-All suspend APIs return `Result<T>` and report failures as `HighlightException`.
+All suspend APIs return `Result<T>` and report failures through typed `HighlightException` subtypes:
+
+- `WebViewInitFailed` - WebView is disabled, unavailable, or failed to construct on the device.
+- `JsExecutionFailed` - Highlight.js execution returned null or raised a JavaScript error.
+- `HtmlParseFailed` - HTML token stream parser failed to convert Highlight.js output.
+- `ThemeNotFound` - CSS theme asset could not be loaded or produced no valid color rules.
+- `RendererGone` - Sandboxed WebView renderer process crashed or was terminated by the OS Low Memory Killer (LMK). The host application does not crash, and subsequent calls automatically recover.
+- `EngineDestroyed` - Engine was closed or destroyed while an operation was in flight.
+- `Timeout` - JavaScript call did not complete within the 5-second timeout window.
 
 ## Usage in a ViewModel
 

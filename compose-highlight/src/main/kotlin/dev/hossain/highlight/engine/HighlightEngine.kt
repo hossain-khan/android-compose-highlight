@@ -13,6 +13,7 @@ import dev.hossain.highlight.engine.internal.unescapeJsString
 import dev.hossain.highlight.engine.internal.withEngineErrorHandling
 import dev.hossain.highlight.engine.internal.withHtmlParsingErrorHandling
 import dev.hossain.highlight.ui.rememberHighlightEngine
+import kotlinx.coroutines.CancellableContinuation
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.StateFlow
@@ -165,6 +166,23 @@ public class HighlightEngine(
     @Volatile
     private var cachedVersion: String? = null
 
+    // Tracks the in-flight evaluateJavascript continuation so that onRendererGone can fail it immediately.
+    @Volatile
+    private var activeContinuation: CancellableContinuation<*>? = null
+
+    init {
+        manager.onRendererGone = { didCrash ->
+            cachedLanguages = null
+            cachedVersion = null
+            activeContinuation?.let { cont ->
+                activeContinuation = null
+                if (cont.isActive) {
+                    cont.resumeWithException(HighlightException.RendererGone(didCrash))
+                }
+            }
+        }
+    }
+
     /**
      * `true` once [initialize] has completed successfully (or the first [highlight] /
      * [highlightToHtml] call has finished warming up the WebView).
@@ -233,10 +251,9 @@ public class HighlightEngine(
         language: String,
     ): Result<HtmlHighlightResult> =
         withEngineErrorHandling {
-            manager.initialize()
-            val webView = manager.getReadyWebView()
-
             mutex.withLock {
+                manager.initialize()
+                val webView = manager.getReadyWebView()
                 withTimeout(HighlightException.TIMEOUT_SECONDS * 1000L) {
                     executeJs(webView, code, language)
                 }.map { jsResult ->
@@ -406,45 +423,34 @@ public class HighlightEngine(
     public suspend fun supportedLanguages(): Result<List<String>> {
         cachedLanguages?.let { return Result.success(it) }
         return withEngineErrorHandling {
-            manager.initialize()
-            val webView = manager.getReadyWebView()
             mutex.withLock {
                 // Double-checked: another coroutine may have populated the cache while we waited.
                 val cached = cachedLanguages
                 if (cached != null) {
                     Result.success(cached)
                 } else {
+                    manager.initialize()
+                    val webView = manager.getReadyWebView()
                     withTimeout(HighlightException.TIMEOUT_SECONDS * 1000L) {
-                        withContext(Dispatchers.Main) {
-                            suspendCancellableCoroutine { continuation ->
-                                webView.evaluateJavascript("listLanguages()") { rawResult ->
-                                    if (!continuation.isActive) return@evaluateJavascript
-                                    if (rawResult == null || rawResult == "null") {
-                                        continuation.resumeWithException(
-                                            HighlightException.JsExecutionFailed(
-                                                RuntimeException("listLanguages() returned null"),
-                                            ),
-                                        )
-                                        return@evaluateJavascript
-                                    }
-                                    // evaluateJavascript serializes a JS array to a JSON array string,
-                                    // e.g. ["kotlin","java",...] - parse with JSONArray.
-                                    try {
-                                        val jsonArray = org.json.JSONArray(rawResult)
-                                        val languages =
-                                            (0 until jsonArray.length())
-                                                .map { jsonArray.getString(it) }
-                                                .let { if ("html" !in it) it + "html" else it }
-                                                .sorted()
-                                        cachedLanguages = languages
-                                        continuation.resume(Result.success(languages))
-                                    } catch (e: Exception) {
-                                        continuation.resumeWithException(
-                                            HighlightException.JsExecutionFailed(e),
-                                        )
-                                    }
-                                }
-                            }
+                        val (rawResult, _) = evaluateJsRaw(webView, "listLanguages()")
+                        if (rawResult == null || rawResult == "null") {
+                            throw HighlightException.JsExecutionFailed(
+                                RuntimeException("listLanguages() returned null"),
+                            )
+                        }
+                        // evaluateJavascript serializes a JS array to a JSON array string,
+                        // e.g. ["kotlin","java",...] - parse with JSONArray.
+                        try {
+                            val jsonArray = org.json.JSONArray(rawResult)
+                            val languages =
+                                (0 until jsonArray.length())
+                                    .map { jsonArray.getString(it) }
+                                    .let { if ("html" !in it) it + "html" else it }
+                                    .sorted()
+                            cachedLanguages = languages
+                            Result.success(languages)
+                        } catch (e: Exception) {
+                            throw HighlightException.JsExecutionFailed(e)
                         }
                     }
                 }
@@ -474,34 +480,25 @@ public class HighlightEngine(
     public suspend fun highlightJsVersion(): Result<String> {
         cachedVersion?.let { return Result.success(it) }
         return withEngineErrorHandling {
-            manager.initialize()
-            val webView = manager.getReadyWebView()
             mutex.withLock {
                 // Double-checked: another coroutine may have populated the cache while we waited.
                 val cached = cachedVersion
                 if (cached != null) {
                     Result.success(cached)
                 } else {
+                    manager.initialize()
+                    val webView = manager.getReadyWebView()
                     withTimeout(HighlightException.TIMEOUT_SECONDS * 1000L) {
-                        withContext(Dispatchers.Main) {
-                            suspendCancellableCoroutine { continuation ->
-                                webView.evaluateJavascript("hljsVersion()") { rawResult ->
-                                    if (!continuation.isActive) return@evaluateJavascript
-                                    if (rawResult == null || rawResult == "null") {
-                                        continuation.resumeWithException(
-                                            HighlightException.JsExecutionFailed(
-                                                RuntimeException("hljsVersion() returned null"),
-                                            ),
-                                        )
-                                        return@evaluateJavascript
-                                    }
-                                    // evaluateJavascript returns a JSON-encoded string - strip quotes.
-                                    val version = unescapeJsString(rawResult)
-                                    cachedVersion = version
-                                    continuation.resume(Result.success(version))
-                                }
-                            }
+                        val (rawResult, _) = evaluateJsRaw(webView, "hljsVersion()")
+                        if (rawResult == null || rawResult == "null") {
+                            throw HighlightException.JsExecutionFailed(
+                                RuntimeException("hljsVersion() returned null"),
+                            )
                         }
+                        // evaluateJavascript returns a JSON-encoded string - strip quotes.
+                        val version = unescapeJsString(rawResult)
+                        cachedVersion = version
+                        Result.success(version)
                     }
                 }
             }
@@ -528,56 +525,46 @@ public class HighlightEngine(
      */
     public suspend fun getLanguage(nameOrAlias: String): Result<HighlightLanguageInfo?> =
         withEngineErrorHandling {
-            manager.initialize()
-            val webView = manager.getReadyWebView()
             val escapedNameOrAlias = escapeForJs(nameOrAlias)
             mutex.withLock {
+                manager.initialize()
+                val webView = manager.getReadyWebView()
                 withTimeout(HighlightException.TIMEOUT_SECONDS * 1000L) {
-                    withContext(Dispatchers.Main) {
-                        suspendCancellableCoroutine { continuation ->
-                            webView.evaluateJavascript("getLanguage('$escapedNameOrAlias')") { rawResult ->
-                                if (!continuation.isActive) return@evaluateJavascript
-                                if (rawResult == null) {
-                                    continuation.resumeWithException(
-                                        HighlightException.JsExecutionFailed(RuntimeException("evaluateJavascript returned null")),
-                                    )
-                                    return@evaluateJavascript
-                                }
-                                if (rawResult == "null") {
-                                    continuation.resume(Result.success(null))
-                                    return@evaluateJavascript
-                                }
-                                try {
-                                    val json = org.json.JSONObject(unescapeJsString(rawResult))
-                                    if (json.optBoolean("error")) {
-                                        continuation.resumeWithException(
-                                            HighlightException.JsExecutionFailed(
-                                                RuntimeException("highlight.js error: ${json.optString("message")}"),
-                                            ),
-                                        )
-                                        return@evaluateJavascript
-                                    }
-                                    val aliasesJson = json.optJSONArray("aliases")
-                                    val aliases =
-                                        buildList {
-                                            if (aliasesJson != null) {
-                                                for (index in 0 until aliasesJson.length()) {
-                                                    add(aliasesJson.getString(index))
-                                                }
-                                            }
-                                        }
-                                    continuation.resume(
-                                        Result.success(
-                                            HighlightLanguageInfo(
-                                                name = json.getString("name"),
-                                                aliases = aliases,
-                                            ),
-                                        ),
-                                    )
-                                } catch (e: Exception) {
-                                    continuation.resumeWithException(HighlightException.JsExecutionFailed(e))
-                                }
+                    val (rawResult, _) = evaluateJsRaw(webView, "getLanguage('$escapedNameOrAlias')")
+                    if (rawResult == null) {
+                        throw HighlightException.JsExecutionFailed(
+                            RuntimeException("evaluateJavascript returned null"),
+                        )
+                    }
+                    if (rawResult == "null") {
+                        Result.success(null)
+                    } else {
+                        try {
+                            val json = org.json.JSONObject(unescapeJsString(rawResult))
+                            if (json.optBoolean("error")) {
+                                throw HighlightException.JsExecutionFailed(
+                                    RuntimeException("highlight.js error: ${json.optString("message")}"),
+                                )
                             }
+                            val aliasesJson = json.optJSONArray("aliases")
+                            val aliases =
+                                buildList {
+                                    if (aliasesJson != null) {
+                                        for (index in 0 until aliasesJson.length()) {
+                                            add(aliasesJson.getString(index))
+                                        }
+                                    }
+                                }
+                            Result.success(
+                                HighlightLanguageInfo(
+                                    name = json.getString("name"),
+                                    aliases = aliases,
+                                ),
+                            )
+                        } catch (e: HighlightException) {
+                            throw e
+                        } catch (e: Exception) {
+                            throw HighlightException.JsExecutionFailed(e)
                         }
                     }
                 }
@@ -608,12 +595,12 @@ public class HighlightEngine(
     ): Result<AutoHighlightResult> {
         val totalStart = TimeSource.Monotonic.markNow()
         return withEngineErrorHandling {
-            manager.initialize()
-            val webView = manager.getReadyWebView()
             // Release the mutex after the WebView call so the lock is not held during CPU work.
             val jsResult =
                 mutex
                     .withLock {
+                        manager.initialize()
+                        val webView = manager.getReadyWebView()
                         withTimeout(HighlightException.TIMEOUT_SECONDS * 1000L) {
                             executeJsAuto(webView, code)
                         }
@@ -657,6 +644,12 @@ public class HighlightEngine(
     public fun destroy() {
         cachedLanguages = null
         cachedVersion = null
+        activeContinuation?.let { cont ->
+            activeContinuation = null
+            if (cont.isActive) {
+                cont.resumeWithException(HighlightException.EngineDestroyed())
+            }
+        }
         manager.destroy()
     }
 
@@ -668,6 +661,38 @@ public class HighlightEngine(
     public override fun close() {
         destroy()
     }
+
+    /**
+     * Executes raw JavaScript against [webView] on the Main dispatcher and returns the raw string result
+     * along with the bridge round-trip duration.
+     *
+     * Tracks [activeContinuation] so that if the renderer process terminates while the JS execution is
+     * in flight, [WebViewClient.onRenderProcessGone] immediately resumes the continuation with
+     * [HighlightException.RendererGone] instead of hanging until the timeout expires.
+     */
+    private suspend fun evaluateJsRaw(
+        webView: WebView,
+        script: String,
+    ): Pair<String?, Duration> =
+        withContext(Dispatchers.Main) {
+            suspendCancellableCoroutine { continuation ->
+                activeContinuation = continuation
+                continuation.invokeOnCancellation {
+                    if (activeContinuation === continuation) {
+                        activeContinuation = null
+                    }
+                }
+                val jsStart = TimeSource.Monotonic.markNow()
+                webView.evaluateJavascript(script) { rawResult ->
+                    val duration = jsStart.elapsedNow()
+                    if (activeContinuation === continuation) {
+                        activeContinuation = null
+                    }
+                    if (!continuation.isActive) return@evaluateJavascript
+                    continuation.resume(Pair(rawResult, duration))
+                }
+            }
+        }
 
     /**
      * Executes the highlight JS call and returns the resulting HTML with timing data.
@@ -688,45 +713,31 @@ public class HighlightEngine(
 
         val js = "(function() { return highlightCode('$escaped', '$escapedLang'); })()"
 
-        return withContext(Dispatchers.Main) {
-            suspendCancellableCoroutine { continuation ->
-                val jsStart = TimeSource.Monotonic.markNow()
-                webView.evaluateJavascript(js) { rawResult ->
-                    val jsBridgeDuration = jsStart.elapsedNow()
-                    if (!continuation.isActive) return@evaluateJavascript
-                    if (rawResult == null || rawResult == "null") {
-                        continuation.resumeWithException(
-                            HighlightException.JsExecutionFailed(RuntimeException("JS returned null")),
-                        )
-                        return@evaluateJavascript
-                    }
-                    try {
-                        // The result is a JSON-encoded string - strip surrounding quotes and unescape
-                        val (jsonString, jsonUnescapeDuration) =
-                            measureTimedValue { unescapeJsString(rawResult) }
-                        val json = org.json.JSONObject(jsonString)
-                        if (json.optBoolean("error")) {
-                            continuation.resumeWithException(
-                                HighlightException.JsExecutionFailed(
-                                    RuntimeException("highlight.js error: ${json.optString("message")}"),
-                                ),
-                            )
-                            return@evaluateJavascript
-                        }
-                        continuation.resume(
-                            Result.success(
-                                JsResult(
-                                    html = json.getString("html"),
-                                    jsBridgeDuration = jsBridgeDuration,
-                                    jsonUnescapeDuration = jsonUnescapeDuration,
-                                ),
-                            ),
-                        )
-                    } catch (e: Exception) {
-                        continuation.resumeWithException(HighlightException.JsExecutionFailed(e))
-                    }
-                }
+        val (rawResult, jsBridgeDuration) = evaluateJsRaw(webView, js)
+        if (rawResult == null || rawResult == "null") {
+            throw HighlightException.JsExecutionFailed(RuntimeException("JS returned null"))
+        }
+        return try {
+            // The result is a JSON-encoded string - strip surrounding quotes and unescape
+            val (jsonString, jsonUnescapeDuration) =
+                measureTimedValue { unescapeJsString(rawResult) }
+            val json = org.json.JSONObject(jsonString)
+            if (json.optBoolean("error")) {
+                throw HighlightException.JsExecutionFailed(
+                    RuntimeException("highlight.js error: ${json.optString("message")}"),
+                )
             }
+            Result.success(
+                JsResult(
+                    html = json.getString("html"),
+                    jsBridgeDuration = jsBridgeDuration,
+                    jsonUnescapeDuration = jsonUnescapeDuration,
+                ),
+            )
+        } catch (e: HighlightException) {
+            throw e
+        } catch (e: Exception) {
+            throw HighlightException.JsExecutionFailed(e)
         }
     }
 
@@ -740,46 +751,32 @@ public class HighlightEngine(
         val escaped = escapeForJs(code)
         val js = "(function() { return highlightAuto('$escaped'); })()"
 
-        return withContext(Dispatchers.Main) {
-            suspendCancellableCoroutine { continuation ->
-                val jsStart = TimeSource.Monotonic.markNow()
-                webView.evaluateJavascript(js) { rawResult ->
-                    val jsBridgeDuration = jsStart.elapsedNow()
-                    if (!continuation.isActive) return@evaluateJavascript
-                    if (rawResult == null || rawResult == "null") {
-                        continuation.resumeWithException(
-                            HighlightException.JsExecutionFailed(RuntimeException("JS returned null")),
-                        )
-                        return@evaluateJavascript
-                    }
-                    try {
-                        val (jsonString, jsonUnescapeDuration) =
-                            measureTimedValue { unescapeJsString(rawResult) }
-                        val json = org.json.JSONObject(jsonString)
-                        // Check if the JS bridge returned an error object from the try/catch in bridge.html
-                        if (json.optBoolean("error")) {
-                            continuation.resumeWithException(
-                                HighlightException.JsExecutionFailed(
-                                    RuntimeException("highlight.js error: ${json.optString("message")}"),
-                                ),
-                            )
-                            return@evaluateJavascript
-                        }
-                        continuation.resume(
-                            Result.success(
-                                AutoJsResult(
-                                    html = json.getString("html"),
-                                    detectedLanguage = json.optString("language"),
-                                    jsBridgeDuration = jsBridgeDuration,
-                                    jsonUnescapeDuration = jsonUnescapeDuration,
-                                ),
-                            ),
-                        )
-                    } catch (e: Exception) {
-                        continuation.resumeWithException(HighlightException.JsExecutionFailed(e))
-                    }
-                }
+        val (rawResult, jsBridgeDuration) = evaluateJsRaw(webView, js)
+        if (rawResult == null || rawResult == "null") {
+            throw HighlightException.JsExecutionFailed(RuntimeException("JS returned null"))
+        }
+        return try {
+            val (jsonString, jsonUnescapeDuration) =
+                measureTimedValue { unescapeJsString(rawResult) }
+            val json = org.json.JSONObject(jsonString)
+            // Check if the JS bridge returned an error object from the try/catch in bridge.html
+            if (json.optBoolean("error")) {
+                throw HighlightException.JsExecutionFailed(
+                    RuntimeException("highlight.js error: ${json.optString("message")}"),
+                )
             }
+            Result.success(
+                AutoJsResult(
+                    html = json.getString("html"),
+                    detectedLanguage = json.optString("language"),
+                    jsBridgeDuration = jsBridgeDuration,
+                    jsonUnescapeDuration = jsonUnescapeDuration,
+                ),
+            )
+        } catch (e: HighlightException) {
+            throw e
+        } catch (e: Exception) {
+            throw HighlightException.JsExecutionFailed(e)
         }
     }
 }
