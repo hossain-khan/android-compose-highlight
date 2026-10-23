@@ -327,10 +327,29 @@ internal class WebViewManager(
                 webView = view
             }
 
-            // Serves local assets over https:// via WebViewAssetLoader - required for
-            // Same-Origin Policy compliance so that highlight.min.js can execute.
-            // https://developer.android.com/reference/androidx/webkit/WebViewAssetLoader
-            view.loadUrl("https://appassets.androidplatform.net/assets/compose-highlight/bridge.html")
+            try {
+                // Serves local assets over https:// via WebViewAssetLoader - required for
+                // Same-Origin Policy compliance so that highlight.min.js can execute.
+                // https://developer.android.com/reference/androidx/webkit/WebViewAssetLoader
+                view.loadUrl("https://appassets.androidplatform.net/assets/compose-highlight/bridge.html")
+            } catch (e: Exception) {
+                if (e is CancellationException) throw e
+                val initEx = HighlightException.WebViewInitFailed(e)
+                synchronized(lock) {
+                    if (generation == targetGeneration) {
+                        state = State.FAILED
+                        _isInitialized.value = false
+                        webView = null
+                        deferred.completeExceptionally(initEx)
+                    }
+                }
+                try {
+                    view.destroy()
+                } catch (_: Throwable) {
+                    // Suppress secondary cleanup exceptions.
+                }
+                throw initEx
+            }
         }
     }
 
