@@ -38,7 +38,7 @@ Shape (truncated):
 
 ```kotlin
 internal object GeneratedThemes {
-    const val TOMORROW_IDENTITY: Long = 4492418159385501631L
+    val TOMORROW_IDENTITY: LongArray = longArrayOf(4492418159385501631L, ...)
     val TOMORROW: Map<String, SpanStyle> = mapOf(
         "hljs"         to SpanStyle(color = Color(0xFF4D4D4C), background = Color(0xFFFFFFFF)),
         "hljs-comment" to SpanStyle(color = Color(0xFF8E908C)),
@@ -95,8 +95,24 @@ A duplicate of the runtime parser's logic. It cannot share code with the runtime
   parser produces an intermediate (`ParsedStyle`) that the emitter renders as Kotlin source.
 
 The duplication is intentional and load-bearing. Both parsers must produce semantically identical
-output for the eight bundled themes. The parity test
-(`compose-highlight/.../GeneratedThemesParityTest.kt`) is the only thing keeping them in sync.
+output for the eight bundled themes and the shared conformance corpus. The parity test
+(`compose-highlight/.../GeneratedThemesParityTest.kt`) keeps them in sync.
+
+**Supported CSS subset (identical in build-time and runtime parsers):**
+- Flat top-level `selectors { declarations }` rules (standalone `.hljs` and `.hljs-*`, plus
+  compound dot-joined selectors like `.hljs-title.function_`).
+- `/* ... */` comments and `@media` / `@supports` / `@keyframes` / `@charset` / `@import` at-rules (skipped).
+- Colors: 3-, 4-, 6-, and 8-digit hex (`#rgb`, `#rgba`, `#rrggbb`, `#rrggbbaa`), comma- and
+  space-separated `rgb()` / `rgba()`, and 21 standard CSS named colors.
+- `font-weight`: `bold`, `bolder`, numeric `>= 600` -> `Bold`; `normal`, `lighter`, numeric `< 600` -> `Normal`.
+- `font-style`: `italic` and `oblique` -> `Italic`.
+- Case-insensitive `!important` suffixes (stripped).
+
+**Unsupported CSS forms (silently ignored in both parsers):**
+- Descendant and sibling combinators (`.hljs-meta .hljs-keyword`, `.hljs > a`, `+`, `~`).
+- Pseudo-elements (`::selection`) and pseudo-classes (`:hover`).
+- CSS custom properties (`var(--*)`) and keywords (`inherit`, `currentColor`).
+- Non-`SpanStyle` declarations (`text-decoration`, `opacity`, `display`, `padding`).
 
 ### `ThemeSourceEmitter`
 

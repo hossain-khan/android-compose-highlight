@@ -20,7 +20,7 @@ import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
 
 /**
- * Screenshot regression coverage for the four bundled built-in themes. Each test renders the
+ * Screenshot regression coverage for the eight bundled built-in themes. Each test renders the
  * same Kotlin code snippet so visual diffs across themes only reflect color-map differences.
  *
  * Goldens live under `src/test/snapshots/images/theme_*.png`.

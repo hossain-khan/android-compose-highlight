@@ -2,10 +2,11 @@ package dev.hossain.highlight.build
 
 import java.nio.ByteBuffer
 import java.security.MessageDigest
+import kotlin.math.roundToInt
 
 /**
  * Build-time CSS parser that mirrors the behavior of the runtime
- * `dev.hossain.highlight.engine.ThemeParser` for the four bundled hljs themes.
+ * `dev.hossain.highlight.engine.internal.ThemeParser` for the eight bundled hljs themes.
  *
  * This is intentionally a duplicate of the runtime parser. The runtime version cannot be
  * reused here because:
@@ -14,17 +15,28 @@ import java.security.MessageDigest
  * - It returns a Compose-shaped map that we need to emit as Kotlin source rather than consume.
  *
  * A parity test (`GeneratedThemesParityTest`) compares the output of this build-time parser
- * against the runtime parser for the four bundled themes, so any future divergence fails CI.
+ * against the runtime parser for the eight bundled themes and a shared conformance corpus, so
+ * any future divergence fails CI.
  *
- * The parser only handles the subset of CSS hljs themes actually use:
- * - flat top-level `selectors { declarations }` rules,
- * - `/* … */` comments,
- * - `@media` / `@supports` / `@keyframes` blocks (skipped),
- * - hex / rgb() / rgba() / named colors,
- * - `font-weight` (bold/normal/numeric ≥ 600 → bold, < 600 → normal),
- * - `font-style: italic`.
+ * Supported CSS subset:
+ * - flat top-level `selectors { declarations }` rules (standalone `.hljs` and `.hljs-*`,
+ *   plus compound dot-joined selectors like `.hljs-title.function_`),
+ * - `/* ... */` comments,
+ * - `@media` / `@supports` / `@keyframes` / `@charset` / `@import` at-rules (skipped),
+ * - colors: 3-, 4-, 6-, and 8-digit hex (`#rgb`, `#rgba`, `#rrggbb`, `#rrggbbaa`),
+ *   comma- and space-separated `rgb()` / `rgba()`, and 21 standard CSS named colors,
+ * - `font-weight`: `bold`, `bolder`, numeric `>= 600` -> bold;
+ *   `normal`, `lighter`, numeric `< 600` -> normal,
+ * - `font-style`: `italic` and `oblique` -> italic,
+ * - case-insensitive `!important` suffixes (stripped).
+ *
+ * Unsupported CSS forms (silently ignored in both build-time and runtime parsers):
+ * - descendant and sibling combinators (e.g. `.hljs-meta .hljs-keyword`, `.hljs > a`, `+`, `~`),
+ * - pseudo-elements and pseudo-classes (e.g. `.hljs::selection`, `.hljs:hover`),
+ * - CSS custom properties / variables (`var(--*)`) and keywords (`inherit`, `currentColor`),
+ * - non-SpanStyle declarations (e.g. `text-decoration`, `opacity`, `display`, `padding`).
  */
-internal object CssThemeParser {
+object CssThemeParser {
     /** Parses [cssText] into a deterministic, ordered list of (selector, style) entries. */
     fun parse(cssText: String): List<Pair<String, ParsedStyle>> {
         if (cssText.isBlank()) return emptyList()
@@ -104,22 +116,28 @@ internal object CssThemeParser {
 
         PROP_PATTERN.findAll(declarations).forEach { match ->
             val prop = match.groupValues[1].trim()
-            val value = match.groupValues[2].trim()
+            val rawValue = match.groupValues[2].trim()
+            val value =
+                if (rawValue.endsWith("!important", ignoreCase = true)) {
+                    rawValue.substring(0, rawValue.length - "!important".length).trim()
+                } else {
+                    rawValue
+                }
             when (prop) {
                 "color" -> color = parseColor(value)
                 "background", "background-color" -> background = parseColor(value)
                 "font-weight" -> {
                     val numericWeight = value.toIntOrNull()
                     when {
-                        value == "bold" || (numericWeight != null && numericWeight >= 600) ->
+                        value == "bold" || value == "bolder" || (numericWeight != null && numericWeight >= 600) ->
                             fontWeight = ParsedFontWeight.Bold
 
-                        value == "normal" || (numericWeight != null && numericWeight < 600) ->
+                        value == "normal" || value == "lighter" || numericWeight != null ->
                             fontWeight = ParsedFontWeight.Normal
                     }
                 }
 
-                "font-style" -> if (value == "italic") fontStyleItalic = true
+                "font-style" -> if (value == "italic" || value == "oblique") fontStyleItalic = true
             }
         }
 
@@ -168,11 +186,12 @@ internal object CssThemeParser {
                     255,
                 )
 
+                // 8-digit: #rrggbbaa (CSS Color Level 4 order)
                 8 -> argb(
+                    cleaned.substring(0, 2).toInt(16),
                     cleaned.substring(2, 4).toInt(16),
                     cleaned.substring(4, 6).toInt(16),
                     cleaned.substring(6, 8).toInt(16),
-                    cleaned.substring(0, 2).toInt(16),
                 )
 
                 else -> null
@@ -200,11 +219,11 @@ internal object CssThemeParser {
             val slashIdx = inner.indexOf("/")
             val colorPart = inner.substring(0, slashIdx).trim()
             val alphaPart = inner.substring(slashIdx + 1).trim()
-            val parts = colorPart.split(Regex("\\s+")).filter { it.isNotEmpty() }
+            val parts = colorPart.split(WHITESPACE_REGEX)
             if (parts.size != 3) return null
             colorFromRgbStrings(parts[0], parts[1], parts[2], alpha = alphaPart)
         } else {
-            val parts = inner.split(Regex("\\s+")).filter { it.isNotEmpty() }
+            val parts = inner.trim().split(WHITESPACE_REGEX)
             if (parts.size != 3) return null
             colorFromRgbStrings(parts[0], parts[1], parts[2], alpha = null)
         }
@@ -240,7 +259,7 @@ internal object CssThemeParser {
         val f = value.toFloatOrNull() ?: return null
         if (!f.isFinite()) return null
         return if (f <= 1.0f) {
-            Math.round(f * 255).coerceIn(0, 255)
+            (f * 255).roundToInt().coerceIn(0, 255)
         } else {
             value.toIntOrNull()?.coerceIn(0, 255)
         }
@@ -255,6 +274,7 @@ internal object CssThemeParser {
     private val PROP_PATTERN = Regex("""([\w-]+)\s*:\s*([^;]+)""")
     private val HLJS_SELECTOR_REGEX = Regex("""\.hljs(?:-[\w-]+)?(?:\.[\w][\w-]*)*""")
     private val PSEUDO_CLASS_REGEX = Regex(""":(?!:)[a-zA-Z]""")
+    private val WHITESPACE_REGEX = Regex("\\s+")
     private const val SHA256_LONG_COUNT = 4
 
     // Same 21 named colors the runtime parser supports.
@@ -445,7 +465,7 @@ internal object CssThemeParser {
 }
 
 /** Runtime-equivalent font weight values that map to FontWeight.Bold / FontWeight.Normal. */
-internal enum class ParsedFontWeight {
+enum class ParsedFontWeight {
     Bold,
     Normal,
 }
@@ -457,10 +477,10 @@ internal enum class ParsedFontWeight {
  *
  * @property color ARGB packed into a Long (0xAARRGGBB), or null if not set.
  * @property fontWeight Set when `font-weight` resolves to bold/normal; null otherwise.
- * @property fontStyleItalic True when `font-style: italic`; null otherwise.
+ * @property fontStyleItalic True when `font-style` resolves to italic (`italic` or `oblique`); null otherwise.
  * @property background ARGB packed into a Long, or null if not set.
  */
-internal data class ParsedStyle(
+data class ParsedStyle(
     val color: Long?,
     val fontWeight: ParsedFontWeight?,
     val fontStyleItalic: Boolean?,

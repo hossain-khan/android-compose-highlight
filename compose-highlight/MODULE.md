@@ -81,33 +81,33 @@ GeneratedThemes.class                     classes.jar inside the published AAR
 
 The eight CSS files are still shipped in the AAR so the runtime `fromAsset(...)` path keeps working for anyone who references those asset paths directly. None of the eight built-in factory methods reads them at runtime.
 
-A parity test (`GeneratedThemesParityTest`) compares each precompiled map against `ThemeParser.parseAsset(...)` output for the matching CSS file, and asserts that the embedded `*_IDENTITY` hash equals what runtime `contentDigest64("asset", path)` would compute. The two parsers cannot be unified (the runtime parser depends on `androidx.compose.ui` types unavailable to a Gradle build classpath), so the parity test is the only thing keeping them in sync. If the test fails after editing the runtime parser, regenerate the file with `./gradlew :compose-highlight:generateThemes`. If it fails after editing the buildSrc parser, the buildSrc parser has drifted and that drift is the bug.
+A parity test (`GeneratedThemesParityTest`) compares each precompiled map against `ThemeParser.parseAsset(...)` output for the matching CSS file, asserts that the embedded `*_IDENTITY` hash equals what runtime `contentDigest256("asset", path)` would compute, and runs a shared CSS conformance corpus through both `CssThemeParser` and `ThemeParser`. The two parsers cannot be unified (the runtime parser depends on `androidx.compose.ui` types unavailable to a Gradle build classpath), so the parity test keeps them in sync. If the test fails after editing the runtime parser, regenerate the file with `./gradlew :compose-highlight:generateThemes`. If it fails after editing the buildSrc parser, the buildSrc parser has drifted and that drift is the bug.
 
 ### Adding a new built-in theme
 
 The codegen task (`buildSrc/.../GenerateThemesTask.kt`) does not auto-discover CSS files. It iterates a hardcoded `THEME_INPUTS` list, so dropping a CSS file into the assets folder ships it in the AAR but does not produce a precompiled constant or factory.
 
-To add a new built-in theme (replace `dracula` with the actual theme name):
+To add a new built-in theme (replace `nord` with the actual theme name):
 
-1. Drop the CSS at `compose-highlight/src/main/assets/compose-highlight/themes/dracula.css`.
+1. Drop the CSS at `compose-highlight/src/main/assets/compose-highlight/themes/nord.css`.
 2. Add an entry to `THEME_INPUTS` in `buildSrc/src/main/kotlin/dev/hossain/highlight/build/GenerateThemesTask.kt`:
 
    ```kotlin
-   "DRACULA" to "dracula.css",
+   "NORD" to "nord.css",
    ```
 
-3. Add the factory in `HighlightTheme.kt`:
+3. Add the factory and descriptor in `HighlightTheme.kt`:
 
    ```kotlin
-   fun dracula(): HighlightTheme =
+   public fun nord(): HighlightTheme =
        HighlightTheme(
-           name = "dracula",
-           colorMapProvider = { GeneratedThemes.DRACULA },
-           contentIdentity = GeneratedThemes.DRACULA_IDENTITY,
+           name = "nord",
+           colorMapProvider = { GeneratedThemes.NORD },
+           contentIdentity = GeneratedThemes.NORD_IDENTITY,
        )
    ```
 
-4. Add `rememberDraculaTheme()` in `HighlightThemeProvider.kt` (the file holds both the provider composable and the four `rememberXxxTheme()` factories).
+4. Add `rememberNordTheme()` in `HighlightThemeProvider.kt` (the file holds both the provider composable and the built-in `rememberXxxTheme()` factories).
 5. Add a parity test entry in `GeneratedThemesParityTest.kt`.
 
 The friction is intentional. A new built-in is an API decision, not "I dropped a file in the folder." Themes that should be available to consumers but do not warrant a built-in factory can stay as plain CSS in the assets folder and ship via `fromAsset`.

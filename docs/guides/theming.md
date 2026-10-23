@@ -94,6 +94,15 @@ val rawCss = // ... network fetch or string resource
 val theme = HighlightTheme.fromCss(cssText = rawCss, name = "remote-theme")
 ```
 
+### Supported and unsupported CSS syntax
+
+Both the build-time theme compiler and the runtime `ThemeParser` (`fromAsset()` / `fromCss()`) support the flat CSS subset used by standard Highlight.js stylesheets:
+
+- **Selectors**: Standalone `.hljs` and `.hljs-*` class selectors, comma-separated selector lists, and dot-joined compound selectors (e.g. `.hljs-title.function_`).
+- **Colors**: 3-, 4-, 6-, and 8-digit hex (`#rgb`, `#rgba`, `#rrggbb`, `#rrggbbaa`), comma- and space-separated `rgb()` / `rgba()`, and standard CSS named colors.
+- **Typography & priority**: `font-weight` (`bold`, `bolder`, `normal`, `lighter`, numeric `100`-`900`), `font-style` (`italic`, `oblique`), and case-insensitive `!important` suffixes.
+- **Unsupported forms (ignored)**: At-rules (`@media`, `@supports`), descendant/sibling combinators (`.hljs-meta .hljs-keyword`, `>`, `+`, `~`), pseudo-classes/elements (`:hover`, `::selection`), CSS custom properties (`var(--*)`), and non-`SpanStyle` declarations (`text-decoration`, `opacity`).
+
 ## Custom theme from a color map
 
 Maximum flexibility - derive colors from Material 3 dynamic color, user palettes, or brand colors.

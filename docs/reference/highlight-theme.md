@@ -122,6 +122,8 @@ val theme = HighlightTheme.fromCss(
 )
 ```
 
+Both `fromAsset()` and `fromCss()` support standalone `.hljs` / `.hljs-*` and compound `.hljs-x.y` selectors, 3/4/6/8-digit hex colors (`#RRGGBBAA`), comma- and space-separated `rgb()` / `rgba()`, 21 CSS named colors, `font-weight` (`bold`, `bolder`, `normal`, `lighter`, `100`-`900`), `font-style` (`italic`, `oblique`), and `!important`. At-rules (`@media`), descendant/sibling combinators, pseudo-selectors, `var(--*)` custom properties, and non-`SpanStyle` properties (`text-decoration`, `opacity`) are ignored.
+
 ## Custom theme from a color map
 
 ```kotlin

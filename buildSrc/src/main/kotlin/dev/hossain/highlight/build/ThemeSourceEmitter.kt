@@ -2,7 +2,7 @@ package dev.hossain.highlight.build
 
 /**
  * Emits a single Kotlin source file containing the precompiled SpanStyle maps for the
- * four bundled hljs themes.
+ * eight bundled hljs themes.
  *
  * The output file is checked in nowhere - it lives under
  * `compose-highlight/build/generated/source/themes/main/`, is added to the main Kotlin source
@@ -36,7 +36,7 @@ internal object ThemeSourceEmitter {
         sb.appendLine("import androidx.compose.ui.text.font.FontWeight")
         sb.appendLine()
         sb.appendLine("/**")
-        sb.appendLine(" * Precompiled color maps for the four bundled hljs themes.")
+        sb.appendLine(" * Precompiled color maps for the eight bundled hljs themes.")
         sb.appendLine(" *")
         sb.appendLine(" * Generated at build time from the CSS files in")
         sb.appendLine(" * `src/main/assets/compose-highlight/themes/` so the runtime ThemeParser is never")
