@@ -173,6 +173,7 @@ internal fun ComposeContentTestRule.captureHighlightedScreenshot(
     // strategy depends on which rendering path we want to capture: success drives the
     // happy path, failure exercises the AnnotatedString(code) fallback, and no-response
     // leaves the LaunchedEffect suspended so the placeholder stays visible.
+    val initialCompletedCount = engine.completedHighlightCount.get()
     when (jsResponse) {
         is JsResponse.Success -> {
             val jsCallback =
@@ -216,24 +217,26 @@ internal fun ComposeContentTestRule.captureHighlightedScreenshot(
     // turn, so one waitForIdle() is not enough.
     //
     // The pragmatic strategy is to drain the looper repeatedly until the engine signals it
-    // has finished its hot path. We use `engine.isInitialized` (StateFlow<Boolean>) which
-    // flips to `true` once WebViewManager has completed bridge.html loading and the engine
-    // is past the WebView round-trip stages. After it flips, we keep pumping for a small
-    // additional budget so the State write + recomposition + AnimatedContent fade settle.
+    // has finished its hot path. When a JS callback is provided (Success or Failure), we wait
+    // until `engine.completedHighlightCount` increments, proving that the engine has finished
+    // parsing and building the AnnotatedString. Then we pump POST_INIT_STABILITY_TURNS for
+    // downstream Compose work (State write + recomposition + AnimatedContent settle).
     //
-    // This replaces an earlier `repeat(200) { idleMainLooper + waitForIdle }` cap. The
-    // wall-clock timeout makes failures legible: if a future Compose BOM adds another
-    // dispatcher hop, the test fails with a clear "ComposeTimeoutException after Xms"
-    // instead of a confusing "spans = 0" symptom.
+    // For NoResponse, the engine remains suspended intentionally to capture loading states,
+    // so we skip waiting for highlight completion and directly pump stability turns.
     val deadlineMs = System.currentTimeMillis() + DRAIN_TIMEOUT_MS
-    var sawInitialized = false
+    var sawCompleted = (jsResponse is JsResponse.NoResponse)
     var stableTurns = 0
     while (System.currentTimeMillis() < deadlineMs) {
         ShadowLooper.idleMainLooper()
         waitForIdle()
-        if (!sawInitialized) {
-            sawInitialized = engine.isInitialized.value
-            if (sawInitialized) stableTurns = 0
+        if (!sawCompleted) {
+            sawCompleted = engine.completedHighlightCount.get() > initialCompletedCount
+            if (sawCompleted) {
+                stableTurns = 0
+            } else {
+                Thread.sleep(10)
+            }
         } else {
             // Once the engine reports ready, pump a few more turns for downstream Compose
             // work (State write + recomposition + AnimatedContent settle), then exit.
@@ -241,8 +244,8 @@ internal fun ComposeContentTestRule.captureHighlightedScreenshot(
             if (stableTurns >= POST_INIT_STABILITY_TURNS) break
         }
     }
-    check(sawInitialized) {
-        "engine.isInitialized never flipped to true within ${DRAIN_TIMEOUT_MS}ms after the JS " +
+    check(sawCompleted) {
+        "engine.highlight never completed within ${DRAIN_TIMEOUT_MS}ms after the JS " +
             "callback was invoked. A future Compose BOM may have added a dispatcher hop the " +
             "drain loop does not anticipate; bump DRAIN_TIMEOUT_MS or revisit the wait condition."
     }

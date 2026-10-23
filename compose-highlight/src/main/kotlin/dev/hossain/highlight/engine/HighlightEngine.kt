@@ -22,6 +22,7 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import java.io.Closeable
+import java.util.concurrent.atomic.AtomicInteger
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.time.Duration
@@ -154,6 +155,14 @@ public class HighlightEngine(
     @VisibleForTesting(otherwise = VisibleForTesting.NONE)
     internal fun webViewForTest(): WebView? = manager.webViewForTest()
 
+    /**
+     * Counter of completed highlight operations (both success and failure).
+     * Used by tests (such as screenshot tests) to wait until asynchronous highlighting
+     * has fully completed.
+     */
+    @get:VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
+    internal val completedHighlightCount: AtomicInteger = AtomicInteger(0)
+
     // Serializes concurrent evaluateJavascript() calls - WebView handles one at a time.
     private val mutex = Mutex()
 
@@ -279,36 +288,40 @@ public class HighlightEngine(
         language: String,
         theme: HighlightTheme,
     ): Result<HighlightResult> {
-        val totalStart = TimeSource.Monotonic.markNow()
-        // WebView JS call must stay on Dispatchers.Main (handled inside highlightToHtml).
-        val htmlResult = highlightToHtml(code, language).getOrElse { return Result.failure(it) }
-        // Theme parsing (may include asset I/O on first use) and HTML-to-AnnotatedString conversion
-        // are run off the Main thread on Dispatchers.Default.
-        return withContext(Dispatchers.Default) {
-            withHtmlParsingErrorHandling {
-                val (colorMap, themeParseD) = theme.timedColorMap()
-                val convertResult = HtmlToAnnotatedString.convertTimed(htmlResult.html, colorMap)
-                val totalDuration = totalStart.elapsedNow()
-                val hasBaseStyle =
-                    !htmlResult.html.isBlank() && colorMap[HljsSelectors.BASE]?.color?.let { it != Color.Unspecified } == true
-                val spanCount = convertResult.annotated.spanStyles.size - if (hasBaseStyle) 1 else 0
-                Result.success(
-                    HighlightResult(
-                        annotated = convertResult.annotated,
-                        spanCount = spanCount,
-                        language = language,
-                        durationMs = totalDuration.inWholeMilliseconds,
-                        timings =
-                            HighlightTimings(
-                                jsBridge = htmlResult.jsBridgeDuration,
-                                jsonUnescape = htmlResult.jsonUnescapeDuration,
-                                htmlParse = convertResult.htmlParseDuration,
-                                themeParse = themeParseD,
-                                total = totalDuration,
-                            ),
-                    ),
-                )
+        try {
+            val totalStart = TimeSource.Monotonic.markNow()
+            // WebView JS call must stay on Dispatchers.Main (handled inside highlightToHtml).
+            val htmlResult = highlightToHtml(code, language).getOrElse { return Result.failure(it) }
+            // Theme parsing (may include asset I/O on first use) and HTML-to-AnnotatedString conversion
+            // are run off the Main thread on Dispatchers.Default.
+            return withContext(Dispatchers.Default) {
+                withHtmlParsingErrorHandling {
+                    val (colorMap, themeParseD) = theme.timedColorMap()
+                    val convertResult = HtmlToAnnotatedString.convertTimed(htmlResult.html, colorMap)
+                    val totalDuration = totalStart.elapsedNow()
+                    val hasBaseStyle =
+                        !htmlResult.html.isBlank() && colorMap[HljsSelectors.BASE]?.color?.let { it != Color.Unspecified } == true
+                    val spanCount = convertResult.annotated.spanStyles.size - if (hasBaseStyle) 1 else 0
+                    Result.success(
+                        HighlightResult(
+                            annotated = convertResult.annotated,
+                            spanCount = spanCount,
+                            language = language,
+                            durationMs = totalDuration.inWholeMilliseconds,
+                            timings =
+                                HighlightTimings(
+                                    jsBridge = htmlResult.jsBridgeDuration,
+                                    jsonUnescape = htmlResult.jsonUnescapeDuration,
+                                    htmlParse = convertResult.htmlParseDuration,
+                                    themeParse = themeParseD,
+                                    total = totalDuration,
+                                ),
+                        ),
+                    )
+                }
             }
+        } finally {
+            completedHighlightCount.incrementAndGet()
         }
     }
 
@@ -344,38 +357,42 @@ public class HighlightEngine(
         lightTheme: HighlightTheme,
         darkTheme: HighlightTheme,
     ): Result<ThemedHighlightResult> {
-        val totalStart = TimeSource.Monotonic.markNow()
-        // WebView JS call must stay on Dispatchers.Main (handled inside highlightToHtml).
-        val htmlResult = highlightToHtml(code, language).getOrElse { return Result.failure(it) }
-        // Theme parsing (may include asset I/O on first use) and HTML-to-AnnotatedString conversion
-        // are run off the Main thread on Dispatchers.Default.
-        return withContext(Dispatchers.Default) {
-            withHtmlParsingErrorHandling {
-                val (lightColorMap, lightThemeParseD) = lightTheme.timedColorMap()
-                val (darkColorMap, darkThemeParseD) = darkTheme.timedColorMap()
-                val convertResult =
-                    HtmlToAnnotatedString.convertBothThemesTimed(
-                        htmlResult.html,
-                        lightColorMap,
-                        darkColorMap,
+        try {
+            val totalStart = TimeSource.Monotonic.markNow()
+            // WebView JS call must stay on Dispatchers.Main (handled inside highlightToHtml).
+            val htmlResult = highlightToHtml(code, language).getOrElse { return Result.failure(it) }
+            // Theme parsing (may include asset I/O on first use) and HTML-to-AnnotatedString conversion
+            // are run off the Main thread on Dispatchers.Default.
+            return withContext(Dispatchers.Default) {
+                withHtmlParsingErrorHandling {
+                    val (lightColorMap, lightThemeParseD) = lightTheme.timedColorMap()
+                    val (darkColorMap, darkThemeParseD) = darkTheme.timedColorMap()
+                    val convertResult =
+                        HtmlToAnnotatedString.convertBothThemesTimed(
+                            htmlResult.html,
+                            lightColorMap,
+                            darkColorMap,
+                        )
+                    val totalDuration = totalStart.elapsedNow()
+                    Result.success(
+                        ThemedHighlightResult(
+                            light = convertResult.light,
+                            dark = convertResult.dark,
+                            durationMs = totalDuration.inWholeMilliseconds,
+                            timings =
+                                HighlightTimings(
+                                    jsBridge = htmlResult.jsBridgeDuration,
+                                    jsonUnescape = htmlResult.jsonUnescapeDuration,
+                                    htmlParse = convertResult.htmlParseDuration,
+                                    themeParse = lightThemeParseD + darkThemeParseD,
+                                    total = totalDuration,
+                                ),
+                        ),
                     )
-                val totalDuration = totalStart.elapsedNow()
-                Result.success(
-                    ThemedHighlightResult(
-                        light = convertResult.light,
-                        dark = convertResult.dark,
-                        durationMs = totalDuration.inWholeMilliseconds,
-                        timings =
-                            HighlightTimings(
-                                jsBridge = htmlResult.jsBridgeDuration,
-                                jsonUnescape = htmlResult.jsonUnescapeDuration,
-                                htmlParse = convertResult.htmlParseDuration,
-                                themeParse = lightThemeParseD + darkThemeParseD,
-                                total = totalDuration,
-                            ),
-                    ),
-                )
+                }
             }
+        } finally {
+            completedHighlightCount.incrementAndGet()
         }
     }
 
@@ -606,46 +623,50 @@ public class HighlightEngine(
         code: String,
         theme: HighlightTheme,
     ): Result<AutoHighlightResult> {
-        val totalStart = TimeSource.Monotonic.markNow()
-        return withEngineErrorHandling {
-            manager.initialize()
-            val webView = manager.getReadyWebView()
-            // Release the mutex after the WebView call so the lock is not held during CPU work.
-            val jsResult =
-                mutex
-                    .withLock {
-                        withTimeout(HighlightException.TIMEOUT_SECONDS * 1000L) {
-                            executeJsAuto(webView, code)
-                        }
-                    }.getOrThrow()
-            // Theme parsing (may include asset I/O on first use) and HTML-to-AnnotatedString
-            // conversion are run off the Main thread on Dispatchers.Default.
-            withContext(Dispatchers.Default) {
-                withHtmlParsingErrorHandling {
-                    val (colorMap, themeParseD) = theme.timedColorMap()
-                    val convertResult = HtmlToAnnotatedString.convertTimed(jsResult.html, colorMap)
-                    val totalDuration = totalStart.elapsedNow()
-                    val hasBaseStyle =
-                        !jsResult.html.isBlank() && colorMap[HljsSelectors.BASE]?.color?.let { it != Color.Unspecified } == true
-                    val spanCount = convertResult.annotated.spanStyles.size - if (hasBaseStyle) 1 else 0
-                    Result.success(
-                        AutoHighlightResult(
-                            annotated = convertResult.annotated,
-                            detectedLanguage = jsResult.detectedLanguage,
-                            spanCount = spanCount,
-                            durationMs = totalDuration.inWholeMilliseconds,
-                            timings =
-                                HighlightTimings(
-                                    jsBridge = jsResult.jsBridgeDuration,
-                                    jsonUnescape = jsResult.jsonUnescapeDuration,
-                                    htmlParse = convertResult.htmlParseDuration,
-                                    themeParse = themeParseD,
-                                    total = totalDuration,
-                                ),
-                        ),
-                    )
+        try {
+            val totalStart = TimeSource.Monotonic.markNow()
+            return withEngineErrorHandling {
+                manager.initialize()
+                val webView = manager.getReadyWebView()
+                // Release the mutex after the WebView call so the lock is not held during CPU work.
+                val jsResult =
+                    mutex
+                        .withLock {
+                            withTimeout(HighlightException.TIMEOUT_SECONDS * 1000L) {
+                                executeJsAuto(webView, code)
+                            }
+                        }.getOrThrow()
+                // Theme parsing (may include asset I/O on first use) and HTML-to-AnnotatedString
+                // conversion are run off the Main thread on Dispatchers.Default.
+                withContext(Dispatchers.Default) {
+                    withHtmlParsingErrorHandling {
+                        val (colorMap, themeParseD) = theme.timedColorMap()
+                        val convertResult = HtmlToAnnotatedString.convertTimed(jsResult.html, colorMap)
+                        val totalDuration = totalStart.elapsedNow()
+                        val hasBaseStyle =
+                            !jsResult.html.isBlank() && colorMap[HljsSelectors.BASE]?.color?.let { it != Color.Unspecified } == true
+                        val spanCount = convertResult.annotated.spanStyles.size - if (hasBaseStyle) 1 else 0
+                        Result.success(
+                            AutoHighlightResult(
+                                annotated = convertResult.annotated,
+                                detectedLanguage = jsResult.detectedLanguage,
+                                spanCount = spanCount,
+                                durationMs = totalDuration.inWholeMilliseconds,
+                                timings =
+                                    HighlightTimings(
+                                        jsBridge = jsResult.jsBridgeDuration,
+                                        jsonUnescape = jsResult.jsonUnescapeDuration,
+                                        htmlParse = convertResult.htmlParseDuration,
+                                        themeParse = themeParseD,
+                                        total = totalDuration,
+                                    ),
+                            ),
+                        )
+                    }
                 }
             }
+        } finally {
+            completedHighlightCount.incrementAndGet()
         }
     }
 
