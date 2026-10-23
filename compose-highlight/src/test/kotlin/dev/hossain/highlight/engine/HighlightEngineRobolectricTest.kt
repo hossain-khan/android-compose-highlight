@@ -798,4 +798,88 @@ class HighlightEngineRobolectricTest {
 
             engine.destroy()
         }
+
+    @Test
+    fun `in-flight highlightAuto returns RendererGone when renderer process crashes`() =
+        runTest {
+            val engine = createReadyEngine()
+
+            val deferred = async { engine.highlightAuto("val x = 42", HighlightTheme.tomorrow()) }
+            testScheduler.runCurrent()
+            ShadowLooper.idleMainLooper()
+
+            val webView = engine.webViewForTest() ?: error("WebView not found")
+            val client = Shadows.shadowOf(webView).webViewClient ?: error("WebViewClient not found")
+
+            client.onRenderProcessGone(webView, createDetail(didCrash = true))
+            ShadowLooper.idleMainLooper()
+
+            val result = deferred.await()
+            assertThat(result.isFailure).isTrue()
+            assertThat(result.exceptionOrNull()).isInstanceOf(HighlightException.RendererGone::class.java)
+
+            engine.destroy()
+        }
+
+    @Test
+    fun `in-flight highlightJsVersion returns RendererGone when renderer process crashes`() =
+        runTest {
+            val engine = createReadyEngine()
+
+            val deferred = async { engine.highlightJsVersion() }
+            testScheduler.runCurrent()
+            ShadowLooper.idleMainLooper()
+
+            val webView = engine.webViewForTest() ?: error("WebView not found")
+            val client = Shadows.shadowOf(webView).webViewClient ?: error("WebViewClient not found")
+
+            client.onRenderProcessGone(webView, createDetail(didCrash = true))
+            ShadowLooper.idleMainLooper()
+
+            val result = deferred.await()
+            assertThat(result.isFailure).isTrue()
+            assertThat(result.exceptionOrNull()).isInstanceOf(HighlightException.RendererGone::class.java)
+
+            engine.destroy()
+        }
+
+    @Test
+    fun `in-flight getLanguage returns RendererGone when renderer process crashes`() =
+        runTest {
+            val engine = createReadyEngine()
+
+            val deferred = async { engine.getLanguage("kotlin") }
+            testScheduler.runCurrent()
+            ShadowLooper.idleMainLooper()
+
+            val webView = engine.webViewForTest() ?: error("WebView not found")
+            val client = Shadows.shadowOf(webView).webViewClient ?: error("WebViewClient not found")
+
+            client.onRenderProcessGone(webView, createDetail(didCrash = true))
+            ShadowLooper.idleMainLooper()
+
+            val result = deferred.await()
+            assertThat(result.isFailure).isTrue()
+            assertThat(result.exceptionOrNull()).isInstanceOf(HighlightException.RendererGone::class.java)
+
+            engine.destroy()
+        }
+
+    @Test
+    fun `destroying engine while highlightToHtml is in flight completes with EngineDestroyed failure`() =
+        runTest {
+            val engine = createReadyEngine()
+
+            val deferred = async { engine.highlightToHtml("val x = 42", "kotlin") }
+            testScheduler.runCurrent()
+            ShadowLooper.idleMainLooper()
+
+            // Destroy engine while evaluateJavascript is pending
+            engine.destroy()
+            ShadowLooper.idleMainLooper()
+
+            val result = deferred.await()
+            assertThat(result.isFailure).isTrue()
+            assertThat(result.exceptionOrNull()).isInstanceOf(HighlightException.EngineDestroyed::class.java)
+        }
 }

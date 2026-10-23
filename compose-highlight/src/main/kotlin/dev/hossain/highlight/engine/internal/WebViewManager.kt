@@ -324,10 +324,10 @@ internal class WebViewManager(
         val wv = webView ?: return
         webView = null
         _isInitialized.value = false
-        // Cancel any pending waiter, then reset to drop the strong reference to the
+        // Fail any pending waiter with EngineDestroyed, then reset to drop the strong reference to the
         // destroyed WebView and allow it to be GC'd immediately.
         if (!readyDeferred.isCompleted) {
-            readyDeferred.cancel()
+            readyDeferred.completeExceptionally(HighlightException.EngineDestroyed())
         }
         readyDeferred = CompletableDeferred()
         // WebView.destroy() must be called on the thread that created it (Main).

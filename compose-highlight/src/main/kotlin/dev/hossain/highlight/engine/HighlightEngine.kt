@@ -652,7 +652,7 @@ public class HighlightEngine(
         activeContinuation?.let { cont ->
             activeContinuation = null
             if (cont.isActive) {
-                cont.cancel()
+                cont.resumeWithException(HighlightException.EngineDestroyed())
             }
         }
         manager.destroy()

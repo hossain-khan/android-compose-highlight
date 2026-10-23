@@ -31,7 +31,9 @@ All notable changes to this project will be documented in this file.
   to return `true`, destroy the unusable WebView instance on the Main thread, reset bridge initialization state,
   and fail in-flight JavaScript executions immediately with typed `HighlightException.RendererGone` instead of
   hanging until the timeout expires. Subsequent highlight calls automatically recreate a fresh WebView on demand.
-  Resolved Android lint's `MissingOnRenderProcessGone` warning.
+  Added `HighlightException.EngineDestroyed` to ensure in-flight operations completed during engine shutdown return
+  a documented `Result.failure` rather than leaking `CancellationException`. Resolved Android lint's
+  `MissingOnRenderProcessGone` warning.
 - **Safe asynchronous theme resolution in Compose UI** - Prevented CSS-backed themes from performing blocking
   asset I/O or CSS parsing on the Main thread during initial composition (#485). Separated immediate base color
   metadata from lazy token color maps, allowing built-in themes to render immediately without palette flicker

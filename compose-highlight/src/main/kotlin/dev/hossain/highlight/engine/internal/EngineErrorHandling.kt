@@ -8,10 +8,10 @@ import kotlinx.coroutines.TimeoutCancellationException
  * Executes [block] and maps common exceptions to [Result] failure types, while correctly
  * propagating [CancellationException] for structured concurrency.
  *
- * - [TimeoutCancellationException] (from internal `withTimeout`) → [HighlightException.Timeout]
- * - [CancellationException] (parent scope cancellation) → rethrown
- * - [HighlightException] → preserved as [Result.failure]
- * - Any other [Exception] → wrapped in [HighlightException.JsExecutionFailed]
+ * - [TimeoutCancellationException] (from internal `withTimeout`) -> [HighlightException.Timeout]
+ * - [CancellationException] (parent scope cancellation) -> rethrown
+ * - [HighlightException] -> preserved as [Result.failure]
+ * - Any other [Exception] -> wrapped in [HighlightException.JsExecutionFailed]
  *
  * This helper eliminates the repeated catch chain in
  * [dev.hossain.highlight.engine.HighlightEngine.highlightToHtml],
@@ -36,9 +36,9 @@ internal suspend fun <T> withEngineErrorHandling(block: suspend () -> Result<T>)
  * Executes [block] and maps exceptions from the HTML parsing and theme resolution pipeline to
  * [Result] failure types, while correctly propagating [CancellationException].
  *
- * - [CancellationException] → rethrown (preserves structured concurrency)
- * - [HighlightException] → preserved as [Result.failure]
- * - Any other [Exception] → wrapped in [HighlightException.HtmlParseFailed]
+ * - [CancellationException] -> rethrown (preserves structured concurrency)
+ * - [HighlightException] -> preserved as [Result.failure]
+ * - Any other [Exception] -> wrapped in [HighlightException.HtmlParseFailed]
  *
  * Used by [dev.hossain.highlight.engine.HighlightEngine.highlight],
  * [dev.hossain.highlight.engine.HighlightEngine.highlightBothThemes], and

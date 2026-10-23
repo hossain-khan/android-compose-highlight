@@ -45,6 +45,13 @@ public abstract class dev/hossain/highlight/engine/HighlightException : java/lan
 public final class dev/hossain/highlight/engine/HighlightException$Companion {
 }
 
+public final class dev/hossain/highlight/engine/HighlightException$EngineDestroyed : dev/hossain/highlight/engine/HighlightException {
+	public static final field $stable I
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/Throwable;)V
+	public synthetic fun <init> (Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+}
+
 public final class dev/hossain/highlight/engine/HighlightException$HtmlParseFailed : dev/hossain/highlight/engine/HighlightException {
 	public static final field $stable I
 	public fun <init> (Ljava/lang/Throwable;)V

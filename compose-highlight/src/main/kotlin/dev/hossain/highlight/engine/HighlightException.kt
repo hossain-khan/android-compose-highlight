@@ -79,6 +79,18 @@ public sealed class HighlightException(
                 cause = cause,
             )
 
+    /**
+     * Thrown when an engine operation cannot complete because the [HighlightEngine] was
+     * destroyed (via [HighlightEngine.destroy] or [HighlightEngine.close]).
+     *
+     * @param cause The underlying throwable that triggered this exception, if any.
+     */
+    public class EngineDestroyed
+        @JvmOverloads
+        public constructor(
+            cause: Throwable? = null,
+        ) : HighlightException("HighlightEngine was destroyed", cause)
+
     /** Thrown when a highlight call does not complete within [TIMEOUT_SECONDS] seconds. */
     public class Timeout : HighlightException("Highlighting timed out after ${TIMEOUT_SECONDS}s")
 
