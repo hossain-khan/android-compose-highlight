@@ -4,7 +4,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.semantics.SemanticsNode
+import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.semantics.getOrNull
 import androidx.compose.ui.test.junit4.ComposeContentTestRule
+import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import com.github.takahirom.roborazzi.RoborazziOptions
 import com.github.takahirom.roborazzi.captureRoboImage
@@ -173,7 +177,6 @@ internal fun ComposeContentTestRule.captureHighlightedScreenshot(
     // strategy depends on which rendering path we want to capture: success drives the
     // happy path, failure exercises the AnnotatedString(code) fallback, and no-response
     // leaves the LaunchedEffect suspended so the placeholder stays visible.
-    val initialCompletedCount = engine.completedHighlightCount.get()
     when (jsResponse) {
         is JsResponse.Success -> {
             val jsCallback =
@@ -216,36 +219,35 @@ internal fun ComposeContentTestRule.captureHighlightedScreenshot(
     // Under v2 createComposeRule's StandardTestDispatcher each hop is its own scheduler
     // turn, so one waitForIdle() is not enough.
     //
-    // The pragmatic strategy is to drain the looper repeatedly until the engine signals it
-    // has finished its hot path. When a JS callback is provided (Success or Failure), we wait
-    // until `engine.completedHighlightCount` increments, proving that the engine has finished
-    // parsing and building the AnnotatedString. Then we pump POST_INIT_STABILITY_TURNS for
-    // downstream Compose work (State write + recomposition + AnimatedContent settle).
+    // For successful highlighting, we wait until the rendered UI node contains syntax
+    // highlight spans. Then we pump POST_INIT_STABILITY_TURNS for downstream Compose
+    // settle (State write + recomposition + AnimatedContent fade settle).
     //
-    // For NoResponse, the engine remains suspended intentionally to capture loading states,
-    // so we skip waiting for highlight completion and directly pump stability turns.
+    // For NoResponse and Failure, highlighting intentionally does not produce spans, so
+    // we directly pump stability turns.
     val deadlineMs = System.currentTimeMillis() + DRAIN_TIMEOUT_MS
-    var sawCompleted = (jsResponse is JsResponse.NoResponse)
+    var sawCompleted = (jsResponse !is JsResponse.Success)
     var stableTurns = 0
     while (System.currentTimeMillis() < deadlineMs) {
         ShadowLooper.idleMainLooper()
         waitForIdle()
         if (!sawCompleted) {
-            sawCompleted = engine.completedHighlightCount.get() > initialCompletedCount
+            sawCompleted =
+                onAllNodesWithTag(testTag)
+                    .fetchSemanticsNodes()
+                    .any { it.hasHighlightSpans() }
             if (sawCompleted) {
                 stableTurns = 0
             } else {
                 Thread.sleep(10)
             }
         } else {
-            // Once the engine reports ready, pump a few more turns for downstream Compose
-            // work (State write + recomposition + AnimatedContent settle), then exit.
             stableTurns++
             if (stableTurns >= POST_INIT_STABILITY_TURNS) break
         }
     }
     check(sawCompleted) {
-        "engine.highlight never completed within ${DRAIN_TIMEOUT_MS}ms after the JS " +
+        "Highlight spans were never applied to node '$testTag' within ${DRAIN_TIMEOUT_MS}ms after the JS " +
             "callback was invoked. A future Compose BOM may have added a dispatcher hop the " +
             "drain loop does not anticipate; bump DRAIN_TIMEOUT_MS or revisit the wait condition."
     }
@@ -262,4 +264,18 @@ internal fun ComposeContentTestRule.captureHighlightedScreenshot(
     )
 
     engine.destroy()
+}
+
+/**
+ * Recursively checks whether this semantics node or any of its children carries styled
+ * highlight spans in its text or editable text.
+ */
+private fun SemanticsNode.hasHighlightSpans(): Boolean {
+    val textList = config.getOrNull(SemanticsProperties.Text)
+    if (textList?.any { it.spanStyles.isNotEmpty() } == true) return true
+
+    val editableText = config.getOrNull(SemanticsProperties.EditableText)
+    if (editableText?.spanStyles?.isNotEmpty() == true) return true
+
+    return children.any { it.hasHighlightSpans() }
 }
