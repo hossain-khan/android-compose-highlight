@@ -6,6 +6,14 @@ For release artifacts and APK downloads, see the [GitHub Releases page](https://
 
 ## Recent highlights
 
+### 0.40.0 - Reliability, lifecycle hardening, and theme safety
+
+- Formalized explicit WebView lifecycle state machine with generation tracking to prevent destruction races (#489)
+- Handled WebView renderer process crashes (`onRenderProcessGone`) with auto-recreation and typed exceptions (#488)
+- Offloaded custom theme resolution from Main thread during initial composition with safe fallbacks and typed errors (#485)
+- Unified build-time and runtime CSS theme parser behavior for hex colors, font styles, and `!important` (#493)
+- Consolidated sample app demo tabs into 10 focused hubs with dedicated README Quick Start validation tab (#539)
+
 ### 0.39.0 - Actions and header slots
 
 - Added `actions` trailing slot with `RowScope` receiver and pre-wired `onCopy` action to `SyntaxHighlightedCode` and `StreamingSyntaxHighlightedCode` (#457)
@@ -36,14 +44,6 @@ For release artifacts and APK downloads, see the [GitHub Releases page](https://
 - Added dedicated "Theme Discovery" tab and language normalization interactive demos in the sample app
 - Added horizontal scrolling toggle in the sample app live editor
 - Integrated Dejavu for automated recomposition stability testing across all code block composables
-
-### 0.36.0 - Highlight.js 11.12.0 & Sample UX Enhancements
-
-- Upgraded bundled Highlight.js engine from 11.11.1 to 11.12.0 with grammar fixes for Python, Rust, C/C++, Java, and Go
-- Added new Kotlin language aliases (`ktm`, `ktx`) and 2 new themes (`equinox` and `vs-dark`) to the sample app
-- Fixed soft keyboard obscuring editor and search fields in the sample app by applying `imePadding` and refining insets
-- Added manual "Stream" button control to the sample app LLM/Streaming demo tab
-- Streamlined Highlight.js upgrade tooling with automated weekly upstream release monitoring
 
 ---
 
