@@ -251,7 +251,6 @@ public class HighlightEngine(
         language: String,
     ): Result<HtmlHighlightResult> =
         withEngineErrorHandling {
-            manager.initialize()
             mutex.withLock {
                 manager.initialize()
                 val webView = manager.getReadyWebView()
@@ -424,7 +423,6 @@ public class HighlightEngine(
     public suspend fun supportedLanguages(): Result<List<String>> {
         cachedLanguages?.let { return Result.success(it) }
         return withEngineErrorHandling {
-            manager.initialize()
             mutex.withLock {
                 // Double-checked: another coroutine may have populated the cache while we waited.
                 val cached = cachedLanguages
@@ -482,7 +480,6 @@ public class HighlightEngine(
     public suspend fun highlightJsVersion(): Result<String> {
         cachedVersion?.let { return Result.success(it) }
         return withEngineErrorHandling {
-            manager.initialize()
             mutex.withLock {
                 // Double-checked: another coroutine may have populated the cache while we waited.
                 val cached = cachedVersion
@@ -528,7 +525,6 @@ public class HighlightEngine(
      */
     public suspend fun getLanguage(nameOrAlias: String): Result<HighlightLanguageInfo?> =
         withEngineErrorHandling {
-            manager.initialize()
             val escapedNameOrAlias = escapeForJs(nameOrAlias)
             mutex.withLock {
                 manager.initialize()
@@ -599,7 +595,6 @@ public class HighlightEngine(
     ): Result<AutoHighlightResult> {
         val totalStart = TimeSource.Monotonic.markNow()
         return withEngineErrorHandling {
-            manager.initialize()
             // Release the mutex after the WebView call so the lock is not held during CPU work.
             val jsResult =
                 mutex
