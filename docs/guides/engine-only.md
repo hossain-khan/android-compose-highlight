@@ -92,21 +92,20 @@ engine.highlight(code, language, theme)
             when (error) {
                 is HighlightException.WebViewInitFailed -> /* WebView not available (Go edition, MDM-disabled, mid-update) */
                 is HighlightException.JsExecutionFailed -> /* JS evaluation error */
-                is HighlightException.HtmlParseFailed   -> /* HTML parse error, or theme resolution failure (check cause) */
+                is HighlightException.HtmlParseFailed   -> /* HTML parse error */
+                is HighlightException.ThemeNotFound     -> /* Theme CSS file missing or contains no parseable rules */
+                is HighlightException.RendererGone      -> /* WebView renderer process crashed or was killed by OS LMK */
+                is HighlightException.EngineDestroyed   -> /* HighlightEngine was destroyed or closed */
                 is HighlightException.Timeout           -> /* timed out waiting for WebView */
-                is HighlightException.ThemeNotFound     -> /* unreachable from highlight()/highlightBothThemes()/highlightAuto() - see note below */
             }
         }
     }
 ```
 
-!!! note "Theme resolution failures are wrapped in `HtmlParseFailed`"
-    Failures during theme resolution - including a missing asset file (`IOException`),
-    a CSS file that contains no parseable color rules (`ThemeNotFound`), or any other
-    exception thrown while parsing the active theme - are caught alongside HTML parsing
-    and surfaced as `HighlightException.HtmlParseFailed`. Inspect `error.cause` to
-    distinguish the underlying failure. `ThemeNotFound` is never raised directly to
-    callers of `engine.highlight()` / `highlightBothThemes()` / `highlightAuto()`.
+!!! note "Automatic renderer recovery"
+    If the WebView renderer process terminates (`HighlightException.RendererGone`), the host application
+    is protected from crashing. The current in-flight operation fails immediately with `RendererGone`,
+    and subsequent highlight calls automatically re-initialize a fresh WebView on demand.
 
 ## Important rules
 
