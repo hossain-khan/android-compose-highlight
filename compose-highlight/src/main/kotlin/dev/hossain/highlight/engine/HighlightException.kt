@@ -56,6 +56,29 @@ public sealed class HighlightException(
         cause: Throwable,
     ) : HighlightException("HTML parsing failed", cause)
 
+    /**
+     * Thrown when the WebView renderer process terminates unexpectedly, either due to an
+     * internal crash or because the system terminated it due to memory pressure.
+     *
+     * @param didCrash `true` if the renderer process crashed; `false` if it was killed by the
+     *   system (e.g. low-memory killer).
+     * @param cause The underlying throwable that triggered this exception, if any.
+     */
+    public class RendererGone
+        @JvmOverloads
+        public constructor(
+            public val didCrash: Boolean = false,
+            cause: Throwable? = null,
+        ) : HighlightException(
+                message =
+                    if (didCrash) {
+                        "WebView renderer process crashed"
+                    } else {
+                        "WebView renderer process was terminated by the system (low memory)"
+                    },
+                cause = cause,
+            )
+
     /** Thrown when a highlight call does not complete within [TIMEOUT_SECONDS] seconds. */
     public class Timeout : HighlightException("Highlighting timed out after ${TIMEOUT_SECONDS}s")
 
