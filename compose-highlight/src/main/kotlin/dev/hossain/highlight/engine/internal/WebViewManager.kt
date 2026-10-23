@@ -71,51 +71,36 @@ import java.io.ByteArrayInputStream
  * getting back HTML with `<span class="hljs-*">` tokens that are then converted to
  * an [androidx.compose.ui.text.AnnotatedString] by [HtmlToAnnotatedString].
  *
- * ## Threading invariants
+ * ## Threading invariants and lifecycle state machine
  *
  * The [WebView] itself is not thread-safe - the platform requires construction, JS evaluation,
  * and destruction to all happen on the thread that created it. This manager pins that to the
  * Main thread.
  *
+ * **State machine and generation tracking:**
+ *
+ * Lifecycle transitions are modeled explicitly via [State] (`IDLE`, `INITIALIZING`, `READY`,
+ * `FAILED`, `DESTROYED`) and coordinated across threads using an internal synchronization lock
+ * and a monotonic generation counter:
+ * - `IDLE` - Initial state, or state after a renderer crash has torn down the dead WebView.
+ * - `INITIALIZING` - [initialize] is constructing the [WebView] on the Main thread or loading `bridge.html`.
+ * - `READY` - `bridge.html` finished loading (`onPageFinished`), and the WebView is ready for JS calls.
+ * - `FAILED` - Construction or `loadUrl` threw [HighlightException.WebViewInitFailed]; retryable by subsequent [initialize] calls.
+ * - `DESTROYED` - [destroy] was invoked; pending waiters fail with [HighlightException.EngineDestroyed].
+ *
+ * A request ticket is captured upon calling [initialize] and compared against `generation` inside
+ * the Main-thread execution. If [destroy] ran while construction was queued or in progress, the
+ * generation mismatch causes the newly created WebView to be discarded and destroyed immediately
+ * without publishing, leaving no orphaned live instances.
+ *
  * **Method dispatch:**
  * - [initialize] is `suspend` and dispatches its critical section to [Dispatchers.Main] via
  *   `withContext`. The [WebView] is constructed and `bridge.html` is loaded on Main.
- * - [destroy] runs on the caller's thread (it is `fun`, not `suspend`), but its only Main-thread
- *   contract is that the actual `wv.destroy()` call is posted to the Main looper - field
- *   mutation can happen anywhere.
- * - [getReadyWebView] is `suspend` and can be awaited from any thread. It only calls
- *   [CompletableDeferred.await] on [readyDeferred].
- *
- * **Field write sites:**
- * - [webView] - set on Main inside [initialize]; cleared from any thread inside [destroy].
- *   Marked `@Volatile` so the clear in [destroy] is immediately visible to [initialize] and
- *   [onPageFinished] running on Main.
- * - [readyDeferred] - reassigned on Main inside [initialize] (only when the previous one is
- *   complete) and from any thread inside [destroy]. Marked `@Volatile` for the same reason.
- * - [_isInitialized] - flipped to `true` on Main from `onPageFinished`; flipped to `false` from
- *   any thread inside [destroy]. [MutableStateFlow] handles concurrent writes safely.
- *
- * **Why no [kotlinx.coroutines.sync.Mutex]:**
- *
- * In practice, [initialize] and [destroy] are paired with a single [HighlightEngine] instance
- * whose lifecycle is owned by Compose's `DisposableEffect` (see `HighlightThemeProvider` and
- * `rememberHighlightEngine`). `DisposableEffect.onDispose` runs on the **applier thread**,
- * which is Main, and effects are not re-entered concurrently. So:
- * - Two [initialize] coroutines from the same engine would race on entering Main, but the
- *   `webView != null` early-return after the dispatch makes the second one a no-op.
- * - [destroy] is invoked once per `onDispose`, exactly once per engine lifecycle.
- *
- * The remaining "racy on paper" sequences (a destroy+reassign happening between [initialize]'s
- * `readyDeferred.isCompleted` check and its reassignment, for example) settle into benign
- * end states - the captured local `deferred` in [initialize] guarantees [onPageFinished] always
- * completes the deferred it was paired with, and the `webView == null` guard at the top of
- * [onPageFinished] no-ops cleanly when destroy ran first.
- *
- * If callers ever need to invoke this manager outside the `DisposableEffect` discipline (e.g.
- * a `ViewModel`-owned engine driven by `onCleared`), [destroy] can be called from any thread -
- * the field cleanup and the posted `wv.destroy()` are independent. The threading model still
- * holds; the implicit Main-thread serialization just changes from "Compose applier" to
- * "whatever the caller arranges."
+ * - [destroy] runs synchronously from any thread. It updates the state machine, fails pending
+ *   waiters with [HighlightException.EngineDestroyed], and posts `wv.destroy()` to Main (or
+ *   invokes it directly if already on Main).
+ * - [getReadyWebView] is `suspend` and awaited from any thread. If destroyed, it fails immediately
+ *   with [HighlightException.EngineDestroyed] instead of hanging.
  */
 internal class WebViewManager(
     private val context: Context,
