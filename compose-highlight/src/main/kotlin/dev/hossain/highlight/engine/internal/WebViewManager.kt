@@ -9,11 +9,13 @@ import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import androidx.annotation.GuardedBy
 import androidx.annotation.RequiresApi
 import androidx.annotation.VisibleForTesting
 import androidx.webkit.WebViewAssetLoader
 import dev.hossain.highlight.engine.HighlightEngine
 import dev.hossain.highlight.engine.HighlightException
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -69,55 +71,56 @@ import java.io.ByteArrayInputStream
  * getting back HTML with `<span class="hljs-*">` tokens that are then converted to
  * an [androidx.compose.ui.text.AnnotatedString] by [HtmlToAnnotatedString].
  *
- * ## Threading invariants
+ * ## Threading invariants and lifecycle state machine
  *
  * The [WebView] itself is not thread-safe - the platform requires construction, JS evaluation,
  * and destruction to all happen on the thread that created it. This manager pins that to the
  * Main thread.
  *
+ * **State machine and generation tracking:**
+ *
+ * Lifecycle transitions are modeled explicitly via [State] (`IDLE`, `INITIALIZING`, `READY`,
+ * `FAILED`, `DESTROYED`) and coordinated across threads using an internal synchronization lock
+ * and a monotonic generation counter:
+ * - `IDLE` - Initial state, or state after a renderer crash has torn down the dead WebView.
+ * - `INITIALIZING` - [initialize] is constructing the [WebView] on the Main thread or loading `bridge.html`.
+ * - `READY` - `bridge.html` finished loading (`onPageFinished`), and the WebView is ready for JS calls.
+ * - `FAILED` - Construction or `loadUrl` threw [HighlightException.WebViewInitFailed]; retryable by subsequent [initialize] calls.
+ * - `DESTROYED` - [destroy] was invoked; pending waiters fail with [HighlightException.EngineDestroyed].
+ *
+ * A request ticket is captured upon calling [initialize] and compared against `generation` inside
+ * the Main-thread execution. If [destroy] ran while construction was queued or in progress, the
+ * generation mismatch causes the newly created WebView to be discarded and destroyed immediately
+ * without publishing, leaving no orphaned live instances.
+ *
  * **Method dispatch:**
  * - [initialize] is `suspend` and dispatches its critical section to [Dispatchers.Main] via
  *   `withContext`. The [WebView] is constructed and `bridge.html` is loaded on Main.
- * - [destroy] runs on the caller's thread (it is `fun`, not `suspend`), but its only Main-thread
- *   contract is that the actual `wv.destroy()` call is posted to the Main looper - field
- *   mutation can happen anywhere.
- * - [getReadyWebView] is `suspend` and can be awaited from any thread. It only calls
- *   [CompletableDeferred.await] on [readyDeferred].
- *
- * **Field write sites:**
- * - [webView] - set on Main inside [initialize]; cleared from any thread inside [destroy].
- *   Marked `@Volatile` so the clear in [destroy] is immediately visible to [initialize] and
- *   [onPageFinished] running on Main.
- * - [readyDeferred] - reassigned on Main inside [initialize] (only when the previous one is
- *   complete) and from any thread inside [destroy]. Marked `@Volatile` for the same reason.
- * - [_isInitialized] - flipped to `true` on Main from `onPageFinished`; flipped to `false` from
- *   any thread inside [destroy]. [MutableStateFlow] handles concurrent writes safely.
- *
- * **Why no [kotlinx.coroutines.sync.Mutex]:**
- *
- * In practice, [initialize] and [destroy] are paired with a single [HighlightEngine] instance
- * whose lifecycle is owned by Compose's `DisposableEffect` (see `HighlightThemeProvider` and
- * `rememberHighlightEngine`). `DisposableEffect.onDispose` runs on the **applier thread**,
- * which is Main, and effects are not re-entered concurrently. So:
- * - Two [initialize] coroutines from the same engine would race on entering Main, but the
- *   `webView != null` early-return after the dispatch makes the second one a no-op.
- * - [destroy] is invoked once per `onDispose`, exactly once per engine lifecycle.
- *
- * The remaining "racy on paper" sequences (a destroy+reassign happening between [initialize]'s
- * `readyDeferred.isCompleted` check and its reassignment, for example) settle into benign
- * end states - the captured local `deferred` in [initialize] guarantees [onPageFinished] always
- * completes the deferred it was paired with, and the `webView == null` guard at the top of
- * [onPageFinished] no-ops cleanly when destroy ran first.
- *
- * If callers ever need to invoke this manager outside the `DisposableEffect` discipline (e.g.
- * a `ViewModel`-owned engine driven by `onCleared`), [destroy] can be called from any thread -
- * the field cleanup and the posted `wv.destroy()` are independent. The threading model still
- * holds; the implicit Main-thread serialization just changes from "Compose applier" to
- * "whatever the caller arranges."
+ * - [destroy] runs synchronously from any thread. It updates the state machine, fails pending
+ *   waiters with [HighlightException.EngineDestroyed], and posts `wv.destroy()` to Main (or
+ *   invokes it directly if already on Main).
+ * - [getReadyWebView] is `suspend` and awaited from any thread. If destroyed, it fails immediately
+ *   with [HighlightException.EngineDestroyed] instead of hanging.
  */
 internal class WebViewManager(
     private val context: Context,
 ) {
+    private enum class State {
+        IDLE,
+        INITIALIZING,
+        READY,
+        FAILED,
+        DESTROYED,
+    }
+
+    private val lock = Any()
+
+    @Volatile
+    private var state: State = State.IDLE
+
+    @GuardedBy("lock")
+    private var generation: Int = 0
+
     @Volatile
     private var webView: WebView? = null
 
@@ -169,17 +172,37 @@ internal class WebViewManager(
      * Safe to call after [destroy] - re-creates the WebView and a fresh deferred.
      */
     suspend fun initialize() {
-        if (webView != null) return
+        if (state == State.READY) return
+
+        val requestTicket: Int
+        synchronized(lock) {
+            if (state == State.READY) return
+            requestTicket = generation
+        }
 
         withContext(Dispatchers.Main) {
-            if (webView != null) return@withContext
+            val targetGeneration: Int
+            val deferred: CompletableDeferred<WebView>
 
-            // Reset the deferred so re-initialization after destroy works correctly.
-            // Capture as a local so the WebViewClient closure always completes *this* deferred.
-            if (readyDeferred.isCompleted) {
-                readyDeferred = CompletableDeferred()
+            synchronized(lock) {
+                // If destroy() was called after this initialize() call was invoked,
+                // generation will be greater than requestTicket, and state will be DESTROYED.
+                if (state == State.DESTROYED && generation > requestTicket) {
+                    return@withContext
+                }
+                if (state == State.READY) return@withContext
+                if (state == State.INITIALIZING && webView != null) return@withContext
+
+                state = State.INITIALIZING
+                generation++
+                targetGeneration = generation
+                _isInitialized.value = false
+
+                if (readyDeferred.isCompleted) {
+                    readyDeferred = CompletableDeferred()
+                }
+                deferred = readyDeferred
             }
-            val deferred = readyDeferred
 
             val assetLoader =
                 WebViewAssetLoader
@@ -243,17 +266,15 @@ internal class WebViewManager(
                                     view: WebView,
                                     url: String,
                                 ) {
-                                    // Guard against a race where destroy() ran while the page
-                                    // was still loading: webView was set to null by destroy(),
-                                    // and readyDeferred was replaced with a fresh instance.
-                                    // Completing the captured (now-cancelled) deferred would
-                                    // leave the new deferred permanently incomplete - hung engine.
-                                    // Returning here lets the next initialize() call pick up
-                                    // the fresh deferred and complete it normally.
-                                    if (webView == null) return
-                                    if (!deferred.isCompleted) {
-                                        deferred.complete(view)
+                                    synchronized(lock) {
+                                        if (state != State.INITIALIZING || generation != targetGeneration || view !== webView) {
+                                            return
+                                        }
+                                        state = State.READY
                                         _isInitialized.value = true
+                                        if (!deferred.isCompleted) {
+                                            deferred.complete(view)
+                                        }
                                     }
                                 }
 
@@ -263,18 +284,57 @@ internal class WebViewManager(
                                     detail: RenderProcessGoneDetail,
                                 ): Boolean = handleRenderProcessGone(view, detail)
                             }
-                        // Serves local assets over https:// via WebViewAssetLoader - required for
-                        // Same-Origin Policy compliance so that highlight.min.js can execute.
-                        // https://developer.android.com/reference/androidx/webkit/WebViewAssetLoader
-                        loadUrl("https://appassets.androidplatform.net/assets/compose-highlight/bridge.html")
                     }
                 } catch (e: Exception) {
+                    if (e is CancellationException) throw e
                     val initEx = HighlightException.WebViewInitFailed(e)
-                    deferred.completeExceptionally(initEx)
+                    synchronized(lock) {
+                        if (generation == targetGeneration) {
+                            state = State.FAILED
+                            _isInitialized.value = false
+                            deferred.completeExceptionally(initEx)
+                        }
+                    }
                     throw initEx
                 }
 
-            webView = view
+            synchronized(lock) {
+                if (state == State.DESTROYED || generation != targetGeneration) {
+                    // destroy() was called while WebView was being constructed on Main.
+                    // Clean up and discard the newly created instance immediately.
+                    try {
+                        view.destroy()
+                    } catch (_: Throwable) {
+                        // Suppress secondary cleanup exceptions.
+                    }
+                    return@withContext
+                }
+                webView = view
+            }
+
+            try {
+                // Serves local assets over https:// via WebViewAssetLoader - required for
+                // Same-Origin Policy compliance so that highlight.min.js can execute.
+                // https://developer.android.com/reference/androidx/webkit/WebViewAssetLoader
+                view.loadUrl("https://appassets.androidplatform.net/assets/compose-highlight/bridge.html")
+            } catch (e: Exception) {
+                if (e is CancellationException) throw e
+                val initEx = HighlightException.WebViewInitFailed(e)
+                synchronized(lock) {
+                    if (generation == targetGeneration) {
+                        state = State.FAILED
+                        _isInitialized.value = false
+                        webView = null
+                        deferred.completeExceptionally(initEx)
+                    }
+                }
+                try {
+                    view.destroy()
+                } catch (_: Throwable) {
+                    // Suppress secondary cleanup exceptions.
+                }
+                throw initEx
+            }
         }
     }
 
@@ -290,18 +350,26 @@ internal class WebViewManager(
         detail: RenderProcessGoneDetail,
     ): Boolean {
         val didCrash = detail.didCrash()
-        val isCurrentWebView = (view === webView)
+        val isCurrentWebView: Boolean
 
-        if (isCurrentWebView) {
-            webView = null
-            _isInitialized.value = false
+        synchronized(lock) {
+            isCurrentWebView = (view === webView)
+            if (isCurrentWebView) {
+                webView = null
+                _isInitialized.value = false
+                state = State.IDLE
+                generation++
 
-            // Fail any pending initialization waiter immediately.
-            if (!readyDeferred.isCompleted) {
-                readyDeferred.completeExceptionally(HighlightException.RendererGone(didCrash))
+                val exception = HighlightException.RendererGone(didCrash)
+                if (!readyDeferred.isCompleted) {
+                    readyDeferred.completeExceptionally(exception)
+                } else {
+                    readyDeferred =
+                        CompletableDeferred<WebView>().apply {
+                            completeExceptionally(exception)
+                        }
+                }
             }
-            // Reset readyDeferred so future initialize() calls can allocate a fresh WebView.
-            readyDeferred = CompletableDeferred()
         }
 
         // The platform requires that the terminated WebView be destroyed.
@@ -321,16 +389,45 @@ internal class WebViewManager(
 
     /** Destroys the WebView and releases resources. Safe to call from any thread. */
     fun destroy() {
-        val wv = webView ?: return
-        webView = null
-        _isInitialized.value = false
-        // Fail any pending waiter with EngineDestroyed, then reset to drop the strong reference to the
-        // destroyed WebView and allow it to be GC'd immediately.
-        if (!readyDeferred.isCompleted) {
-            readyDeferred.completeExceptionally(HighlightException.EngineDestroyed())
+        val viewToDestroy: WebView?
+        synchronized(lock) {
+            if (state == State.DESTROYED) return
+            state = State.DESTROYED
+            generation++
+            _isInitialized.value = false
+
+            viewToDestroy = webView
+            webView = null
+
+            // Fail any pending waiter with EngineDestroyed, then replace with an already-completed
+            // deferred so subsequent getReadyWebView() calls fail deterministically instead of hanging.
+            if (!readyDeferred.isCompleted) {
+                readyDeferred.completeExceptionally(HighlightException.EngineDestroyed())
+            } else {
+                readyDeferred =
+                    CompletableDeferred<WebView>().apply {
+                        completeExceptionally(HighlightException.EngineDestroyed())
+                    }
+            }
         }
-        readyDeferred = CompletableDeferred()
-        // WebView.destroy() must be called on the thread that created it (Main).
-        Handler(Looper.getMainLooper()).post { wv.destroy() }
+
+        if (viewToDestroy != null) {
+            // WebView.destroy() must be called on the thread that created it (Main).
+            if (Looper.myLooper() == Looper.getMainLooper()) {
+                try {
+                    viewToDestroy.destroy()
+                } catch (_: Throwable) {
+                    // Suppress secondary cleanup exceptions.
+                }
+            } else {
+                Handler(Looper.getMainLooper()).post {
+                    try {
+                        viewToDestroy.destroy()
+                    } catch (_: Throwable) {
+                        // Suppress secondary cleanup exceptions.
+                    }
+                }
+            }
+        }
     }
 }

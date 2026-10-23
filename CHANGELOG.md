@@ -25,6 +25,13 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+- **Serialized WebView lifecycle transitions and eliminated destruction races** - Formalized explicit lifecycle
+  state machine (`IDLE`, `INITIALIZING`, `READY`, `FAILED`, `DESTROYED`) and generation tracking in `WebViewManager`
+  (#489). Prevents race conditions where `destroy()` could be observed while asynchronous Main-thread construction
+  was in flight, ensuring obsolete construction attempts discard newly created WebViews without publishing them.
+  Calls to `getReadyWebView()` after destruction now fail deterministically with `HighlightException.EngineDestroyed`
+  instead of hanging or returning dead instances, while preserving caller coroutine `CancellationException`
+  propagation for structured concurrency.
 - **Handled WebView renderer process termination (`onRenderProcessGone`)** - Implemented `onRenderProcessGone`
   in `WebViewManager`'s `WebViewClient` to prevent host application process crashes when Android's Low Memory
   Killer (LMK) or internal renderer faults terminate the sandboxed WebView process (#488). Overrode the callback
