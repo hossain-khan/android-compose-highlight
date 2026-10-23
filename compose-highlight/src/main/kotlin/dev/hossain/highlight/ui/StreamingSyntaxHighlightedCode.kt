@@ -128,7 +128,7 @@ public fun StreamingSyntaxHighlightedCode(
     onHighlightComplete: ((HighlightResult) -> Unit)? = null,
     onError: ((HighlightException) -> Unit)? = null,
 ) {
-    val isThemeResolved = theme.isColorMapInitialized || theme.hasImmediateColors
+    val isThemeResolved = theme.isColorMapInitialized
     val backgroundColor =
         remember(theme, style, isThemeResolved) {
             theme.safeBackgroundColor()?.takeIf { it != Color.Unspecified }

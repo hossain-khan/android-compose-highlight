@@ -219,7 +219,7 @@ public fun SyntaxHighlightedTextEditor(
             onError = onError,
         )
 
-    val isThemeResolved = theme.isColorMapInitialized || theme.hasImmediateColors
+    val isThemeResolved = theme.isColorMapInitialized
     val backgroundColor =
         remember(theme, isThemeResolved) {
             theme.safeBackgroundColor()?.takeIf { it != Color.Unspecified }

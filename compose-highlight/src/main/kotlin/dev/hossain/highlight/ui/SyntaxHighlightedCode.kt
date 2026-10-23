@@ -255,7 +255,7 @@ public fun SyntaxHighlightedCode(
     // Remember derived colors and text styles keyed on theme, style, and resolution state.
     // Base colors use safe theme metadata without blocking asset I/O or CSS parsing on the
     // Main thread, falling back to style defaults until the theme is resolved.
-    val isThemeResolved = theme.isColorMapInitialized || theme.hasImmediateColors
+    val isThemeResolved = theme.isColorMapInitialized
     val backgroundColor =
         remember(theme, style, isThemeResolved) {
             theme.safeBackgroundColor()?.takeIf { it != Color.Unspecified }

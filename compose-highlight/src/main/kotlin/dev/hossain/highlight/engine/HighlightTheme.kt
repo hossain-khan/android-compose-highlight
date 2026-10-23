@@ -5,6 +5,7 @@ import androidx.compose.runtime.Stable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.SpanStyle
 import dev.hossain.highlight.engine.internal.ThemeParser
+import kotlinx.coroutines.CancellationException
 import java.io.IOException
 import java.nio.ByteBuffer
 import java.security.MessageDigest
@@ -189,7 +190,13 @@ public class HighlightTheme private constructor(
     internal fun safeBackgroundColor(): Color? =
         immediateBackgroundColor
             ?: if (colorMapLazy.isInitialized()) {
-                runCatching { colorMap[HljsSelectors.BASE]?.background?.takeIf { it != Color.Unspecified } }.getOrNull()
+                try {
+                    colorMap[HljsSelectors.BASE]?.background?.takeIf { it != Color.Unspecified }
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (_: Exception) {
+                    null
+                }
             } else {
                 null
             }
@@ -197,32 +204,42 @@ public class HighlightTheme private constructor(
     internal fun safeDefaultTextColor(): Color? =
         immediateDefaultTextColor
             ?: if (colorMapLazy.isInitialized()) {
-                runCatching { colorMap[HljsSelectors.BASE]?.color?.takeIf { it != Color.Unspecified } }.getOrNull()
+                try {
+                    colorMap[HljsSelectors.BASE]?.color?.takeIf { it != Color.Unspecified }
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (_: Exception) {
+                    null
+                }
             } else {
                 null
             }
 
-    /** Background color from the `.hljs` CSS rule. Unspecified if not present in theme. */
+    /**
+     * Background color from the `.hljs` CSS rule. Returns [Color.Unspecified] if not present in theme.
+     *
+     * Note: For built-in themes and themes constructed with an explicit background color, this property
+     * resolves immediately from in-memory metadata. For uninitialized custom themes without explicit colors,
+     * accessing this property triggers lazy CSS parsing on the calling thread.
+     */
     public val backgroundColor: Color
         get() =
             immediateBackgroundColor
-                ?: if (colorMapLazy.isInitialized()) {
-                    colorMap[HljsSelectors.BASE]?.background?.takeIf { it != Color.Unspecified } ?: Color.Unspecified
-                } else {
-                    runCatching { colorMap[HljsSelectors.BASE]?.background?.takeIf { it != Color.Unspecified } }.getOrNull()
-                        ?: Color.Unspecified
-                }
+                ?: colorMap[HljsSelectors.BASE]?.background?.takeIf { it != Color.Unspecified }
+                ?: Color.Unspecified
 
-    /** Default text color from the `.hljs` CSS rule. Unspecified if not present in theme. */
+    /**
+     * Default text color from the `.hljs` CSS rule. Returns [Color.Unspecified] if not present in theme.
+     *
+     * Note: For built-in themes and themes constructed with an explicit default text color, this property
+     * resolves immediately from in-memory metadata. For uninitialized custom themes without explicit colors,
+     * accessing this property triggers lazy CSS parsing on the calling thread.
+     */
     public val defaultTextColor: Color
         get() =
             immediateDefaultTextColor
-                ?: if (colorMapLazy.isInitialized()) {
-                    colorMap[HljsSelectors.BASE]?.color?.takeIf { it != Color.Unspecified } ?: Color.Unspecified
-                } else {
-                    runCatching { colorMap[HljsSelectors.BASE]?.color?.takeIf { it != Color.Unspecified } }.getOrNull()
-                        ?: Color.Unspecified
-                }
+                ?: colorMap[HljsSelectors.BASE]?.color?.takeIf { it != Color.Unspecified }
+                ?: Color.Unspecified
 
     /**
      * Two themes are equal when they have the same [name] **and** the same content identity.
@@ -505,6 +522,25 @@ public class HighlightTheme private constructor(
          *   this color is available immediately without waiting for CSS parsing.
          * @return A [HighlightTheme] whose color map is lazily parsed from [assetPath].
          */
+        private fun applyBaseOverrides(
+            map: Map<String, SpanStyle>,
+            backgroundColor: Color?,
+            defaultTextColor: Color?,
+        ): Map<String, SpanStyle> {
+            val bg = backgroundColor?.takeIf { it != Color.Unspecified }
+            val fg = defaultTextColor?.takeIf { it != Color.Unspecified }
+            if (bg == null && fg == null) return map
+
+            val base = map.toMutableMap()
+            val existing = base[HljsSelectors.BASE] ?: SpanStyle()
+            base[HljsSelectors.BASE] =
+                existing.copy(
+                    background = bg ?: existing.background,
+                    color = fg ?: existing.color,
+                )
+            return base.toMap()
+        }
+
         @JvmOverloads
         public fun fromAsset(
             context: Context,
@@ -524,18 +560,7 @@ public class HighlightTheme private constructor(
                             throw HighlightException.ThemeNotFound(assetPath, e)
                         }
                     if (map.isEmpty()) throw HighlightException.ThemeNotFound(assetPath)
-                    if (backgroundColor != null || defaultTextColor != null) {
-                        val base = map.toMutableMap()
-                        val existing = base[HljsSelectors.BASE] ?: SpanStyle()
-                        base[HljsSelectors.BASE] =
-                            existing.copy(
-                                background = backgroundColor?.takeIf { it != Color.Unspecified } ?: existing.background,
-                                color = defaultTextColor?.takeIf { it != Color.Unspecified } ?: existing.color,
-                            )
-                        base.toMap()
-                    } else {
-                        map
-                    }
+                    applyBaseOverrides(map, backgroundColor, defaultTextColor)
                 },
                 contentIdentity = contentDigest256("asset", assetPath, backgroundColor, defaultTextColor),
                 immediateBackgroundColor = backgroundColor?.takeIf { it != Color.Unspecified },
@@ -575,18 +600,7 @@ public class HighlightTheme private constructor(
                 name = name,
                 colorMapProvider = {
                     val map = ThemeParser.parse(cssText)
-                    if (backgroundColor != null || defaultTextColor != null) {
-                        val base = map.toMutableMap()
-                        val existing = base[HljsSelectors.BASE] ?: SpanStyle()
-                        base[HljsSelectors.BASE] =
-                            existing.copy(
-                                background = backgroundColor?.takeIf { it != Color.Unspecified } ?: existing.background,
-                                color = defaultTextColor?.takeIf { it != Color.Unspecified } ?: existing.color,
-                            )
-                        base.toMap()
-                    } else {
-                        map
-                    }
+                    applyBaseOverrides(map, backgroundColor, defaultTextColor)
                 },
                 contentIdentity = contentDigest256("css", cssText, backgroundColor, defaultTextColor),
                 immediateBackgroundColor = backgroundColor?.takeIf { it != Color.Unspecified },
@@ -638,19 +652,7 @@ public class HighlightTheme private constructor(
         ): HighlightTheme {
             // Defensively copy so later mutations to the caller's map don't affect the theme.
             val immutableMap = colorMap.toMap()
-            val effectiveColorMap =
-                if (backgroundColor != null || defaultTextColor != null) {
-                    val base = immutableMap.toMutableMap()
-                    val existing = base[HljsSelectors.BASE] ?: SpanStyle()
-                    base[HljsSelectors.BASE] =
-                        existing.copy(
-                            background = backgroundColor ?: existing.background,
-                            color = defaultTextColor ?: existing.color,
-                        )
-                    base.toMap()
-                } else {
-                    immutableMap
-                }
+            val effectiveColorMap = applyBaseOverrides(immutableMap, backgroundColor, defaultTextColor)
             val contentIdentity = contentDigest256(effectiveColorMap)
             return HighlightTheme(
                 name = name,

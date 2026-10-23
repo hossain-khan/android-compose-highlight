@@ -604,4 +604,29 @@ class SyntaxHighlightedCodeRobolectricTest {
         assertThat(theme.safeBackgroundColor()).isEqualTo(androidx.compose.ui.graphics.Color.Blue)
         assertThat(theme.safeDefaultTextColor()).isEqualTo(androidx.compose.ui.graphics.Color.White)
     }
+
+    @Test
+    fun `custom theme with partial immediate colors resolves remaining colors once colorMap is initialized`() {
+        val theme =
+            HighlightTheme.fromCss(
+                cssText = ".hljs { background: #123456; color: #abcdef; }",
+                name = "partial-theme",
+                backgroundColor = androidx.compose.ui.graphics.Color.Blue,
+            )
+        // Before initialization, background is immediate and text is null (safe fallback)
+        assertThat(theme.isColorMapInitialized).isFalse()
+        assertThat(theme.safeBackgroundColor()).isEqualTo(androidx.compose.ui.graphics.Color.Blue)
+        assertThat(theme.safeDefaultTextColor()).isNull()
+
+        // Force initialization (simulating background engine highlight completion)
+        theme.colorMap
+
+        // After initialization, text color resolves from colorMap
+        assertThat(theme.isColorMapInitialized).isTrue()
+        assertThat(theme.safeBackgroundColor()).isEqualTo(androidx.compose.ui.graphics.Color.Blue)
+        assertThat(theme.safeDefaultTextColor()).isEqualTo(
+            androidx.compose.ui.graphics
+                .Color(0xFFabcdef.toInt()),
+        )
+    }
 }

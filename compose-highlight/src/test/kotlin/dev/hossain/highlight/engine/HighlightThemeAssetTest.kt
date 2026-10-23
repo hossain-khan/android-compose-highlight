@@ -104,14 +104,22 @@ class HighlightThemeAssetTest {
     }
 
     @Test
-    fun `fromAsset with missing path does not throw on safeBackgroundColor or backgroundColor`() {
+    fun `fromAsset with missing path does not throw on safeBackgroundColor`() {
         val theme = HighlightTheme.fromAsset(context, "nonexistent.css", "bad")
         // safeBackgroundColor returns null without touching colorMap
         assertThat(theme.safeBackgroundColor()).isNull()
         assertThat(theme.safeDefaultTextColor()).isNull()
-        // direct property access catches the failure and returns Color.Unspecified
-        assertThat(theme.backgroundColor).isEqualTo(Color.Unspecified)
-        assertThat(theme.defaultTextColor).isEqualTo(Color.Unspecified)
+    }
+
+    @Test
+    fun `fromAsset with missing path throws ThemeNotFound on backgroundColor access`() {
+        val theme = HighlightTheme.fromAsset(context, "nonexistent.css", "bad")
+        try {
+            theme.backgroundColor
+            org.junit.Assert.fail("Expected ThemeNotFound but backgroundColor access succeeded")
+        } catch (e: HighlightException.ThemeNotFound) {
+            assertThat(e.message).contains("nonexistent.css")
+        }
     }
 
     @Test
