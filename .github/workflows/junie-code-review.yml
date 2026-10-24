@@ -1,6 +1,6 @@
 # JetBrains Junie Automated Code Review Workflow
 # Source Action: https://github.com/JetBrains/junie-github-action
-# Documentation: docs/JUNIE_AUTOMATION.md
+# Documentation: resources/JUNIE_AUTOMATION.md
 #
 # Automatically runs structured code review on non-draft PRs targeting 'main'.
 # Authenticated via OpenRouter BYOK (requires secrets.OPENROUTER_API_KEY).
