@@ -100,8 +100,9 @@ npx markdownlint-cli --fix CHANGELOG.md
 1. Add a new `### X.Y.Z - Brief Title` section at the top of the "Recent highlights" block in `docs/changelog.md`
 2. Extract 3-5 key bullet points from the root `CHANGELOG.md` for that release (focus on user-facing features and major fixes)
 3. Keep descriptions brief (1-2 lines per item, no wrapped multi-line format)
-4. Remove the oldest release entry to maintain the "last 5 releases" limit
-5. No markdown linting required for `docs/changelog.md` - it's documentation, not a strict changelog
+4. **Do not include PR or issue numbers** (e.g. `(#123)`) in `docs/changelog.md` - unlike the root `CHANGELOG.md`, the docs site is intended for end-user documentation readers, so omit issue/PR references and keep bullets clean
+5. Remove the oldest release entry to maintain the "last 5 releases" limit
+6. No markdown linting required for `docs/changelog.md` - it's documentation, not a strict changelog
 
 Example format:
 ```markdown
@@ -231,7 +232,7 @@ This script updates all seven required files in one step:
 
 Never update these files manually one-by-one - always use the script to avoid missing files.
 
-**After running the script, update `docs/changelog.md`** - add a new `### X.Y.Z - Brief Title` section at the top of the "Recent highlights" block with 3-5 key bullet points extracted from the root `CHANGELOG.md` for that release. Remove the oldest entry to keep only the last 5 releases. See the "Docs Changelog Sync" section above for the exact format.
+**After running the script, update `docs/changelog.md`** - add a new `### X.Y.Z - Brief Title` section at the top of the "Recent highlights" block with 3-5 key bullet points extracted from the root `CHANGELOG.md` for that release (omitting PR and issue numbers). Remove the oldest entry to keep only the last 5 releases. See the "Docs Changelog Sync" section above for the exact format.
 
 After running the script, create a release branch, run all checks, commit, push, and open a PR into `main` (direct pushes to `main` are blocked by branch protection):
 ```bash

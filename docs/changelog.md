@@ -8,19 +8,19 @@ For release artifacts and APK downloads, see the [GitHub Releases page](https://
 
 ### 0.40.0 - Reliability, lifecycle hardening, and theme safety
 
-- Formalized explicit WebView lifecycle state machine with generation tracking to prevent destruction races (#489)
-- Handled WebView renderer process crashes (`onRenderProcessGone`) with auto-recreation and typed exceptions (#488)
-- Offloaded custom theme resolution from Main thread during initial composition with safe fallbacks and typed errors (#485)
-- Unified build-time and runtime CSS theme parser behavior for hex colors, font styles, and `!important` (#493)
-- Consolidated sample app demo tabs into 10 focused hubs with dedicated README Quick Start validation tab (#539)
+- Formalized explicit WebView lifecycle state machine with generation tracking to prevent destruction races
+- Handled WebView renderer process crashes (`onRenderProcessGone`) with auto-recreation and typed exceptions
+- Offloaded custom theme resolution from Main thread during initial composition with safe fallbacks and typed errors
+- Unified build-time and runtime CSS theme parser behavior for hex colors, font styles, and `!important`
+- Consolidated sample app demo tabs into 10 focused hubs with dedicated README Quick Start validation tab
 
 ### 0.39.0 - Actions and header slots
 
-- Added `actions` trailing slot with `RowScope` receiver and pre-wired `onCopy` action to `SyntaxHighlightedCode` and `StreamingSyntaxHighlightedCode` (#457)
-- Added coarse-grained `header` chrome slot for full top bar replacement (tabs, titlebars) and clean single-parameter headerless mode (`header = null`) (#458)
+- Added `actions` trailing slot with `RowScope` receiver and pre-wired `onCopy` action to `SyntaxHighlightedCode` and `StreamingSyntaxHighlightedCode`
+- Added coarse-grained `header` chrome slot for full top bar replacement (tabs, titlebars) and clean single-parameter headerless mode (`header = null`)
 - Added `SyntaxHighlightedCodeDefaults.Header` exposing the standard header layout as a reusable composable
 - BREAKING: Removed legacy `copyButton` parameter in favor of the more flexible `actions` and `header` slots
-- Enabled Kotlin `explicitApi()` mode across `:compose-highlight` to enforce public API boundaries and explicit visibility (#499)
+- Enabled Kotlin `explicitApi()` mode across `:compose-highlight` to enforce public API boundaries and explicit visibility
 
 ### 0.38.0 - Keyboard focus trap fix, WebView hardening, and unknown language optimization
 
