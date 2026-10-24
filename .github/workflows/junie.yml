@@ -1,6 +1,6 @@
 # JetBrains Junie Interactive Agent Workflow
 # Source Action: https://github.com/JetBrains/junie-github-action
-# Documentation: docs/JUNIE_AUTOMATION.md
+# Documentation: resources/JUNIE_AUTOMATION.md
 #
 # Listens for '@junie-agent' mentions in issues, PR comments, and PR reviews.
 # Authenticated via OpenRouter BYOK (requires secrets.OPENROUTER_API_KEY).
@@ -24,7 +24,7 @@ jobs:
     # Security: Restrict runs to trusted users (OWNER, MEMBER, COLLABORATOR) to prevent
     # unauthorized external commenters from consuming Actions runners or OpenRouter API quota.
     # Ref: https://docs.github.com/en/webhooks/webhook-events-and-payloads#issue_comment
-    # See also: docs/JUNIE_AUTOMATION.md
+    # See also: resources/JUNIE_AUTOMATION.md
     if: |
       contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.comment.author_association || github.event.review.author_association || github.event.issue.author_association) &&
       (
