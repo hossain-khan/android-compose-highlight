@@ -162,7 +162,8 @@ Junie registers custom models under the `custom:<filename>` prefix:
 ### 2. Automated PR Code Review (`.github/workflows/junie-code-review.yml`)
 
 - **Triggers**: Opened, updated (synchronized), or marked ready for review (`ready_for_review`) Pull Requests
-  targeting `main` (skips drafts).
+  targeting `main` (skips drafts and bot PRs).
+- **Concurrency**: Cancels in-flight review runs when a new commit is pushed or the PR is converted to draft.
 - **Permissions**: `contents: read`, `pull-requests: write`, `issues: write`
 - **Behavior**:
   - Automatically fetches the PR diff against `main`.
