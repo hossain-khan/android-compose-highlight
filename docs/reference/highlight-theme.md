@@ -40,7 +40,7 @@ import dev.hossain.highlight.ui.rememberTomorrowLightTheme
 HighlightThemeProvider(
     lightHighlightTheme = rememberTomorrowLightTheme(),
     darkHighlightTheme  = rememberTomorrowNightTheme(),
-) { ... }
+) { /* your content */ }
 ```
 
 Other bundled pairs now available:
@@ -87,7 +87,7 @@ Save `descriptor.id` into your persistence store. On app launch or restore, look
 back if the ID is unrecognized or missing:
 
 ```kotlin
-val savedId = preferences.getString("theme_id", "tomorrow")
+val savedId = preferences.getString("theme_id", null) ?: "tomorrow"
 val activeTheme = HighlightTheme.findBundledById(savedId)?.create()
     ?: if (isSystemInDarkTheme()) HighlightTheme.tomorrowNight()
     else HighlightTheme.tomorrow()
@@ -107,11 +107,12 @@ val theme = HighlightTheme.fromAsset(
     name      = "github",
 )
 
-HighlightThemeProvider(lightHighlightTheme = theme) { ... }
+HighlightThemeProvider(lightHighlightTheme = theme) { /* your content */ }
 ```
 
 !!! note
     `fromAsset()` is lazy. CSS parsing happens on first theme usage, not at factory call time.
+    Only `lightHighlightTheme` is set here, so dark mode keeps the default Tomorrow Night theme.
 
 ## Custom theme from raw CSS
 

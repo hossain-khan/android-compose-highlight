@@ -41,10 +41,15 @@ class CodeViewModel(application: Application) : AndroidViewModel(application) {
 
 ```kotlin
 import dev.hossain.highlight.ui.SyntaxHighlightedCodeDefaults
+import dev.hossain.highlight.ui.rememberTomorrowNightTheme
 
 @Composable
-fun CodeScreen(viewModel: CodeViewModel = viewModel()) {
+fun CodeScreen(code: String, viewModel: CodeViewModel = viewModel()) {
     val highlighted by viewModel.highlighted.collectAsState()
+    val theme = rememberTomorrowNightTheme()
+
+    // Ask the ViewModel to highlight whenever the code changes
+    LaunchedEffect(code, theme) { viewModel.highlight(code, "kotlin", theme) }
 
     SelectionContainer {
         Text(
@@ -90,13 +95,13 @@ engine.highlight(code, language, theme)
     .onFailure { error ->
         if (error is HighlightException) {
             when (error) {
-                is HighlightException.WebViewInitFailed -> /* WebView not available (Go edition, MDM-disabled, mid-update) */
-                is HighlightException.JsExecutionFailed -> /* JS evaluation error */
-                is HighlightException.HtmlParseFailed   -> /* HTML parse error */
-                is HighlightException.ThemeNotFound     -> /* Theme CSS file missing or contains no parseable rules */
-                is HighlightException.RendererGone      -> /* WebView renderer process crashed or was killed by OS LMK */
-                is HighlightException.EngineDestroyed   -> /* HighlightEngine was destroyed or closed */
-                is HighlightException.Timeout           -> /* timed out waiting for WebView */
+                is HighlightException.WebViewInitFailed -> { /* WebView not available (Go edition, MDM-disabled, mid-update) */ }
+                is HighlightException.JsExecutionFailed -> { /* JS evaluation error */ }
+                is HighlightException.HtmlParseFailed   -> { /* HTML parse error */ }
+                is HighlightException.ThemeNotFound     -> { /* Theme CSS file missing or contains no parseable rules */ }
+                is HighlightException.RendererGone      -> { /* WebView renderer process crashed or was killed by OS LMK */ }
+                is HighlightException.EngineDestroyed   -> { /* engine was destroyed or closed while this call was in flight */ }
+                is HighlightException.Timeout           -> { /* timed out waiting for WebView */ }
             }
         }
     }
@@ -110,5 +115,7 @@ engine.highlight(code, language, theme)
 ## Important rules
 
 - Always pass `applicationContext` - never an Activity context. The engine retains the context beyond Activity lifecycle.
-- Always call `destroy()` to release the WebView when done. Use `rememberHighlightEngine()` in Compose for automatic lifecycle management.
+- Always call `destroy()` to release the WebView when done. Destroying is not permanent: a later call on the same
+  engine re-creates the WebView, which then needs another `destroy()`. Don't reuse an engine after destroying it.
+- Use `rememberHighlightEngine()` in Compose for automatic lifecycle management.
 - `HighlightEngine` is safe to call from any coroutine - all WebView operations are automatically dispatched to the Main thread internally.

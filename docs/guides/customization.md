@@ -58,6 +58,9 @@ Use it to provide custom trailing buttons, multiple actions, or hide trailing ac
 
 ### Custom copy icon
 
+The icon examples below use `Icons.Default.*`, which needs the Material icons artifact (Material 3 does not
+include it): `implementation("androidx.compose.material:material-icons-extended")`.
+
 ```kotlin
 import dev.hossain.highlight.ui.SyntaxHighlightedCode
 
@@ -116,18 +119,26 @@ import dev.hossain.highlight.ui.SyntaxHighlightedCode
 
 val snackbarHostState = remember { SnackbarHostState() }
 val scope             = rememberCoroutineScope()
+val clipboard         = LocalClipboard.current
 
-SyntaxHighlightedCode(
-    code        = snippet,
-    language    = "kotlin",
-    onCopyClick = { copiedText ->
-        scope.launch { snackbarHostState.showSnackbar("Copied!") }
-    },
-)
+Scaffold(snackbarHost = { SnackbarHost(snackbarHostState) }) { padding ->
+    SyntaxHighlightedCode(
+        code        = snippet,
+        language    = "kotlin",
+        modifier    = Modifier.padding(padding),
+        onCopyClick = { copiedText ->
+            scope.launch {
+                // onCopyClick replaces the built-in copy, so copy explicitly
+                clipboard.setClipEntry(ClipEntry(ClipData.newPlainText("code", copiedText)))
+                snackbarHostState.showSnackbar("Copied!")
+            }
+        },
+    )
+}
 ```
 
 !!! note
-    When `onCopyClick` is `null` (the default), the button copies to the system clipboard automatically. Supply `onCopyClick` only to add custom feedback or to override the copy behavior.
+    When `onCopyClick` is `null` (the default), the button copies to the system clipboard automatically. A non-null `onCopyClick` **replaces** that built-in copy, so write to the clipboard yourself (as above) if you still want the code copied.
 
 ### Adjust copy button touch target
 
@@ -164,7 +175,7 @@ SyntaxHighlightedCode(
         ) {
             Text("MainActivity.kt", color = Color.White, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.weight(1f))
-            SyntaxHighlightedCodeDefaults.CopyButton(onClick = onCopy)
+            SyntaxHighlightedCodeDefaults.CopyButton(onClick = onCopy, tint = Color.White)
         }
     },
 )
@@ -210,7 +221,8 @@ import dev.hossain.highlight.ui.CodeBlockStyle
 import dev.hossain.highlight.ui.SyntaxHighlightedCode
 import dev.hossain.highlight.ui.SyntaxHighlightedCodeDefaults
 
-val firaCode = FontFamily(Font(R.font.fira_code))
+// Top-level so the FontFamily is not re-created on every recomposition
+private val firaCode = FontFamily(Font(R.font.fira_code))
 
 SyntaxHighlightedCode(
     code     = snippet,

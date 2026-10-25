@@ -9,6 +9,21 @@ All notable changes to this project will be documented in this file.
 - **Fira Code custom font example in sample app** - Added bundled Fira Code font files (`fira_code.ttf` and
   `fira_code_bold.ttf`) to the sample app, added an interactive `Fira Code` selection chip to the typography
   playground in `StylingSection`, and added a dedicated custom font showcase displaying programming ligatures.
+- **Docs snippet validation screen in sample app** - Added `DocsValidationActivity` (book icon in the sample top
+  bar) with one tab per `docs/` page. Each card shows a `kotlin` block exactly as published (the new
+  `bundleDocsMarkdown` Gradle task packages `docs/**/*.md` into assets), a compiled live demo, runtime checks for
+  values claimed in doc comments, and a corrected snippet where the published one is wrong. A Summary tab lists
+  per-page coverage and every snippet that needs fixing.
+
+### Fixed
+
+- **Docs code snippets** - Fixed every `docs/` snippet the validation screen flagged. The WebView pre-warm example
+  (Getting Started, Performance guide, `HighlightThemeProvider` KDoc) crashed apps by passing `mainExecutor` to
+  `WebViewStartUpConfig.Builder` and needed an explicit `androidx.webkit` dependency. The `isInitialized` spinner
+  never resolved. The error-handling `when`, the `highlightAuto` examples and the theme-restore example did not
+  compile. The Snackbar copy-feedback example neither copied nor showed feedback. Also corrected the
+  `close()`/`EngineDestroyed` wording, the header-chrome copy icon tint, single-theme provider fallbacks,
+  file-reading examples and the missing material-icons dependency note.
 
 ## [0.40.0] - 2026-10-23
 

@@ -44,7 +44,8 @@ class MyApp : Application() {
         runCatching {
             WebViewCompat.startUpWebView(
                 applicationContext,
-                WebViewStartUpConfig.Builder(mainExecutor).build(),
+                // Must be a background executor - mainExecutor crashes the app.
+                WebViewStartUpConfig.Builder(Executors.newSingleThreadExecutor()).build(),
                 WebViewOutcomeReceiver { /* no-op */ },
             )
         }
@@ -52,7 +53,9 @@ class MyApp : Application() {
 }
 ```
 
-Requires `androidx.webkit:webkit:1.16+` (a transitive dependency of this library).
+Requires adding `androidx.webkit:webkit:1.16+` to your app module (the library's own webkit dependency is
+`implementation`, so it is not on your compile classpath) and registering `MyApp` in the manifest. Keep the
+background executor - `mainExecutor` crashes the app because WebView rejects startup work on the main looper.
 
 ## Pre-warming via `HighlightEngine`
 
@@ -158,6 +161,10 @@ import dev.hossain.highlight.ui.rememberHighlightEngine
 
 val engine       = rememberHighlightEngine()
 val isReady by engine.isInitialized.collectAsState()
+
+// The engine starts lazily on the first highlight call, so start it explicitly -
+// otherwise nothing ever flips isInitialized to true.
+LaunchedEffect(engine) { engine.initialize() }
 
 if (!isReady) {
     CircularProgressIndicator()

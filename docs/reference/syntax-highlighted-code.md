@@ -85,6 +85,9 @@ SyntaxHighlightedCode(
 
 ### Custom header actions
 
+`onEdit` / `onShare` are your own callbacks. The icon examples below use `Icons.Default.*`, which needs the Material icons artifact (Material 3 does not
+include it): `implementation("androidx.compose.material:material-icons-extended")`.
+
 ```kotlin
 import dev.hossain.highlight.ui.SyntaxHighlightedCode
 import dev.hossain.highlight.ui.SyntaxHighlightedCodeDefaults
@@ -120,7 +123,7 @@ SyntaxHighlightedCode(
         ) {
             Text("MainActivity.kt", color = Color.White)
             Spacer(Modifier.weight(1f))
-            SyntaxHighlightedCodeDefaults.CopyButton(onClick = onCopy)
+            SyntaxHighlightedCodeDefaults.CopyButton(onClick = onCopy, tint = Color.White)
         }
     },
 )
@@ -193,7 +196,7 @@ HighlightThemeProvider(
     darkTheme           = userPrefersDark,
     lightHighlightTheme = rememberTomorrowLightTheme(),
     darkHighlightTheme  = rememberTomorrowNightTheme(),
-) { ... }
+) { /* your content */ }
 ```
 
 ## Lower-level Compose helpers

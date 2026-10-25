@@ -87,6 +87,9 @@ dependencies {
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
+    // The docs pre-warm snippet calls WebViewCompat directly. The library declares webkit as
+    // `implementation`, so consumers must add it themselves to compile that snippet.
+    implementation(libs.androidx.webkit)
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     debugImplementation(libs.leakcanary.android)

@@ -56,7 +56,7 @@ HighlightThemeProvider(
     darkTheme           = false,  // always use the light theme
     lightHighlightTheme = rememberAtomOneLightTheme(),
     darkHighlightTheme  = rememberAtomOneLightTheme(),
-) { ... }
+) { /* your content */ }
 ```
 
 ## Custom theme from a Highlight.js CSS file
@@ -66,6 +66,7 @@ HighlightThemeProvider(
 3. Load it with `HighlightTheme.fromAsset()`:
 
 ```kotlin
+import androidx.compose.ui.platform.LocalContext
 import dev.hossain.highlight.engine.HighlightTheme
 import dev.hossain.highlight.ui.HighlightThemeProvider
 
@@ -74,10 +75,13 @@ val theme = HighlightTheme.fromAsset(
     assetPath = "themes/github-dark.css",
     name      = "github-dark",
 )
-HighlightThemeProvider(darkHighlightTheme = theme) { ... }
+HighlightThemeProvider(darkHighlightTheme = theme) { /* your content */ }
 ```
 
 `fromAsset()` is lazy. CSS parsing happens on first use (`theme.colorMap`), not at factory-call time.
+
+Only `darkHighlightTheme` is overridden here, so light mode still uses the default Tomorrow theme. Pass both
+`lightHighlightTheme` and `darkHighlightTheme` if the custom theme should apply in both modes.
 
 !!! note
     `HighlightTheme.fromAsset()` normalizes the passed `Context` to `applicationContext` internally.
@@ -90,7 +94,7 @@ Useful when the CSS is fetched remotely or generated at runtime:
 ```kotlin
 import dev.hossain.highlight.engine.HighlightTheme
 
-val rawCss = // ... network fetch or string resource
+val rawCss: String = loadThemeCss() // your network fetch or string resource
 val theme = HighlightTheme.fromCss(cssText = rawCss, name = "remote-theme")
 ```
 

@@ -112,7 +112,8 @@ class MyApp : Application() {
         runCatching {
             WebViewCompat.startUpWebView(
                 applicationContext,
-                WebViewStartUpConfig.Builder(mainExecutor).build(),
+                // Must be a background executor - mainExecutor crashes the app.
+                WebViewStartUpConfig.Builder(Executors.newSingleThreadExecutor()).build(),
                 WebViewOutcomeReceiver { /* no-op */ },
             )
         }
@@ -120,7 +121,16 @@ class MyApp : Application() {
 }
 ```
 
-Requires `androidx.webkit:webkit:1.16+` (already a transitive dependency of this library).
+Requires adding `androidx.webkit:webkit:1.16+` to your app module - the library uses webkit internally as an
+`implementation` dependency, so it is not on your compile classpath. Register `MyApp` with `android:name` in
+`AndroidManifest.xml`, and keep the background executor: passing `mainExecutor` crashes the app with
+`IllegalStateException: startUpWebView should not be called on the Android main looper`.
+
+```kotlin
+dependencies {
+    implementation("androidx.webkit:webkit:1.16.0")
+}
+```
 
 ---
 

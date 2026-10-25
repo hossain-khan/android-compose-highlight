@@ -35,11 +35,14 @@ val unknown = HighlightLanguage.fromExtension("xyz") // null
 Typical usage when displaying a file:
 
 ```kotlin
-val file = File("MainActivity.kt")
+// Use an absolute path - relative paths resolve against "/" on Android
+val file = File(LocalContext.current.filesDir, "MainActivity.kt")
 val language = HighlightLanguage.fromExtension(file.extension) ?: "plaintext"
+// Read off the main thread
+val code by produceState("", file) { value = withContext(Dispatchers.IO) { file.readText() } }
 
 SyntaxHighlightedCode(
-    code     = file.readText(),
+    code     = code,
     language = language,
 )
 ```
@@ -72,10 +75,16 @@ Useful when accepting user-supplied language input and wanting to validate it be
 When the language is completely unknown, use `highlightAuto()` to let Highlight.js guess:
 
 ```kotlin
-engine.highlightAuto(code, theme).onSuccess { result ->
-    val detected = result.detectedLanguage // e.g. "python", or "" if undetected
-    Text(text = result.annotated)
+var detected  by remember { mutableStateOf("") }
+var annotated by remember(code) { mutableStateOf(AnnotatedString(code)) }
+
+LaunchedEffect(code, theme) {
+    engine.highlightAuto(code, theme).onSuccess { result ->
+        detected  = result.detectedLanguage // e.g. "python", or "" if undetected
+        annotated = result.annotated
+    }
 }
+Text(text = annotated)
 ```
 
 > Auto-detection inspects all bundled languages, so it is slower than explicit highlighting. Use it as a fallback, not a default.
@@ -87,18 +96,20 @@ engine.highlightAuto(code, theme).onSuccess { result ->
 A practical pattern combining all options:
 
 ```kotlin
+// `engine` is a HighlightEngine, e.g. a ViewModel property
 suspend fun highlight(file: File, theme: HighlightTheme): AnnotatedString {
+    val code = withContext(Dispatchers.IO) { file.readText() }
     // 1. Try resolving from the extension
     val language = HighlightLanguage.fromExtension(file.extension)
 
     return if (language != null) {
         // 2. Known extension - highlight directly
-        engine.highlight(file.readText(), language, theme)
+        engine.highlight(code, language, theme)
             .getOrNull()?.annotated
     } else {
         // 3. Unknown extension - fall back to auto-detect
-        engine.highlightAuto(file.readText(), theme)
+        engine.highlightAuto(code, theme)
             .getOrNull()?.annotated
-    } ?: AnnotatedString(file.readText())
+    } ?: AnnotatedString(code)
 }
 ```

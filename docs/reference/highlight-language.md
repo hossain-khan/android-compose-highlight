@@ -72,11 +72,14 @@ HighlightLanguage.fromExtension("xyz")  // null
 ## Recommended usage pattern
 
 ```kotlin
-val file = File("MainActivity.kt")
+// Use an absolute path - relative paths resolve against "/" on Android
+val file = File(LocalContext.current.filesDir, "MainActivity.kt")
 val language = HighlightLanguage.fromExtension(file.extension) ?: "plaintext"
+// Read off the main thread
+val code by produceState("", file) { value = withContext(Dispatchers.IO) { file.readText() } }
 
 SyntaxHighlightedCode(
-    code     = file.readText(),
+    code     = code,
     language = language,
 )
 ```
