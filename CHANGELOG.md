@@ -9,11 +9,6 @@ All notable changes to this project will be documented in this file.
 - **Fira Code custom font example in sample app** - Added bundled Fira Code font files (`fira_code.ttf` and
   `fira_code_bold.ttf`) to the sample app, added an interactive `Fira Code` selection chip to the typography
   playground in `StylingSection`, and added a dedicated custom font showcase displaying programming ligatures.
-- **Docs snippet validation screen in sample app** - Added `DocsValidationActivity` (book icon in the sample top
-  bar) with one tab per `docs/` page. Each card shows a `kotlin` block exactly as published (the new
-  `bundleDocsMarkdown` Gradle task packages `docs/**/*.md` into assets), a compiled live demo, runtime checks for
-  values claimed in doc comments, and a corrected snippet where the published one is wrong. A Summary tab lists
-  per-page coverage and every snippet that needs fixing.
 
 ### Fixed
 
