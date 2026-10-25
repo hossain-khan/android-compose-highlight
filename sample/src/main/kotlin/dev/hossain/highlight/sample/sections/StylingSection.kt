@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -42,7 +43,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import dev.hossain.highlight.sample.KOTLIN_EXTENDED_SNIPPET
@@ -52,6 +55,25 @@ import dev.hossain.highlight.sample.R
 import dev.hossain.highlight.ui.CodeBlockStyle
 import dev.hossain.highlight.ui.SyntaxHighlightedCode
 import dev.hossain.highlight.ui.SyntaxHighlightedCodeDefaults
+
+private val FiraCodeFont =
+    FontFamily(
+        Font(R.font.fira_code, FontWeight.Normal),
+        Font(R.font.fira_code_bold, FontWeight.Bold),
+    )
+
+private val FIRA_CODE_SNIPPET =
+    """
+    // Custom font loaded via FontFamily(Font(R.font.fira_code))
+    fun processUsers(users: List<User>): Result<List<User>> {
+        val valid = users.filter { it.age >= 18 && it.status != "banned" }
+        return if (valid.isNotEmpty()) {
+            Result.success(valid.sortedBy { it.score })
+        } else {
+            Result.failure(NoSuchElementException("No users found"))
+        }
+    }
+    """.trimIndent()
 
 /**
  * Interactive styling and header chrome demo:
@@ -79,7 +101,7 @@ internal fun StylingSection(
     var copyButtonSize by remember { mutableFloatStateOf(32f) }
     var fontSize by remember { mutableFloatStateOf(13f) }
     var lineHeight by remember { mutableFloatStateOf(20f) }
-    var selectedFontFamily by remember { mutableStateOf(FontFamily.Monospace) }
+    var selectedFontFamily by remember { mutableStateOf<FontFamily>(FontFamily.Monospace) }
 
     // ── Toggle state ─────────────────────────────────────────────────────────
     var showLineNumbers by remember { mutableStateOf(true) }
@@ -308,6 +330,32 @@ internal fun StylingSection(
                 )
             }
         }
+
+        HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+
+        // ── 5. Custom Font (Fira Code) ─────────────────────────────────────────
+        SubSectionHeader("Custom Font: Fira Code (with Ligatures)")
+        Text(
+            text =
+                "Using CodeBlockStyle(textStyle = ...) with a custom FontFamily loaded from res/font/fira_code.ttf. " +
+                    "Notice programming ligatures (->, !=, >=, ==).",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        SyntaxHighlightedCode(
+            code = FIRA_CODE_SNIPPET,
+            language = "kotlin",
+            modifier = Modifier.fillMaxWidth(),
+            showLineNumbers = true,
+            style =
+                CodeBlockStyle(
+                    textStyle =
+                        SyntaxHighlightedCodeDefaults.codeTextStyle.copy(
+                            fontFamily = FiraCodeFont,
+                            fontSize = 13.sp,
+                        ),
+                ),
+        )
     }
 
     // ── Bottom sheet ──────────────────────────────────────────────────────────
@@ -345,7 +393,7 @@ internal fun StylingSection(
 
                 // ── Typography ─────────────────────────────────────────────────
                 SheetSectionLabel("Typography")
-                Row(
+                FlowRow(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
@@ -353,6 +401,11 @@ internal fun StylingSection(
                         selected = selectedFontFamily == FontFamily.Monospace,
                         onClick = { selectedFontFamily = FontFamily.Monospace },
                         label = { Text("Monospace") },
+                    )
+                    FilterChip(
+                        selected = selectedFontFamily == FiraCodeFont,
+                        onClick = { selectedFontFamily = FiraCodeFont },
+                        label = { Text("Fira Code") },
                     )
                     FilterChip(
                         selected = selectedFontFamily == FontFamily.Serif,

@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+
+- **Fira Code custom font example in sample app** - Added bundled Fira Code font files (`fira_code.ttf` and
+  `fira_code_bold.ttf`) to the sample app, added an interactive `Fira Code` selection chip to the typography
+  playground in `StylingSection`, and added a dedicated custom font showcase displaying programming ligatures.
+
 ## [0.40.0] - 2026-10-23
 
 ### Added

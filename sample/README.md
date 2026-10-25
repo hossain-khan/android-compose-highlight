@@ -41,7 +41,7 @@ sample/
 | Tab | What it shows |
 |-----|---------------|
 | **Languages** | Highlights every file from `assets/samples/` - one code block per language |
-| **Styling** | `CodeBlockStyle` playground, typography slider controls, and macOS/tabs custom chrome |
+| **Styling** | `CodeBlockStyle` playground, typography controls (including Fira Code), and custom chrome |
 | **Themes** | Custom theme creation via `HighlightTheme.fromCss`, `fromAsset`, and `Map` |
 | **Theme Gallery** | Unified browser for 8 built-in themes (with ID resolution) and 200+ asset themes |
 | **Live Editor** | Interactive code editing using `SyntaxHighlightedTextEditor` |
