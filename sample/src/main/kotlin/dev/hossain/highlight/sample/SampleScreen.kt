@@ -70,7 +70,7 @@ import kotlinx.coroutines.launch
  *
  * Sections are organized into 10 focused hubs:
  * - **Languages**: highlights samples across different languages.
- * - **Styling**: interactive styling playground with typography controls and custom chrome showcase.
+ * - **Styling**: interactive styling playground with typography controls (including Fira Code) and custom chrome showcase.
  * - **Themes**: exercises every [HighlightTheme] factory method (`fromCss`, `fromAsset`, `Map`).
  * - **Theme Gallery**: unified theme browser for 8 built-in themes plus 200+ asset themes.
  * - **Live Editor**: interactive debounced inline editor with live syntax highlighting.
