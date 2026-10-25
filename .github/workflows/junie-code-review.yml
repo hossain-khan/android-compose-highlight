@@ -20,7 +20,7 @@ concurrency:
 jobs:
   review:
     name: Code Review
-    if: !github.event.pull_request.draft && github.actor != 'dependabot[bot]'
+    if: ${{ !github.event.pull_request.draft && github.actor != 'dependabot[bot]' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
