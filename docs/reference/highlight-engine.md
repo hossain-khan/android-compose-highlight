@@ -29,13 +29,17 @@ The engine holds a hidden WebView and implements `Closeable`. Always call `close
 `destroy()`) when done.
 
 ```kotlin
+// highlight() is a suspend function - run this inside a coroutine, e.g. lifecycleScope.launch { }
 val engine = HighlightEngine(context.applicationContext)
 try {
-    val result = engine.highlight(code, "kotlin", theme)
+    engine.highlight(code, "kotlin", theme).onSuccess { result -> /* use result.annotated */ }
 } finally {
     engine.close()
 }
 ```
+
+`close()` is not permanent: calling the engine again afterwards re-creates the WebView (which then needs
+another `close()`). Treat a closed engine as finished and create a new one when needed.
 
 In Compose, use `rememberHighlightEngine()` so cleanup is handled automatically.
 
@@ -148,10 +152,16 @@ engine.getLanguage("ts").onSuccess { info ->
 Use `highlightAuto()` when language is unknown:
 
 ```kotlin
-engine.highlightAuto(code, theme).onSuccess { result ->
-    val language = result.detectedLanguage
-    Text(text = result.annotated)
+var detected  by remember { mutableStateOf("") }
+var annotated by remember(code) { mutableStateOf(AnnotatedString(code)) }
+
+LaunchedEffect(code, theme) {
+    engine.highlightAuto(code, theme).onSuccess { result ->
+        detected  = result.detectedLanguage // e.g. "python", or "" if undetected
+        annotated = result.annotated
+    }
 }
+Text(text = annotated)
 ```
 
 ## Common pitfalls
