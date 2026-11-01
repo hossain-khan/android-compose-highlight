@@ -61,7 +61,7 @@ import dev.hossain.highlight.engine.HighlightTheme
  * ```
  */
 @Stable
-public class CodeBlockStyle(
+public data class CodeBlockStyle(
     /** Shape applied to the outer container of the code block. */
     public val shape: Shape = SyntaxHighlightedCodeDefaults.shape,
     /** Inner padding between the container edge and the code content area. */
@@ -109,65 +109,6 @@ public class CodeBlockStyle(
      */
     public val fallbackTextColor: Color = SyntaxHighlightedCodeDefaults.fallbackTextColor,
 ) {
-    /**
-     * Returns a copy of this [CodeBlockStyle] with optionally overridden properties.
-     */
-    public fun copy(
-        shape: Shape = this.shape,
-        padding: PaddingValues = this.padding,
-        headerPadding: PaddingValues = this.headerPadding,
-        lineNumberColor: Color = this.lineNumberColor,
-        lineNumberWidth: Dp = this.lineNumberWidth,
-        copyButtonSize: Dp = this.copyButtonSize,
-        textStyle: TextStyle = this.textStyle,
-        fallbackBackgroundColor: Color = this.fallbackBackgroundColor,
-        fallbackTextColor: Color = this.fallbackTextColor,
-    ): CodeBlockStyle =
-        CodeBlockStyle(
-            shape = shape,
-            padding = padding,
-            headerPadding = headerPadding,
-            lineNumberColor = lineNumberColor,
-            lineNumberWidth = lineNumberWidth,
-            copyButtonSize = copyButtonSize,
-            textStyle = textStyle,
-            fallbackBackgroundColor = fallbackBackgroundColor,
-            fallbackTextColor = fallbackTextColor,
-        )
-
-    public override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (other !is CodeBlockStyle) return false
-        return shape == other.shape &&
-            padding == other.padding &&
-            headerPadding == other.headerPadding &&
-            lineNumberColor == other.lineNumberColor &&
-            lineNumberWidth == other.lineNumberWidth &&
-            copyButtonSize == other.copyButtonSize &&
-            textStyle == other.textStyle &&
-            fallbackBackgroundColor == other.fallbackBackgroundColor &&
-            fallbackTextColor == other.fallbackTextColor
-    }
-
-    public override fun hashCode(): Int {
-        var result = shape.hashCode()
-        result = 31 * result + padding.hashCode()
-        result = 31 * result + headerPadding.hashCode()
-        result = 31 * result + lineNumberColor.hashCode()
-        result = 31 * result + lineNumberWidth.hashCode()
-        result = 31 * result + copyButtonSize.hashCode()
-        result = 31 * result + textStyle.hashCode()
-        result = 31 * result + fallbackBackgroundColor.hashCode()
-        result = 31 * result + fallbackTextColor.hashCode()
-        return result
-    }
-
-    public override fun toString(): String =
-        "CodeBlockStyle(shape=$shape, padding=$padding, headerPadding=$headerPadding, " +
-            "lineNumberColor=$lineNumberColor, lineNumberWidth=$lineNumberWidth, " +
-            "copyButtonSize=$copyButtonSize, textStyle=$textStyle, " +
-            "fallbackBackgroundColor=$fallbackBackgroundColor, fallbackTextColor=$fallbackTextColor)"
-
     public companion object {
         /** Standard code block with rounded corners and comfortable padding. */
         public val Default: CodeBlockStyle = CodeBlockStyle()

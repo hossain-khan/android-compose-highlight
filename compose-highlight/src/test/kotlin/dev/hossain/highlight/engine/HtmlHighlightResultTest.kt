@@ -40,17 +40,4 @@ class HtmlHighlightResultTest {
 
         assertThat(result.durationMs).isEqualTo(large)
     }
-
-    @Test
-    fun `equals hashCode and toString work as expected`() {
-        val a = HtmlHighlightResult(html = "<span>x</span>", durationMs = 10L)
-        val b = HtmlHighlightResult(html = "<span>x</span>", durationMs = 10L)
-        val different = HtmlHighlightResult(html = "<span>y</span>", durationMs = 10L)
-
-        assertThat(a).isEqualTo(b)
-        assertThat(a.hashCode()).isEqualTo(b.hashCode())
-        assertThat(a).isNotEqualTo(different)
-        assertThat(a.toString()).contains("HtmlHighlightResult")
-        assertThat(a.toString()).contains("durationMs=10")
-    }
 }

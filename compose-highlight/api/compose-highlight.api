@@ -1,6 +1,13 @@
 public final class dev/hossain/highlight/engine/AutoHighlightResult {
 	public static final field $stable I
 	public fun <init> (Landroidx/compose/ui/text/AnnotatedString;Ljava/lang/String;IJLdev/hossain/highlight/engine/HighlightTimings;)V
+	public final fun component1 ()Landroidx/compose/ui/text/AnnotatedString;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()I
+	public final fun component4 ()J
+	public final fun component5 ()Ldev/hossain/highlight/engine/HighlightTimings;
+	public final fun copy (Landroidx/compose/ui/text/AnnotatedString;Ljava/lang/String;IJLdev/hossain/highlight/engine/HighlightTimings;)Ldev/hossain/highlight/engine/AutoHighlightResult;
+	public static synthetic fun copy$default (Ldev/hossain/highlight/engine/AutoHighlightResult;Landroidx/compose/ui/text/AnnotatedString;Ljava/lang/String;IJLdev/hossain/highlight/engine/HighlightTimings;ILjava/lang/Object;)Ldev/hossain/highlight/engine/AutoHighlightResult;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getAnnotated ()Landroidx/compose/ui/text/AnnotatedString;
 	public final fun getDetectedLanguage ()Ljava/lang/String;
@@ -96,6 +103,10 @@ public final class dev/hossain/highlight/engine/HighlightLanguage {
 public final class dev/hossain/highlight/engine/HighlightLanguageInfo {
 	public static final field $stable I
 	public fun <init> (Ljava/lang/String;Ljava/util/List;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/util/List;
+	public final fun copy (Ljava/lang/String;Ljava/util/List;)Ldev/hossain/highlight/engine/HighlightLanguageInfo;
+	public static synthetic fun copy$default (Ldev/hossain/highlight/engine/HighlightLanguageInfo;Ljava/lang/String;Ljava/util/List;ILjava/lang/Object;)Ldev/hossain/highlight/engine/HighlightLanguageInfo;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getAliases ()Ljava/util/List;
 	public final fun getName ()Ljava/lang/String;
@@ -106,6 +117,13 @@ public final class dev/hossain/highlight/engine/HighlightLanguageInfo {
 public final class dev/hossain/highlight/engine/HighlightResult {
 	public static final field $stable I
 	public fun <init> (Landroidx/compose/ui/text/AnnotatedString;ILjava/lang/String;JLdev/hossain/highlight/engine/HighlightTimings;)V
+	public final fun component1 ()Landroidx/compose/ui/text/AnnotatedString;
+	public final fun component2 ()I
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()J
+	public final fun component5 ()Ldev/hossain/highlight/engine/HighlightTimings;
+	public final fun copy (Landroidx/compose/ui/text/AnnotatedString;ILjava/lang/String;JLdev/hossain/highlight/engine/HighlightTimings;)Ldev/hossain/highlight/engine/HighlightResult;
+	public static synthetic fun copy$default (Ldev/hossain/highlight/engine/HighlightResult;Landroidx/compose/ui/text/AnnotatedString;ILjava/lang/String;JLdev/hossain/highlight/engine/HighlightTimings;ILjava/lang/Object;)Ldev/hossain/highlight/engine/HighlightResult;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getAnnotated ()Landroidx/compose/ui/text/AnnotatedString;
 	public final fun getDurationMs ()J
@@ -172,6 +190,13 @@ public final class dev/hossain/highlight/engine/HighlightThemeDescriptor {
 public final class dev/hossain/highlight/engine/HighlightTimings {
 	public static final field $stable I
 	public synthetic fun <init> (JJJJJLkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1-UwyO8pc ()J
+	public final fun component2-UwyO8pc ()J
+	public final fun component3-UwyO8pc ()J
+	public final fun component4-UwyO8pc ()J
+	public final fun component5-UwyO8pc ()J
+	public final fun copy-ppdbICw (JJJJJ)Ldev/hossain/highlight/engine/HighlightTimings;
+	public static synthetic fun copy-ppdbICw$default (Ldev/hossain/highlight/engine/HighlightTimings;JJJJJILjava/lang/Object;)Ldev/hossain/highlight/engine/HighlightTimings;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getHtmlParse-UwyO8pc ()J
 	public final fun getJsBridge-UwyO8pc ()J
@@ -243,6 +268,12 @@ public final class dev/hossain/highlight/engine/HtmlHighlightResult {
 	public static final field $stable I
 	public synthetic fun <init> (Ljava/lang/String;JJJILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public synthetic fun <init> (Ljava/lang/String;JJJLkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()J
+	public final fun component3-UwyO8pc ()J
+	public final fun component4-UwyO8pc ()J
+	public final fun copy-VTINZ0E (Ljava/lang/String;JJJ)Ldev/hossain/highlight/engine/HtmlHighlightResult;
+	public static synthetic fun copy-VTINZ0E$default (Ldev/hossain/highlight/engine/HtmlHighlightResult;Ljava/lang/String;JJJILjava/lang/Object;)Ldev/hossain/highlight/engine/HtmlHighlightResult;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getDurationMs ()J
 	public final fun getHtml ()Ljava/lang/String;
@@ -255,6 +286,12 @@ public final class dev/hossain/highlight/engine/HtmlHighlightResult {
 public final class dev/hossain/highlight/engine/ThemedHighlightResult {
 	public static final field $stable I
 	public fun <init> (Landroidx/compose/ui/text/AnnotatedString;Landroidx/compose/ui/text/AnnotatedString;JLdev/hossain/highlight/engine/HighlightTimings;)V
+	public final fun component1 ()Landroidx/compose/ui/text/AnnotatedString;
+	public final fun component2 ()Landroidx/compose/ui/text/AnnotatedString;
+	public final fun component3 ()J
+	public final fun component4 ()Ldev/hossain/highlight/engine/HighlightTimings;
+	public final fun copy (Landroidx/compose/ui/text/AnnotatedString;Landroidx/compose/ui/text/AnnotatedString;JLdev/hossain/highlight/engine/HighlightTimings;)Ldev/hossain/highlight/engine/ThemedHighlightResult;
+	public static synthetic fun copy$default (Ldev/hossain/highlight/engine/ThemedHighlightResult;Landroidx/compose/ui/text/AnnotatedString;Landroidx/compose/ui/text/AnnotatedString;JLdev/hossain/highlight/engine/HighlightTimings;ILjava/lang/Object;)Ldev/hossain/highlight/engine/ThemedHighlightResult;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getDark ()Landroidx/compose/ui/text/AnnotatedString;
 	public final fun getDurationMs ()J
@@ -270,6 +307,15 @@ public final class dev/hossain/highlight/ui/CodeBlockStyle {
 	public fun <init> ()V
 	public synthetic fun <init> (Landroidx/compose/ui/graphics/Shape;Landroidx/compose/foundation/layout/PaddingValues;Landroidx/compose/foundation/layout/PaddingValues;JFFLandroidx/compose/ui/text/TextStyle;JJILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public synthetic fun <init> (Landroidx/compose/ui/graphics/Shape;Landroidx/compose/foundation/layout/PaddingValues;Landroidx/compose/foundation/layout/PaddingValues;JFFLandroidx/compose/ui/text/TextStyle;JJLkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Landroidx/compose/ui/graphics/Shape;
+	public final fun component2 ()Landroidx/compose/foundation/layout/PaddingValues;
+	public final fun component3 ()Landroidx/compose/foundation/layout/PaddingValues;
+	public final fun component4-0d7_KjU ()J
+	public final fun component5-D9Ej5fM ()F
+	public final fun component6-D9Ej5fM ()F
+	public final fun component7 ()Landroidx/compose/ui/text/TextStyle;
+	public final fun component8-0d7_KjU ()J
+	public final fun component9-0d7_KjU ()J
 	public final fun copy-tK2LwIg (Landroidx/compose/ui/graphics/Shape;Landroidx/compose/foundation/layout/PaddingValues;Landroidx/compose/foundation/layout/PaddingValues;JFFLandroidx/compose/ui/text/TextStyle;JJ)Ldev/hossain/highlight/ui/CodeBlockStyle;
 	public static synthetic fun copy-tK2LwIg$default (Ldev/hossain/highlight/ui/CodeBlockStyle;Landroidx/compose/ui/graphics/Shape;Landroidx/compose/foundation/layout/PaddingValues;Landroidx/compose/foundation/layout/PaddingValues;JFFLandroidx/compose/ui/text/TextStyle;JJILjava/lang/Object;)Ldev/hossain/highlight/ui/CodeBlockStyle;
 	public fun equals (Ljava/lang/Object;)Z

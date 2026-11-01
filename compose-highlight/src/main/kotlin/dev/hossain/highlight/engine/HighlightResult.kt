@@ -1,6 +1,5 @@
 package dev.hossain.highlight.engine
 
-import androidx.compose.runtime.Immutable
 import androidx.compose.ui.text.AnnotatedString
 
 /**
@@ -64,33 +63,10 @@ import androidx.compose.ui.text.AnnotatedString
  * @property timings Per-layer timing breakdown for this highlight call. Always populated.
  *   See [HighlightTimings] for the full stage breakdown.
  */
-@Immutable
-public class HighlightResult(
+public data class HighlightResult(
     public val annotated: AnnotatedString,
     public val spanCount: Int,
     public val language: String,
     public val durationMs: Long,
     public val timings: HighlightTimings,
-) {
-    public override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (other !is HighlightResult) return false
-        return annotated == other.annotated &&
-            spanCount == other.spanCount &&
-            language == other.language &&
-            durationMs == other.durationMs &&
-            timings == other.timings
-    }
-
-    public override fun hashCode(): Int {
-        var result = annotated.hashCode()
-        result = 31 * result + spanCount
-        result = 31 * result + language.hashCode()
-        result = 31 * result + durationMs.hashCode()
-        result = 31 * result + timings.hashCode()
-        return result
-    }
-
-    public override fun toString(): String =
-        "HighlightResult(annotated=$annotated, spanCount=$spanCount, language=$language, durationMs=$durationMs, timings=$timings)"
-}
+)

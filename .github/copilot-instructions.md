@@ -169,15 +169,6 @@ Public API consists of the `ui/` package plus the public `engine/` declarations 
 `ThemeParser`, `HtmlToAnnotatedString`, `JsStringEscape`, `EngineErrorHandling`) and `ui/internal/` are `internal`
 and not part of the supported public surface.
 
-**No public `data class` declarations (ABI compatibility policy):** Never declare a `public data class` in the
-library API surface. Kotlin's generated `componentN()` destructuring functions and synthetic `copy$default()` methods
-make adding or reordering properties a binary-breaking change (`NoSuchMethodError` or silent positional destructuring
-bugs for downstream consumers). Instead, declare public model classes as `@Immutable` or `@Stable` regular `public class`
-types with explicit `equals()`, `hashCode()`, and `toString()` implementations. Only UI configuration models (such as
-`CodeBlockStyle`) should provide an explicit `copy(...)` method; engine output/metadata models (`HighlightResult`,
-`ThemedHighlightResult`, `AutoHighlightResult`, `HtmlHighlightResult`, `HighlightTimings`, `HighlightLanguageInfo`,
-`HighlightThemeDescriptor`) must not expose `copy()` or `componentN()`.
-
 **Binary compatibility baseline exclusions:** Root `build.gradle.kts` configures `apiValidation` to exclude
 `dev.hossain.highlight.engine.internal` and `dev.hossain.highlight.ui.internal` via `ignoredPackages` and excludes
 Compose compiler-generated `ComposableSingletons$<File>Kt` classes in `dev.hossain.highlight.ui` via `ignoredClasses`.

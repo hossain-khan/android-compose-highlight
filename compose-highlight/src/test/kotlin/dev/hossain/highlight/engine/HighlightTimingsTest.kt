@@ -61,30 +61,7 @@ class HighlightTimingsTest {
 
     @Test
     fun `themeParse is zero for cache hit scenario`() {
-        val cachedTimings =
-            HighlightTimings(
-                jsBridge = sampleTimings.jsBridge,
-                jsonUnescape = sampleTimings.jsonUnescape,
-                htmlParse = sampleTimings.htmlParse,
-                themeParse = Duration.ZERO,
-                total = sampleTimings.total,
-            )
+        val cachedTimings = sampleTimings.copy(themeParse = Duration.ZERO)
         assertThat(cachedTimings.themeParse).isEqualTo(Duration.ZERO)
-        assertThat(cachedTimings).isNotEqualTo(sampleTimings)
-    }
-
-    @Test
-    fun `equals hashCode and toString work as expected`() {
-        val equalTimings =
-            HighlightTimings(
-                jsBridge = Duration.parse("45ms"),
-                jsonUnescape = Duration.parse("1ms"),
-                htmlParse = Duration.parse("3ms"),
-                themeParse = Duration.parse("10ms"),
-                total = Duration.parse("59ms"),
-            )
-        assertThat(sampleTimings).isEqualTo(equalTimings)
-        assertThat(sampleTimings.hashCode()).isEqualTo(equalTimings.hashCode())
-        assertThat(sampleTimings.toString()).contains("HighlightTimings")
     }
 }

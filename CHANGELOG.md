@@ -12,16 +12,6 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
-- **BREAKING: converted public model `data class`es to regular classes for long-term binary compatibility** -
-  Converted `HighlightResult`, `ThemedHighlightResult`, `AutoHighlightResult`, `HtmlHighlightResult`,
-  `HighlightTimings`, `HighlightLanguageInfo`, and `CodeBlockStyle` from `public data class` to
-  `@Immutable`/`@Stable` regular classes with explicit `equals`, `hashCode`, and `toString` implementations (#515).
-  Generated `componentN()` destructuring methods were removed from all 7 classes, and `copy()` was removed from the
-  6 engine output/metadata models (`CodeBlockStyle.copy(...)` is preserved with the exact same binary signature).
-  Normal property access (e.g. `result.annotated`, `result.light`, `result.dark`) and constructor calls are unchanged,
-  but callers using positional destructuring (such as `val (light, dark) = result`) or `.copy(...)` on engine result
-  classes must migrate to named property access (`result.light`, `result.dark`) or direct constructor invocation. This
-  is a binary- and source-incompatible change for destructuring and engine-result `copy()` call sites.
 - **Excluded Compose compiler `ComposableSingletons` artifacts from public API baseline** - Configured
   `apiValidation` in root `build.gradle.kts` to exclude internal implementation packages (`engine.internal`,
   `ui.internal`) and Compose compiler-generated `ComposableSingletons$...` classes from

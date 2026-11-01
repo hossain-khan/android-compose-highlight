@@ -139,19 +139,4 @@ class HighlightResultTest {
         assertThat(result.timings.jsBridge).isEqualTo(Duration.parse("45ms"))
         assertThat(result.timings.total).isEqualTo(Duration.parse("59ms"))
     }
-
-    // ----- equals / hashCode / toString -----
-
-    @Test
-    fun `equals hashCode and toString work for identical and different instances`() {
-        val a = HighlightResult(sampleAnnotated, 5, "kotlin", 42L, zeroTimings)
-        val b = HighlightResult(sampleAnnotated, 5, "kotlin", 42L, zeroTimings)
-        val different = HighlightResult(sampleAnnotated, 6, "kotlin", 42L, zeroTimings)
-
-        assertThat(a).isEqualTo(b)
-        assertThat(a.hashCode()).isEqualTo(b.hashCode())
-        assertThat(a).isNotEqualTo(different)
-        assertThat(a.toString()).contains("HighlightResult")
-        assertThat(a.toString()).contains("language=kotlin")
-    }
 }

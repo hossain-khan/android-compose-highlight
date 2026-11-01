@@ -9,7 +9,8 @@ import kotlin.time.Duration
  * JVM unit tests for [AutoHighlightResult].
  *
  * Verifies field storage, detectedLanguage edge cases, equals/hashCode
- * contract, and toString output for the auto-detection highlight result class.
+ * contract, copy behavior, and toString output for the auto-detection
+ * highlight result data class.
  */
 class AutoHighlightResultTest {
     private val sampleAnnotated = AnnotatedString("fun hello() = \"world\"")
@@ -77,7 +78,7 @@ class AutoHighlightResultTest {
     }
 
     @Test
-    fun `instances with different detectedLanguage are not equal`() {
+    fun `copy produces equal instance`() {
         val original =
             AutoHighlightResult(
                 annotated = sampleAnnotated,
@@ -86,15 +87,23 @@ class AutoHighlightResultTest {
                 durationMs = 55L,
                 timings = zeroTimings,
             )
-        val different =
+        val copied = original.copy()
+        assertThat(copied).isEqualTo(original)
+    }
+
+    @Test
+    fun `copy with override changes the field`() {
+        val original =
             AutoHighlightResult(
                 annotated = sampleAnnotated,
-                detectedLanguage = "python",
+                detectedLanguage = "kotlin",
                 spanCount = 3,
                 durationMs = 55L,
                 timings = zeroTimings,
             )
-        assertThat(original).isNotEqualTo(different)
+        val overridden = original.copy(detectedLanguage = "python")
+        assertThat(overridden.detectedLanguage).isEqualTo("python")
+        assertThat(overridden.spanCount).isEqualTo(3)
     }
 
     @Test

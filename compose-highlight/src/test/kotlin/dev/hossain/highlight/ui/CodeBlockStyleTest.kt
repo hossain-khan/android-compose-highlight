@@ -95,9 +95,6 @@ class CodeBlockStyleTest {
             )
         assertThat(custom.lineNumberWidth).isEqualTo(40.dp)
         assertThat(custom.copyButtonSize).isEqualTo(24.dp)
-        assertThat(custom.copy()).isEqualTo(custom)
-        assertThat(custom.copy().hashCode()).isEqualTo(custom.hashCode())
-        assertThat(custom.toString()).contains("CodeBlockStyle")
     }
 }
 

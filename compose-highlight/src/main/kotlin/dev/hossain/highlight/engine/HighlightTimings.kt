@@ -1,6 +1,5 @@
 package dev.hossain.highlight.engine
 
-import androidx.compose.runtime.Immutable
 import kotlin.time.Duration
 
 /**
@@ -52,33 +51,10 @@ import kotlin.time.Duration
  *   latency; use the individual stage fields to identify which layer is the bottleneck.
  *   Equals [HighlightResult.durationMs] converted to [Duration].
  */
-@Immutable
-public class HighlightTimings(
+public data class HighlightTimings(
     public val jsBridge: Duration,
     public val jsonUnescape: Duration,
     public val htmlParse: Duration,
     public val themeParse: Duration,
     public val total: Duration,
-) {
-    public override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (other !is HighlightTimings) return false
-        return jsBridge == other.jsBridge &&
-            jsonUnescape == other.jsonUnescape &&
-            htmlParse == other.htmlParse &&
-            themeParse == other.themeParse &&
-            total == other.total
-    }
-
-    public override fun hashCode(): Int {
-        var result = jsBridge.hashCode()
-        result = 31 * result + jsonUnescape.hashCode()
-        result = 31 * result + htmlParse.hashCode()
-        result = 31 * result + themeParse.hashCode()
-        result = 31 * result + total.hashCode()
-        return result
-    }
-
-    public override fun toString(): String =
-        "HighlightTimings(jsBridge=$jsBridge, jsonUnescape=$jsonUnescape, htmlParse=$htmlParse, themeParse=$themeParse, total=$total)"
-}
+)
