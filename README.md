@@ -71,12 +71,21 @@ See it in action in the <img alt="google-play" src="https://github.com/user-atta
 
 <img width="1784" height="1120" alt="CodeMateX Demo" src="https://github.com/user-attachments/assets/e04b5bd0-3832-4321-859f-73b77a767066" />
 
+
+### Official Demo App
+
+Checkout the official library demo app <img alt="google-play" src="https://github.com/user-attachments/assets/18725aa7-ea0b-4d6d-962a-e0358703041c" height="14"> [Snippet](https://play.google.com/store/apps/details?id=dev.hossain.codesnippet&pcampaignid=web_share) from the Google Play store.
+
+<img width="300" alt="snippet-app" src="https://github.com/user-attachments/assets/b815aec8-1edb-4173-a16d-5da5bf88e288" />
+
+
 ## Links
 
 - 📚 **Docs:** [github.io/android-compose-highlight/](https://hossain-khan.github.io/android-compose-highlight/)
 - 🔖 **API Reference:** [github.io/android-compose-highlight/api/](https://hossain-khan.github.io/android-compose-highlight/api/)
 - 📝 **Blog:** [hossain.dev/syntax-highlighting-on-android-highlight-js-native-compose-engine/](https://hossain.dev/posts/syntax-highlighting-on-android-highlight-js-native-compose-engine/)
 - 📱 **Sample App:** [sample](https://github.com/hossain-khan/android-compose-highlight/tree/main/sample) [[⬇️ APK]](https://github.com/hossain-khan/android-compose-highlight/releases/latest)
+- 📽️ **Official Demo App:** [Snippet - Code Notebook](https://play.google.com/store/apps/details?id=dev.hossain.codesnippet&pcampaignid=web_share)
 - ✨ **Compare Other Libs:** [github.com/android-syntax-highlighter-compose](https://github.com/hossain-khan/android-syntax-highlighter-compose)
 
 ## License
