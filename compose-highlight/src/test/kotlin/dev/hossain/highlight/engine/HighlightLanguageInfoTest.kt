@@ -6,8 +6,8 @@ import org.junit.Test
 /**
  * JVM unit tests for [HighlightLanguageInfo].
  *
- * Verifies field storage, equals/hashCode contract, copy behavior,
- * and toString output for the language metadata data class.
+ * Verifies field storage, equals/hashCode contract,
+ * and toString output for the language metadata class.
  */
 class HighlightLanguageInfoTest {
     @Test
@@ -27,18 +27,10 @@ class HighlightLanguageInfoTest {
     }
 
     @Test
-    fun `copy produces equal instance`() {
-        val original = HighlightLanguageInfo(name = "Kotlin", aliases = listOf("kt", "kts"))
-        val copied = original.copy()
-        assertThat(copied).isEqualTo(original)
-    }
-
-    @Test
-    fun `copy with override changes the field`() {
-        val original = HighlightLanguageInfo(name = "Kotlin", aliases = listOf("kt", "kts"))
-        val overridden = original.copy(name = "Java")
-        assertThat(overridden.name).isEqualTo("Java")
-        assertThat(overridden.aliases).containsExactly("kt", "kts").inOrder()
+    fun `instances with different fields are not equal`() {
+        val kotlin = HighlightLanguageInfo(name = "Kotlin", aliases = listOf("kt", "kts"))
+        val java = HighlightLanguageInfo(name = "Java", aliases = listOf("kt", "kts"))
+        assertThat(kotlin).isNotEqualTo(java)
     }
 
     @Test

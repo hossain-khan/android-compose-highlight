@@ -1,5 +1,6 @@
 package dev.hossain.highlight.engine
 
+import androidx.compose.runtime.Immutable
 import kotlin.time.Duration
 
 /**
@@ -37,9 +38,30 @@ import kotlin.time.Duration
  * @property jsonUnescapeDuration Time for `unescapeJsString` - the character-by-character pass
  *   that strips JSON encoding from the string returned by the JS engine.
  */
-public data class HtmlHighlightResult(
+@Immutable
+public class HtmlHighlightResult(
     public val html: String,
     public val durationMs: Long,
     public val jsBridgeDuration: Duration = Duration.ZERO,
     public val jsonUnescapeDuration: Duration = Duration.ZERO,
-)
+) {
+    public override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is HtmlHighlightResult) return false
+        return html == other.html &&
+            durationMs == other.durationMs &&
+            jsBridgeDuration == other.jsBridgeDuration &&
+            jsonUnescapeDuration == other.jsonUnescapeDuration
+    }
+
+    public override fun hashCode(): Int {
+        var result = html.hashCode()
+        result = 31 * result + durationMs.hashCode()
+        result = 31 * result + jsBridgeDuration.hashCode()
+        result = 31 * result + jsonUnescapeDuration.hashCode()
+        return result
+    }
+
+    public override fun toString(): String =
+        "HtmlHighlightResult(html=$html, durationMs=$durationMs, jsBridgeDuration=$jsBridgeDuration, jsonUnescapeDuration=$jsonUnescapeDuration)"
+}

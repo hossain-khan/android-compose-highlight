@@ -1,5 +1,6 @@
 package dev.hossain.highlight.engine
 
+import androidx.compose.runtime.Immutable
 import androidx.compose.ui.text.AnnotatedString
 
 /**
@@ -25,9 +26,29 @@ import androidx.compose.ui.text.AnnotatedString
  * @property timings Per-layer timing breakdown for this highlight call. Always populated.
  *   See [HighlightTimings] for the full stage breakdown.
  */
-public data class ThemedHighlightResult(
+@Immutable
+public class ThemedHighlightResult(
     public val light: AnnotatedString,
     public val dark: AnnotatedString,
     public val durationMs: Long,
     public val timings: HighlightTimings,
-)
+) {
+    public override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is ThemedHighlightResult) return false
+        return light == other.light &&
+            dark == other.dark &&
+            durationMs == other.durationMs &&
+            timings == other.timings
+    }
+
+    public override fun hashCode(): Int {
+        var result = light.hashCode()
+        result = 31 * result + dark.hashCode()
+        result = 31 * result + durationMs.hashCode()
+        result = 31 * result + timings.hashCode()
+        return result
+    }
+
+    public override fun toString(): String = "ThemedHighlightResult(light=$light, dark=$dark, durationMs=$durationMs, timings=$timings)"
+}

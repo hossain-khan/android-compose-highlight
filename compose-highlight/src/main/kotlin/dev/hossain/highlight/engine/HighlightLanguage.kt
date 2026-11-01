@@ -1,5 +1,6 @@
 package dev.hossain.highlight.engine
 
+import androidx.compose.runtime.Immutable
 import dev.hossain.highlight.engine.internal.GeneratedLanguages
 import java.util.Locale
 
@@ -297,7 +298,18 @@ public object HighlightLanguage {
  *   [HighlightEngine.getLanguage] as the identifier for highlighting calls.
  * @property aliases Registered aliases for the language.
  */
-public data class HighlightLanguageInfo(
+@Immutable
+public class HighlightLanguageInfo(
     public val name: String,
     public val aliases: List<String>,
-)
+) {
+    public override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is HighlightLanguageInfo) return false
+        return name == other.name && aliases == other.aliases
+    }
+
+    public override fun hashCode(): Int = 31 * name.hashCode() + aliases.hashCode()
+
+    public override fun toString(): String = "HighlightLanguageInfo(name=$name, aliases=$aliases)"
+}

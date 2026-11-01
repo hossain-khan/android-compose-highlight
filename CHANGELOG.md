@@ -12,12 +12,28 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
+- **Converted public model `data class`es to regular classes for long-term binary compatibility** - Converted
+  `HighlightResult`, `ThemedHighlightResult`, `AutoHighlightResult`, `HtmlHighlightResult`, `HighlightTimings`,
+  `HighlightLanguageInfo`, and `CodeBlockStyle` from `public data class` to `@Immutable`/`@Stable` regular classes
+  with explicit `equals`, `hashCode`, and `toString` implementations (#515). Removed generated `componentN()`
+  destructuring methods across all 7 classes and `copy()` from the 6 engine output models so future property additions
+  do not break binary compatibility, while retaining an explicit `copy(...)` method on `CodeBlockStyle`.
+- **Excluded Compose compiler `ComposableSingletons` artifacts from public API baseline** - Configured
+  `apiValidation` in root `build.gradle.kts` to exclude internal implementation packages (`engine.internal`,
+  `ui.internal`) and Compose compiler-generated `ComposableSingletons$...` classes from
+  `compose-highlight/api/compose-highlight.api` (#500).
 - **Expanded JetBrains Junie documentation** - Documented complete supported model list (including Claude Haiku 5.5,
   Gemini 4 Argon, Grok, and GPT series) and added a setup guide for custom OpenRouter models via `.junie/models/`
   in `resources/JUNIE_AUTOMATION.md`.
 
 ### Fixed
 
+- **Published ABI-exposed dependencies with `api` scope in Maven and Gradle metadata** - Declared
+  `androidx.compose:compose-bom`, `androidx.compose.ui:ui`, `androidx.compose.foundation:foundation`, and
+  `org.jetbrains.kotlinx:kotlinx-coroutines-core` as `api` dependencies in `compose-highlight/build.gradle.kts` while
+  keeping `core-ktx`, `webkit`, `kotlinx-coroutines-android`, `material3`, and `ui-tooling-preview` scoped as
+  `implementation` (#487). Added the `publishedArtifactConsumerCheck` Gradle task and CI check to verify POM/Gradle
+  module metadata scopes and compile debug and minified release builds of a standalone consumer project.
 - **Docs code snippets** - Fixed every `docs/` snippet the validation screen flagged. The WebView pre-warm example
   (Getting Started, Performance guide, `HighlightThemeProvider` KDoc) crashed apps by passing `mainExecutor` to
   `WebViewStartUpConfig.Builder` and needed an explicit `androidx.webkit` dependency. The `isInitialized` spinner

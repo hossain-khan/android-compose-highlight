@@ -8,9 +8,8 @@ import kotlin.time.Duration
 /**
  * JVM unit tests for [ThemedHighlightResult].
  *
- * Verifies field accessibility, equals behavior, destructuring, copy
- * preservation, and timing-based inequality for the dual-theme highlight
- * result data class.
+ * Verifies field accessibility, equals/hashCode/toString behavior,
+ * and timing-based inequality for the dual-theme highlight result class.
  */
 class ThemedHighlightResultTest {
     private val zeroTimings =
@@ -23,7 +22,7 @@ class ThemedHighlightResultTest {
         )
 
     @Test
-    fun `data class properties are accessible`() {
+    fun `properties are accessible`() {
         val light = AnnotatedString("light text")
         val dark = AnnotatedString("dark text")
         val result = ThemedHighlightResult(light = light, dark = dark, durationMs = 42, timings = zeroTimings)
@@ -35,12 +34,13 @@ class ThemedHighlightResultTest {
     }
 
     @Test
-    fun `equals works for identical content`() {
+    fun `equals and hashCode work for identical content`() {
         val light = AnnotatedString("x")
         val dark = AnnotatedString("y")
         val a = ThemedHighlightResult(light, dark, 10, zeroTimings)
         val b = ThemedHighlightResult(light, dark, 10, zeroTimings)
         assertThat(a).isEqualTo(b)
+        assertThat(a.hashCode()).isEqualTo(b.hashCode())
     }
 
     @Test
@@ -56,26 +56,21 @@ class ThemedHighlightResultTest {
     fun `not equal when timings differ`() {
         val light = AnnotatedString("x")
         val dark = AnnotatedString("y")
-        val otherTimings = zeroTimings.copy(jsBridge = Duration.parse("5ms"))
+        val otherTimings =
+            HighlightTimings(
+                jsBridge = Duration.parse("5ms"),
+                jsonUnescape = Duration.ZERO,
+                htmlParse = Duration.ZERO,
+                themeParse = Duration.ZERO,
+                total = Duration.ZERO,
+            )
         val a = ThemedHighlightResult(light, dark, 10, zeroTimings)
         val b = ThemedHighlightResult(light, dark, 10, otherTimings)
         assertThat(a).isNotEqualTo(b)
     }
 
     @Test
-    fun `destructuring works`() {
-        val light = AnnotatedString("light")
-        val dark = AnnotatedString("dark")
-        val result = ThemedHighlightResult(light, dark, 5, zeroTimings)
-        val (l, d, ms, t) = result
-        assertThat(l.text).isEqualTo("light")
-        assertThat(d.text).isEqualTo("dark")
-        assertThat(ms).isEqualTo(5)
-        assertThat(t).isEqualTo(zeroTimings)
-    }
-
-    @Test
-    fun `copy preserves unchanged fields`() {
+    fun `toString contains field values`() {
         val result =
             ThemedHighlightResult(
                 light = AnnotatedString("a"),
@@ -83,10 +78,8 @@ class ThemedHighlightResultTest {
                 durationMs = 100,
                 timings = zeroTimings,
             )
-        val copied = result.copy(durationMs = 200)
-        assertThat(copied.light.text).isEqualTo("a")
-        assertThat(copied.dark.text).isEqualTo("b")
-        assertThat(copied.durationMs).isEqualTo(200)
-        assertThat(copied.timings).isEqualTo(zeroTimings)
+        val str = result.toString()
+        assertThat(str).contains("ThemedHighlightResult")
+        assertThat(str).contains("durationMs=100")
     }
 }

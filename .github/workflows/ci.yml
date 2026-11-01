@@ -202,6 +202,10 @@ jobs:
         if: steps.changes.outputs.code == 'true'
         run: ./gradlew :compose-highlight:publishToMavenLocal
 
+      - name: Verify published artifact metadata and standalone consumer build
+        if: steps.changes.outputs.code == 'true'
+        run: ./gradlew publishedArtifactConsumerCheck
+
       - name: Upload Compose compiler reports
         if: steps.changes.outputs.code == 'true' || failure()
         uses: actions/upload-artifact@v7.0.2
