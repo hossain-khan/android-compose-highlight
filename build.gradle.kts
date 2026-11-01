@@ -1,3 +1,4 @@
+import java.util.Properties
 import javax.xml.parsers.DocumentBuilderFactory
 import org.w3c.dom.Element
 
@@ -30,16 +31,8 @@ apiValidation {
     // Exclude Compose compiler-generated `ComposableSingletons$<File>Kt` classes in the
     // public `ui` package. BCV's `ignoredClasses` matches exact binary class names (no
     // wildcards), so we register the generated singleton class name for each Kotlin source
-    // file in `dev.hossain.highlight.ui` as well as known historical names. If a new source
-    // file outside `dev.hossain.highlight.ui` introduces `@Composable` lambdas, add its
-    // generated `ComposableSingletons$<File>Kt` class here.
-    ignoredClasses.addAll(
-        listOf(
-            "dev.hossain.highlight.ui.ComposableSingletons\$HighlightThemeProviderKt",
-            "dev.hossain.highlight.ui.ComposableSingletons\$StreamingSyntaxHighlightedCodeKt",
-            "dev.hossain.highlight.ui.ComposableSingletons\$SyntaxHighlightedCodeKt",
-        ),
-    )
+    // file in `dev.hossain.highlight.ui`. If a new source file outside `dev.hossain.highlight.ui`
+    // introduces `@Composable` lambdas, add its generated `ComposableSingletons$<File>Kt` class here.
     file("compose-highlight/src/main/kotlin/dev/hossain/highlight/ui")
         .listFiles { file -> file.isFile && file.extension == "kt" }
         ?.sortedBy { it.name }
@@ -84,11 +77,30 @@ tasks.register("publishedArtifactConsumerCheck") {
     val rootProjectDir = layout.projectDirectory
 
     doLast {
-        // 1. Validate generated Maven POM dependency scopes.
+        // 1. Validate generated Maven POM dependencyManagement and dependency scopes.
         val pom = pomFile.get().asFile
         check(pom.isFile) { "Missing generated POM file: $pom" }
         val doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(pom)
         doc.documentElement.normalize()
+
+        val managedBomDeps = mutableSetOf<String>()
+        val depMgmtNodes = doc.documentElement.getElementsByTagName("dependencyManagement")
+        for (i in 0 until depMgmtNodes.length) {
+            val depMgmtNode = depMgmtNodes.item(i) as? Element ?: continue
+            if (depMgmtNode.parentNode != doc.documentElement) continue
+            val depsList = depMgmtNode.getElementsByTagName("dependency")
+            for (j in 0 until depsList.length) {
+                val dep = depsList.item(j) as? Element ?: continue
+                val group = dep.getElementsByTagName("groupId").item(0)?.textContent.orEmpty()
+                val artifact = dep.getElementsByTagName("artifactId").item(0)?.textContent.orEmpty()
+                val type = dep.getElementsByTagName("type").item(0)?.textContent.orEmpty()
+                val scope = dep.getElementsByTagName("scope").item(0)?.textContent.orEmpty()
+                managedBomDeps.add("$group:$artifact:$type:$scope")
+            }
+        }
+        check("androidx.compose:compose-bom:pom:import" in managedBomDeps) {
+            "Expected POM <dependencyManagement> to import androidx.compose:compose-bom:pom:import, but found: $managedBomDeps"
+        }
 
         val pomScopes = mutableMapOf<String, String>()
         val dependenciesNodes = doc.documentElement.getElementsByTagName("dependencies")
@@ -132,6 +144,10 @@ tasks.register("publishedArtifactConsumerCheck") {
                 "Expected implementation-only POM dependency '$coord' to have scope 'runtime', but found '${pomScopes[coord]}' in $pomScopes"
             }
         }
+        val expectedAllPomDeps = expectedCompileDeps + expectedRuntimeOnlyDeps
+        check(pomScopes.keys == expectedAllPomDeps) {
+            "Unexpected POM dependencies. Expected $expectedAllPomDeps, but found ${pomScopes.keys}"
+        }
 
         // 2. Validate generated Gradle Module Metadata (java-api variant).
         val moduleJson = metadataFile.get().asFile.readText()
@@ -142,32 +158,23 @@ tasks.register("publishedArtifactConsumerCheck") {
             "Could not find releaseVariantReleaseApiPublication in ${metadataFile.get().asFile}"
         }
 
-        val expectedApiModules =
-            listOf(
-                "\"group\": \"androidx.compose\"" to "\"module\": \"compose-bom\"",
-                "\"group\": \"androidx.compose.ui\"" to "\"module\": \"ui\"",
-                "\"group\": \"androidx.compose.foundation\"" to "\"module\": \"foundation\"",
-                "\"group\": \"org.jetbrains.kotlinx\"" to "\"module\": \"kotlinx-coroutines-core\"",
-                "\"group\": \"org.jetbrains.kotlin\"" to "\"module\": \"kotlin-stdlib\"",
-            )
-        expectedApiModules.forEach { (groupToken, moduleToken) ->
-            check(apiVariantBlock.contains(groupToken) && apiVariantBlock.contains(moduleToken)) {
-                "Expected java-api variant in module.json to include $groupToken / $moduleToken, but block was:\n$apiVariantBlock"
-            }
-        }
+        val depObjectRegex = Regex("""\{\s*"group":\s*"([^"]+)",\s*"module":\s*"([^"]+)"[^}]*\}""")
+        val apiVariantCoords =
+            depObjectRegex.findAll(apiVariantBlock)
+                .map { match -> "${match.groupValues[1]}:${match.groupValues[2]}" }
+                .toSet()
 
-        val forbiddenApiModules =
-            listOf(
-                "\"module\": \"core-ktx\"",
-                "\"module\": \"webkit\"",
-                "\"module\": \"kotlinx-coroutines-android\"",
-                "\"module\": \"material3\"",
-                "\"module\": \"ui-tooling-preview\"",
+        val expectedApiVariantCoords =
+            setOf(
+                "androidx.compose:compose-bom",
+                "androidx.compose.ui:ui",
+                "androidx.compose.foundation:foundation",
+                "org.jetbrains.kotlinx:kotlinx-coroutines-core",
+                "org.jetbrains.kotlin:kotlin-stdlib",
             )
-        forbiddenApiModules.forEach { moduleToken ->
-            check(!apiVariantBlock.contains(moduleToken)) {
-                "Implementation-only dependency ($moduleToken) must not appear in java-api variant:\n$apiVariantBlock"
-            }
+        check(apiVariantCoords == expectedApiVariantCoords) {
+            "Expected java-api variant in module.json to contain exact dependencies $expectedApiVariantCoords, " +
+                "but found $apiVariantCoords in:\n$apiVariantBlock"
         }
 
         // 3. Build a clean standalone Android consumer project (debug + minified release)
@@ -176,9 +183,18 @@ tasks.register("publishedArtifactConsumerCheck") {
         consumerDir.deleteRecursively()
         consumerDir.mkdirs()
 
-        val localProperties = rootProjectDir.file("local.properties").asFile
-        if (localProperties.isFile) {
-            localProperties.copyTo(consumerDir.resolve("local.properties"), overwrite = true)
+        val localPropertiesFile = rootProjectDir.file("local.properties").asFile
+        if (localPropertiesFile.isFile) {
+            val props = Properties()
+            localPropertiesFile.inputStream().use { props.load(it) }
+            listOf("sdk.dir", "ndk.dir", "cmake.dir").forEach { key ->
+                val rawPath = props.getProperty(key) ?: return@forEach
+                val resolved = rootProjectDir.asFile.resolve(rawPath).canonicalFile
+                props.setProperty(key, resolved.absolutePath)
+            }
+            consumerDir.resolve("local.properties").outputStream().use { out ->
+                props.store(out, "Normalized from root local.properties")
+            }
         }
 
         val repoUri = localRepoDir.get().asFile.toURI()

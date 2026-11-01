@@ -39,7 +39,10 @@ jobs:
           while IFS= read -r file; do
             if [[ "$file" == compose-highlight/src/* || \
                   "$file" == compose-highlight/api/* || \
+                  "$file" == compose-highlight/*.pro || \
                   "$file" == sample/src/* || \
+                  "$file" == sample/*.pro || \
+                  "$file" == *.pro || \
                   "$file" == buildSrc/* || \
                   "$file" == gradle/* || \
                   "$file" == "gradlew" || \
