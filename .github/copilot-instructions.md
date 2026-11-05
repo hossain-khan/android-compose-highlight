@@ -21,6 +21,9 @@ npx markdownlint-cli --fix CHANGELOG.md
 # Dump/update public API baseline
 ./gradlew apiDump
 
+# Verify Maven POM/Gradle module metadata scopes and standalone consumer build (debug + minified release)
+./gradlew publishedArtifactConsumerCheck
+
 # JVM unit tests (fast, no device needed)
 ./gradlew :compose-highlight:test
 
@@ -160,11 +163,25 @@ human-readable signal; the modifier is the enforcement. Dokka suppresses
 **Public vs internal:** The `:compose-highlight` module enforces Kotlin explicit API mode (`explicitApi()`),
 requiring all public declarations to declare explicit `public` visibility and explicit return types.
 Public API consists of the `ui/` package plus the public `engine/` declarations used by it:
-`HighlightEngine`, `HighlightTheme`, `HighlightException`, `HighlightResult`, `ThemedHighlightResult`,
-`AutoHighlightResult`, `HtmlHighlightResult`, `HighlightTimings`, `HighlightLanguage`, `HighlightLanguageInfo`,
-and `HljsSelectors`. All implementation helpers under `engine/internal/` (`WebViewManager`, `ThemeParser`,
-`HtmlToAnnotatedString`, `JsStringEscape`, `EngineErrorHandling`) and `ui/internal/` are `internal` and not
-part of the supported public surface.
+`HighlightEngine`, `HighlightTheme`, `HighlightThemeDescriptor`, `HighlightException`, `HighlightResult`,
+`ThemedHighlightResult`, `AutoHighlightResult`, `HtmlHighlightResult`, `HighlightTimings`, `HighlightLanguage`,
+`HighlightLanguageInfo`, and `HljsSelectors`. All implementation helpers under `engine/internal/` (`WebViewManager`,
+`ThemeParser`, `HtmlToAnnotatedString`, `JsStringEscape`, `EngineErrorHandling`) and `ui/internal/` are `internal`
+and not part of the supported public surface.
+
+**Binary compatibility baseline exclusions:** Root `build.gradle.kts` configures `apiValidation` to exclude
+`dev.hossain.highlight.engine.internal` and `dev.hossain.highlight.ui.internal` via `ignoredPackages` and excludes
+Compose compiler-generated `ComposableSingletons$<File>Kt` classes in `dev.hossain.highlight.ui` via `ignoredClasses`.
+If a new source file outside `dev.hossain.highlight.ui` introduces `@Composable` lambdas, add its generated
+`ComposableSingletons$<File>Kt` class to `ignoredClasses` in `build.gradle.kts`.
+
+**Dependency publication scopes:** Dependencies whose types appear in public signatures (`androidx.compose:compose-bom`,
+`androidx.compose.ui:ui`, `androidx.compose.foundation:foundation`, and `org.jetbrains.kotlinx:kotlinx-coroutines-core`)
+must be declared with `api(...)` in `compose-highlight/build.gradle.kts` so consumers receive required transitive
+compile-time types. Implementation-only dependencies (`androidx.core:core-ktx`, `androidx.webkit:webkit`,
+`org.jetbrains.kotlinx:kotlinx-coroutines-android`, `androidx.compose.material3:material3`, and
+`androidx.compose.ui:ui-tooling-preview`) must remain `implementation(...)`. Validate changes with
+`./gradlew publishedArtifactConsumerCheck`.
 
 **`android.util.Log` is banned from the library.** Any `Log.*` call in code paths executed by JVM unit tests causes `RuntimeException: Method d in android.util.Log not mocked`. Remove all debug logging before committing.
 

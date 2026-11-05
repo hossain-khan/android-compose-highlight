@@ -39,8 +39,12 @@ jobs:
           while IFS= read -r file; do
             if [[ "$file" == compose-highlight/src/* || \
                   "$file" == compose-highlight/api/* || \
+                  "$file" == compose-highlight/*.pro || \
                   "$file" == sample/src/* || \
+                  "$file" == sample/*.pro || \
+                  "$file" == *.pro || \
                   "$file" == buildSrc/* || \
+                  "$file" == tests/* || \
                   "$file" == gradle/* || \
                   "$file" == "gradlew" || \
                   "$file" == "gradlew.bat" || \
@@ -201,6 +205,10 @@ jobs:
       - name: Smoke test Maven publication
         if: steps.changes.outputs.code == 'true'
         run: ./gradlew :compose-highlight:publishToMavenLocal
+
+      - name: Verify published artifact metadata and standalone consumer build
+        if: steps.changes.outputs.code == 'true'
+        run: ./gradlew publishedArtifactConsumerCheck
 
       - name: Upload Compose compiler reports
         if: steps.changes.outputs.code == 'true' || failure()

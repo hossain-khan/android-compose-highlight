@@ -189,16 +189,17 @@ jacoco {
 }
 
 dependencies {
+    val composeBom = platform(libs.androidx.compose.bom)
+    api(composeBom)
+    api(libs.androidx.compose.ui)
+    api(libs.androidx.compose.foundation)
+    api(libs.kotlinx.coroutines.core)
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.webkit)
     implementation(libs.kotlinx.coroutines.android)
-
-    val composeBom = platform(libs.androidx.compose.bom)
-    implementation(composeBom)
-    implementation(libs.androidx.compose.ui)
-    implementation(libs.androidx.compose.ui.tooling.preview)
-    implementation(libs.androidx.compose.foundation)
     implementation(libs.androidx.compose.material3)
+    implementation(libs.androidx.compose.ui.tooling.preview)
     debugImplementation(libs.androidx.compose.ui.tooling)
 
     testImplementation(libs.junit)
@@ -311,6 +312,15 @@ mavenPublishing {
             connection.set("scm:git:https://github.com/hossain-khan/android-compose-highlight.git")
             developerConnection.set("scm:git:ssh://github.com/hossain-khan/android-compose-highlight.git")
             url.set("https://github.com/hossain-khan/android-compose-highlight")
+        }
+    }
+}
+
+publishing {
+    repositories {
+        maven {
+            name = "BuildLocal"
+            url = uri(rootProject.layout.buildDirectory.dir("local-maven-repo"))
         }
     }
 }
