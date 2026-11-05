@@ -1,17 +1,20 @@
 package dev.hossain.highlight.build
 
+import groovy.json.JsonSlurper
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.Property
-import org.gradle.work.DisableCachingByDefault
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
+import org.gradle.work.DisableCachingByDefault
 import org.w3c.dom.Element
 import java.io.File
 import java.util.Properties
@@ -34,15 +37,19 @@ import javax.xml.parsers.DocumentBuilderFactory
 @DisableCachingByDefault(because = "Executes external Gradle process on generated consumer project and validates publication outputs")
 abstract class PublishedArtifactConsumerCheckTask : DefaultTask() {
     @get:InputFile
+    @get:PathSensitive(PathSensitivity.RELATIVE)
     abstract val pomFile: RegularFileProperty
 
     @get:InputFile
+    @get:PathSensitive(PathSensitivity.RELATIVE)
     abstract val metadataFile: RegularFileProperty
 
     @get:InputDirectory
+    @get:PathSensitive(PathSensitivity.RELATIVE)
     abstract val localRepoDir: DirectoryProperty
 
     @get:InputDirectory
+    @get:PathSensitive(PathSensitivity.RELATIVE)
     abstract val templateDir: DirectoryProperty
 
     @get:OutputDirectory
@@ -143,20 +150,30 @@ abstract class PublishedArtifactConsumerCheckTask : DefaultTask() {
         }
     }
 
+    @Suppress("UNCHECKED_CAST")
     private fun validateGradleMetadata(metadataFile: File) {
-        val moduleJson = metadataFile.readText()
-        val apiVariantBlock =
-            moduleJson.substringAfter("\"name\": \"releaseVariantReleaseApiPublication\"", missingDelimiterValue = "")
-                .substringBefore("\"files\":", missingDelimiterValue = "")
-        check(apiVariantBlock.isNotEmpty()) {
-            "Could not find releaseVariantReleaseApiPublication in ${metadataFile.absolutePath}"
-        }
+        val root =
+            JsonSlurper().parse(metadataFile) as? Map<String, Any?>
+                ?: throw GradleException("Failed to parse Gradle Module Metadata as JSON map: ${metadataFile.absolutePath}")
 
-        val depObjectRegex = Regex("""\{\s*"group":\s*"([^"]+)",\s*"module":\s*"([^"]+)"[^}]*\}""")
+        val variants =
+            root["variants"] as? List<Map<String, Any?>>
+                ?: throw GradleException("Missing 'variants' array in Gradle Module Metadata: ${metadataFile.absolutePath}")
+
+        val apiVariant =
+            variants.firstOrNull { it["name"] == "releaseVariantReleaseApiPublication" }
+                ?: throw GradleException("Could not find releaseVariantReleaseApiPublication in ${metadataFile.absolutePath}")
+
+        val dependencies =
+            apiVariant["dependencies"] as? List<Map<String, Any?>>
+                ?: throw GradleException("Missing 'dependencies' in releaseVariantReleaseApiPublication: ${metadataFile.absolutePath}")
+
         val apiVariantCoords =
-            depObjectRegex.findAll(apiVariantBlock)
-                .map { match -> "${match.groupValues[1]}:${match.groupValues[2]}" }
-                .toSet()
+            dependencies.mapNotNull { dep ->
+                val group = dep["group"] as? String ?: return@mapNotNull null
+                val module = dep["module"] as? String ?: return@mapNotNull null
+                "$group:$module"
+            }.toSet()
 
         val expectedApiVariantCoords =
             setOf(
@@ -168,7 +185,7 @@ abstract class PublishedArtifactConsumerCheckTask : DefaultTask() {
             )
         check(apiVariantCoords == expectedApiVariantCoords) {
             "Expected java-api variant in module.json to contain exact dependencies $expectedApiVariantCoords, " +
-                "but found $apiVariantCoords in:\n$apiVariantBlock"
+                "but found $apiVariantCoords"
         }
     }
 
