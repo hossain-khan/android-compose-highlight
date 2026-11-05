@@ -44,6 +44,7 @@ jobs:
                   "$file" == sample/*.pro || \
                   "$file" == *.pro || \
                   "$file" == buildSrc/* || \
+                  "$file" == tests/* || \
                   "$file" == gradle/* || \
                   "$file" == "gradlew" || \
                   "$file" == "gradlew.bat" || \
