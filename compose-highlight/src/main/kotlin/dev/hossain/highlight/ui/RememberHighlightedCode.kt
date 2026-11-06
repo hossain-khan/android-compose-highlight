@@ -21,7 +21,7 @@ import dev.hossain.highlight.engine.ThemedHighlightResult
  * In preview / inspection mode, returns a plain-text `AnnotatedString(code)` immediately so
  * `@Preview` composables can render without creating the WebView-backed engine.
  *
- * Re-runs automatically when [code], [language], or [theme] changes.
+ * Re-runs automatically when [code], [language], [theme], or the active [HighlightEngine] changes.
  *
  * ## Usage
  *
@@ -98,11 +98,11 @@ public fun rememberHighlightedCode(
     }
 
     val engine = rememberHighlightEngine()
-    val state = remember(code, language, theme) { mutableStateOf<AnnotatedString?>(null) }
+    val state = remember(code, language, theme, engine) { mutableStateOf<AnnotatedString?>(null) }
     val latestCallback = rememberUpdatedState(onHighlightComplete)
     val latestErrorCallback = rememberUpdatedState(onError)
 
-    LaunchedEffect(code, language, theme) {
+    LaunchedEffect(code, language, theme, engine) {
         state.value = null
         engine
             .highlight(code, language, theme)
@@ -126,6 +126,8 @@ public fun rememberHighlightedCode(
  * Unlike calling [rememberHighlightedCode] twice, this runs the JavaScript tokeniser **once**
  * and applies two colour maps to the same HTML output. Theme switching after the result is
  * available is instant - no re-highlighting is needed.
+ *
+ * Re-runs automatically when [code], [language], [lightTheme], [darkTheme], or the active [HighlightEngine] changes.
  *
  * Returns `null` while highlighting is in progress or if it failed.
  *
@@ -188,11 +190,11 @@ public fun rememberHighlightedCodeBothThemes(
     }
 
     val engine = rememberHighlightEngine()
-    val state = remember(code, language, lightTheme, darkTheme) { mutableStateOf<ThemedHighlightResult?>(null) }
+    val state = remember(code, language, lightTheme, darkTheme, engine) { mutableStateOf<ThemedHighlightResult?>(null) }
     val latestCallback = rememberUpdatedState(onHighlightComplete)
     val latestErrorCallback = rememberUpdatedState(onError)
 
-    LaunchedEffect(code, language, lightTheme, darkTheme) {
+    LaunchedEffect(code, language, lightTheme, darkTheme, engine) {
         state.value = null
         engine
             .highlightBothThemes(code, language, lightTheme, darkTheme)
