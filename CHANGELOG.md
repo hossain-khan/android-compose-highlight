@@ -10,6 +10,15 @@ All notable changes to this project will be documented in this file.
   `fira_code_bold.ttf`) to the sample app, added an interactive `Fira Code` selection chip to the typography
   playground in `StylingSection`, and added a dedicated custom font showcase displaying programming ligatures.
 
+### Performance
+
+- **Dual-theme pre-highlighting by default in `SyntaxHighlightedCode`** - Enabled zero-latency (0 ms) theme
+  switching in `SyntaxHighlightedCode` when rendered inside `HighlightThemeProvider` with the default theme
+  binding (#459). JavaScript tokenization runs once in the WebView and applies both light and dark styles
+  simultaneously in Kotlin, eliminating re-tokenization delays and avoiding WebView JS round-trips on theme
+  toggles. Callers can opt out to conserve memory via `prehighlightBothThemes = false` or provide an explicit
+  `theme` override.
+
 ### Changed
 
 - **Excluded Compose compiler `ComposableSingletons` artifacts from public API baseline** - Configured

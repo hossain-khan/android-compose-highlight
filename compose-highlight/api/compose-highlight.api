@@ -402,7 +402,7 @@ public final class dev/hossain/highlight/ui/SyntaxHighlightedCodeDefaults {
 }
 
 public final class dev/hossain/highlight/ui/SyntaxHighlightedCodeKt {
-	public static final fun SyntaxHighlightedCode (Ljava/lang/String;Ljava/lang/String;Landroidx/compose/ui/Modifier;Ldev/hossain/highlight/engine/HighlightTheme;Ldev/hossain/highlight/ui/CodeBlockStyle;ZLandroidx/compose/foundation/ScrollState;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function4;Lkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function3;Landroidx/compose/runtime/Composer;III)V
+	public static final fun SyntaxHighlightedCode (Ljava/lang/String;Ljava/lang/String;Landroidx/compose/ui/Modifier;Ldev/hossain/highlight/engine/HighlightTheme;Ldev/hossain/highlight/ui/CodeBlockStyle;ZLandroidx/compose/foundation/ScrollState;ZLkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function4;Lkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function3;Landroidx/compose/runtime/Composer;III)V
 }
 
 public final class dev/hossain/highlight/ui/SyntaxHighlightedTextEditorDefaults {

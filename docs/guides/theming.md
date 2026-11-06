@@ -46,6 +46,40 @@ HighlightThemeProvider(
 }
 ```
 
+### Instant theme switching (0 ms latency)
+
+When wrapped in `HighlightThemeProvider`, `SyntaxHighlightedCode` automatically leverages dual-theme pre-highlighting by default. It executes JavaScript tokenization in the WebView once and styles both light and dark themes simultaneously in Kotlin.
+
+When the system or app toggles between light and dark modes:
+
+- The theme switches immediately with **0 ms re-highlighting delay**.
+- **No WebView JavaScript call** is made on theme toggles.
+- No flickering or re-loading placeholder states occur.
+
+#### Opting out for memory-constrained lists
+
+Dual-theme pre-highlighting keeps both light and dark `AnnotatedString` structures in state. For long feeds or memory-constrained lists where retaining two strings per item is undesirable, opt out by setting `prehighlightBothThemes = false`:
+
+```kotlin
+SyntaxHighlightedCode(
+    code = snippet,
+    language = "kotlin",
+    prehighlightBothThemes = false, // highlights only the active theme, re-highlighting on toggle
+)
+```
+
+#### Explicit theme overrides
+
+Passing an explicit `theme` parameter drops back to single-theme highlighting for that specific theme and bypasses dual-theme pre-highlighting:
+
+```kotlin
+SyntaxHighlightedCode(
+    code = snippet,
+    language = "kotlin",
+    theme = rememberAtomOneDarkTheme(), // fixed single theme override
+)
+```
+
 ## Force a specific theme
 
 ```kotlin

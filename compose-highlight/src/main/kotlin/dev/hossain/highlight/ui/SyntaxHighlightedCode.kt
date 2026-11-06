@@ -45,10 +45,13 @@ import androidx.compose.ui.unit.dp
 import dev.hossain.highlight.engine.HighlightException
 import dev.hossain.highlight.engine.HighlightResult
 import dev.hossain.highlight.engine.HighlightTheme
+import dev.hossain.highlight.engine.HljsSelectors
 import dev.hossain.highlight.ui.internal.CodeBlockHeader
 import dev.hossain.highlight.ui.internal.DefaultActionsSentinel
 import dev.hossain.highlight.ui.internal.DefaultHeaderSentinel
 import dev.hossain.highlight.ui.internal.DefaultLanguageLabelSentinel
+import dev.hossain.highlight.ui.internal.DefaultThemeSentinel
+import dev.hossain.highlight.ui.internal.LocalHighlightEngine
 import kotlinx.coroutines.launch
 
 private val LineNumberGutterSpacing = 8.dp
@@ -152,13 +155,22 @@ private val LineNumberGutterSpacing = 8.dp
  *   without triggering auto-detection.
  * @param modifier Modifier for the outer container. The composable also applies a
  *   `testTag("syntax-highlighted-code")` on the outer surface to support UI testing.
- * @param theme The theme to use. Defaults to [LocalHighlightTheme]. Throws if no
- *   [HighlightThemeProvider] is present and no explicit theme is passed.
+ * @param theme The theme to use. When omitted (default), automatically resolves the active theme
+ *   from [LocalHighlightTheme] and leverages dual-theme pre-highlighting when inside a
+ *   [HighlightThemeProvider] (see [prehighlightBothThemes]). When an explicit theme is passed,
+ *   single-theme highlighting is used for that specific theme. Throws if no [HighlightThemeProvider]
+ *   is present and no explicit theme is passed.
  * @param style Visual style configuration - shape, padding, line-number column, font, etc.
  *   Use [CodeBlockStyle.textStyle] to override typography (font family, size, line height).
  *   See [SyntaxHighlightedCodeDefaults] for the default values.
  * @param showLineNumbers Whether to show a line-number gutter on the left.
  * @param scrollState Hoisted scroll state for horizontal scrolling. Defaults to `rememberScrollState()`.
+ * @param prehighlightBothThemes Whether to pre-highlight both light and dark variants when
+ *   rendered inside a [HighlightThemeProvider] with the default theme. When `true` (default),
+ *   both themes are highlighted simultaneously in a single engine pass, enabling zero-latency
+ *   (0 ms) theme switching without WebView JS round-trips when toggling dark mode. Set to `false`
+ *   to opt out and conserve memory (only keeping one [AnnotatedString] in memory at a time),
+ *   which re-highlights on each theme toggle. Ignored when an explicit [theme] is passed.
  * @param languageLabel Optional composable content for the language badge in the header.
  *   `null` hides the badge entirely. The default shows [language] in a dimmed style derived from
  *   the active theme. Renders inside a [Surface] whose [LocalContentColor] is the theme foreground
@@ -239,10 +251,11 @@ public fun SyntaxHighlightedCode(
     code: String,
     language: String,
     modifier: Modifier = Modifier,
-    theme: HighlightTheme = LocalHighlightTheme.current,
+    theme: HighlightTheme = DefaultThemeSentinel,
     style: CodeBlockStyle = CodeBlockStyle.Default,
     showLineNumbers: Boolean = false,
     scrollState: ScrollState = rememberScrollState(),
+    prehighlightBothThemes: Boolean = true,
     languageLabel: (@Composable () -> Unit)? =
         if (language.isNotBlank()) DefaultLanguageLabelSentinel else null,
     actions: (@Composable RowScope.(onCopy: () -> Unit) -> Unit)? = DefaultActionsSentinel,
@@ -252,29 +265,32 @@ public fun SyntaxHighlightedCode(
     onError: ((HighlightException) -> Unit)? = null,
     placeholder: (@Composable (code: String) -> Unit)? = null,
 ) {
-    // Remember derived colors and text styles keyed on theme, style, and resolution state.
+    val isExplicitTheme = theme !== DefaultThemeSentinel
+    val activeTheme = if (isExplicitTheme) theme else LocalHighlightTheme.current
+
+    // Remember derived colors and text styles keyed on activeTheme, style, and resolution state.
     // Base colors use safe theme metadata without blocking asset I/O or CSS parsing on the
     // Main thread, falling back to style defaults until the theme is resolved.
-    val isThemeResolved = theme.isColorMapInitialized
+    val isThemeResolved = activeTheme.isColorMapInitialized
     val backgroundColor =
-        remember(theme, style, isThemeResolved) {
-            theme.safeBackgroundColor()?.takeIf { it != Color.Unspecified }
+        remember(activeTheme, style, isThemeResolved) {
+            activeTheme.safeBackgroundColor()?.takeIf { it != Color.Unspecified }
                 ?: style.fallbackBackgroundColor
         }
     val textColor =
-        remember(theme, style, isThemeResolved) {
-            theme.safeDefaultTextColor()?.takeIf { it != Color.Unspecified }
+        remember(activeTheme, style, isThemeResolved) {
+            activeTheme.safeDefaultTextColor()?.takeIf { it != Color.Unspecified }
                 ?: style.fallbackTextColor
         }
     val lineNumberColor =
-        remember(theme, style, isThemeResolved) {
+        remember(activeTheme, style, isThemeResolved) {
             style.lineNumberColor.takeIf { it != Color.Unspecified }
-                ?: (theme.safeDefaultTextColor()?.takeIf { it != Color.Unspecified } ?: style.fallbackTextColor).copy(alpha = 0.4f)
+                ?: (activeTheme.safeDefaultTextColor()?.takeIf { it != Color.Unspecified } ?: style.fallbackTextColor).copy(alpha = 0.4f)
         }
 
     // Apply the theme's foreground color on top of the caller-supplied text style.
-    val themedCodeStyle = remember(theme, style, isThemeResolved) { style.textStyle.copy(color = textColor) }
-    val themedLineNumStyle = remember(theme, style, isThemeResolved) { style.textStyle.copy(color = lineNumberColor) }
+    val themedCodeStyle = remember(activeTheme, style, isThemeResolved) { style.textStyle.copy(color = textColor) }
+    val themedLineNumStyle = remember(activeTheme, style, isThemeResolved) { style.textStyle.copy(color = lineNumberColor) }
 
     // Resolve the effective language label and header actions in the shared internal
     // CodeBlockHeader, which implements the documented slot precedence rules.
@@ -297,19 +313,76 @@ public fun SyntaxHighlightedCode(
         return
     }
 
+    val hasProvider = LocalHighlightEngine.current != null
+    val useDualThemes = !isExplicitTheme && prehighlightBothThemes && hasProvider
+
+    val lightTheme = if (useDualThemes) LocalLightHighlightTheme.current else activeTheme
+    val darkTheme = if (useDualThemes) LocalDarkHighlightTheme.current else activeTheme
+
     val latestOnError = rememberUpdatedState(onError)
-    var highlightFailed by remember(code, language, theme) { mutableStateOf(false) }
-    val highlightedState =
-        rememberHighlightedCode(
-            code = code,
-            language = language,
-            theme = theme,
-            onHighlightComplete = onHighlightComplete,
-            onError = { error ->
-                highlightFailed = true
-                latestOnError.value?.invoke(error)
-            },
-        )
+    val latestOnHighlightComplete = rememberUpdatedState(onHighlightComplete)
+    val latestActiveTheme = rememberUpdatedState(activeTheme)
+
+    var highlightFailed by remember(
+        code,
+        language,
+        if (useDualThemes) (lightTheme to darkTheme) else activeTheme,
+    ) {
+        mutableStateOf(false)
+    }
+
+    val highlighted: AnnotatedString? =
+        if (useDualThemes) {
+            val latestDarkTheme = rememberUpdatedState(darkTheme)
+            val bothThemesResultState =
+                rememberHighlightedCodeBothThemes(
+                    code = code,
+                    language = language,
+                    lightTheme = lightTheme,
+                    darkTheme = darkTheme,
+                    onHighlightComplete = { themedResult ->
+                        val callback = latestOnHighlightComplete.value
+                        if (callback != null) {
+                            val currentActive = latestActiveTheme.value
+                            val currentDark = latestDarkTheme.value
+                            val activeAnnotated = if (currentActive == currentDark) themedResult.dark else themedResult.light
+                            val hasBaseStyle =
+                                runCatching {
+                                    currentActive.colorMap[HljsSelectors.BASE]?.color?.let { it != Color.Unspecified } == true
+                                }.getOrDefault(false)
+                            val spanCount = (activeAnnotated.spanStyles.size - if (hasBaseStyle) 1 else 0).coerceAtLeast(0)
+                            callback.invoke(
+                                HighlightResult(
+                                    annotated = activeAnnotated,
+                                    spanCount = spanCount,
+                                    language = language,
+                                    durationMs = themedResult.durationMs,
+                                    timings = themedResult.timings,
+                                ),
+                            )
+                        }
+                    },
+                    onError = { error ->
+                        highlightFailed = true
+                        latestOnError.value?.invoke(error)
+                    },
+                )
+            val bothThemesResult = bothThemesResultState.value
+            if (activeTheme == darkTheme) bothThemesResult?.dark else bothThemesResult?.light
+        } else {
+            val singleResultState =
+                rememberHighlightedCode(
+                    code = code,
+                    language = language,
+                    theme = activeTheme,
+                    onHighlightComplete = onHighlightComplete,
+                    onError = { error ->
+                        highlightFailed = true
+                        latestOnError.value?.invoke(error)
+                    },
+                )
+            singleResultState.value
+        }
     val clipboard = LocalClipboard.current
     val scope = rememberCoroutineScope()
     val onCopyAction: () -> Unit =
@@ -356,7 +429,6 @@ public fun SyntaxHighlightedCode(
             }
 
             Box(modifier = Modifier.horizontalScroll(scrollState)) {
-                val highlighted = highlightedState.value
                 val placeholderContent = placeholder
                 val shouldShowPlaceholder = highlighted == null && placeholderContent != null && !highlightFailed
                 if (shouldShowPlaceholder) {

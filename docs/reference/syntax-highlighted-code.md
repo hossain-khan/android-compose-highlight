@@ -21,11 +21,12 @@ Full API in Dokka:
 ## Key parameters
 
 - `language` - highlight.js language id (`"kotlin"`, `"python"`, `"sql"`, etc).
-- `theme` - pass explicitly, or rely on `HighlightThemeProvider`.
+- `theme` - theme to use. Defaults to provider resolution with dual-theme pre-highlighting. Pass explicitly to force a fixed single theme.
 - `style` - controls code block visuals (`CodeBlockStyle`).
 - `showLineNumbers` - enables line-number gutter.
 - `scrollState` - hoisted horizontal scroll state. Pass one when you need to control or observe
   horizontal position from outside the composable.
+- `prehighlightBothThemes` - enables instant (0 ms) dual-theme pre-highlighting when inside a `HighlightThemeProvider`. Defaults to `true`. Set to `false` in memory-constrained lists to highlight only the active variant.
 - `languageLabel` - slot for the language badge in the header, or `null` to hide.
 - `actions` - `RowScope` slot for trailing header actions (copy, edit, share, etc.), or `null` to
   hide. Receives a pre-wired `onCopy` action.
@@ -55,6 +56,22 @@ HighlightThemeProvider(
         showLineNumbers = true,
     )
 }
+```
+
+### Instant theme switching (0 ms latency)
+
+When using `SyntaxHighlightedCode` inside `HighlightThemeProvider`, dual-theme pre-highlighting is enabled by default (`prehighlightBothThemes = true`). The JavaScript tokenization runs once in the WebView and applies both light and dark themes simultaneously in Kotlin.
+
+When dark mode is toggled, the block switches to the target theme instantly with 0 ms re-highlighting delay and without executing any WebView JavaScript calls.
+
+To save memory in long lists or large feeds, set `prehighlightBothThemes = false`:
+
+```kotlin
+SyntaxHighlightedCode(
+    code = snippet,
+    language = "kotlin",
+    prehighlightBothThemes = false, // keeps only 1 AnnotatedString in memory
+)
 ```
 
 ### With an explicit theme
