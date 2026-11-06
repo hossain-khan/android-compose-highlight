@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.41.0] - 2026-11-06
+
 ### Added
 
 - **PR verification for documentation site in GitHub Actions** - Added pull request triggers to

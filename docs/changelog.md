@@ -6,6 +6,13 @@ For release artifacts and APK downloads, see the [GitHub Releases page](https://
 
 ## Recent highlights
 
+### 0.41.0 - Packaging fixes, dynamic engine recreation, and custom fonts
+
+- Scoped ABI-exposed dependencies as `api` in published POM and Gradle module metadata
+- Restarted highlighting effects dynamically when the active `HighlightEngine` changes or is recreated
+- Added Fira Code custom font and programming ligature showcase to the sample app
+- Upgraded WebKit to 1.18.0 and fixed documentation code snippets
+
 ### 0.40.0 - Reliability, lifecycle hardening, and theme safety
 
 - Formalized explicit WebView lifecycle state machine with generation tracking to prevent destruction races
@@ -36,14 +43,6 @@ For release artifacts and APK downloads, see the [GitHub Releases page](https://
 - Added automatic gutter expansion via minimum width constraint (`widthIn`) and disabled text wrapping
 - Added dedicated "Large File" demo tab in the sample app benchmarking 2,170+ lines of JavaScript with live pipeline timings
 - Added Binary Compatibility Validator (`apiCheck` / `apiDump`) to track and enforce public ABI baseline
-
-### 0.37.0 - Theme discovery, synchronous language catalog, and recomposition testing
-
-- Added `HighlightThemeDescriptor` and `HighlightTheme.bundled` APIs to dynamically discover, filter, and restore bundled themes with metadata
-- Added synchronous compile-time language catalog (`HighlightLanguage.all`), `primary` languages, `isSupported()`, and alias normalization (`canonicalName()`)
-- Added dedicated "Theme Discovery" tab and language normalization interactive demos in the sample app
-- Added horizontal scrolling toggle in the sample app live editor
-- Integrated Dejavu for automated recomposition stability testing across all code block composables
 
 ---
 
