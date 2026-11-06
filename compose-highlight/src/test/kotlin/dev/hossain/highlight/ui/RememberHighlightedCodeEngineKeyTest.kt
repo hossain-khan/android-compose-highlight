@@ -260,7 +260,18 @@ class RememberHighlightedCodeEngineKeyTest {
         ShadowLooper.idleMainLooper()
         composeTestRule.waitForIdle()
 
-        assertThat(shared.webViewForTest()).isNotNull()
+        val sharedWebView = requireNotNull(shared.webViewForTest())
+        val webViewClient = Shadows.shadowOf(sharedWebView).getWebViewClient()
+        val lastUrl = Shadows.shadowOf(sharedWebView).getLastLoadedUrl() ?: ""
+        webViewClient?.onPageFinished(sharedWebView, lastUrl)
+        ShadowLooper.idleMainLooper()
+        composeTestRule.waitForIdle()
+
+        // Transition: remove provider (shared engine is no longer in scope; switches to standalone engine).
+        hasProvider = false
+        composeTestRule.waitForIdle()
+        ShadowLooper.idleMainLooper()
+        composeTestRule.waitForIdle()
 
         shared.destroy()
     }
