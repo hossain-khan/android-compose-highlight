@@ -12,6 +12,9 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
+- **Upgraded Zensical to 0.1.0 (Beta)** - Updated documentation site generator to 0.1.0 beta release, refreshed
+  frozen Dokka retheme assets (`main.4ab2de0c.min.css` and `palette.b60ce83d.min.css`), and verified zero-warning
+  docs build (#572).
 - **Excluded Compose compiler `ComposableSingletons` artifacts from public API baseline** - Configured
   `apiValidation` in root `build.gradle.kts` to exclude internal implementation packages (`engine.internal`,
   `ui.internal`) and Compose compiler-generated `ComposableSingletons$...` classes from
