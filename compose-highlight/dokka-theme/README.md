@@ -13,8 +13,8 @@ surrounding chrome is replaced.
 | File | Role |
 |---|---|
 | `zensical-overrides.css` | Loads Inter + JetBrains Mono fonts. Overrides Dokka's CSS variables for both light + dark schemes (Material indigo / slate). Hides Dokka's native top header + sidebar. Styles the injected nested nav (chevrons, type-icons, indent, density). Widens the primary sidebar to fit long Kotlin type names. Hides Dokka's stock footer. |
-| `zensical-assets/main.ce62732f.min.css` | Frozen copy of the MkDocs Material chrome stylesheet from Zensical 0.0.62. Provides every `.md-*` selector our injected DOM relies on. |
-| `zensical-assets/palette.812a03bb.min.css` | Frozen copy of MkDocs Material's palette stylesheet. Defines `[data-md-color-scheme="default"]` and `[data-md-color-scheme="slate"]` color variables. |
+| `zensical-assets/main.4ab2de0c.min.css` | Frozen copy of the MkDocs Material chrome stylesheet from Zensical 0.1.0. Provides every `.md-*` selector our injected DOM relies on. |
+| `zensical-assets/palette.b60ce83d.min.css` | Frozen copy of MkDocs Material's palette stylesheet. Defines `[data-md-color-scheme="default"]` and `[data-md-color-scheme="slate"]` color variables. |
 | `dokka-zensical-chrome.js` | Runs at `DOMContentLoaded` on every page. Fetches `navigation.html`, builds Material `md-header` / `md-nav--primary` / `md-content` / `md-footer-meta` around Dokka's `#content`, wires the palette toggle (synced with `html.theme-dark` + localStorage), delegates the Material search icon to Dokka's inner `#pages-search` button. |
 
 ## How it ships
@@ -104,8 +104,8 @@ dokka {
     pluginsConfiguration.html {
         customStyleSheets.from(
             layout.projectDirectory.file("dokka-theme/zensical-overrides.css"),
-            layout.projectDirectory.file("dokka-theme/zensical-assets/main.ce62732f.min.css"),
-            layout.projectDirectory.file("dokka-theme/zensical-assets/palette.812a03bb.min.css"),
+            layout.projectDirectory.file("dokka-theme/zensical-assets/main.4ab2de0c.min.css"),
+            layout.projectDirectory.file("dokka-theme/zensical-assets/palette.b60ce83d.min.css"),
         )
         customAssets.from(layout.projectDirectory.file("dokka-theme/dokka-zensical-chrome.js"))
     }
