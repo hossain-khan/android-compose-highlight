@@ -78,7 +78,7 @@ without needing a `templatesDir` overlay (verified at setup time via probe).
 
 ## Reproducible CI flow
 
-The full deploy pipeline runs on `main` push via `.github/workflows/docs.yml`:
+The full deploy pipeline runs on `main` push via `.github/workflows/docs.yml` (and validates end-to-end site generation on pull requests touching docs or theme assets):
 
 1. CI checks out the repo (which includes `compose-highlight/dokka-theme/`).
 2. Runs `./gradlew :compose-highlight:dokkaGeneratePublicationHtml` - Dokka

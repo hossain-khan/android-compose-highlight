@@ -68,6 +68,7 @@ jobs:
                   "$file" == zensical.toml || \
                   "$file" == pyproject.toml || \
                   "$file" == compose-highlight/dokka-theme/* || \
+                  "$file" == "scripts/fingerprint-docs.py" || \
                   "$file" == ".github/workflows/docs.yml" ]]; then
               DOCS_CHANGED=true
             fi

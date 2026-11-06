@@ -6,6 +6,10 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+- **PR verification for documentation site in GitHub Actions** - Added pull request triggers to
+  `.github/workflows/docs.yml` for documentation, Zensical configuration, and Dokka theme paths, enabling full
+  end-to-end site build verification (Dokka HTML generation, Zensical build, and asset fingerprinting) on PRs
+  before merging to main.
 - **Fira Code custom font example in sample app** - Added bundled Fira Code font files (`fira_code.ttf` and
   `fira_code_bold.ttf`) to the sample app, added an interactive `Fira Code` selection chip to the typography
   playground in `StylingSection`, and added a dedicated custom font showcase displaying programming ligatures.
