@@ -22,6 +22,10 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+- **Restart highlighting effects on engine replacement** - Added active `HighlightEngine` to `remember` and
+  `LaunchedEffect` keys in `rememberHighlightedCode`, `rememberHighlightedCodeBothThemes`, and
+  `rememberSyntaxHighlightedEditorValue` so swapping or recreating a `HighlightThemeProvider` restarts highlighting
+  on the new engine without stranding UI on plain text (#490).
 - **Published ABI-exposed dependencies with `api` scope in Maven and Gradle metadata** - Declared
   `androidx.compose:compose-bom`, `androidx.compose.ui:ui`, `androidx.compose.foundation:foundation`, and
   `org.jetbrains.kotlinx:kotlinx-coroutines-core` as `api` dependencies in `compose-highlight/build.gradle.kts` while

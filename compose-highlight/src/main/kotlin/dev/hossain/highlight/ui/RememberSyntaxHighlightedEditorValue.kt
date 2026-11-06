@@ -101,17 +101,17 @@ public fun rememberSyntaxHighlightedEditorValue(
     }
 
     val engine = rememberHighlightEngine()
-    var highlighted by remember { mutableStateOf<HighlightSnapshot?>(null) }
+    var highlighted by remember(engine) { mutableStateOf<HighlightSnapshot?>(null) }
     // rememberUpdatedState ensures a changed debounceMs or callback is used by the running
     // effect without restarting it (restarting would reset the debounce window mid-keystroke).
     val currentDebounceMs by rememberUpdatedState(debounceMs)
     val currentOnHighlightComplete by rememberUpdatedState(onHighlightComplete)
     val currentOnError by rememberUpdatedState(onError)
 
-    // Re-highlight with debounce whenever the text, language, or theme changes.
+    // Re-highlight with debounce whenever the text, language, theme, or engine changes.
     // LaunchedEffect cancels the previous coroutine on each change, so rapid keystrokes
     // naturally coalesce into a single highlight call after the user pauses.
-    LaunchedEffect(value.text, language, theme) {
+    LaunchedEffect(value.text, language, theme, engine) {
         delay(currentDebounceMs)
         engine
             .highlight(value.text, language, theme)

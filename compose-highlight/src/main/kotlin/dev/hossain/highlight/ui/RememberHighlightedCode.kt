@@ -98,11 +98,11 @@ public fun rememberHighlightedCode(
     }
 
     val engine = rememberHighlightEngine()
-    val state = remember(code, language, theme) { mutableStateOf<AnnotatedString?>(null) }
+    val state = remember(code, language, theme, engine) { mutableStateOf<AnnotatedString?>(null) }
     val latestCallback = rememberUpdatedState(onHighlightComplete)
     val latestErrorCallback = rememberUpdatedState(onError)
 
-    LaunchedEffect(code, language, theme) {
+    LaunchedEffect(code, language, theme, engine) {
         state.value = null
         engine
             .highlight(code, language, theme)
@@ -188,11 +188,11 @@ public fun rememberHighlightedCodeBothThemes(
     }
 
     val engine = rememberHighlightEngine()
-    val state = remember(code, language, lightTheme, darkTheme) { mutableStateOf<ThemedHighlightResult?>(null) }
+    val state = remember(code, language, lightTheme, darkTheme, engine) { mutableStateOf<ThemedHighlightResult?>(null) }
     val latestCallback = rememberUpdatedState(onHighlightComplete)
     val latestErrorCallback = rememberUpdatedState(onError)
 
-    LaunchedEffect(code, language, lightTheme, darkTheme) {
+    LaunchedEffect(code, language, lightTheme, darkTheme, engine) {
         state.value = null
         engine
             .highlightBothThemes(code, language, lightTheme, darkTheme)
