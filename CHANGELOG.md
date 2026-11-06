@@ -29,6 +29,13 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+- **Bound WebView bridge initialization and propagate page-load failures** - Prevented coroutines from suspending
+  indefinitely if `onPageFinished` never fires (due to WebView package update in progress, corrupted assets, or
+  renderer crash before load). `WebViewManager.getReadyWebView()` now bounds bridge readiness with a 5-second timeout,
+  resets internal manager state to allow clean subsequent retries, and propagates failures as
+  `HighlightException.Timeout`. In addition, `WebViewClient` now intercepts `onReceivedError`, `onReceivedHttpError`,
+  and `onReceivedSslError` for critical bridge assets (`bridge.html`, `highlight.min.js`), immediately failing pending
+  waiters with `HighlightException.WebViewInitFailed` rather than deadlocking callers (#486).
 - **Restart highlighting effects on engine replacement** - Added active `HighlightEngine` to `remember` and
   `LaunchedEffect` keys in `rememberHighlightedCode`, `rememberHighlightedCodeBothThemes`, and
   `rememberSyntaxHighlightedEditorValue` so swapping or recreating a `HighlightThemeProvider` restarts highlighting

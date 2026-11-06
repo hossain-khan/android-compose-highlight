@@ -1,10 +1,14 @@
 package dev.hossain.highlight.engine.internal
 
 import android.content.Context
+import android.net.Uri
+import android.net.http.SslError
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.webkit.RenderProcessGoneDetail
+import android.webkit.SslErrorHandler
+import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import android.webkit.WebView
@@ -18,11 +22,18 @@ import dev.hossain.highlight.engine.HighlightException
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
 import java.io.ByteArrayInputStream
+
+internal const val ASSET_DOMAIN: String = "appassets.androidplatform.net"
+internal const val BRIDGE_PATH: String = "/assets/compose-highlight/bridge.html"
+internal const val HIGHLIGHT_JS_PATH: String = "/assets/compose-highlight/highlight.min.js"
+internal const val BRIDGE_URL: String = "https://$ASSET_DOMAIN$BRIDGE_PATH"
 
 /**
  * Internal manager responsible for creating and initializing the hidden WebView.
@@ -153,8 +164,30 @@ internal class WebViewManager(
      */
     internal var onRendererGone: ((didCrash: Boolean) -> Unit)? = null
 
-    /** Returns the ready WebView. Suspends until bridge.html has finished loading. */
-    suspend fun getReadyWebView(): WebView = readyDeferred.await()
+    /**
+     * Returns the ready WebView. Suspends until bridge.html has finished loading or throws
+     * [HighlightException.Timeout] if readiness does not complete within [timeoutMs].
+     *
+     * If initialization fails or the engine is destroyed, throws the corresponding [HighlightException].
+     */
+    suspend fun getReadyWebView(timeoutMs: Long = HighlightException.TIMEOUT_SECONDS * 1000L): WebView {
+        val deferred =
+            synchronized(lock) {
+                if (state == State.DESTROYED) {
+                    throw HighlightException.EngineDestroyed()
+                }
+                readyDeferred
+            }
+
+        return try {
+            withTimeout(timeoutMs) {
+                deferred.await()
+            }
+        } catch (e: TimeoutCancellationException) {
+            handleInitTimeout(deferred)
+            throw HighlightException.Timeout()
+        }
+    }
 
     /**
      * Returns the underlying [WebView] **synchronously** for test-only inspection, or `null`
@@ -207,7 +240,7 @@ internal class WebViewManager(
             val assetLoader =
                 WebViewAssetLoader
                     .Builder()
-                    .setDomain("appassets.androidplatform.net")
+                    .setDomain(ASSET_DOMAIN)
                     .addPathHandler("/assets/", WebViewAssetLoader.AssetsPathHandler(context))
                     .build()
 
@@ -249,7 +282,7 @@ internal class WebViewManager(
                                     val url = request.url
                                     // Reject requests to unexpected origins or schemes.
                                     // Official docs: https://developer.android.com/reference/androidx/webkit/WebViewAssetLoader
-                                    if (url.scheme != "https" || url.host != "appassets.androidplatform.net") {
+                                    if (url.scheme != "https" || url.host != ASSET_DOMAIN) {
                                         return WebResourceResponse(
                                             "text/plain",
                                             "utf-8",
@@ -270,12 +303,69 @@ internal class WebViewManager(
                                         if (state != State.INITIALIZING || generation != targetGeneration || view !== webView) {
                                             return
                                         }
+                                        if (!url.endsWith("/bridge.html")) {
+                                            return
+                                        }
                                         state = State.READY
                                         _isInitialized.value = true
                                         if (!deferred.isCompleted) {
                                             deferred.complete(view)
                                         }
                                     }
+                                }
+
+                                override fun onReceivedError(
+                                    view: WebView,
+                                    request: WebResourceRequest,
+                                    error: WebResourceError,
+                                ) {
+                                    if (isCriticalBridgeRequest(request)) {
+                                        val message =
+                                            "Failed to load bridge asset: ${error.description} (code ${error.errorCode}, url ${request.url})"
+                                        handlePageLoadFailure(view, targetGeneration, deferred, message)
+                                    }
+                                }
+
+                                @Deprecated("Deprecated in Java")
+                                override fun onReceivedError(
+                                    view: WebView,
+                                    errorCode: Int,
+                                    description: String?,
+                                    failingUrl: String?,
+                                ) {
+                                    val isCritical =
+                                        failingUrl == null ||
+                                            failingUrl.endsWith("/bridge.html") ||
+                                            failingUrl.endsWith("/highlight.min.js") ||
+                                            failingUrl.startsWith("https://$ASSET_DOMAIN")
+                                    if (isCritical) {
+                                        val message =
+                                            "Failed to load bridge asset: $description (code $errorCode, url $failingUrl)"
+                                        handlePageLoadFailure(view, targetGeneration, deferred, message)
+                                    }
+                                }
+
+                                override fun onReceivedHttpError(
+                                    view: WebView,
+                                    request: WebResourceRequest,
+                                    errorResponse: WebResourceResponse,
+                                ) {
+                                    if (isCriticalBridgeRequest(request)) {
+                                        val message =
+                                            "HTTP error loading bridge asset: ${errorResponse.statusCode} ${errorResponse.reasonPhrase} (url ${request.url})"
+                                        handlePageLoadFailure(view, targetGeneration, deferred, message)
+                                    }
+                                }
+
+                                override fun onReceivedSslError(
+                                    view: WebView,
+                                    handler: SslErrorHandler,
+                                    error: SslError,
+                                ) {
+                                    handler.cancel()
+                                    val message =
+                                        "SSL error loading bridge asset: primaryError ${error.primaryError} (url ${error.url})"
+                                    handlePageLoadFailure(view, targetGeneration, deferred, message)
                                 }
 
                                 @RequiresApi(Build.VERSION_CODES.O)
@@ -316,7 +406,7 @@ internal class WebViewManager(
                 // Serves local assets over https:// via WebViewAssetLoader - required for
                 // Same-Origin Policy compliance so that highlight.min.js can execute.
                 // https://developer.android.com/reference/androidx/webkit/WebViewAssetLoader
-                view.loadUrl("https://appassets.androidplatform.net/assets/compose-highlight/bridge.html")
+                view.loadUrl(BRIDGE_URL)
             } catch (e: Exception) {
                 if (e is CancellationException) throw e
                 val initEx = HighlightException.WebViewInitFailed(e)
@@ -411,23 +501,82 @@ internal class WebViewManager(
             }
         }
 
-        if (viewToDestroy != null) {
-            // WebView.destroy() must be called on the thread that created it (Main).
-            if (Looper.myLooper() == Looper.getMainLooper()) {
-                try {
-                    viewToDestroy.destroy()
-                } catch (_: Throwable) {
-                    // Suppress secondary cleanup exceptions.
-                }
-            } else {
-                Handler(Looper.getMainLooper()).post {
-                    try {
-                        viewToDestroy.destroy()
-                    } catch (_: Throwable) {
-                        // Suppress secondary cleanup exceptions.
-                    }
-                }
+        destroyWebViewInstance(viewToDestroy, post = false)
+    }
+
+    private fun isCriticalBridgeRequest(request: WebResourceRequest): Boolean {
+        if (request.isForMainFrame) return true
+        val url = request.url ?: return false
+        return isCriticalBridgeAsset(url)
+    }
+
+    private fun isCriticalBridgeAsset(url: Uri): Boolean {
+        if (url.scheme != "https" || url.host != ASSET_DOMAIN) return false
+        val path = url.path ?: return false
+        return path == BRIDGE_PATH ||
+            path == HIGHLIGHT_JS_PATH ||
+            path.endsWith("/bridge.html") ||
+            path.endsWith("/highlight.min.js")
+    }
+
+    private fun handlePageLoadFailure(
+        view: WebView,
+        targetGeneration: Int,
+        deferred: CompletableDeferred<WebView>,
+        errorMessage: String,
+    ) {
+        val exception = HighlightException.WebViewInitFailed(RuntimeException(errorMessage))
+        val viewToDestroy: WebView?
+        synchronized(lock) {
+            if (state != State.INITIALIZING || generation != targetGeneration || view !== webView) {
+                return
             }
+            state = State.FAILED
+            generation++
+            _isInitialized.value = false
+            viewToDestroy = webView
+            webView = null
+            if (!deferred.isCompleted) {
+                deferred.completeExceptionally(exception)
+            }
+        }
+        destroyWebViewInstance(viewToDestroy, post = true)
+    }
+
+    private fun handleInitTimeout(deferred: CompletableDeferred<WebView>) {
+        val viewToDestroy: WebView?
+        synchronized(lock) {
+            if (state != State.INITIALIZING || deferred !== readyDeferred) {
+                return
+            }
+            state = State.FAILED
+            generation++
+            _isInitialized.value = false
+            viewToDestroy = webView
+            webView = null
+            if (!deferred.isCompleted) {
+                deferred.completeExceptionally(HighlightException.Timeout())
+            }
+        }
+        destroyWebViewInstance(viewToDestroy, post = false)
+    }
+
+    private fun destroyWebViewInstance(
+        viewToDestroy: WebView?,
+        post: Boolean,
+    ) {
+        if (viewToDestroy == null) return
+        val cleanup = {
+            try {
+                viewToDestroy.destroy()
+            } catch (_: Throwable) {
+                // Suppress secondary cleanup exceptions.
+            }
+        }
+        if (post || Looper.myLooper() != Looper.getMainLooper()) {
+            Handler(Looper.getMainLooper()).post(cleanup)
+        } else {
+            cleanup()
         }
     }
 }

@@ -244,7 +244,8 @@ public class HighlightEngine(
      *   language detection. Use [highlightAuto] if automatic language detection is desired.
      * @return [Result] wrapping an [HtmlHighlightResult] (html + timing), or [Result.failure]
      *   with a [HighlightException] on error. Returns [HighlightException.Timeout] if the
-     *   JavaScript call does not complete within the timeout window.
+     *   initialization or JavaScript call does not complete within the timeout window, or
+     *   [HighlightException.WebViewInitFailed] if bridge initialization fails.
      */
     public suspend fun highlightToHtml(
         code: String,
@@ -252,9 +253,9 @@ public class HighlightEngine(
     ): Result<HtmlHighlightResult> =
         withEngineErrorHandling {
             mutex.withLock {
-                manager.initialize()
-                val webView = manager.getReadyWebView()
                 withTimeout(HighlightException.TIMEOUT_SECONDS * 1000L) {
+                    manager.initialize()
+                    val webView = manager.getReadyWebView()
                     executeJs(webView, code, language)
                 }.map { jsResult ->
                     HtmlHighlightResult(
@@ -289,7 +290,9 @@ public class HighlightEngine(
      *   automatic language detection.
      * @param theme The [HighlightTheme] whose colour map will be applied.
      * @return [Result] wrapping a [HighlightResult], or [Result.failure] with a
-     *   [HighlightException] on error.
+     *   [HighlightException] on error (e.g. [HighlightException.Timeout] if initialization or
+     *   JavaScript execution exceeds the timeout, or [HighlightException.WebViewInitFailed] if
+     *   bridge initialization fails).
      */
     public suspend fun highlight(
         code: String,
@@ -353,7 +356,9 @@ public class HighlightEngine(
      * @param lightTheme Theme applied to produce [ThemedHighlightResult.light].
      * @param darkTheme Theme applied to produce [ThemedHighlightResult.dark].
      * @return [Result] wrapping a [ThemedHighlightResult], or [Result.failure] with a
-     *   [HighlightException] on error.
+     *   [HighlightException] on error (e.g. [HighlightException.Timeout] if initialization or
+     *   JavaScript execution exceeds the timeout, or [HighlightException.WebViewInitFailed] if
+     *   bridge initialization fails).
      */
     public suspend fun highlightBothThemes(
         code: String,
@@ -417,8 +422,8 @@ public class HighlightEngine(
      * @return [Result] wrapping a sorted [List] of language name strings (e.g. `"kotlin"`,
      *   `"java"`, `"python"`), or [Result.failure] with a [HighlightException] on failure.
      *   Possible failures: [HighlightException.WebViewInitFailed] if the WebView could not be
-     *   initialized, [HighlightException.Timeout] if the JS call exceeds the timeout, or
-     *   [HighlightException.JsExecutionFailed] for other JS errors.
+     *   initialized, [HighlightException.Timeout] if initialization or the JS call exceeds
+     *   the timeout, or [HighlightException.JsExecutionFailed] for other JS errors.
      */
     public suspend fun supportedLanguages(): Result<List<String>> {
         cachedLanguages?.let { return Result.success(it) }
@@ -429,9 +434,9 @@ public class HighlightEngine(
                 if (cached != null) {
                     Result.success(cached)
                 } else {
-                    manager.initialize()
-                    val webView = manager.getReadyWebView()
                     withTimeout(HighlightException.TIMEOUT_SECONDS * 1000L) {
+                        manager.initialize()
+                        val webView = manager.getReadyWebView()
                         val (rawResult, _) = evaluateJsRaw(webView, "listLanguages()")
                         if (rawResult == null || rawResult == "null") {
                             throw HighlightException.JsExecutionFailed(
@@ -474,8 +479,8 @@ public class HighlightEngine(
      *
      * @return [Result] wrapping the version string, or [Result.failure] with a [HighlightException]
      *   on failure. Possible failures: [HighlightException.WebViewInitFailed] if the WebView could
-     *   not be initialized, [HighlightException.Timeout] if the JS call exceeds the timeout, or
-     *   [HighlightException.JsExecutionFailed] for other JS errors.
+     *   not be initialized, [HighlightException.Timeout] if initialization or the JS call exceeds
+     *   the timeout, or [HighlightException.JsExecutionFailed] for other JS errors.
      */
     public suspend fun highlightJsVersion(): Result<String> {
         cachedVersion?.let { return Result.success(it) }
@@ -486,9 +491,9 @@ public class HighlightEngine(
                 if (cached != null) {
                     Result.success(cached)
                 } else {
-                    manager.initialize()
-                    val webView = manager.getReadyWebView()
                     withTimeout(HighlightException.TIMEOUT_SECONDS * 1000L) {
+                        manager.initialize()
+                        val webView = manager.getReadyWebView()
                         val (rawResult, _) = evaluateJsRaw(webView, "hljsVersion()")
                         if (rawResult == null || rawResult == "null") {
                             throw HighlightException.JsExecutionFailed(
@@ -521,15 +526,17 @@ public class HighlightEngine(
      *
      * @param nameOrAlias Highlight.js language name or alias to look up.
      * @return [Result.success] with [HighlightLanguageInfo] when found, `null` when Highlight.js
-     *   does not know the language, or [Result.failure] with a [HighlightException] on error.
+     *   does not know the language, or [Result.failure] with a [HighlightException] on error
+     *   (e.g. [HighlightException.Timeout] on timeout, or [HighlightException.WebViewInitFailed]
+     *   on initialization failure).
      */
     public suspend fun getLanguage(nameOrAlias: String): Result<HighlightLanguageInfo?> =
         withEngineErrorHandling {
             val escapedNameOrAlias = escapeForJs(nameOrAlias)
             mutex.withLock {
-                manager.initialize()
-                val webView = manager.getReadyWebView()
                 withTimeout(HighlightException.TIMEOUT_SECONDS * 1000L) {
+                    manager.initialize()
+                    val webView = manager.getReadyWebView()
                     val (rawResult, _) = evaluateJsRaw(webView, "getLanguage('$escapedNameOrAlias')")
                     if (rawResult == null) {
                         throw HighlightException.JsExecutionFailed(
@@ -587,7 +594,9 @@ public class HighlightEngine(
      * @param code The source code to highlight.
      * @param theme The [HighlightTheme] whose colour map will be applied.
      * @return [Result] wrapping an [AutoHighlightResult], or [Result.failure] with a
-     *   [HighlightException] on error.
+     *   [HighlightException] on error (e.g. [HighlightException.Timeout] if initialization or
+     *   auto-highlight execution exceeds the timeout, or [HighlightException.WebViewInitFailed]
+     *   if bridge initialization fails).
      */
     public suspend fun highlightAuto(
         code: String,
@@ -599,9 +608,9 @@ public class HighlightEngine(
             val jsResult =
                 mutex
                     .withLock {
-                        manager.initialize()
-                        val webView = manager.getReadyWebView()
                         withTimeout(HighlightException.TIMEOUT_SECONDS * 1000L) {
+                            manager.initialize()
+                            val webView = manager.getReadyWebView()
                             executeJsAuto(webView, code)
                         }
                     }.getOrThrow()
