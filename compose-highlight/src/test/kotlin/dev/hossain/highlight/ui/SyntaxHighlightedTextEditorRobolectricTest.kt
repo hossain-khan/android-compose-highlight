@@ -1087,4 +1087,79 @@ class SyntaxHighlightedTextEditorRobolectricTest {
             )
         assertThat(consumedDown).isTrue()
     }
+
+    @Test
+    fun `shift arrow keys expand selection when horizontal scrolling is enabled`() {
+        var editorValue by mutableStateOf(
+            TextFieldValue("line 1\nline 2\nline 3", selection = TextRange(10)),
+        )
+        var lastUpdatedValue: TextFieldValue? = null
+
+        composeTestRule.setContent {
+            CompositionLocalProvider(LocalInspectionMode provides true) {
+                HighlightThemeProvider {
+                    SyntaxHighlightedTextEditor(
+                        value = editorValue,
+                        onValueChange = {
+                            editorValue = it
+                            lastUpdatedValue = it
+                        },
+                        language = "kotlin",
+                        horizontalScrollState = rememberScrollState(),
+                    )
+                }
+            }
+        }
+        composeTestRule.waitForIdle()
+
+        val editorNode = composeTestRule.onNode(hasSetTextAction(), useUnmergedTree = true)
+        editorNode.performClick()
+        composeTestRule.waitForIdle()
+
+        editorValue = TextFieldValue("line 1\nline 2\nline 3", selection = TextRange(10))
+        composeTestRule.waitForIdle()
+
+        // Press Shift + DPAD_UP
+        val consumedShiftUp =
+            editorNode.performKeyPress(
+                KeyEvent(
+                    AndroidKeyEvent(
+                        0L,
+                        0L,
+                        AndroidKeyEvent.ACTION_DOWN,
+                        AndroidKeyEvent.KEYCODE_DPAD_UP,
+                        0,
+                        AndroidKeyEvent.META_SHIFT_ON or AndroidKeyEvent.META_SHIFT_LEFT_ON,
+                    ),
+                ),
+            )
+        composeTestRule.waitForIdle()
+
+        assertThat(consumedShiftUp).isTrue()
+        // Anchor at 10, end at 3
+        assertThat(lastUpdatedValue?.selection).isEqualTo(TextRange(start = 10, end = 3))
+
+        // Press Shift + DPAD_DOWN
+        editorValue = TextFieldValue("line 1\nline 2\nline 3", selection = TextRange(3))
+        composeTestRule.waitForIdle()
+
+        val consumedShiftDown =
+            editorNode.performKeyPress(
+                KeyEvent(
+                    AndroidKeyEvent(
+                        0L,
+                        0L,
+                        AndroidKeyEvent.ACTION_DOWN,
+                        AndroidKeyEvent.KEYCODE_DPAD_DOWN,
+                        0,
+                        AndroidKeyEvent.META_SHIFT_ON or AndroidKeyEvent.META_SHIFT_LEFT_ON,
+                    ),
+                ),
+            )
+        composeTestRule.waitForIdle()
+
+        assertThat(consumedShiftDown).isTrue()
+        // Anchor at 3, end at 10
+        assertThat(lastUpdatedValue?.selection).isEqualTo(TextRange(start = 3, end = 10))
+    }
 }

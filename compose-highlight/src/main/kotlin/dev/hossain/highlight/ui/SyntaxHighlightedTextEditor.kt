@@ -292,10 +292,22 @@ public fun SyntaxHighlightedTextEditor(
         }
 
     val previewKeyModifier =
-        remember(tabKeyInterceptionEnabled, autoIndentEnabled, escapeKeyClearsFocus, horizontalScrollState != null) {
-            if (tabKeyInterceptionEnabled || autoIndentEnabled || escapeKeyClearsFocus || horizontalScrollState != null) {
+        remember(
+            tabKeyInterceptionEnabled,
+            autoIndentEnabled,
+            escapeKeyClearsFocus,
+            horizontalScrollState != null,
+        ) {
+            if (tabKeyInterceptionEnabled ||
+                autoIndentEnabled ||
+                escapeKeyClearsFocus ||
+                horizontalScrollState != null
+            ) {
                 Modifier.onPreviewKeyEvent { keyEvent ->
                     if (keyEvent.type != KeyEventType.KeyDown) return@onPreviewKeyEvent false
+
+                    val trapBoundaryKeys =
+                        currentHorizontalScrollState.value != null || currentTabKeyInterceptionEnabled.value
 
                     when (keyEvent.key) {
                         Key.Escape -> {
@@ -319,7 +331,9 @@ public fun SyntaxHighlightedTextEditor(
                                 val selection = currentValue.value.selection
                                 val newText = text.replaceRange(selection.min, selection.max, currentIndentation.value)
                                 val newSelection = TextRange(selection.min + currentIndentation.value.length)
-                                currentOnValueChange.value(currentValue.value.copy(text = newText, selection = newSelection))
+                                currentOnValueChange.value(
+                                    currentValue.value.copy(text = newText, selection = newSelection),
+                                )
                                 true
                             } else {
                                 false
@@ -338,14 +352,17 @@ public fun SyntaxHighlightedTextEditor(
                                 val newText = text.replaceRange(selection.min, selection.max, insertion)
                                 val newSelection = TextRange(selection.min + insertion.length)
 
-                                currentOnValueChange.value(currentValue.value.copy(text = newText, selection = newSelection))
+                                currentOnValueChange.value(
+                                    currentValue.value.copy(text = newText, selection = newSelection),
+                                )
                                 true
                             } else {
                                 false
                             }
                         }
 
-                        // Navigates cursor up a line when horizontal scrolling breaks native layout, or traps focus at the top boundary.
+                        // Navigates cursor up a line when horizontal scrolling breaks native layout,
+                        // or traps focus at the top boundary.
                         Key.DirectionUp -> {
                             if (currentHorizontalScrollState.value != null) {
                                 val newSelection =
@@ -359,7 +376,8 @@ public fun SyntaxHighlightedTextEditor(
                                     currentValue.value.copy(selection = newSelection),
                                 )
                                 true
-                            } else if (currentValue.value.selection.collapsed &&
+                            } else if (trapBoundaryKeys &&
+                                currentValue.value.selection.collapsed &&
                                 currentValue.value.selection.start == 0 &&
                                 !keyEvent.isShiftPressed
                             ) {
@@ -369,7 +387,8 @@ public fun SyntaxHighlightedTextEditor(
                             }
                         }
 
-                        // Navigates cursor down a line when horizontal scrolling breaks native layout, or traps focus at the bottom boundary.
+                        // Navigates cursor down a line when horizontal scrolling breaks native layout,
+                        // or traps focus at the bottom boundary.
                         Key.DirectionDown -> {
                             if (currentHorizontalScrollState.value != null) {
                                 val newSelection =
@@ -383,7 +402,8 @@ public fun SyntaxHighlightedTextEditor(
                                     currentValue.value.copy(selection = newSelection),
                                 )
                                 true
-                            } else if (currentValue.value.selection.collapsed &&
+                            } else if (trapBoundaryKeys &&
+                                currentValue.value.selection.collapsed &&
                                 currentValue.value.selection.start == currentValue.value.text.length &&
                                 !keyEvent.isShiftPressed
                             ) {
@@ -395,7 +415,8 @@ public fun SyntaxHighlightedTextEditor(
 
                         // Traps focus inside the editor when pressing Left Arrow at the start of the document.
                         Key.DirectionLeft -> {
-                            if (currentValue.value.selection.collapsed &&
+                            if (trapBoundaryKeys &&
+                                currentValue.value.selection.collapsed &&
                                 currentValue.value.selection.start == 0 &&
                                 !keyEvent.isShiftPressed
                             ) {
@@ -408,7 +429,8 @@ public fun SyntaxHighlightedTextEditor(
                         // Traps focus inside the editor when pressing Right Arrow at the end of the document.
                         Key.DirectionRight -> {
                             val textLen = currentValue.value.text.length
-                            if (currentValue.value.selection.collapsed &&
+                            if (trapBoundaryKeys &&
+                                currentValue.value.selection.collapsed &&
                                 currentValue.value.selection.start == textLen &&
                                 !keyEvent.isShiftPressed
                             ) {
