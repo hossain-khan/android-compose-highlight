@@ -33,6 +33,7 @@ Full API in Dokka:
   chrome. Receives a pre-wired `onCopy` action. When customized, `languageLabel` and
   `actions` are ignored.
 - `placeholder` - custom loading content while highlighting is in progress.
+- `onCopyClick` - optional callback when the copy button is clicked, replacing the built-in clipboard copy.
 - `onHighlightComplete` and `onError` - observability hooks for metrics and diagnostics.
 
 ## Recommended patterns

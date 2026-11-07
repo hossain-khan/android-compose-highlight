@@ -50,8 +50,12 @@ Full API in Dokka:
   previous line when inserting a newline. Defaults to `true`.
 - `tabKeyInterceptionEnabled` - whether to intercept the hardware Tab key to insert
   spaces instead of shifting focus to the next view. Defaults to `true`. Note that
-  arrow keys (Up, Down, Left, Right) are also intercepted to prevent focus from
-  escaping the editor when boundaries are reached.
+  `Shift+Tab` moves focus backwards and `Ctrl+Tab` advances focus so keyboard navigation
+  is preserved, while arrow keys (Up, Down, Left, Right) are intercepted to prevent focus
+  from escaping the editor when boundaries are reached.
+- `escapeKeyClearsFocus` - whether pressing the hardware Escape key clears focus from
+  the editor, preventing keyboard focus traps (WCAG 2.1.2) for keyboard and
+  switch-access users. Defaults to `true` (`SyntaxHighlightedTextEditorDefaults.ESCAPE_KEY_CLEARS_FOCUS`).
 
 For anything else `BasicTextField` exposes (`enabled`, `readOnly`, `singleLine`,
 `maxLines`, `decorationBox`, etc.) drop one level down to
@@ -61,8 +65,8 @@ and render your own field - the editor is intentionally opinionated.
 ## Opting in
 
 Both `SyntaxHighlightedTextEditor` and `SyntaxHighlightedTextEditorDefaults` are annotated
-with `@ExperimentalHighlightApi`, so accessing either — including static members like
-`SyntaxHighlightedTextEditorDefaults.DefaultTextStyle` or `CodeKeyboardOptions` — requires the
+with `@ExperimentalHighlightApi`, so accessing either - including static members like
+`SyntaxHighlightedTextEditorDefaults.DefaultTextStyle` or `CodeKeyboardOptions` - requires the
 same opt-in.
 
 ```kotlin
