@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Fixed
+
+- **Arrow key vertical navigation and focus escape in SyntaxHighlightedTextEditor** - Fixed an issue where pressing
+  Up or Down arrow keys with horizontal scrolling enabled failed to navigate lines and caused focus to escape to
+  sibling UI controls (#577). Handled directional keystrokes in `onPreviewKeyEvent` with manual vertical line
+  traversal and consumed boundary keystrokes (Left/Up at start, Right/Down at end) to keep focus inside the editor.
+
 ## [0.41.0] - 2026-11-06
 
 ### Added

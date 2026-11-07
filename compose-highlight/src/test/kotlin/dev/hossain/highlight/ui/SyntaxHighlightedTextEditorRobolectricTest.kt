@@ -4,7 +4,10 @@ import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.input.key.KeyEvent
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
@@ -939,5 +942,149 @@ class SyntaxHighlightedTextEditorRobolectricTest {
         composeTestRule.waitForIdle()
 
         composeTestRule.onNodeWithTag("syntax-highlighted-text-editor").assertIsDisplayed()
+    }
+
+    @Test
+    fun `arrow keys navigate vertically when horizontal scrolling is enabled`() {
+        // "line 1\nline 2\nline 3"
+        // line 1: 0..5 (\n at 6)
+        // line 2: 7..12 (\n at 13)
+        // line 3: 14..19
+        var editorValue by mutableStateOf(
+            TextFieldValue("line 1\nline 2\nline 3", selection = TextRange(10)),
+        ) // at 'e' in "line 2" (column 3)
+        var lastUpdatedValue: TextFieldValue? = null
+
+        composeTestRule.setContent {
+            CompositionLocalProvider(LocalInspectionMode provides true) {
+                HighlightThemeProvider {
+                    SyntaxHighlightedTextEditor(
+                        value = editorValue,
+                        onValueChange = {
+                            editorValue = it
+                            lastUpdatedValue = it
+                        },
+                        language = "kotlin",
+                        horizontalScrollState = rememberScrollState(),
+                    )
+                }
+            }
+        }
+        composeTestRule.waitForIdle()
+
+        val editorNode = composeTestRule.onNode(hasSetTextAction(), useUnmergedTree = true)
+        editorNode.performClick()
+        composeTestRule.waitForIdle()
+
+        // performClick() positions cursor at click location; reset to desired starting position
+        editorValue = TextFieldValue("line 1\nline 2\nline 3", selection = TextRange(10))
+        composeTestRule.waitForIdle()
+
+        // Press DPAD_UP
+        val consumedUp =
+            editorNode.performKeyPress(
+                KeyEvent(
+                    AndroidKeyEvent(
+                        AndroidKeyEvent.ACTION_DOWN,
+                        AndroidKeyEvent.KEYCODE_DPAD_UP,
+                    ),
+                ),
+            )
+        composeTestRule.waitForIdle()
+
+        assertThat(consumedUp).isTrue()
+        // In line 1, column 3 is index 3
+        assertThat(lastUpdatedValue?.selection).isEqualTo(TextRange(3))
+
+        // Press DPAD_DOWN
+        val consumedDown =
+            editorNode.performKeyPress(
+                KeyEvent(
+                    AndroidKeyEvent(
+                        AndroidKeyEvent.ACTION_DOWN,
+                        AndroidKeyEvent.KEYCODE_DPAD_DOWN,
+                    ),
+                ),
+            )
+        composeTestRule.waitForIdle()
+
+        assertThat(consumedDown).isTrue()
+        // In line 2, column 3 is index 10
+        assertThat(lastUpdatedValue?.selection).isEqualTo(TextRange(10))
+    }
+
+    @Test
+    fun `arrow keys at boundaries are consumed to prevent focus escape`() {
+        val text = "hello"
+        var value = TextFieldValue(text, selection = TextRange(0))
+
+        composeTestRule.setContent {
+            CompositionLocalProvider(LocalInspectionMode provides true) {
+                HighlightThemeProvider {
+                    SyntaxHighlightedTextEditor(
+                        value = value,
+                        onValueChange = { value = it },
+                        language = "kotlin",
+                    )
+                }
+            }
+        }
+        composeTestRule.waitForIdle()
+
+        val editorNode = composeTestRule.onNode(hasSetTextAction(), useUnmergedTree = true)
+        editorNode.performClick()
+        composeTestRule.waitForIdle()
+
+        // At index 0, Left Arrow is consumed to prevent escape
+        val consumedLeft =
+            editorNode.performKeyPress(
+                KeyEvent(
+                    AndroidKeyEvent(
+                        AndroidKeyEvent.ACTION_DOWN,
+                        AndroidKeyEvent.KEYCODE_DPAD_LEFT,
+                    ),
+                ),
+            )
+        assertThat(consumedLeft).isTrue()
+
+        // At index 0, Up Arrow is consumed to prevent escape
+        val consumedUp =
+            editorNode.performKeyPress(
+                KeyEvent(
+                    AndroidKeyEvent(
+                        AndroidKeyEvent.ACTION_DOWN,
+                        AndroidKeyEvent.KEYCODE_DPAD_UP,
+                    ),
+                ),
+            )
+        assertThat(consumedUp).isTrue()
+
+        // Move to end of text
+        value = TextFieldValue(text, selection = TextRange(text.length))
+        composeTestRule.waitForIdle()
+
+        // At end of text, Right Arrow is consumed to prevent escape
+        val consumedRight =
+            editorNode.performKeyPress(
+                KeyEvent(
+                    AndroidKeyEvent(
+                        AndroidKeyEvent.ACTION_DOWN,
+                        AndroidKeyEvent.KEYCODE_DPAD_RIGHT,
+                    ),
+                ),
+            )
+        assertThat(consumedRight).isTrue()
+
+        // At end of text, Down Arrow is consumed to prevent escape
+        val consumedDown =
+            editorNode.performKeyPress(
+                KeyEvent(
+                    AndroidKeyEvent(
+                        AndroidKeyEvent.ACTION_DOWN,
+                        AndroidKeyEvent.KEYCODE_DPAD_DOWN,
+                    ),
+                ),
+            )
+        assertThat(consumedDown).isTrue()
     }
 }
