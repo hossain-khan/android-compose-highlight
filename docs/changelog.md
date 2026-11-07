@@ -6,6 +6,12 @@ For release artifacts and APK downloads, see the [GitHub Releases page](https://
 
 ## Recent highlights
 
+### 0.41.1 - Editor horizontal scrolling arrow key navigation fix
+
+- Restored vertical line navigation with Up and Down arrow keys when horizontal scrolling is enabled in `SyntaxHighlightedTextEditor`
+- Trapped directional arrow keys at document boundaries to prevent accidental focus escape to outside UI controls
+- Added support for Shift-based selection expansion during manual vertical line traversal
+
 ### 0.41.0 - Packaging fixes, dynamic engine recreation, and custom fonts
 
 - Scoped ABI-exposed dependencies as `api` in published POM and Gradle module metadata
@@ -36,13 +42,6 @@ For release artifacts and APK downloads, see the [GitHub Releases page](https://
 - Hardened internal WebView security with disabled file/content access, blocked outbound network requests, and Content Security Policy enforcement
 - Preserved horizontal scroll state across screen rotation and LazyColumn recycling in code viewers
 - Removed broad consumer R8 keep rules to allow downstream apps to dead-code eliminate unused library components
-
-### 0.37.1 - Auto-expanding line numbers and large file benchmark
-
-- Fixed line-number gutter wrapping multi-digit numbers onto multiple lines for files with 1,000+ lines
-- Added automatic gutter expansion via minimum width constraint (`widthIn`) and disabled text wrapping
-- Added dedicated "Large File" demo tab in the sample app benchmarking 2,170+ lines of JavaScript with live pipeline timings
-- Added Binary Compatibility Validator (`apiCheck` / `apiDump`) to track and enforce public ABI baseline
 
 ---
 

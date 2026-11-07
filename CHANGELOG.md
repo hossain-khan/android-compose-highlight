@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.41.1] - 2026-11-06
+
 ### Fixed
 
 - **Arrow key vertical navigation and focus escape in SyntaxHighlightedTextEditor** - Fixed an issue where pressing
