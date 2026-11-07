@@ -345,6 +345,7 @@ public fun SyntaxHighlightedTextEditor(
                             }
                         }
 
+                        // Navigates cursor up a line when horizontal scrolling breaks native layout, or traps focus at the top boundary.
                         Key.DirectionUp -> {
                             if (currentHorizontalScrollState.value != null) {
                                 val newSelection =
@@ -368,6 +369,7 @@ public fun SyntaxHighlightedTextEditor(
                             }
                         }
 
+                        // Navigates cursor down a line when horizontal scrolling breaks native layout, or traps focus at the bottom boundary.
                         Key.DirectionDown -> {
                             if (currentHorizontalScrollState.value != null) {
                                 val newSelection =
@@ -391,6 +393,7 @@ public fun SyntaxHighlightedTextEditor(
                             }
                         }
 
+                        // Traps focus inside the editor when pressing Left Arrow at the start of the document.
                         Key.DirectionLeft -> {
                             if (currentValue.value.selection.collapsed &&
                                 currentValue.value.selection.start == 0 &&
@@ -402,6 +405,7 @@ public fun SyntaxHighlightedTextEditor(
                             }
                         }
 
+                        // Traps focus inside the editor when pressing Right Arrow at the end of the document.
                         Key.DirectionRight -> {
                             val textLen = currentValue.value.text.length
                             if (currentValue.value.selection.collapsed &&
