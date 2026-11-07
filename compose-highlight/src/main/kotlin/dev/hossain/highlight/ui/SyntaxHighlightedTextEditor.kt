@@ -250,6 +250,7 @@ public fun SyntaxHighlightedTextEditor(
     val currentTabKeyInterceptionEnabled = rememberUpdatedState(tabKeyInterceptionEnabled)
     val currentEscapeKeyClearsFocus = rememberUpdatedState(escapeKeyClearsFocus)
     val currentIndentation = rememberUpdatedState(indentation)
+    val currentHorizontalScrollState = rememberUpdatedState(horizontalScrollState)
 
     val handleValueChange: (TextFieldValue) -> Unit =
         remember {
@@ -291,8 +292,8 @@ public fun SyntaxHighlightedTextEditor(
         }
 
     val previewKeyModifier =
-        remember(tabKeyInterceptionEnabled, autoIndentEnabled, escapeKeyClearsFocus) {
-            if (tabKeyInterceptionEnabled || autoIndentEnabled || escapeKeyClearsFocus) {
+        remember(tabKeyInterceptionEnabled, autoIndentEnabled, escapeKeyClearsFocus, horizontalScrollState != null) {
+            if (tabKeyInterceptionEnabled || autoIndentEnabled || escapeKeyClearsFocus || horizontalScrollState != null) {
                 Modifier.onPreviewKeyEvent { keyEvent ->
                     if (keyEvent.type != KeyEventType.KeyDown) return@onPreviewKeyEvent false
 
@@ -344,6 +345,75 @@ public fun SyntaxHighlightedTextEditor(
                             }
                         }
 
+                        Key.DirectionUp -> {
+                            if (currentHorizontalScrollState.value != null) {
+                                val newSelection =
+                                    calculateVerticalCursorMovement(
+                                        text = currentValue.value.text,
+                                        selection = currentValue.value.selection,
+                                        isUp = true,
+                                        isShiftPressed = keyEvent.isShiftPressed,
+                                    )
+                                currentOnValueChange.value(
+                                    currentValue.value.copy(selection = newSelection),
+                                )
+                                true
+                            } else if (currentValue.value.selection.collapsed &&
+                                currentValue.value.selection.start == 0 &&
+                                !keyEvent.isShiftPressed
+                            ) {
+                                true
+                            } else {
+                                false
+                            }
+                        }
+
+                        Key.DirectionDown -> {
+                            if (currentHorizontalScrollState.value != null) {
+                                val newSelection =
+                                    calculateVerticalCursorMovement(
+                                        text = currentValue.value.text,
+                                        selection = currentValue.value.selection,
+                                        isUp = false,
+                                        isShiftPressed = keyEvent.isShiftPressed,
+                                    )
+                                currentOnValueChange.value(
+                                    currentValue.value.copy(selection = newSelection),
+                                )
+                                true
+                            } else if (currentValue.value.selection.collapsed &&
+                                currentValue.value.selection.start == currentValue.value.text.length &&
+                                !keyEvent.isShiftPressed
+                            ) {
+                                true
+                            } else {
+                                false
+                            }
+                        }
+
+                        Key.DirectionLeft -> {
+                            if (currentValue.value.selection.collapsed &&
+                                currentValue.value.selection.start == 0 &&
+                                !keyEvent.isShiftPressed
+                            ) {
+                                true
+                            } else {
+                                false
+                            }
+                        }
+
+                        Key.DirectionRight -> {
+                            val textLen = currentValue.value.text.length
+                            if (currentValue.value.selection.collapsed &&
+                                currentValue.value.selection.start == textLen &&
+                                !keyEvent.isShiftPressed
+                            ) {
+                                true
+                            } else {
+                                false
+                            }
+                        }
+
                         else -> {
                             false
                         }
@@ -389,6 +459,90 @@ public fun SyntaxHighlightedTextEditor(
                     .then(scrollModifier)
                     .padding(contentPadding),
         )
+    }
+}
+
+/**
+ * Calculates the new [TextRange] cursor selection when navigating vertically (Up/Down) through
+ * multiline text delimited by `\n`.
+ *
+ * When horizontal scrolling is enabled, [BasicTextField] is measured with infinite horizontal
+ * constraints, which breaks native vertical arrow-key cursor traversal. This helper calculates
+ * the target column on the adjacent line (or start/end boundaries) to allow manual navigation
+ * and prevent focus from escaping to external UI components.
+ *
+ * @param text The full document text.
+ * @param selection The current cursor selection/range.
+ * @param isUp `true` when moving up, `false` when moving down.
+ * @param isShiftPressed `true` if Shift is held (selection expansion), `false` for caret movement.
+ */
+internal fun calculateVerticalCursorMovement(
+    text: String,
+    selection: TextRange,
+    isUp: Boolean,
+    isShiftPressed: Boolean,
+): TextRange {
+    if (text.isEmpty()) {
+        return TextRange.Zero
+    }
+
+    // Determine the active caret offset that is moving
+    val activeOffset =
+        if (isShiftPressed) {
+            selection.end
+        } else {
+            if (isUp) selection.min else selection.max
+        }.coerceIn(0, text.length)
+
+    // Find the start of the current line (first character after the previous '\n', or 0)
+    var lineStart = activeOffset - 1
+    while (lineStart >= 0 && text[lineStart] != '\n') {
+        lineStart--
+    }
+    lineStart++ // Move past '\n' or to index 0
+
+    // Find the end of the current line (index of '\n' or text.length)
+    var lineEnd = activeOffset
+    while (lineEnd < text.length && text[lineEnd] != '\n') {
+        lineEnd++
+    }
+
+    val column = activeOffset - lineStart
+
+    val newOffset =
+        if (isUp) {
+            if (lineStart == 0) {
+                // Already on the first line: move to index 0 (start of line / document)
+                0
+            } else {
+                val prevLineEnd = lineStart - 1
+                var prevLineStart = prevLineEnd - 1
+                while (prevLineStart >= 0 && text[prevLineStart] != '\n') {
+                    prevLineStart--
+                }
+                prevLineStart++
+                val prevLineLength = prevLineEnd - prevLineStart
+                prevLineStart + minOf(column, prevLineLength)
+            }
+        } else {
+            if (lineEnd == text.length) {
+                // Already on the last line: move to end of document
+                text.length
+            } else {
+                val nextLineStart = lineEnd + 1
+                var nextLineEnd = nextLineStart
+                while (nextLineEnd < text.length && text[nextLineEnd] != '\n') {
+                    nextLineEnd++
+                }
+                val nextLineLength = nextLineEnd - nextLineStart
+                nextLineStart + minOf(column, nextLineLength)
+            }
+        }
+
+    return if (isShiftPressed) {
+        TextRange(start = selection.start, end = newOffset)
+    } else {
+        TextRange(newOffset)
     }
 }
 
