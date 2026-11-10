@@ -128,6 +128,9 @@ import dev.hossain.highlight.engine.HighlightTheme
  * @param modifier Modifier applied to the outer [Surface] container (background, border, size, etc.).
  *   Do **not** include padding here - use [contentPadding] instead. Padding applied via [modifier]
  *   would shrink the Surface layout area, leaving a gap between the border and the theme background.
+ *   Because this modifier is applied to the outer container rather than directly to the inner
+ *   [BasicTextField], callers observing focus changes via `Modifier.onFocusChanged { state -> ... }`
+ *   should check `state.hasFocus` (whether any child has focus) rather than `state.isFocused`.
  * @param contentPadding Padding applied *inside* the [Surface], between the background edge and
  *   the text. Defaults to [PaddingValues] of 0.dp (no padding). Use this instead of adding
  *   `.padding()` to [modifier] so the theme background fills the full bordered area.
