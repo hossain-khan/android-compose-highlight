@@ -26,6 +26,9 @@ Full API in Dokka:
 - `value` and `onValueChange` - editor state and updates.
 - `language` - highlight.js language id.
 - `theme` - explicit theme or value from `HighlightThemeProvider`.
+- `modifier` - container modifier applied to the outer `Surface`. Because this modifier is applied
+  to the outer container rather than directly to the inner text field, callers observing focus changes
+  via `Modifier.onFocusChanged { state -> ... }` should check `state.hasFocus` rather than `state.isFocused`.
 - `debounceMs` - typing pause before highlight call.
 - `contentPadding` and `shape` - layout and clipping of editor surface.
 - `horizontalScrollState` and `verticalScrollState` - hoisted scroll states for horizontal and

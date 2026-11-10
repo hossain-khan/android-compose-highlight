@@ -11,6 +11,12 @@ All notable changes to this project will be documented in this file.
   search. Added interactive single-page HTML report (`resources/consumer-report/index.html`), structured JSON snapshot
   (`resources/consumer-report/data.json`), and comprehensive guide (`resources/CONSUMER_USAGE_GUIDE.md`).
 
+### Documentation
+
+- **Documented focus observation pattern in SyntaxHighlightedTextEditor** - Clarified in KDoc and reference docs
+  that `modifier` is attached to the outer `Surface` container, so callers observing focus via `onFocusChanged`
+  should inspect `state.hasFocus` rather than `state.isFocused`.
+
 ## [0.41.1] - 2026-11-06
 
 ### Fixed
