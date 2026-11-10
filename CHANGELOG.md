@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+
+- **Automated consumer usage report and tracking tool** - Added `scripts/generate-consumer-report.py` to identify
+  external and first-party applications consuming `dev.hossain:compose-highlight` across GitHub via multi-vector code
+  search. Added interactive single-page HTML report (`resources/consumer-report/index.html`), structured JSON snapshot
+  (`resources/consumer-report/data.json`), and comprehensive guide (`resources/CONSUMER_USAGE_GUIDE.md`).
+
 ## [0.41.1] - 2026-11-06
 
 ### Fixed

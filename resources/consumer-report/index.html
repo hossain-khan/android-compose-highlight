@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Consumer Usage Report - compose-highlight</title>
+<style>
+  :root {
+    --bg: #ffffff;
+    --bg-card: #f8f9fa;
+    --bg-card-hover: #f1f3f5;
+    --border: #e5e7eb;
+    --text-primary: #111827;
+    --text-secondary: #4b5563;
+    --text-muted: #6b7280;
+    --accent: #2563eb;
+    --accent-hover: #1d4ed8;
+    --accent-light: #eff6ff;
+    --badge-bg: #e0f2fe;
+    --badge-text: #0369a1;
+    --success-bg: #dcfce7;
+    --success-text: #15803d;
+    --pill-bg: #f3f4f6;
+    --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --font-mono: "SF Mono", "Fira Code", Menlo, Consolas, monospace;
+    --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+    --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0d1117;
+      --bg-card: #161b22;
+      --bg-card-hover: #1f242c;
+      --border: #30363d;
+      --text-primary: #f0f6fc;
+      --text-secondary: #8b949e;
+      --text-muted: #6e7681;
+      --accent: #58a6ff;
+      --accent-hover: #79c0ff;
+      --accent-light: rgba(56, 139, 253, 0.15);
+      --badge-bg: rgba(56, 139, 253, 0.2);
+      --badge-text: #79c0ff;
+      --success-bg: rgba(46, 160, 67, 0.2);
+      --success-text: #3fb950;
+      --pill-bg: #21262d;
+      --shadow: 0 1px 3px rgba(0,0,0,0.4);
+      --shadow-md: 0 4px 8px rgba(0,0,0,0.5);
+    }
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--font-sans);
+    background: var(--bg);
+    color: var(--text-primary);
+    line-height: 1.6;
+    padding: 32px 20px 80px;
+    max-width: 1200px;
+    margin: 0 auto;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  header {
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 24px;
+    margin-bottom: 32px;
+  }
+
+  .badge-library {
+    display: inline-block;
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    background: var(--accent-light);
+    color: var(--accent);
+    padding: 3px 10px;
+    border-radius: 9999px;
+    margin-bottom: 12px;
+  }
+
+  h1 {
+    font-size: 2.2rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+  }
+
+  .subtitle {
+    font-size: 1.05rem;
+    color: var(--text-secondary);
+    max-width: 800px;
+  }
+
+  .meta-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 16px;
+    margin-top: 14px;
+    font-size: 0.88rem;
+    color: var(--text-muted);
+  }
+
+  .meta-bar a {
+    color: var(--accent);
+    text-decoration: none;
+  }
+  .meta-bar a:hover { text-decoration: underline; }
+
+  /* Metric cards */
+  .metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+    margin-bottom: 36px;
+  }
+
+  .metric-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: var(--shadow);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .metric-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+  }
+
+  .metric-label {
+    font-size: 0.82rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+  }
+
+  .metric-value {
+    font-size: 2.1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    line-height: 1.2;
+  }
+
+  .metric-sub {
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+    margin-top: 4px;
+  }
+
+  /* Featured Callout Banner */
+  .featured-banner {
+    background: linear-gradient(135deg, var(--accent-light) 0%, var(--bg-card) 100%);
+    border: 1px solid var(--accent);
+    border-radius: 12px;
+    padding: 24px 28px;
+    margin-bottom: 36px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .featured-content {
+    max-width: 800px;
+  }
+
+  .featured-badge {
+    display: inline-block;
+    font-size: 0.72rem;
+    font-weight: 700;
+    background: var(--accent);
+    color: #fff;
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin-bottom: 8px;
+  }
+
+  .featured-title {
+    font-size: 1.35rem;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+
+  .featured-desc {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+  }
+
+  .featured-stats {
+    display: flex;
+    gap: 20px;
+    text-align: right;
+  }
+
+  .featured-stat-val {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--accent);
+  }
+  .featured-stat-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  /* Filter and Controls Toolbar */
+  .toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 24px;
+    padding: 14px 18px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+
+  .filter-tabs {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .tab-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-size: 0.88rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .tab-btn:hover {
+    background: var(--bg-card-hover);
+    color: var(--text-primary);
+  }
+
+  .tab-btn.active {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+  }
+
+  .search-box {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .search-input {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text-primary);
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 0.88rem;
+    width: 240px;
+    outline: none;
+  }
+  .search-input:focus {
+    border-color: var(--accent);
+  }
+
+  .sort-select {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text-primary);
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 0.88rem;
+    outline: none;
+    cursor: pointer;
+  }
+
+  /* Consumer Table */
+  .table-container {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow-x: auto;
+    background: var(--bg-card);
+    box-shadow: var(--shadow);
+    margin-bottom: 40px;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.92rem;
+    text-align: left;
+  }
+
+  th {
+    background: var(--pill-bg);
+    color: var(--text-muted);
+    font-weight: 600;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+
+  td {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+
+  tr:last-child td {
+    border-bottom: none;
+  }
+
+  tr:hover td {
+    background: var(--bg-card-hover);
+  }
+
+  .repo-title-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 4px;
+  }
+
+  .repo-name {
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 0.98rem;
+  }
+
+  .repo-link {
+    color: var(--accent);
+    text-decoration: none;
+  }
+  .repo-link:hover { text-decoration: underline; }
+
+  .repo-desc {
+    font-size: 0.84rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    max-width: 480px;
+  }
+
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .badge-3rd {
+    background: var(--success-bg);
+    color: var(--success-text);
+  }
+
+  .badge-first {
+    background: var(--badge-bg);
+    color: var(--badge-text);
+  }
+
+  .badge-version {
+    background: var(--pill-bg);
+    color: var(--text-primary);
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    border: 1px solid var(--border);
+  }
+
+  .badge-stars {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .files-list {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+    max-width: 320px;
+    line-height: 1.4;
+  }
+  .files-list summary {
+    cursor: pointer;
+    color: var(--accent);
+    margin-bottom: 4px;
+    font-family: var(--font-sans);
+  }
+
+  /* Methodology section */
+  .methodology {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 28px;
+    margin-top: 48px;
+  }
+
+  .methodology h2 {
+    font-size: 1.35rem;
+    margin-bottom: 12px;
+  }
+
+  .methodology p {
+    font-size: 0.92rem;
+    color: var(--text-secondary);
+    margin-bottom: 14px;
+  }
+
+  pre {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 12px 16px;
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    overflow-x: auto;
+    margin-bottom: 14px;
+  }
+
+  code {
+    font-family: var(--font-mono);
+    background: var(--pill-bg);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.86em;
+  }
+  pre code {
+    background: transparent;
+    padding: 0;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <span class="badge-library">Ecosystem Report</span>
+  <h1>compose-highlight Adoption & Consumer Report</h1>
+  <p class="subtitle">
+    Comprehensive census of public GitHub repositories and open-source Android applications
+    consuming <code>dev.hossain:compose-highlight</code>.
+  </p>
+  <div class="meta-bar">
+    <span>Generated: <strong>2026-11-10</strong></span>
+    <span>•</span>
+    <span>Target Coordinate: <code>dev.hossain:compose-highlight</code></span>
+    <span>•</span>
+    <a href="https://github.com/hossain-khan/android-compose-highlight" target="_blank">Repository</a>
+    <span>•</span>
+    <a href="https://central.sonatype.com/artifact/dev.hossain/compose-highlight" target="_blank">Maven Central</a>
+  </div>
+</header>
+
+<section class="metrics-grid">
+  <div class="metric-card">
+    <div class="metric-label">Identified Consumers</div>
+    <div class="metric-value">13</div>
+    <div class="metric-sub">5 external • 8 first-party</div>
+  </div>
+  <div class="metric-card">
+    <div class="metric-label">Third-Party Adoption</div>
+    <div class="metric-value">5</div>
+    <div class="metric-sub">Open-source apps & templates</div>
+  </div>
+  <div class="metric-card">
+    <div class="metric-label">Total Consumer Stars</div>
+    <div class="metric-value">15,519</div>
+    <div class="metric-sub">Across all consumer repos</div>
+  </div>
+  <div class="metric-card">
+    <div class="metric-label">Latest Version in Wild</div>
+    <div class="metric-value">0.41.1</div>
+    <div class="metric-sub">Active adoption of recent release</div>
+  </div>
+</section>
+
+<!-- Featured Flagship Consumer Callout -->
+<section class="featured-banner">
+  <div class="featured-content">
+    <span class="featured-badge">Flagship 3rd-Party Consumer</span>
+    <div class="featured-title">T8RIN/ImageToolbox</div>
+    <div class="featured-desc">
+      A massive Android image editor app with <strong>15,500+ stars</strong> on GitHub.
+      ImageToolbox relies on <code>compose-highlight</code> (v0.41.1) to power its interactive
+      <strong>GLSL Shader Studio</strong> and code inspection views via <code>rememberHighlightedCode</code>
+      and custom VisualTransformation integration.
+    </div>
+  </div>
+  <div class="featured-stats">
+    <div>
+      <div class="featured-stat-val">15.5k+</div>
+      <div class="featured-stat-label">Stars</div>
+    </div>
+    <div>
+      <div class="featured-stat-val">v0.41.1</div>
+      <div class="featured-stat-label">Version</div>
+    </div>
+  </div>
+</section>
+
+<!-- Controls Toolbar -->
+<div class="toolbar">
+  <div class="filter-tabs">
+    <button class="tab-btn active" data-filter="all">All (13)</button>
+    <button class="tab-btn" data-filter="3rd-party">3rd-Party (5)</button>
+    <button class="tab-btn" data-filter="first-party">First-Party (8)</button>
+  </div>
+  <div class="search-box">
+    <input type="text" id="searchInput" class="search-input" placeholder="Search repository or keyword...">
+    <select id="sortSelect" class="sort-select">
+      <option value="stars-desc">Sort by Stars</option>
+      <option value="name-asc">Sort by Name</option>
+      <option value="version-desc">Sort by Version</option>
+      <option value="updated-desc">Sort by Last Updated</option>
+    </select>
+  </div>
+</div>
+
+<!-- Main Consumer Table -->
+<div class="table-container">
+  <table>
+    <thead>
+      <tr>
+        <th>Repository</th>
+        <th>Type</th>
+        <th>Stars</th>
+        <th>Version</th>
+        <th>Matched Files & Usage</th>
+      </tr>
+    </thead>
+    <tbody id="tableBody">
+      <!-- Populated dynamically via JS -->
+    </tbody>
+  </table>
+</div>
+
+<!-- Methodology & Reproduction Guide -->
+<section class="methodology">
+  <h2>Discovery Methodology & Reproduction Guide</h2>
+  <p>
+    <strong>Why doesn't GitHub Dependents show these repositories?</strong><br>
+    GitHub's native <code>/network/dependents</code> page only displays dependents when repositories
+    push explicit Dependency Submission snapshots (SBOMs) to GitHub for Maven/Gradle artifacts.
+    Standard Gradle builds resolving from Maven Central are not indexed automatically by GitHub's
+    dependency graph.
+  </p>
+  <p>
+    To solve this, our automated discovery system uses a <strong>multi-vector code search pipeline</strong>:
+  </p>
+  <ul>
+    <li><strong>Vector 1: Maven Coordinates</strong> - searches for <code>dev.hossain:compose-highlight</code> across all build files and catalogs.</li>
+    <li><strong>Vector 2: Package Imports</strong> - searches for <code>import dev.hossain.highlight</code> across Kotlin/Java source files.</li>
+    <li><strong>Vector 3: Version Catalogs</strong> - searches for <code>compose-highlight</code> in TOML version catalogs.</li>
+  </ul>
+  <p style="margin-top: 14px;"><strong>How to refresh this report:</strong></p>
+  <pre><code># Re-run live discovery against GitHub using gh CLI
+python3 scripts/generate-consumer-report.py --refresh
+
+# View report in your browser
+open resources/consumer-report/index.html</code></pre>
+</section>
+
+<script>
+  const consumers = [{"repo": "T8RIN/ImageToolbox", "title": "Image Toolbox", "url": "https://github.com/T8RIN/ImageToolbox", "description": "\ud83d\uddbc\ufe0f Image Toolbox is a powerful app for advanced image manipulation. It offers dozens of features, from basic tools like crop and draw to filters, OCR, and a wide range of image processing options", "category": "Third-Party App", "category_group": "3rd-party", "stars": 15503, "forks": 668, "open_issues": 2, "license": "Apache-2.0", "language": "Kotlin", "detected_version": "0.41.1", "version_file": "gradle/libs.versions.toml", "files_count": 6, "files": ["feature/code-preview/src/main/java/com/t8rin/imagetoolbox/feature/code_preview/presentation/components/CodeHighlight.kt", "feature/code-preview/src/main/java/com/t8rin/imagetoolbox/feature/code_preview/presentation/model/CodePreviewTheme.kt", "feature/code-preview/src/main/java/com/t8rin/imagetoolbox/feature/code_preview/presentation/screenLogic/CodePreviewComponent.kt", "feature/shader-studio/src/main/java/com/t8rin/imagetoolbox/feature/shader_studio/presentation/ShaderStudioContent.kt", "feature/shader-studio/src/main/java/com/t8rin/imagetoolbox/feature/shader_studio/presentation/components/ShaderPresetEditor.kt", "gradle/libs.versions.toml"], "highlight": "Flagship 15,500+ star image manipulation tool for Android. Uses compose-highlight for live GLSL shader editing in Shader Studio and code preview.", "verified_usage": "Uses rememberHighlightedCode and custom VisualTransformation in Shader Studio and Code Preview components.", "updated_at": "2026-11-10T01:07:32Z", "pushed_at": "2026-11-10T00:50:16Z", "avatar_url": "https://avatars.githubusercontent.com/u/52178347?v=4"}, {"repo": "mouse0329/nezumi-ai", "title": "Nezumi AI", "url": "https://github.com/mouse0329/nezumi-ai", "description": "Offline Android AI chat app focused on privacy.", "category": "Third-Party App", "category_group": "3rd-party", "stars": 3, "forks": 0, "open_issues": 7, "license": "NOASSERTION", "language": "Kotlin", "detected_version": "0.40.0", "version_file": "app/build.gradle.kts", "files_count": 2, "files": ["app/build.gradle.kts", "app/src/main/java/com/nezumi_ai/presentation/ui/composable/LatexText.kt"], "highlight": "Privacy-focused offline Android AI chat application. Uses HighlightThemeProvider and SyntaxHighlightedCode to render markdown code responses.", "verified_usage": "Renders code blocks inside LatexText composable with HighlightThemeProvider and SyntaxHighlightedCode.", "updated_at": "2026-11-06T04:17:28Z", "pushed_at": "2026-11-06T04:17:24Z", "avatar_url": "https://avatars.githubusercontent.com/u/158145318?v=4"}, {"repo": "jasongzy/s3pocket", "title": "S3 Pocket", "url": "https://github.com/jasongzy/s3pocket", "description": "A modern, native Android client for accessing S3-compatible object storage services anywhere / \u4e00\u6b3e\u73b0\u4ee3\u5316\u7684\u539f\u751f Android \u5bf9\u8c61\u5b58\u50a8\u5ba2\u6237\u7aef\uff0c\u53ef\u4ee5\u968f\u65f6\u968f\u5730\u8bbf\u95ee Amazon S3\u3001Cloudflare R2 \u53ca\u5176\u4ed6\u517c\u5bb9 S3 \u7684\u5bf9\u8c61\u5b58\u50a8\u670d\u52a1", "category": "Third-Party App", "category_group": "3rd-party", "stars": 0, "forks": 0, "open_issues": 0, "license": "Apache-2.0", "language": "Kotlin", "detected_version": "0.32.0", "version_file": "gradle/libs.versions.toml", "files_count": 3, "files": ["app/src/main/java/com/jasongzy/s3pocket/MainActivity.kt", "app/src/main/java/com/jasongzy/s3pocket/ui/ObjectDetailsScreen.kt", "gradle/libs.versions.toml"], "highlight": "Native Android client for S3-compatible cloud storage. Uses compose-highlight to display syntax-highlighted previews of stored code files.", "verified_usage": "Uses rememberHighlightedCode in ObjectDetailsScreen to preview text/code objects stored in S3.", "updated_at": "2026-10-25T13:04:29Z", "pushed_at": "2026-10-25T13:05:06Z", "avatar_url": "https://avatars.githubusercontent.com/u/29547287?v=4"}, {"repo": "musabadru/HiJean", "title": "HiJean", "url": "https://github.com/musabadru/HiJean", "description": "Islamic Android application built with modern Jetpack Compose architecture.", "category": "Third-Party App", "category_group": "3rd-party", "stars": 0, "forks": 0, "open_issues": 5, "license": "MIT", "language": "Kotlin", "detected_version": "0.32.0", "version_file": "gradle/libs.versions.toml", "files_count": 1, "files": ["gradle/libs.versions.toml"], "highlight": "Islamic Android application built with modern Jetpack Compose architecture.", "verified_usage": "Declares compose-highlight in gradle/libs.versions.toml version catalog.", "updated_at": "2026-07-27T13:00:40Z", "pushed_at": "2026-07-27T12:59:52Z", "avatar_url": "https://avatars.githubusercontent.com/u/64871730?v=4"}, {"repo": "musabadru/android-compose-template", "title": "Android Compose Template", "url": "https://github.com/musabadru/android-compose-template", "description": "Modern Jetpack Compose Android app template (dynamic theming, DI, navigation, DataStore) stripped down from ImageToolbox", "category": "Third-Party Template", "category_group": "3rd-party", "stars": 0, "forks": 0, "open_issues": 5, "license": "MIT", "language": "Kotlin", "detected_version": "0.32.0", "version_file": "gradle/libs.versions.toml", "files_count": 1, "files": ["gradle/libs.versions.toml"], "highlight": "Modern Jetpack Compose application starter template with dynamic features and modular architecture.", "verified_usage": "Recommends and includes compose-highlight in gradle/libs.versions.toml version catalog.", "updated_at": "2026-07-15T21:52:53Z", "pushed_at": "2026-07-17T10:38:00Z", "avatar_url": "https://avatars.githubusercontent.com/u/64871730?v=4"}, {"repo": "hossain-khan/android-remote-notify", "title": "Remote Notify", "url": "https://github.com/hossain-khan/android-remote-notify", "description": "A simple app that remotely notifies about specific device diagnostics so that you can take action.", "category": "First-Party App", "category_group": "first-party", "stars": 8, "forks": 1, "open_issues": 2, "license": "MIT", "language": "Kotlin", "detected_version": "0.32.0", "version_file": "gradle/libs.versions.toml", "files_count": 3, "files": ["app/src/main/java/dev/hossain/remotenotify/ui/alertmediumconfig/ConfigureNotificationMediumScreen.kt", "gradle/libs.versions.toml", "project-resources/google-play/release-notes.md"], "highlight": "Remote notification utility app published on Google Play with JSON syntax highlighting for notification payloads.", "verified_usage": "Uses compose-highlight in ConfigureNotificationMediumScreen to highlight alert payload configurations.", "updated_at": "2026-08-19T11:29:25Z", "pushed_at": "2026-08-19T11:28:17Z", "avatar_url": "https://avatars.githubusercontent.com/u/99822?v=4"}, {"repo": "hossain-khan/android-syntax-highlighter-compose", "title": "Syntax Highlighter Benchmark", "url": "https://github.com/hossain-khan/android-syntax-highlighter-compose", "description": "Explore different source code syntax highlighting options available in Jetpack Compose", "category": "First-Party Benchmark", "category_group": "first-party", "stars": 5, "forks": 0, "open_issues": 0, "license": "None", "language": "Kotlin", "detected_version": "0.41.0", "version_file": "gradle/libs.versions.toml", "files_count": 6, "files": ["COMPARE.md", "app/src/main/java/dev/hossain/syntaxhighlight/circuit/comparison/ComparisonScreen.kt", "app/src/main/java/dev/hossain/syntaxhighlight/circuit/composehighlight/ComposeHighlightScreen.kt", "gradle/libs.versions.toml", "microbenchmark/apk-impact-analysis/compose-highlight-size-impact.html", "microbenchmark/src/androidTest/java/dev/hossain/benchmark/ComposeHighlightBenchmark.kt"], "highlight": "Interactive benchmarking and comparison suite evaluating compose-highlight against other mobile syntax highlighters.", "verified_usage": "Runs side-by-side performance and APK size comparisons between syntax highlighting approaches.", "updated_at": "2026-11-07T00:54:19Z", "pushed_at": "2026-11-07T00:54:49Z", "avatar_url": "https://avatars.githubusercontent.com/u/99822?v=4"}, {"repo": "hossain-khan/android-code-with-ai", "title": "CodeMateX", "url": "https://github.com/hossain-khan/android-code-with-ai", "description": "CodeMateX - A simple app that leverages on-device AI model to conversate and learn coding in different programming languages.", "category": "First-Party App", "category_group": "first-party", "stars": 0, "forks": 0, "open_issues": 13, "license": "MIT", "language": "Kotlin", "detected_version": "0.39.0", "version_file": "gradle/libs.versions.toml", "files_count": 12, "files": [".github/code-reviewer.md", "AGENTS.md", "app/src/main/java/dev/hossain/codematex/MainActivity.kt", "app/src/main/java/dev/hossain/codematex/data/model/CodeBlockPreferences.kt", "app/src/main/java/dev/hossain/codematex/ui/component/ChatMessageBubble.kt", "app/src/main/java/dev/hossain/codematex/ui/component/MarkdownMessage.kt", "app/src/main/java/dev/hossain/codematex/ui/screens/chat/ChatMessageViews.kt", "app/src/main/java/dev/hossain/codematex/ui/screens/lessons/LessonScreenUi.kt", "app/src/main/java/dev/hossain/codematex/ui/screens/lessons/snippet/InteractiveSnippetSubUi.kt", "app/src/main/java/dev/hossain/codematex/ui/screens/settings/code/CodeBlockSettingsScreenUi.kt", "docs/DESIGN_GUIDELINES.md", "gradle/libs.versions.toml"], "highlight": "On-device AI coding tutor app for Android leveraging Gemini Nano. Uses compose-highlight to render code blocks in AI chat bubbles and lessons.", "verified_usage": "Uses compose-highlight with multiplatform-markdown-renderer in ChatMessageBubble and LessonScreenUi.", "updated_at": "2026-11-09T23:43:18Z", "pushed_at": "2026-11-09T23:43:15Z", "avatar_url": "https://avatars.githubusercontent.com/u/99822?v=4"}, {"repo": "hossain-khan/android-compose-highlight-test-harness", "title": "Integration Test Harness", "url": "https://github.com/hossain-khan/android-compose-highlight-test-harness", "description": "Test app to ensure android-compose-highlight library works as advertised", "category": "First-Party Test Harness", "category_group": "first-party", "stars": 0, "forks": 0, "open_issues": 0, "license": "None", "language": "Kotlin", "detected_version": "0.41.0", "version_file": "gradle/libs.versions.toml", "files_count": 18, "files": [".github/copilot-instructions.md", "README.md", "app/src/main/java/dev/hossain/highlight/demo/HighlightDemoApp.kt", "app/src/main/java/dev/hossain/highlight/demo/MainActivity.kt", "app/src/main/java/dev/hossain/highlight/demo/circuit/HighlightDemoHomeScreen.kt", "app/src/main/java/dev/hossain/highlight/demo/circuit/highlight/BasicSyntaxHighlightScreen.kt", "app/src/main/java/dev/hossain/highlight/demo/circuit/highlight/EngineDirectScreen.kt", "app/src/main/java/dev/hossain/highlight/demo/circuit/highlight/LanguageApisScreen.kt", "app/src/main/java/dev/hossain/highlight/demo/circuit/highlight/MultiLanguageScreen.kt", "app/src/main/java/dev/hossain/highlight/demo/circuit/highlight/RememberHelpersScreen.kt", "app/src/main/java/dev/hossain/highlight/demo/circuit/highlight/TextEditorScreen.kt", "app/src/main/java/dev/hossain/highlight/demo/circuit/highlight/ThemeDiscoveryScreen.kt", "app/src/main/java/dev/hossain/highlight/demo/circuit/highlight/ThemeVariantsScreen.kt", "app/src/main/java/dev/hossain/highlight/demo/circuit/overlay/AppInfoOverlay.kt", "app/src/main/java/dev/hossain/highlight/demo/data/ExampleAppVersionService.kt", "app/src/main/java/dev/hossain/highlight/demo/di/ComposeAppComponentFactory.kt", "app/src/main/java/dev/hossain/highlight/demo/ui/theme/Type.kt", "gradle/libs.versions.toml"], "highlight": "Dedicated Android integration test harness validating library behavior across different themes, languages, and screen orientations.", "verified_usage": "Houses 14 test screens verifying Compose lifecycle, WebView prewarming, and editor debounce.", "updated_at": "2026-11-07T00:54:38Z", "pushed_at": "2026-11-07T00:54:39Z", "avatar_url": "https://avatars.githubusercontent.com/u/99822?v=4"}, {"repo": "hossain-khan/android-hi-light", "title": "Snippet (HiLight)", "url": "https://github.com/hossain-khan/android-hi-light", "description": "Official demo app for `compose-highlight` library \u2014 a personal code notebook with syntax highlighting, GitHub Gist import, and AI chat.", "category": "First-Party Showcase", "category_group": "first-party", "stars": 0, "forks": 0, "open_issues": 0, "license": "MIT", "language": "Kotlin", "detected_version": "0.41.1", "version_file": "gradle/libs.versions.toml", "files_count": 31, "files": [".github/code-reviewer.md", "AGENTS.md", "CHANGELOG.md", "README.md", "core/highlight/src/main/kotlin/dev/hossain/hilight/core/highlight/ComposeHighlightInfo.kt", "core/highlight/src/main/kotlin/dev/hossain/hilight/core/highlight/catalog/LanguageCatalog.kt", "core/highlight/src/main/kotlin/dev/hossain/hilight/core/highlight/detection/LanguageDetector.kt", "core/highlight/src/main/kotlin/dev/hossain/hilight/core/highlight/prewarm/WebViewPrewarmer.kt", "core/highlight/src/main/kotlin/dev/hossain/hilight/core/highlight/provider/HiLightHighlightProvider.kt", "core/highlight/src/main/kotlin/dev/hossain/hilight/core/highlight/theme/HiLightThemeRegistry.kt", "core/highlight/src/main/kotlin/dev/hossain/hilight/core/highlight/ui/CodeBlock.kt", "core/highlight/src/main/kotlin/dev/hossain/hilight/core/highlight/ui/CodeEditor.kt", "core/highlight/src/main/kotlin/dev/hossain/hilight/core/highlight/ui/StreamingCodeBlock.kt", "core/highlight/src/main/kotlin/dev/hossain/hilight/core/highlight/ui/ThemePalettePreview.kt", "core/highlight/src/test/kotlin/dev/hossain/hilight/core/highlight/ComposeHighlightInfoTest.kt", "feature/settings/src/main/kotlin/dev/hossain/hilight/feature/settings/SettingsUi.kt", "feature/showcase/src/main/kotlin/dev/hossain/hilight/feature/showcase/ShowcaseApiRecipesSheet.kt", "feature/showcase/src/main/kotlin/dev/hossain/hilight/feature/showcase/ShowcaseHeroCard.kt", "feature/showcase/src/main/kotlin/dev/hossain/hilight/feature/showcase/ShowcaseState.kt", "feature/showcase/src/main/kotlin/dev/hossain/hilight/feature/showcase/model/ComposableApiRecipe.kt", "gradle/libs.versions.toml", "project-resources/docs/APP-NAME-IDEAS.md", "project-resources/docs/DEV-GUIDE.md", "project-resources/docs/FEATURES.md", "project-resources/docs/plans/M0-bootstrap.md", "project-resources/docs/plans/M2-presentation-foundation.md", "project-resources/docs/plans/M4-showcase.md", "project-resources/docs/plans/README.md", "project-resources/docs/specs/2026-09-10-hilight-demo-app-design.html", "project-resources/docs/specs/2026-09-10-hilight-demo-app-design.md", "project-resources/google-play/listing/store-listing.txt"], "highlight": "Official flagship demo app and personal code notebook published on Google Play. Features live interactive showcase gallery for all library composables.", "verified_usage": "Deep integration across 33 files; exercises SyntaxHighlightedCode, StreamingSyntaxHighlightedCode, and SyntaxHighlightedTextEditor.", "updated_at": "2026-11-09T06:39:32Z", "pushed_at": "2026-11-09T08:27:27Z", "avatar_url": "https://avatars.githubusercontent.com/u/99822?v=4"}, {"repo": "hossain-khan/hossains-dev-bytes", "title": "Dev Bytes Tech Blog", "url": "https://github.com/hossain-khan/hossains-dev-bytes", "description": "Astro blogging site hosted using Cloudflare workers.", "category": "First-Party Documentation", "category_group": "first-party", "stars": 0, "forks": 0, "open_issues": 1, "license": "MIT", "language": "Astro", "detected_version": "Unknown", "version_file": null, "files_count": 1, "files": ["src/data/blog/syntax-higlighting-library-with-streaming-support-for-llms.mdx"], "highlight": "Technical blog article exploring streaming syntax highlighting architecture for LLMs in Jetpack Compose.", "verified_usage": "Full technical deep dive article on compose-highlight streaming architecture.", "updated_at": "2026-11-06T22:42:08Z", "pushed_at": "2026-11-06T22:42:05Z", "avatar_url": "https://avatars.githubusercontent.com/u/99822?v=4"}, {"repo": "hossain-khan/kids-math-tutor", "title": "Math Pup", "url": "https://github.com/hossain-khan/kids-math-tutor", "description": "\ud83d\udc36 Math Pup - A simple math tutor for kids to help them get better at math!", "category": "First-Party App", "category_group": "first-party", "stars": 0, "forks": 0, "open_issues": 6, "license": "MIT", "language": "Kotlin", "detected_version": "0.32.0", "version_file": "gradle/libs.versions.toml", "files_count": 2, "files": ["app/src/main/java/dev/hossain/mathtutor/ui/importchallenge/ImportChallengeUi.kt", "gradle/libs.versions.toml"], "highlight": "Educational Android math tutor app for children with code import challenge UI.", "verified_usage": "Uses compose-highlight in ImportChallengeUi.", "updated_at": "2026-10-17T20:00:42Z", "pushed_at": "2026-11-05T22:48:07Z", "avatar_url": "https://avatars.githubusercontent.com/u/99822?v=4"}, {"repo": "hossain-khan/neon", "title": "Neon (KMP)", "url": "https://github.com/hossain-khan/neon", "description": "Syntax highlighting for Kotlin Multiplatform", "category": "First-Party Research", "category_group": "first-party", "stars": 0, "forks": 0, "open_issues": 0, "license": "MIT", "language": "Kotlin", "detected_version": "Unknown", "version_file": null, "files_count": 1, "files": ["project-resources/prd/KMP_PLAN.md"], "highlight": "Next-generation Kotlin Multiplatform syntax highlighting project planning backward-compatible migration.", "verified_usage": "PRD documents migration and architectural lineage from android-compose-highlight.", "updated_at": "2026-07-01T02:05:52Z", "pushed_at": "2026-06-21T05:09:27Z", "avatar_url": "https://avatars.githubusercontent.com/u/99822?v=4"}];
+  let activeFilter = 'all';
+  let searchTerm = '';
+  let sortBy = 'stars-desc';
+
+  function renderTable() {
+    const tbody = document.getElementById('tableBody');
+    let list = consumers.filter(c => {
+      if (activeFilter !== 'all' && c.category_group !== activeFilter) return false;
+      if (searchTerm) {
+        const term = searchTerm.toLowerCase();
+        const matchesName = c.repo.toLowerCase().includes(term);
+        const matchesTitle = (c.title || '').toLowerCase().includes(term);
+        const matchesDesc = (c.description || '').toLowerCase().includes(term);
+        const matchesVer = (c.detected_version || '').toLowerCase().includes(term);
+        if (!matchesName && !matchesTitle && !matchesDesc && !matchesVer) return false;
+      }
+      return true;
+    });
+
+    list.sort((a, b) => {
+      if (sortBy === 'stars-desc') return b.stars - a.stars;
+      if (sortBy === 'name-asc') return a.repo.localeCompare(b.repo);
+      if (sortBy === 'version-desc') return (b.detected_version || '').localeCompare(a.detected_version || '');
+      if (sortBy === 'updated-desc') return (b.pushed_at || '').localeCompare(a.pushed_at || '');
+      return 0;
+    });
+
+    if (list.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:32px; color:var(--text-muted);">No matching repositories found.</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = list.map(c => {
+      const typeBadge = c.category_group === '3rd-party'
+        ? '<span class="badge badge-3rd">' + c.category + '</span>'
+        : '<span class="badge badge-first">' + c.category + '</span>';
+
+      const filesPreview = c.files.slice(0, 3).map(f => `<div>• ${f}</div>`).join('');
+      const moreFiles = c.files.length > 3
+        ? `<details class="files-list"><summary>+${c.files.length - 3} more files</summary>` +
+          c.files.slice(3).map(f => `<div>• ${f}</div>`).join('') + `</details>`
+        : '';
+
+      const verText = c.detected_version !== 'Unknown'
+        ? `<span class="badge badge-version">v${c.detected_version}</span>`
+        : '<span class="badge badge-version" style="opacity:0.6;">Unknown</span>';
+
+      return `
+        <tr>
+          <td>
+            <div class="repo-title-row">
+              <a class="repo-name repo-link" href="${c.url}" target="_blank">${c.repo}</a>
+            </div>
+            <div class="repo-desc">${c.description || ''}</div>
+          </td>
+          <td>${typeBadge}</td>
+          <td>
+            <span class="badge-stars">⭐ ${c.stars.toLocaleString()}</span>
+          </td>
+          <td>${verText}</td>
+          <td>
+            <div class="files-list">
+              ${filesPreview}
+              ${moreFiles}
+            </div>
+          </td>
+        </tr>
+      `;
+    }).join('');
+  }
+
+  // Filter tab events
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      activeFilter = btn.dataset.filter;
+      renderTable();
+    });
+  });
+
+  // Search input events
+  document.getElementById('searchInput').addEventListener('input', (e) => {
+    searchTerm = e.target.value;
+    renderTable();
+  });
+
+  // Sort events
+  document.getElementById('sortSelect').addEventListener('change', (e) => {
+    sortBy = e.target.value;
+    renderTable();
+  });
+
+  // Initial render
+  renderTable();
+</script>
+
+</body>
+</html>

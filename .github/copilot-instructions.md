@@ -296,6 +296,8 @@ dev.hossain:compose-highlight:<version>
 
 **Upgrading bundled highlight.js or themes** - to upgrade the bundled highlight.js library, test fixtures, and sample app themes, run `./scripts/upgrade-hljs.sh <version>`. To refresh themes only, run `./scripts/refresh-sample-themes.sh <version>`. See [`resources/updating-hljs-themes.md`](../resources/updating-hljs-themes.md).
 
+**Checking library usage across GitHub** - to identify external applications and repositories consuming `dev.hossain:compose-highlight`, run `python3 scripts/generate-consumer-report.py --refresh`. This generates an interactive single-page HTML report (`resources/consumer-report/index.html`) and markdown summary (`resources/consumer-report/README.md`). See [`resources/CONSUMER_USAGE_GUIDE.md`](../resources/CONSUMER_USAGE_GUIDE.md).
+
 **Writing style - never use the em dash `-` character** in commit messages, code comments, KDoc, CHANGELOG entries, or any other text. Use a regular hyphen/minus `-` instead.
 
 ## Reference docs authoring
