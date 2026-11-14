@@ -2,7 +2,7 @@
 [![codecov](https://codecov.io/github/hossain-khan/android-compose-highlight/graph/badge.svg?token=MHCCHQVSLX)](https://codecov.io/github/hossain-khan/android-compose-highlight)
 [![release](https://badgen.net/github/release/hossain-khan/android-compose-highlight?icon=github&color=purple)](https://github.com/hossain-khan/android-compose-highlight/releases/latest)
 [![Maven Central](https://img.shields.io/maven-central/v/dev.hossain/compose-highlight?color=brown)](https://central.sonatype.com/artifact/dev.hossain/compose-highlight)
-[![Android Weekly](https://androidweekly.net/issues/issue-727/badge)](https://androidweekly.net/issues/issue-727)
+[![Android Weekly](https://androidweekly.net/issues/issue-727/badge)](https://androidweekly.net/issues/issue-727) [![Downloads for dev.hossain.codesnippet](https://playbadges.pavi2410.com/badge/downloads?id=dev.hossain.codesnippet&pretty)](https://play.google.com/store/apps/details?id=dev.hossain.codesnippet&pcampaignid=web_share)
 
 # <img src="docs/assets/images/logo-plain.png" height="26" alt="Compose Code Highlight Logo"> Compose Highlight for Android
 
