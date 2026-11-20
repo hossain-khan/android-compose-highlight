@@ -2,10 +2,12 @@ package dev.hossain.highlight.engine.internal
 
 import android.content.Context
 import android.webkit.RenderProcessGoneDetail
+import android.webkit.WebView
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.google.common.truth.Truth.assertThat
 import dev.hossain.highlight.engine.HighlightException
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
@@ -81,7 +83,7 @@ class WebViewManagerRendererGoneTest {
             val client = Shadows.shadowOf(webView).webViewClient ?: error("WebViewClient is null")
 
             val readyDeferred =
-                async(start = kotlinx.coroutines.CoroutineStart.UNDISPATCHED) {
+                async(start = CoroutineStart.UNDISPATCHED) {
                     try {
                         manager.getReadyWebView()
                         null
@@ -170,7 +172,7 @@ class WebViewManagerRendererGoneTest {
             ShadowLooper.idleMainLooper()
 
             // Construct an unrelated WebView
-            val staleWebView = android.webkit.WebView(context)
+            val staleWebView = WebView(context)
             val handled = client.onRenderProcessGone(staleWebView, createDetail(didCrash = true))
 
             assertThat(handled).isTrue()

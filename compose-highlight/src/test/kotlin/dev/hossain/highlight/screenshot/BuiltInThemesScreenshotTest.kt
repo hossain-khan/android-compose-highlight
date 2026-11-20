@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.test.junit4.v2.createComposeRule
@@ -100,8 +101,8 @@ class BuiltInThemesScreenshotTest {
  * block is a deterministic, neutral color instead of transparent (which would render as
  * whatever Skia defaults to and produce noisy diffs).
  */
-@androidx.compose.runtime.Composable
-internal fun ScreenshotScaffold(content: @androidx.compose.runtime.Composable () -> Unit) {
+@Composable
+internal fun ScreenshotScaffold(content: @Composable () -> Unit) {
     MaterialTheme {
         Surface(
             modifier = Modifier.fillMaxWidth(),

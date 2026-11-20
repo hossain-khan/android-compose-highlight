@@ -8,6 +8,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.StateRestorationTester
@@ -26,12 +28,14 @@ import dev.hossain.highlight.engine.HighlightTheme
 import dev.hossain.highlight.engine.ThemedHighlightResult
 import dev.hossain.highlight.ui.internal.LocalHighlightEngine
 import kotlinx.coroutines.runBlocking
+import org.json.JSONObject
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.Shadows
 import org.robolectric.annotation.Config
 import org.robolectric.shadows.ShadowLooper
+import java.io.IOException
 
 @RunWith(AndroidJUnit4::class)
 @Config(sdk = [30])
@@ -272,7 +276,7 @@ class SyntaxHighlightedCodeRobolectricTest {
         var capturedEngine: HighlightEngine? = null
 
         composeTestRule.setContent {
-            val context = androidx.compose.ui.platform.LocalContext.current
+            val context = LocalContext.current
             val engine =
                 androidx.compose.runtime.remember {
                     HighlightEngine(context.applicationContext).also { capturedEngine = it }
@@ -334,7 +338,7 @@ class SyntaxHighlightedCodeRobolectricTest {
                     language = "kotlin",
                     scrollState = state,
                     modifier =
-                        androidx.compose.ui.Modifier
+                        Modifier
                             .width(100.dp),
                 )
             }
@@ -505,7 +509,7 @@ class SyntaxHighlightedCodeRobolectricTest {
         var capturedEngine: HighlightEngine? = null
 
         composeTestRule.setContent {
-            val context = androidx.compose.ui.platform.LocalContext.current
+            val context = LocalContext.current
             val missingTheme =
                 androidx.compose.runtime.remember {
                     HighlightTheme.fromAsset(context, "does/not/exist.css", "missing-theme")
@@ -547,7 +551,7 @@ class SyntaxHighlightedCodeRobolectricTest {
                     put("html", "<span class=\"hljs-keyword\">val</span> x = 42")
                     put("language", "kotlin")
                 }.toString()
-        requireNotNull(jsCallback).onReceiveValue(org.json.JSONObject.quote(resultPayload))
+        requireNotNull(jsCallback).onReceiveValue(JSONObject.quote(resultPayload))
         ShadowLooper.idleMainLooper()
         composeTestRule.waitForIdle()
 
@@ -560,7 +564,7 @@ class SyntaxHighlightedCodeRobolectricTest {
         assertThat(errors).hasSize(1)
         val error = errors[0]
         assertThat(error).isInstanceOf(HighlightException.ThemeNotFound::class.java)
-        assertThat(error.cause).isInstanceOf(java.io.IOException::class.java)
+        assertThat(error.cause).isInstanceOf(IOException::class.java)
 
         // Code text remains visible in the UI
         composeTestRule.onNodeWithText("val x = 42").assertIsDisplayed()
@@ -597,12 +601,12 @@ class SyntaxHighlightedCodeRobolectricTest {
             HighlightTheme.fromCss(
                 cssText = ".hljs { background: #123456; }",
                 name = "explicit-theme",
-                backgroundColor = androidx.compose.ui.graphics.Color.Blue,
-                defaultTextColor = androidx.compose.ui.graphics.Color.White,
+                backgroundColor = Color.Blue,
+                defaultTextColor = Color.White,
             )
         assertThat(theme.hasImmediateColors).isTrue()
-        assertThat(theme.safeBackgroundColor()).isEqualTo(androidx.compose.ui.graphics.Color.Blue)
-        assertThat(theme.safeDefaultTextColor()).isEqualTo(androidx.compose.ui.graphics.Color.White)
+        assertThat(theme.safeBackgroundColor()).isEqualTo(Color.Blue)
+        assertThat(theme.safeDefaultTextColor()).isEqualTo(Color.White)
     }
 
     @Test
@@ -611,11 +615,11 @@ class SyntaxHighlightedCodeRobolectricTest {
             HighlightTheme.fromCss(
                 cssText = ".hljs { background: #123456; color: #abcdef; }",
                 name = "partial-theme",
-                backgroundColor = androidx.compose.ui.graphics.Color.Blue,
+                backgroundColor = Color.Blue,
             )
         // Before initialization, background is immediate and text is null (safe fallback)
         assertThat(theme.isColorMapInitialized).isFalse()
-        assertThat(theme.safeBackgroundColor()).isEqualTo(androidx.compose.ui.graphics.Color.Blue)
+        assertThat(theme.safeBackgroundColor()).isEqualTo(Color.Blue)
         assertThat(theme.safeDefaultTextColor()).isNull()
 
         // Force initialization (simulating background engine highlight completion)
@@ -623,7 +627,7 @@ class SyntaxHighlightedCodeRobolectricTest {
 
         // After initialization, text color resolves from colorMap
         assertThat(theme.isColorMapInitialized).isTrue()
-        assertThat(theme.safeBackgroundColor()).isEqualTo(androidx.compose.ui.graphics.Color.Blue)
+        assertThat(theme.safeBackgroundColor()).isEqualTo(Color.Blue)
         assertThat(theme.safeDefaultTextColor()).isEqualTo(
             androidx.compose.ui.graphics
                 .Color(0xFFabcdef.toInt()),

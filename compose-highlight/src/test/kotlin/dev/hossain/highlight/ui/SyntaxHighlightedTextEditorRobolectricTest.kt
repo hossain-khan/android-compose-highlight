@@ -8,6 +8,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.key.KeyEvent
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
@@ -245,9 +246,9 @@ class SyntaxHighlightedTextEditorRobolectricTest {
             .onNode(hasSetTextAction(), useUnmergedTree = true)
             .performKeyPress(
                 KeyEvent(
-                    android.view.KeyEvent(
-                        android.view.KeyEvent.ACTION_DOWN,
-                        android.view.KeyEvent.KEYCODE_TAB,
+                    AndroidKeyEvent(
+                        AndroidKeyEvent.ACTION_DOWN,
+                        AndroidKeyEvent.KEYCODE_TAB,
                     ),
                 ),
             )
@@ -322,9 +323,9 @@ class SyntaxHighlightedTextEditorRobolectricTest {
             .onNode(hasSetTextAction(), useUnmergedTree = true)
             .performKeyPress(
                 KeyEvent(
-                    android.view.KeyEvent(
-                        android.view.KeyEvent.ACTION_DOWN,
-                        android.view.KeyEvent.KEYCODE_TAB,
+                    AndroidKeyEvent(
+                        AndroidKeyEvent.ACTION_DOWN,
+                        AndroidKeyEvent.KEYCODE_TAB,
                     ),
                 ),
             )
@@ -363,9 +364,9 @@ class SyntaxHighlightedTextEditorRobolectricTest {
             .onNode(hasSetTextAction(), useUnmergedTree = true)
             .performKeyPress(
                 KeyEvent(
-                    android.view.KeyEvent(
-                        android.view.KeyEvent.ACTION_DOWN,
-                        android.view.KeyEvent.KEYCODE_TAB,
+                    AndroidKeyEvent(
+                        AndroidKeyEvent.ACTION_DOWN,
+                        AndroidKeyEvent.KEYCODE_TAB,
                     ),
                 ),
             )
@@ -502,9 +503,9 @@ class SyntaxHighlightedTextEditorRobolectricTest {
             .onNode(hasSetTextAction(), useUnmergedTree = true)
             .performKeyPress(
                 KeyEvent(
-                    android.view.KeyEvent(
-                        android.view.KeyEvent.ACTION_DOWN,
-                        android.view.KeyEvent.KEYCODE_ENTER,
+                    AndroidKeyEvent(
+                        AndroidKeyEvent.ACTION_DOWN,
+                        AndroidKeyEvent.KEYCODE_ENTER,
                     ),
                 ),
             )
@@ -545,9 +546,9 @@ class SyntaxHighlightedTextEditorRobolectricTest {
             .onNode(hasSetTextAction(), useUnmergedTree = true)
             .performKeyPress(
                 KeyEvent(
-                    android.view.KeyEvent(
-                        android.view.KeyEvent.ACTION_DOWN,
-                        android.view.KeyEvent.KEYCODE_ENTER,
+                    AndroidKeyEvent(
+                        AndroidKeyEvent.ACTION_DOWN,
+                        AndroidKeyEvent.KEYCODE_ENTER,
                     ),
                 ),
             )
@@ -588,9 +589,9 @@ class SyntaxHighlightedTextEditorRobolectricTest {
             .onNode(hasSetTextAction(), useUnmergedTree = true)
             .performKeyPress(
                 KeyEvent(
-                    android.view.KeyEvent(
-                        android.view.KeyEvent.ACTION_DOWN,
-                        android.view.KeyEvent.KEYCODE_ENTER,
+                    AndroidKeyEvent(
+                        AndroidKeyEvent.ACTION_DOWN,
+                        AndroidKeyEvent.KEYCODE_ENTER,
                     ),
                 ),
             )
@@ -632,9 +633,9 @@ class SyntaxHighlightedTextEditorRobolectricTest {
             .onNode(hasSetTextAction(), useUnmergedTree = true)
             .performKeyPress(
                 KeyEvent(
-                    android.view.KeyEvent(
-                        android.view.KeyEvent.ACTION_DOWN,
-                        android.view.KeyEvent.KEYCODE_TAB,
+                    AndroidKeyEvent(
+                        AndroidKeyEvent.ACTION_DOWN,
+                        AndroidKeyEvent.KEYCODE_TAB,
                     ),
                 ),
             )
@@ -709,9 +710,9 @@ class SyntaxHighlightedTextEditorRobolectricTest {
             .onNode(hasSetTextAction(), useUnmergedTree = true)
             .performKeyPress(
                 KeyEvent(
-                    android.view.KeyEvent(
-                        android.view.KeyEvent.ACTION_DOWN,
-                        android.view.KeyEvent.KEYCODE_ENTER,
+                    AndroidKeyEvent(
+                        AndroidKeyEvent.ACTION_DOWN,
+                        AndroidKeyEvent.KEYCODE_ENTER,
                     ),
                 ),
             )
@@ -744,7 +745,7 @@ class SyntaxHighlightedTextEditorRobolectricTest {
                     onValueChange = {},
                     language = "kotlin",
                     modifier =
-                        androidx.compose.ui.Modifier
+                        Modifier
                             .size(100.dp),
                     horizontalScrollState = horiz,
                     verticalScrollState = vert,
@@ -925,7 +926,7 @@ class SyntaxHighlightedTextEditorRobolectricTest {
     @Test
     fun `composition does not crash when theme asset does not exist`() {
         composeTestRule.setContent {
-            val context = androidx.compose.ui.platform.LocalContext.current
+            val context = LocalContext.current
             val missingTheme =
                 androidx.compose.runtime.remember {
                     HighlightTheme.fromAsset(context, "does/not/exist.css", "missing-theme")

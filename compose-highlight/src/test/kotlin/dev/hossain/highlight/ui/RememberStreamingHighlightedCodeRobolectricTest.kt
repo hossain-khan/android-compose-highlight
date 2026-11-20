@@ -16,6 +16,7 @@ import dev.hossain.highlight.engine.HighlightException
 import dev.hossain.highlight.engine.HighlightResult
 import dev.hossain.highlight.engine.HighlightTheme
 import dev.hossain.highlight.ui.internal.LocalHighlightEngine
+import org.json.JSONObject
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -211,7 +212,7 @@ class RememberStreamingHighlightedCodeRobolectricTest {
                     put("html", "<span class=\"hljs-keyword\">val</span> a = 1\n<span class=\"hljs-keyword\">val</span> b = 2")
                     put("language", "kotlin")
                 }.toString()
-        requireNotNull(jsCallback).onReceiveValue(org.json.JSONObject.quote(resultPayload))
+        requireNotNull(jsCallback).onReceiveValue(JSONObject.quote(resultPayload))
 
         composeTestRule.waitUntil(timeoutMillis = 3000) {
             ShadowLooper.idleMainLooper()
@@ -338,7 +339,7 @@ class RememberStreamingHighlightedCodeRobolectricTest {
                     put("html", "<span class=\"hljs-keyword\">val</span> a = 1\n<span class=\"hljs-keyword\">val</span> b = 2")
                     put("language", "kotlin")
                 }.toString()
-        requireNotNull(firstCallback).onReceiveValue(org.json.JSONObject.quote(successPayload))
+        requireNotNull(firstCallback).onReceiveValue(JSONObject.quote(successPayload))
 
         composeTestRule.waitUntil(timeoutMillis = 3000) {
             ShadowLooper.idleMainLooper()

@@ -22,6 +22,8 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
+import org.json.JSONArray
+import org.json.JSONObject
 import java.io.Closeable
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
@@ -441,7 +443,7 @@ public class HighlightEngine(
                         // evaluateJavascript serializes a JS array to a JSON array string,
                         // e.g. ["kotlin","java",...] - parse with JSONArray.
                         try {
-                            val jsonArray = org.json.JSONArray(rawResult)
+                            val jsonArray = JSONArray(rawResult)
                             val languages =
                                 (0 until jsonArray.length())
                                     .map { jsonArray.getString(it) }
@@ -540,7 +542,7 @@ public class HighlightEngine(
                         Result.success(null)
                     } else {
                         try {
-                            val json = org.json.JSONObject(unescapeJsString(rawResult))
+                            val json = JSONObject(unescapeJsString(rawResult))
                             if (json.optBoolean("error")) {
                                 throw HighlightException.JsExecutionFailed(
                                     RuntimeException("highlight.js error: ${json.optString("message")}"),
@@ -721,7 +723,7 @@ public class HighlightEngine(
             // The result is a JSON-encoded string - strip surrounding quotes and unescape
             val (jsonString, jsonUnescapeDuration) =
                 measureTimedValue { unescapeJsString(rawResult) }
-            val json = org.json.JSONObject(jsonString)
+            val json = JSONObject(jsonString)
             if (json.optBoolean("error")) {
                 throw HighlightException.JsExecutionFailed(
                     RuntimeException("highlight.js error: ${json.optString("message")}"),
@@ -758,7 +760,7 @@ public class HighlightEngine(
         return try {
             val (jsonString, jsonUnescapeDuration) =
                 measureTimedValue { unescapeJsString(rawResult) }
-            val json = org.json.JSONObject(jsonString)
+            val json = JSONObject(jsonString)
             // Check if the JS bridge returned an error object from the try/catch in bridge.html
             if (json.optBoolean("error")) {
                 throw HighlightException.JsExecutionFailed(

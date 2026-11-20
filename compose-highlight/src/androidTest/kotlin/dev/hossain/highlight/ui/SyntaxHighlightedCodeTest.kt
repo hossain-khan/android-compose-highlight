@@ -1,5 +1,6 @@
 package dev.hossain.highlight.ui
 
+import androidx.compose.material3.Text
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -14,6 +15,7 @@ import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.google.common.truth.Truth.assertThat
+import dev.hossain.highlight.engine.HighlightResult
 import dev.hossain.highlight.engine.HighlightTheme
 import org.junit.Rule
 import org.junit.Test
@@ -123,7 +125,7 @@ class SyntaxHighlightedCodeTest {
 
     @Test
     fun onHighlightCompleteCallbackFiresWithCorrectResult() {
-        var capturedResult: dev.hossain.highlight.engine.HighlightResult? = null
+        var capturedResult: HighlightResult? = null
 
         composeTestRule.setContent {
             HighlightThemeProvider(
@@ -191,7 +193,7 @@ class SyntaxHighlightedCodeTest {
                     language = "python",
                     placeholder = { _ ->
                         SideEffect { placeholderComposed = true }
-                        androidx.compose.material3.Text(text = "loading-placeholder")
+                        Text(text = "loading-placeholder")
                     },
                 )
             }
@@ -211,7 +213,7 @@ class SyntaxHighlightedCodeTest {
 
     @Test
     fun placeholderDisappearsAfterHighlightCompletes() {
-        var capturedResult: dev.hossain.highlight.engine.HighlightResult? = null
+        var capturedResult: HighlightResult? = null
         var sawPlaceholderDuringLoading = false
 
         composeTestRule.setContent {
@@ -223,7 +225,7 @@ class SyntaxHighlightedCodeTest {
                     code = sampleCode,
                     language = "python",
                     placeholder = { _ ->
-                        androidx.compose.material3.Text(text = "loading-placeholder")
+                        Text(text = "loading-placeholder")
                     },
                     onHighlightComplete = { result -> capturedResult = result },
                 )

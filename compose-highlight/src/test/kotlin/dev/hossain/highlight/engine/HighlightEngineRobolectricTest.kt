@@ -18,6 +18,7 @@ import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
+import org.json.JSONArray
 import org.json.JSONObject
 import org.junit.After
 import org.junit.Before
@@ -26,6 +27,7 @@ import org.junit.runner.RunWith
 import org.robolectric.Shadows
 import org.robolectric.annotation.Config
 import org.robolectric.shadows.ShadowLooper
+import kotlin.time.Duration
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(AndroidJUnit4::class)
@@ -108,7 +110,7 @@ class HighlightEngineRobolectricTest {
             assertThat(result.isSuccess).isTrue()
             val htmlResult = result.getOrThrow()
             assertThat(htmlResult.html).isEqualTo(expectedHtml)
-            assertThat(htmlResult.jsBridgeDuration).isAtLeast(kotlin.time.Duration.ZERO)
+            assertThat(htmlResult.jsBridgeDuration).isAtLeast(Duration.ZERO)
 
             engine.destroy()
         }
@@ -348,7 +350,7 @@ class HighlightEngineRobolectricTest {
                 JSONObject()
                     .apply {
                         put("name", "Kotlin")
-                        put("aliases", org.json.JSONArray(listOf("kt", "kts")))
+                        put("aliases", JSONArray(listOf("kt", "kts")))
                     }.toString()
             val rawResult = JSONObject.quote(innerJson)
 
