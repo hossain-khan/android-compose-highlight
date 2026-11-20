@@ -8,6 +8,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.StateRestorationTester
@@ -237,7 +238,7 @@ class StreamingSyntaxHighlightedCodeRobolectricTest {
     @Test
     fun `composition does not crash when theme asset does not exist`() {
         composeTestRule.setContent {
-            val context = androidx.compose.ui.platform.LocalContext.current
+            val context = LocalContext.current
             val missingTheme =
                 androidx.compose.runtime.remember {
                     HighlightTheme.fromAsset(context, "does/not/exist.css", "missing-theme")

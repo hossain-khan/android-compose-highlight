@@ -7,6 +7,7 @@ import com.google.common.truth.Truth.assertThat
 import dev.hossain.highlight.engine.HighlightException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
@@ -15,6 +16,7 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
@@ -211,7 +213,7 @@ class WebViewManagerThreadingTest {
     @Test
     fun `destroy during construction leaves no live WebView`() =
         runTest {
-            val testDispatcher = kotlinx.coroutines.test.StandardTestDispatcher(testScheduler)
+            val testDispatcher = StandardTestDispatcher(testScheduler)
             Dispatchers.setMain(testDispatcher)
             try {
                 val manager = WebViewManager(context)
@@ -219,7 +221,7 @@ class WebViewManagerThreadingTest {
                 // Launch initialize undispatched so it runs eagerly until withContext(Dispatchers.Main)
                 // suspends, scheduling the Main-thread construction block without executing it yet.
                 val initJob =
-                    launch(start = kotlinx.coroutines.CoroutineStart.UNDISPATCHED) {
+                    launch(start = CoroutineStart.UNDISPATCHED) {
                         manager.initialize()
                     }
 
@@ -239,7 +241,7 @@ class WebViewManagerThreadingTest {
 
                 // Subsequent initialize after destroy works normally
                 val reinitJob =
-                    launch(start = kotlinx.coroutines.CoroutineStart.UNDISPATCHED) {
+                    launch(start = CoroutineStart.UNDISPATCHED) {
                         manager.initialize()
                     }
                 testScheduler.runCurrent()

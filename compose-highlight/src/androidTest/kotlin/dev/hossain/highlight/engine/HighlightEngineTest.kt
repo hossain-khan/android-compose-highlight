@@ -15,6 +15,7 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.io.Closeable
 
 @RunWith(AndroidJUnit4::class)
 class HighlightEngineTest {
@@ -225,7 +226,7 @@ class HighlightEngineTest {
     @Test
     fun engineImplementsCloseable() {
         // HighlightEngine must implement java.io.Closeable
-        assertThat(engine).isInstanceOf(java.io.Closeable::class.java)
+        assertThat(engine).isInstanceOf(Closeable::class.java)
     }
 
     @Test

@@ -1,6 +1,8 @@
 package dev.hossain.highlight.engine
 
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
 import com.google.common.truth.Truth.assertThat
 import dev.hossain.highlight.engine.internal.ThemeParser
 import org.junit.Test
@@ -333,7 +335,7 @@ class ThemeParserEdgeCasesTest {
         val css = ".hljs-keyword { color: #112233; { nested: value; } font-weight: bold; }"
         val result = ThemeParser.parse(css)
         assertThat(result[HljsSelectors.KEYWORD]?.color).isEqualTo(Color(0xFF112233))
-        assertThat(result[HljsSelectors.KEYWORD]?.fontWeight).isEqualTo(androidx.compose.ui.text.font.FontWeight.Bold)
+        assertThat(result[HljsSelectors.KEYWORD]?.fontWeight).isEqualTo(FontWeight.Bold)
     }
 
     @Test
@@ -353,17 +355,17 @@ class ThemeParserEdgeCasesTest {
             .hljs-number { font-weight: 700; }
             """.trimIndent()
         val result = ThemeParser.parse(css)
-        assertThat(result[HljsSelectors.KEYWORD]?.fontWeight).isEqualTo(androidx.compose.ui.text.font.FontWeight.Normal)
-        assertThat(result[HljsSelectors.STRING]?.fontWeight).isEqualTo(androidx.compose.ui.text.font.FontWeight.Normal)
-        assertThat(result[HljsSelectors.COMMENT]?.fontWeight).isEqualTo(androidx.compose.ui.text.font.FontWeight.Normal)
-        assertThat(result[HljsSelectors.NUMBER]?.fontWeight).isEqualTo(androidx.compose.ui.text.font.FontWeight.Bold)
+        assertThat(result[HljsSelectors.KEYWORD]?.fontWeight).isEqualTo(FontWeight.Normal)
+        assertThat(result[HljsSelectors.STRING]?.fontWeight).isEqualTo(FontWeight.Normal)
+        assertThat(result[HljsSelectors.COMMENT]?.fontWeight).isEqualTo(FontWeight.Normal)
+        assertThat(result[HljsSelectors.NUMBER]?.fontWeight).isEqualTo(FontWeight.Bold)
     }
 
     @Test
     fun `parse handles font-style oblique`() {
         val css = ".hljs-keyword { font-style: oblique; }"
         val result = ThemeParser.parse(css)
-        assertThat(result[HljsSelectors.KEYWORD]?.fontStyle).isEqualTo(androidx.compose.ui.text.font.FontStyle.Italic)
+        assertThat(result[HljsSelectors.KEYWORD]?.fontStyle).isEqualTo(FontStyle.Italic)
     }
 
     @Test
@@ -404,9 +406,9 @@ class ThemeParserEdgeCasesTest {
             .hljs-comment { font-weight: 500; }
             """.trimIndent()
         val result = ThemeParser.parse(css)
-        assertThat(result[HljsSelectors.KEYWORD]?.fontWeight).isEqualTo(androidx.compose.ui.text.font.FontWeight.Bold)
+        assertThat(result[HljsSelectors.KEYWORD]?.fontWeight).isEqualTo(FontWeight.Bold)
         assertThat(result[HljsSelectors.STRING]?.fontWeight).isNull()
-        assertThat(result[HljsSelectors.COMMENT]?.fontWeight).isEqualTo(androidx.compose.ui.text.font.FontWeight.Normal)
+        assertThat(result[HljsSelectors.COMMENT]?.fontWeight).isEqualTo(FontWeight.Normal)
     }
 
     @Test

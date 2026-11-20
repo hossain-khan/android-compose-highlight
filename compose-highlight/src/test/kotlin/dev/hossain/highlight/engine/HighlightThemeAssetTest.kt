@@ -7,9 +7,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.google.common.truth.Truth.assertThat
+import org.junit.Assert.fail
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.annotation.Config
+import java.io.IOException
 
 @RunWith(AndroidJUnit4::class)
 @Config(sdk = [30])
@@ -96,10 +98,10 @@ class HighlightThemeAssetTest {
         val theme = HighlightTheme.fromAsset(context, "nonexistent.css", "bad")
         try {
             theme.colorMap
-            org.junit.Assert.fail("Expected ThemeNotFound but colorMap access succeeded")
+            fail("Expected ThemeNotFound but colorMap access succeeded")
         } catch (e: HighlightException.ThemeNotFound) {
             assertThat(e.message).contains("nonexistent.css")
-            assertThat(e.cause).isInstanceOf(java.io.IOException::class.java)
+            assertThat(e.cause).isInstanceOf(IOException::class.java)
         }
     }
 
@@ -116,7 +118,7 @@ class HighlightThemeAssetTest {
         val theme = HighlightTheme.fromAsset(context, "nonexistent.css", "bad")
         try {
             theme.backgroundColor
-            org.junit.Assert.fail("Expected ThemeNotFound but backgroundColor access succeeded")
+            fail("Expected ThemeNotFound but backgroundColor access succeeded")
         } catch (e: HighlightException.ThemeNotFound) {
             assertThat(e.message).contains("nonexistent.css")
         }
@@ -143,7 +145,7 @@ class HighlightThemeAssetTest {
         val theme = HighlightTheme.fromAsset(context, "empty-theme.css", "empty")
         try {
             theme.colorMap
-            org.junit.Assert.fail("Expected ThemeNotFound but colorMap access succeeded")
+            fail("Expected ThemeNotFound but colorMap access succeeded")
         } catch (e: HighlightException.ThemeNotFound) {
             assertThat(e.message).contains("empty-theme.css")
         }

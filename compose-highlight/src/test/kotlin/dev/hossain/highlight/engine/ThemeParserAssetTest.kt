@@ -7,9 +7,11 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.google.common.truth.Truth.assertThat
 import dev.hossain.highlight.engine.internal.ThemeParser
+import org.junit.Assert.fail
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.annotation.Config
+import java.io.IOException
 
 @RunWith(AndroidJUnit4::class)
 @Config(sdk = [30])
@@ -77,8 +79,8 @@ class ThemeParserAssetTest {
     fun `parseAsset throws IOException for missing file`() {
         try {
             ThemeParser.parseAsset(context, "nonexistent.css")
-            org.junit.Assert.fail("Expected IOException but none was thrown")
-        } catch (e: java.io.IOException) {
+            fail("Expected IOException but none was thrown")
+        } catch (e: IOException) {
             // expected
         }
     }
@@ -105,7 +107,7 @@ class ThemeParserAssetTest {
             }
         try {
             ThemeParser.parse(brokenContext, "tomorrow.css")
-            org.junit.Assert.fail("Expected IllegalStateException to propagate, but the silent overload swallowed it")
+            fail("Expected IllegalStateException to propagate, but the silent overload swallowed it")
         } catch (e: IllegalStateException) {
             assertThat(e).hasMessageThat().contains("simulated non-IO failure")
         }
