@@ -20,7 +20,7 @@ kotlin = "2.4.21"
 kotlinter = "5.7.0"
 leakcanary = "2.14"
 vanniktech-publish = "0.37.0"
-robolectric = "4.17"
+robolectric = "4.18.1"
 roborazzi = "1.79.0"
 truth = "1.4.5"
 
